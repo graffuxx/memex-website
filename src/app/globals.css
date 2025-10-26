@@ -1,26 +1,25 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Unica+One&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-memex: 'Unica One', sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-memex), sans-serif;
+  background-color: #1E1E2F;
+  color: white;
+  min-height: 100vh;
+}
+
+/* Glow-Effekt */
+.glow-box {
+  box-shadow: 0 0 20px rgba(125, 249, 255, 0.6);
+  background: radial-gradient(ellipse at center, rgba(125, 249, 255, 0.1), transparent 80%);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease-in-out;
 }
