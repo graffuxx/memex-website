@@ -1,0 +1,172 @@
+.wrapper {
+  max-width: 900px;
+  margin: 120px auto;
+  padding: 20px 40px;
+  color: white;
+  text-align: center;
+  background: rgba(10, 10, 25, 0.55);
+  border-radius: 24px;
+  border: 1px solid rgba(180, 120, 255, 0.35);
+  box-shadow: 0 0 35px rgba(130, 50, 255, 0.35);
+  backdrop-filter: blur(12px);
+}
+
+.title {
+  font-size: 48px;
+  margin-bottom: 40px;
+  color: #cfa8ff;
+  text-shadow: 0 0 12px rgba(150, 90, 255, 0.8);
+}
+
+.section {
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.section h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: #e7c8ff;
+}
+
+.section p,
+.section ul {
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.section ul {
+  padding-left: 20px;
+}
+
+/* ELEMENT WHEEL */
+
+.elementWheelWrapper {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(190, 150, 255, 0.4);
+  background: radial-gradient(
+    circle at top,
+    rgba(140, 90, 255, 0.35),
+    rgba(10, 10, 25, 0.9)
+  );
+}
+
+.elementWheelTitle {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #f4e7ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.elementWheel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.elementNode {
+  min-width: 100px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.elementEmoji {
+  font-size: 20px;
+}
+
+.elementName {
+  font-weight: 600;
+}
+
+/* Farbgebung pro Element */
+
+.light {
+  background: radial-gradient(circle, #ffe89a, #c58c3b);
+  border-color: rgba(255, 248, 211, 0.9);
+  color: #3b2500;
+}
+
+.dark {
+  background: radial-gradient(circle, #4a1f4a, #150415);
+  border-color: rgba(230, 180, 255, 0.9);
+  color: #f7e7ff;
+}
+
+.water {
+  background: radial-gradient(circle, #6cd6ff, #0b3550);
+  border-color: rgba(195, 240, 255, 0.9);
+  color: #021623;
+}
+
+.electric {
+  background: radial-gradient(circle, #ffe877, #c29800);
+  border-color: rgba(255, 250, 210, 0.9);
+  color: #341f00;
+}
+
+.plant {
+  background: radial-gradient(circle, #9df49a, #20702c);
+  border-color: rgba(210, 255, 210, 0.9);
+  color: #041404;
+}
+
+.arrow {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.elementWheelHint {
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.85;
+}
+
+/* Responsive Anpassung */
+
+@media (max-width: 768px) {
+  .wrapper {
+    margin: 100px 16px;
+    padding: 16px 18px;
+  }
+
+  .title {
+    font-size: 32px;
+    text-align: center;
+  }
+
+  .section h2 {
+    font-size: 22px;
+  }
+
+  .section p,
+  .section ul {
+    font-size: 16px;
+  }
+
+  .elementWheel {
+    gap: 8px;
+  }
+
+  .elementNode {
+    min-width: 90px;
+    padding: 8px 10px;
+  }
+}
