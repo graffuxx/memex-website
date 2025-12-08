@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     images: ['/og-memex.png'],
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: '/memex-favicon.png',
+    shortcut: '/memex-favicon.png',
+    
   },
 };
 
