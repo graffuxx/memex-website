@@ -26,6 +26,7 @@ export default function ModernHeader() {
         <div className={styles.navbar}>
           <a href="/">Home</a>
           <a href="/presale">Presale</a>
+          <a href="/how-to-play">How to Play</a>   {/* ← NEUER REITER */}
           <a href="/whitepaper">Whitepaper</a>
           <a href="/socials">Socials</a>
           <a href="/nft-shop">NFT Shop</a>
