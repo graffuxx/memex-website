@@ -1,0 +1,157 @@
+/* NFTShop.module.css */
+
+.nftShopSection {
+  position: relative;
+  padding: 80px 0;
+  background-color: #0b0b1e;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.backgroundVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.heading {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 40px;
+  z-index: 1;
+  position: relative;
+}
+
+.cardGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  z-index: 1;
+  position: relative;
+}
+
+.cardBox {
+  background-color: rgba(17, 17, 34, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(150, 50, 255, 0.2);
+  padding: 16px;
+  width: 200px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.cardBox:hover {
+  transform: translateY(-20px) scale(1.05);
+  box-shadow: 0 0 40px rgba(150, 50, 255, 0.5);
+  z-index: 2;
+}
+
+.cardImage {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.comingSoonBtn {
+  background-color: #8c4fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.comingSoonBtn:hover {
+  background-color: #a96dff;
+}
+
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.popupBox {
+  background-color: #111122;
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 460px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(150, 50, 255, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+.popupImage {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto 20px auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.popupContent h2 {
+  font-size: 22px;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.popupContent p {
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.popupPrice {
+  color: #fff;
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+
+.buyBtn {
+  background-color: #8c4fff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.buyBtn:hover {
+  background-color: #a96dff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

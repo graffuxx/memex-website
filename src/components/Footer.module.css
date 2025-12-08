@@ -1,0 +1,21 @@
+.footer {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #0d0c2b;
+  color: white;
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: 'Dolce Vita', sans-serif;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 40px;
+  width: 100%;
+}
+
+/* ✅ Mobile Optimierung */
+@media (max-width: 768px) {
+  .footer {
+    font-size: 13px;
+    padding: 30px 16px;
+    line-height: 1.5;
+  }
+}

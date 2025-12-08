@@ -1,0 +1,70 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  backdrop-filter: blur(8px);
+  background: transparent;
+  transition: background 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1000;
+}
+
+.scrolled {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+}
+
+.navbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.navbar a {
+  background-color: #7c3aed;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  font-family: 'Dolce Vita', sans-serif;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.navbar a:hover {
+  background-color: white;
+  color: #7c3aed;
+}
+
+.wallet {
+  margin-left: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.wallet button {
+  background-color: #7c3aed !important;
+  color: white !important;
+  font-family: 'Dolce Vita', sans-serif !important;
+  font-size: 14px !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+}
+
+.wallet button:hover {
+  background-color: white !important;
+  color: #7c3aed !important;
+}

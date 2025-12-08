@@ -1,11 +1,32 @@
+'use client';
+
+import styles from './MissionSection.module.css';
+
 export default function MissionSection() {
   return (
-    <section className="glow-box space-y-4 text-center">
-      <h2 className="text-3xl font-bold text-memex-primary">Our Mission</h2>
-      <p className="text-white/80 max-w-2xl mx-auto">
-        MemeX brings humor, competition, and community together in a unique Web3 trading card game experience.
-        Our mission is to empower players with ownership and fun through NFT-based cards, meme culture and strategic gameplay.
-      </p>
+    <section className={styles.mission}>
+      <div className={styles.fadeTop}></div>
+      <div className={styles.videoWrapper}>
+        <video
+          className={styles.video}
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src="/memex-ourmission.mp4" type="video/mp4" />
+        </video>
+       <div className={styles.fadeBottomOverlay}></div>
+      </div>
+
+      <div className={styles.textContent}>
+        <h2>OUR MISSION</h2>
+        <p>
+          MemeX empowers players with meme-powered strategy, community-driven gameplay
+          and real ownership through NFTs and Solana integration. This is not just a
+          card game – it’s a Memevolution.
+        </p>
+      </div>
     </section>
-  )
+  );
 }

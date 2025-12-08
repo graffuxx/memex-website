@@ -1,0 +1,104 @@
+.cardPreviewSection {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 100px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.backgroundVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  filter: brightness(0.6);
+}
+
+.fadeTopOverlay {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to bottom, rgba(14, 13, 28, 1) 0%, rgba(14, 13, 28, 0.5) 50%, rgba(14, 13, 28, 0) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fadeBottomOverlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to top, rgba(14, 13, 28, 1) 0%, rgba(14, 13, 28, 0.5) 50%, rgba(14, 13, 28, 0) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cardRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  width: 100%;
+  max-width: 1800px;
+  padding: 0 100px;
+  z-index: 2;
+  position: relative;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+}
+
+.cardContainer {
+  perspective: 1200px;
+  width: 220px;
+  height: 300px;
+  cursor: pointer;
+}
+
+.cardInner {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s ease;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.cardContainer:hover .cardInner {
+  transform: rotateY(180deg) scale(1.1);
+}
+
+.cardFront, .cardBack {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 16px;
+}
+
+.cardFront img,
+.cardBack img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 16px;
+}
+
+.cardBack {
+  transform: rotateY(180deg);
+}

@@ -1,0 +1,87 @@
+.comingSoonSection {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 100px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.backgroundVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  filter: brightness(0.4);
+}
+
+.fadeTopOverlay {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to bottom, rgba(14, 13, 28, 1) 0%, rgba(14, 13, 28, 0.5) 50%, rgba(14, 13, 28, 0) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fadeBottomOverlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to top, rgba(14, 13, 28, 1) 0%, rgba(14, 13, 28, 0.5) 50%, rgba(14, 13, 28, 0) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.contentWrapper {
+  position: relative;
+  z-index: 2;
+  max-width: 1600px;
+  width: 100%;
+  text-align: center;
+}
+
+.title {
+  font-size: 32px;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+  padding: 0 20px;
+}
+
+.card {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid #6b46c1;
+  border-radius: 20px;
+  padding: 20px;
+  color: white;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px #6b46c1;
+}

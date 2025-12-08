@@ -1,95 +1,115 @@
-"use client";
+'use client';
 
-import { useWallet } from "@solana/wallet-adapter-react";
-import WalletButton from "@/components/WalletButton";
-import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { supabase } from '@/lib/supabaseClient';
+import styles from './page.module.css';
 
-export default function AccountPage() {
-  const { publicKey } = useWallet();
-  const [email, setEmail] = useState("");
+export default function AccountLoginPage() {
+  const router = useRouter();
+  const { setVisible } = useWalletModal();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [error, setError] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    if (publicKey) {
-      setIsLoggedIn(true);
-    }
-  }, [publicKey]);
+    const stored = localStorage.getItem('memexUser');
+    if (stored) setIsLoggedIn(true);
+  }, []);
 
-  const handleEmailLogin = () => {
-    if (email.includes("@")) {
-      setIsLoggedIn(true);
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (loginError) {
+      setError(loginError.message);
+      return;
+    }
+
+    if (data.user) {
+      localStorage.setItem('memexUser', JSON.stringify({ email }));
+      router.push('/account/private');
     } else {
-      alert("Please enter a valid email address.");
+      setError('Login failed. Please try again.');
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('memexUser');
+    setIsLoggedIn(false);
+    router.refresh();
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-white px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">Your Account</h1>
+    <section className={styles.accountLoginPage}>
+      {/* Hintergrundvideo */}
+      <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
+        <source src="/memex-accountlogin.mp4" type="video/mp4" />
+      </video>
 
-      {!isLoggedIn && (
-        <div className="bg-gray-800 p-6 rounded shadow-md w-full max-w-md">
-          <h2 className="text-xl mb-4">Connect Wallet or Login via Email</h2>
-
-          <div className="mb-4">
-            <WalletButton />
-          </div>
-
-          <div className="my-4 text-center text-gray-400">or</div>
-
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded text-black"
-          />
-          <button
-            onClick={handleEmailLogin}
-            className="mt-4 w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
-          >
-            Login via Email
-          </button>
-        </div>
-      )}
-
+      {/* Logout oben rechts */}
       {isLoggedIn && (
-        <div className="bg-gray-900 p-6 rounded shadow-md w-full max-w-2xl space-y-6">
-          <h2 className="text-2xl font-semibold">Welcome!</h2>
-          {publicKey && (
-            <p>
-              <strong>Wallet Address:</strong>{" "}
-              <span className="break-all">{publicKey.toBase58()}</span>
-            </p>
-          )}
-          {email && (
-            <p>
-              <strong>Email:</strong> {email}
-            </p>
-          )}
-
-          {/* --- Presale Allocation Box --- */}
-          <div className="bg-gray-800 p-4 rounded border border-purple-500">
-            <h3 className="text-lg font-semibold mb-2">Presale Allocation</h3>
-            <p>You have <strong>❌ 0 MEMEX</strong> reserved.</p>
-            <p className="text-sm text-gray-400 mt-1">
-              Tokens will be claimable here after the presale ends.
-            </p>
-          </div>
-
-          {/* --- NFT Section Placeholder --- */}
-          <div className="bg-gray-800 p-4 rounded border border-green-500">
-            <h3 className="text-lg font-semibold mb-2">NFT Collection</h3>
-            <p className="text-gray-300 italic">Coming Soon</p>
-          </div>
-
-          {/* --- Staking Placeholder --- */}
-          <div className="bg-gray-800 p-4 rounded border border-blue-500">
-            <h3 className="text-lg font-semibold mb-2">Staking Dashboard</h3>
-            <p className="text-gray-300 italic">Coming Soon</p>
-          </div>
-        </div>
+        <button onClick={handleLogout} className={styles.logoutButton}>
+          Logout
+        </button>
       )}
-    </div>
+
+      <div className={styles.loginBox}>
+        <h2 className={styles.loginTitle}>Connect Wallet or Login</h2>
+
+        <button className={styles.loginButton} onClick={() => setVisible(true)}>
+          Select Wallet
+        </button>
+
+        <div className={styles.or}>OR</div>
+
+        <button className={styles.loginButton} onClick={() => setShowLoginForm(true)}>
+          Login via Email
+        </button>
+
+        {showLoginForm && (
+          <form onSubmit={handleEmailLogin} className={styles.loginForm}>
+            <input
+              type="email"
+              placeholder="Enter Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={styles.emailInput}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Enter Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.emailInput}
+              required
+            />
+            <button type="submit" className={styles.loginButton}>
+              Login
+            </button>
+            {error && <p className={styles.errorText}>{error}</p>}
+            <div className={styles.registerText}>
+              <a href="/account/reset">Forgot your password?</a>
+            </div>
+          </form>
+        )}
+
+        <div className={styles.or}>OR</div>
+        <div className={styles.registerText}>
+          No account? <a href="/account/register">Register here</a>
+        </div>
+      </div>
+    </section>
   );
 }

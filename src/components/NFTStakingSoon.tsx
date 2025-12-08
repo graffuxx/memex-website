@@ -1,11 +1,14 @@
 export default function NFTStakingSoon() {
   return (
-    <section className="glow-box text-center space-y-4">
-      <h2 className="text-3xl font-bold text-memex-primary">NFTs & Staking</h2>
-      <p className="text-white/70">Coming Soon – Stay Tuned!</p>
-      <div className="bg-white/5 h-[150px] rounded-xl flex items-center justify-center text-white/50 italic">
-        [ Future Feature Placeholder ]
+    <section className="w-full bg-[#1a1a2e] text-white py-20 px-6">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          NFTs & Staking – Coming Soon
+        </h2>
+        <p className="text-lg text-gray-300">
+          Soon you'll be able to stake your MemeX NFTs to earn rewards and unlock exclusive cards. Get ready for the Duelverse economy!
+        </p>
       </div>
     </section>
-  )
+  );
 }

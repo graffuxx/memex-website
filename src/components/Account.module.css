@@ -1,0 +1,113 @@
+/* components/Account.module.css */
+
+.accountLoginPage {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b0b1e;
+}
+
+.backgroundVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.loginBox {
+  position: relative;
+  z-index: 2;
+  background-color: rgba(17, 17, 34, 0.95);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 0 40px rgba(140, 79, 255, 0.4);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  color: white;
+}
+
+.loginTitle {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.loginButton {
+  background-color: #8c4fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin: 10px 0;
+  transition: background-color 0.3s ease;
+}
+
+.loginButton:hover {
+  background-color: #a96dff;
+}
+
+.or {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.loginForm input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #1b1b2e;
+  color: white;
+}
+
+.loginForm button {
+  background-color: #8c4fff;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.loginForm button:hover {
+  background-color: #a96dff;
+}
+
+.error {
+  color: #ff6b6b;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.registerText {
+  font-size: 14px;
+  margin-top: 12px;
+  color: #ccc;
+}
+
+.registerText a {
+  color: #8c4fff;
+  text-decoration: none;
+}
+
+.registerText a:hover {
+  text-decoration: underline;
+}

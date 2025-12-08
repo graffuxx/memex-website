@@ -1,22 +1,22 @@
-export default function Hero() {
+export default function HeroSection() {
   return (
-    <section className="glow-box mt-12 text-center space-y-6">
-      <div className="w-full h-[300px] bg-gradient-to-b from-memex-accent/10 to-transparent rounded-xl flex items-center justify-center">
-        <span className="text-memex-accent text-2xl italic">[ Hero Artwork Placeholder ]</span>
+    <section className="relative w-full h-[calc(100vh-80px)] flex items-center justify-center bg-gradient-to-b from-[#0f0f1f] to-[#1a1a2e] text-white px-6">
+      <div className="max-w-3xl text-center">
+        <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
+          Power to the Meme. <br />
+          Strength to the Player.
+        </h1>
+        <p className="text-lg md:text-xl mb-6 text-gray-300">
+          MemeX is the ultimate Web3 trading card game where memes meet strategy. <br />
+          Join the presale and claim your place in the Duelverse.
+        </p>
+        <a
+          href="/presale"
+          className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+        >
+          Join Presale
+        </a>
       </div>
-
-      <h1 className="text-5xl font-bold text-memex-primary drop-shadow-md">
-        MemeX – Duelverse
-      </h1>
-      <p className="text-lg text-white/80 max-w-xl mx-auto">
-        The ultimate meme-powered Web3 trading card experience. Collect, stake & dominate the Duelverse.
-      </p>
-      <a
-        href="/presale"
-        className="bg-memex-primary text-black font-semibold px-6 py-3 rounded-xl shadow-glow hover:scale-105 transition"
-      >
-        Join the Presale
-      </a>
     </section>
-  )
+  );
 }

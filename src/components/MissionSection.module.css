@@ -1,0 +1,89 @@
+.mission {
+  position: relative;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  filter: brightness(0.4);
+}
+
+.textContent {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  max-width: 900px;
+  padding: 40px 20px;
+}
+
+.textContent h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  font-family: 'Dolce Vita', sans-serif;
+}
+
+.textContent p {
+  font-size: 18px;
+  line-height: 1.6;
+  font-family: 'Dolce Vita', sans-serif;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .textContent h2 {
+    font-size: 28px;
+  }
+
+  .textContent p {
+    font-size: 14px;
+  }
+}
+
+.fadeTop {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, #0e0d1c 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.fadeBottomOverlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to top,
+    #0e0d1c 0%,
+    rgba(14, 13, 28, 0.8) 25%,
+    rgba(14, 13, 28, 0.4) 55%,
+    rgba(14, 13, 28, 0) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+

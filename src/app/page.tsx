@@ -1,17 +1,21 @@
-import Hero from '@/components/Hero'
+import HeroSection from '@/components/HeroSection'
+import MissionSection from '@/components/MissionSection'
 import PresaleOverview from '@/components/PresaleOverview'
 import CardPreview from '@/components/CardPreview'
-import MissionSection from '@/components/MissionSection'
-import NFTStakingSoon from '@/components/NFTStakingSoon'
+import ComingSoon from '@/components/ComingSoon';
+import SocialsSection from '@/components/SocialsSection';
+import Footer from '@/components/Footer';
 
 export default function HomePage() {
   return (
-    <div className="space-y-16">
-      <Hero />
+    <>
+      <HeroSection />
+      <MissionSection />
       <PresaleOverview />
       <CardPreview />
-      <MissionSection />
-      <NFTStakingSoon />
-    </div>
+      <ComingSoon />
+      <SocialsSection />
+       <Footer />
+    </>
   )
 }

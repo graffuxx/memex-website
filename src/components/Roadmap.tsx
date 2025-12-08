@@ -1,0 +1,59 @@
+'use client';
+
+import styles from './Roadmap.module.css';
+
+export default function Roadmap() {
+  return (
+    <section className={styles.roadmapSection}>
+      {/* Hintergrundvideo */}
+      <div className={styles.videoWrapper}>
+        <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
+          <source src="/memex-whitepaper.mp4" type="video/mp4" />
+        </video>
+        <div className={styles.fadeTopOverlay}></div>
+        <div className={styles.fadeBottomOverlay}></div>
+      </div>
+
+      {/* Inhaltsbereich */}
+      <div className={styles.content}>
+        <h2 className={styles.title}>MEMEX ROADMAP</h2>
+
+        <div className={styles.grid}>
+          <div className={styles.card}>
+            <h3>Q4 2025</h3>
+            <p>Presale Launch – Support the Duelverse and secure your tokens.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>Early 2026</h3>
+            <p>Staking Live – Earn rewards by staking your MEMEX tokens.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>Spring 2026</h3>
+            <p>NFT Card Shop – Limited early access with collectible MemeX NFTs.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>Spring 2026</h3>
+            <p>Exchange Listings – MEMEX hits the markets.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>Summer 2026</h3>
+            <p>Alpha Launch on STEAM – Early playable version for supporters.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>Winter 2026</h3>
+            <p>Final Game Release – Available on PC, Android & Apple.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>2027+</h3>
+            <p>Marketplace 2.0 – In-game economy powered by SOL, MEMEX & NFTs.</p>
+          </div>
+        </div>
+
+        <div className={styles.note}>
+          <strong>Thank you, Presale Supporters!</strong><br />
+          Every early backer will receive exclusive NFT rewards for funding the Memevolution.
+        </div>
+      </div>
+    </section>
+  );
+}
