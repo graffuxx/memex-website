@@ -1,25 +1,31 @@
-/* Fester Header oben */
-
 .header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 64px;
-  z-index: 60;
+  z-index: 100;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0 16px;
   box-sizing: border-box;
 
-  background: linear-gradient(90deg, rgba(20, 0, 40, 0.78), rgba(5, 0, 20, 0.78));
-  backdrop-filter: blur(14px);
+  background: linear-gradient(
+    90deg,
+    rgba(18, 0, 40, 0.6),
+    rgba(6, 0, 22, 0.6)
+  );
+  backdrop-filter: blur(16px);
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .scrolled {
-  background: linear-gradient(90deg, rgba(15, 0, 35, 0.98), rgba(3, 0, 15, 0.98));
+  background: linear-gradient(
+    90deg,
+    rgba(15, 0, 35, 0.96),
+    rgba(3, 0, 15, 0.96)
+  );
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.9);
 }
 
@@ -32,13 +38,7 @@
   gap: 12px;
 }
 
-.left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Desktop-Navigation */
+/* Desktop-Navi */
 
 .navbar {
   display: flex;
@@ -51,80 +51,54 @@
   align-items: center;
   justify-content: center;
   padding: 8px 18px;
-  border-radius: 10px;
-
-  background: linear-gradient(135deg, #8b4dff, #e155ff);
+  border-radius: 999px;
+  background: radial-gradient(
+    circle at top,
+    rgba(175, 115, 255, 1),
+    rgba(105, 50, 220, 1)
+  );
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8);
   color: #ffffff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  text-decoration: none;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
-  white-space: nowrap;
-
-  box-shadow: 0 0 14px rgba(209, 120, 255, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    filter 0.15s ease;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    background 0.12s ease, filter 0.12s ease;
 }
 
 .navbar a:hover {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 0 20px rgba(230, 160, 255, 1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.95);
 }
 
-/* Wallet-Button rechts */
+.navbar a:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
+}
+
+/* Wallet-Bereich rechts */
 
 .wallet {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
 }
 
-/* MobileMenu/Burger */
-
-.mobileMenu {
-  display: none; /* Desktop versteckt */
-}
-
-/* BREAKPOINTS */
-
-@media (max-width: 1024px) {
-  .navbar {
-    gap: 8px;
-  }
-
-  .navbar a {
-    padding: 7px 14px;
-    font-size: 13px;
-  }
-}
+/* Mobile: Desktop-Navi ausblenden, Burger + Wallet übernehmen */
 
 @media (max-width: 768px) {
-  .header {
-    height: 60px;
-    padding: 0 12px;
-  }
-
-  .container {
-    gap: 8px;
-  }
-
-  /* Auf Handy: nur Burger + Wallet sichtbar */
   .navbar {
     display: none;
   }
 
-  .mobileMenu {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .container {
+    justify-content: flex-end;
   }
 
-  .left {
-    gap: 8px;
+  .wallet {
+    margin-right: 8px;
   }
 }

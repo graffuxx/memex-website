@@ -9,13 +9,17 @@ type Props = {
 
 export default function LayoutWrapper({ children }: Props) {
   return (
-    <div style={{ minHeight: '100vh' }}>
-      {/* News / Ticker oben unter der Navbar */}
+    <div
+      style={{
+        minHeight: '100vh',
+        paddingTop: '80px', // Platz für den fixen Header
+      }}
+    >
+      {/* News-Banner direkt unter der Navi */}
       <TickerBar />
-      {/* Platz für Header + Ticker, damit nichts überlappt */}
-      <div style={{ paddingTop: '110px' }}>
-        {children}
-      </div>
+
+      {/* Seiteninhalt */}
+      {children}
     </div>
   );
 }
