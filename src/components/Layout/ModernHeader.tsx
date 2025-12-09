@@ -18,21 +18,25 @@ export default function ModernHeader() {
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
-      {/* Mobiles Menü */}
-      <MobileMenu />
-
-      {/* Desktop-Navigation */}
       <div className={styles.container}>
-        <div className={styles.navbar}>
-          <a href="/">Home</a>
-          <a href="/presale">Presale</a>
-          <a href="/how-to-play">How to Play</a>   {/* ← NEUER REITER */}
-          <a href="/whitepaper">Whitepaper</a>
-          <a href="/socials">Socials</a>
-          <a href="/nft-shop">NFT Shop</a>
-          <a href="/account">Account</a>
+        {/* Links: Mobile-Burger (nur auf Handy) + Desktop-Navigation */}
+        <div className={styles.left}>
+          <div className={styles.mobileMenu}>
+            <MobileMenu />
+          </div>
+
+          <nav className={styles.navbar}>
+            <a href="/">Home</a>
+            <a href="/presale">Presale</a>
+            <a href="/how-to-play">How to Play</a>
+            <a href="/whitepaper">Whitepaper</a>
+            <a href="/socials">Socials</a>
+            <a href="/nft-shop">NFT Shop</a>
+            <a href="/account">Account</a>
+          </nav>
         </div>
 
+        {/* Rechts: Wallet-Button (immer sichtbar) */}
         <div className={styles.wallet}>
           <WalletButton />
         </div>

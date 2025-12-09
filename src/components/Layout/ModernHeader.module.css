@@ -1,16 +1,26 @@
-/* src/components/Layout/ModernHeader.module.css */
+/* Fester Header oben */
 
 .header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 50;
+  height: 64px;
+  z-index: 60;
   display: flex;
   justify-content: center;
-  padding: 10px 16px;
-  background: radial-gradient(circle at top, #301050, #050012);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+
+  background: linear-gradient(90deg, rgba(20, 0, 40, 0.78), rgba(5, 0, 20, 0.78));
+  backdrop-filter: blur(14px);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scrolled {
+  background: linear-gradient(90deg, rgba(15, 0, 35, 0.98), rgba(3, 0, 15, 0.98));
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.9);
 }
 
 .container {
@@ -19,28 +29,41 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
-/* DESKTOP NAVIGATION */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Desktop-Navigation */
 
 .navbar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
+  gap: 10px;
 }
 
 .navbar a {
-  padding: 10px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
   border-radius: 10px;
+
   background: linear-gradient(135deg, #8b4dff, #e155ff);
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   white-space: nowrap;
-  box-shadow: 0 0 12px rgba(209, 120, 255, 0.6);
+
+  box-shadow: 0 0 14px rgba(209, 120, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -50,39 +73,58 @@
 .navbar a:hover {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 0 18px rgba(226, 150, 255, 0.9);
+  box-shadow: 0 0 20px rgba(230, 160, 255, 1);
 }
+
+/* Wallet-Button rechts */
 
 .wallet {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
 }
 
-/* RESPONSIVE BREAKPOINTS */
+/* MobileMenu/Burger */
 
-@media (max-width: 900px) {
-  .header {
-    padding: 8px 10px;
-  }
+.mobileMenu {
+  display: none; /* Desktop versteckt */
+}
 
-  .container {
-    max-width: 100%;
-    gap: 10px;
-  }
+/* BREAKPOINTS */
 
+@media (max-width: 1024px) {
   .navbar {
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 8px;
+  }
+
+  .navbar a {
+    padding: 7px 14px;
+    font-size: 13px;
   }
 }
 
-/* Auf Handy: Desktop-Navigation ausblenden, nur MobileMenu + Walletbutton zeigen */
 @media (max-width: 768px) {
+  .header {
+    height: 60px;
+    padding: 0 12px;
+  }
+
+  .container {
+    gap: 8px;
+  }
+
+  /* Auf Handy: nur Burger + Wallet sichtbar */
   .navbar {
     display: none;
   }
 
-  .wallet {
-    margin-left: auto;
+  .mobileMenu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .left {
+    gap: 8px;
   }
 }
