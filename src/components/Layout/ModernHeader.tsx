@@ -18,26 +18,25 @@ export default function ModernHeader() {
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
-      <div className={styles.container}>
-        {/* Links: Mobile-Burger (nur auf Handy) + Desktop-Navigation */}
-        <div className={styles.left}>
-          <div className={styles.mobileMenu}>
-            <MobileMenu />
-          </div>
-
-          <nav className={styles.navbar}>
-            <a href="/">Home</a>
-            <a href="/presale">Presale</a>
-            <a href="/how-to-play">How to Play</a>
-            <a href="/whitepaper">Whitepaper</a>
-            <a href="/socials">Socials</a>
-            <a href="/nft-shop">NFT Shop</a>
-            <a href="/account">Account</a>
-          </nav>
+      <div className={styles.inner}>
+        {/* Mobile: Burger links */}
+        <div className={styles.mobileOnly}>
+          <MobileMenu />
         </div>
 
-        {/* Rechts: Wallet-Button (immer sichtbar) */}
-        <div className={styles.wallet}>
+        {/* Desktop: Navigation mittig/links */}
+        <nav className={styles.navbar}>
+          <a href="/" className={styles.navLink}>Home</a>
+          <a href="/presale" className={styles.navLink}>Presale</a>
+          <a href="/how-to-play" className={styles.navLink}>How to Play</a>
+          <a href="/whitepaper" className={styles.navLink}>Whitepaper</a>
+          <a href="/socials" className={styles.navLink}>Socials</a>
+          <a href="/nft-shop" className={styles.navLink}>NFT Shop</a>
+          <a href="/account" className={styles.navLink}>Account</a>
+        </nav>
+
+        {/* Rechts: Wallet-Button – immer sichtbar */}
+        <div className={styles.walletWrapper}>
           <WalletButton />
         </div>
       </div>

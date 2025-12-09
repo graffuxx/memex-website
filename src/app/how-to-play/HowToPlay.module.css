@@ -1,21 +1,68 @@
 .wrapper {
-  max-width: 900px;
-  margin: 120px auto;
-  padding: 20px 40px;
-  color: white;
-  text-align: center;
-  background: rgba(10, 10, 25, 0.55);
+  position: relative;
+  max-width: 1200px;
+  margin: 120px auto 80px;
+  padding: 0;
   border-radius: 24px;
+  overflow: hidden;
   border: 1px solid rgba(180, 120, 255, 0.35);
   box-shadow: 0 0 35px rgba(130, 50, 255, 0.35);
-  backdrop-filter: blur(12px);
+  background-image: url('/howtoplay-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(10, 10, 25, 0.7), rgba(0, 0, 0, 0.9));
+  backdrop-filter: blur(10px);
+  z-index: 0;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  padding: 24px 32px 40px;
+  color: white;
 }
 
 .title {
-  font-size: 48px;
-  margin-bottom: 40px;
+  font-size: 42px;
+  margin-bottom: 12px;
   color: #cfa8ff;
+  text-align: center;
   text-shadow: 0 0 12px rgba(150, 90, 255, 0.8);
+}
+
+.subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+/* Layout Rows */
+
+.row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 40px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.colText {
+  flex: 1 1 280px;
+  text-align: left;
+}
+
+.colVisual {
+  flex: 1 1 260px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .section {
@@ -24,20 +71,38 @@
 }
 
 .section h2 {
-  font-size: 28px;
-  margin-bottom: 12px;
+  font-size: 26px;
+  margin-bottom: 10px;
   color: #e7c8ff;
 }
 
 .section p,
 .section ul {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.6;
   opacity: 0.9;
 }
 
 .section ul {
   padding-left: 20px;
+}
+
+/* Image Frames */
+
+.imageFrame {
+  width: 100%;
+  max-width: 360px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(220, 200, 255, 0.65);
+  box-shadow: 0 0 22px rgba(130, 50, 255, 0.7);
+  background: rgba(5, 5, 20, 0.8);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* ELEMENT WHEEL */
@@ -47,16 +112,12 @@
   padding: 18px 20px;
   border-radius: 18px;
   border: 1px solid rgba(190, 150, 255, 0.4);
-  background: radial-gradient(
-    circle at top,
-    rgba(140, 90, 255, 0.35),
-    rgba(10, 10, 25, 0.9)
-  );
+  background: radial-gradient(circle at top, rgba(140, 90, 255, 0.35), rgba(10, 10, 25, 0.9));
 }
 
 .elementWheelTitle {
   text-align: center;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   margin-bottom: 16px;
   color: #f4e7ff;
@@ -96,7 +157,7 @@
   font-weight: 600;
 }
 
-/* Farbgebung pro Element */
+/* Colors per element */
 
 .light {
   background: radial-gradient(circle, #ffe89a, #c58c3b);
@@ -139,17 +200,32 @@
   opacity: 0.85;
 }
 
-/* Responsive Anpassung */
+/* Responsive */
 
 @media (max-width: 768px) {
   .wrapper {
-    margin: 100px 16px;
-    padding: 16px 18px;
+    margin: 100px 16px 40px;
+  }
+
+  .inner {
+    padding: 18px 16px 28px;
   }
 
   .title {
-    font-size: 32px;
-    text-align: center;
+    font-size: 30px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .colText,
+  .colVisual {
+    flex: 1 1 100%;
   }
 
   .section h2 {
@@ -158,15 +234,6 @@
 
   .section p,
   .section ul {
-    font-size: 16px;
-  }
-
-  .elementWheel {
-    gap: 8px;
-  }
-
-  .elementNode {
-    min-width: 90px;
-    padding: 8px 10px;
+    font-size: 15px;
   }
 }

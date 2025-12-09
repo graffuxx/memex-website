@@ -113,4 +113,4 @@ export async function POST(req: NextRequest) {
     console.error("Error in NOWPayments IPN route:", err);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
-}
+}#
