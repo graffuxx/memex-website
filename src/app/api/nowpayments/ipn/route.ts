@@ -1,3 +1,4 @@
+// src/app/api/nowpayments/ipn/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { supabase } from "@/lib/supabaseClient";
@@ -113,4 +114,4 @@ export async function POST(req: NextRequest) {
     console.error("Error in NOWPayments IPN route:", err);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
-}#
+}
