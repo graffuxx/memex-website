@@ -52,11 +52,49 @@
   margin: 0 0 12px;
 }
 
+/* ---------------- Wallet Button im Account-Panel ---------------- */
+
 .walletButtonWrapper {
   margin-bottom: 18px;
 }
 
-/* Tabs LOGIN / REGISTER */
+/* Styling für den Solana Wallet-Adapter Button NUR in dieser Box */
+.walletButtonWrapper :global(.wallet-adapter-button),
+.walletButtonWrapper :global(.wallet-adapter-button-trigger) {
+  width: 190px;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #ff4af0, #8f5dff);
+  color: #ffffff;
+  box-shadow: 0 0 26px rgba(255, 105, 255, 0.8);
+  transition: transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    opacity 0.12s ease-out,
+    background 0.12s ease-out;
+}
+
+/* Hover / Fokus nur im Account-Panel */
+.walletButtonWrapper :global(.wallet-adapter-button:hover),
+.walletButtonWrapper :global(.wallet-adapter-button-trigger:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 32px rgba(255, 105, 255, 0.95);
+  background: linear-gradient(90deg, #ff72ff, #a77dff);
+}
+
+.walletButtonWrapper :global(.wallet-adapter-button:disabled),
+.walletButtonWrapper :global(.wallet-adapter-button-trigger:disabled) {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ---------------- Tabs LOGIN / REGISTER ---------------- */
 
 .tabRow {
   display: flex;
@@ -94,7 +132,7 @@
   box-shadow: 0 0 18px rgba(255, 105, 255, 0.7);
 }
 
-/* Formular */
+/* ---------------- Formular ---------------- */
 
 .form {
   display: flex;
@@ -125,7 +163,9 @@
   color: #ffffff;
   font-size: 12px;
   outline: none;
-  transition: border-color 0.18s ease-out, box-shadow 0.18s ease-out, background 0.18s ease-out;
+  transition: border-color 0.18s ease-out,
+    box-shadow 0.18s ease-out,
+    background 0.18s ease-out;
 }
 
 .input::placeholder {
@@ -138,7 +178,7 @@
   background: radial-gradient(circle at top, #261343 0, #05030c 70%);
 }
 
-/* Messages */
+/* ---------------- Messages ---------------- */
 
 .error {
   margin: 4px 2px 0;
@@ -152,7 +192,7 @@
   color: #6dffb5;
 }
 
-/* Submit Button */
+/* ---------------- Submit Button ---------------- */
 
 .submit {
   margin-top: 10px;
@@ -168,7 +208,9 @@
   background: linear-gradient(90deg, #ff4af0, #8f5dff);
   color: #ffffff;
   box-shadow: 0 0 26px rgba(255, 105, 255, 0.8);
-  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out;
+  transition: transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    opacity 0.12s ease-out;
 }
 
 .submit:hover:not(:disabled) {
@@ -181,7 +223,7 @@
   cursor: default;
 }
 
-/* Mobile */
+/* ---------------- Mobile ---------------- */
 
 @media (max-width: 640px) {
   .pageWrapper {
