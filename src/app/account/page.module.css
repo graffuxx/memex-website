@@ -1,237 +1,199 @@
+/* Vollflächiger Hintergrund für Login/Register */
 .pageWrapper {
   min-height: 100vh;
-  padding: 140px 16px 80px;
+  padding: 140px 16px 80px; /* Platz für Header + Ticker */
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: radial-gradient(circle at top, #3b1872 0, #04030a 55%, #020008 100%);
+  box-sizing: border-box;
+
+  /* Lila Galaxy / Glow Background */
+  background:
+    radial-gradient(circle at top, rgba(140, 82, 255, 0.35) 0, transparent 55%),
+    radial-gradient(circle at 10% 80%, rgba(255, 0, 170, 0.18) 0, transparent 55%),
+    radial-gradient(circle at 90% 80%, rgba(0, 180, 255, 0.25) 0, transparent 55%),
+    #050212;
+  background-attachment: fixed;
 }
 
+/* Zentrale Karte */
 .card {
-  width: 420px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 430px;
   margin: 0 auto;
   padding: 32px 32px 40px;
-  border-radius: 32px;
-  background: radial-gradient(circle at top, #1b0c33 0, #05030b 65%, #04010a 100%);
-  box-shadow: 0 0 60px rgba(151, 71, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  border-radius: 26px;
   box-sizing: border-box;
+
+  background:
+    radial-gradient(circle at top, rgba(191, 120, 255, 0.45) 0, rgba(15, 5, 40, 0.96) 52%, #050312 100%);
+  box-shadow:
+    0 0 40px rgba(191, 120, 255, 0.45),
+    0 0 120px rgba(80, 40, 190, 0.65);
 }
 
+/* Überschriften & Texte */
 .title {
-  font-size: 24px;
-  letter-spacing: 0.18em;
+  font-size: 22px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: #ffffff;
   margin: 0 0 8px;
 }
 
 .subtitle {
-  font-size: 11px;
-  line-height: 1.4;
-  opacity: 0.8;
-  margin: 0 0 24px;
-}
-
-/* --------- Sections --------- */
-
-.section {
-  margin-top: 18px;
-}
-
-.sectionTitle {
-  font-size: 13px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  margin: 0 0 6px;
-}
-
-.sectionText {
-  font-size: 11px;
-  line-height: 1.5;
-  opacity: 0.8;
-  margin: 0 0 12px;
-}
-
-/* --------- Wallet Button --------- */
-
-.walletButtonRow {
-  margin-bottom: 18px;
-}
-
-.walletButton {
-  width: 190px;
-  justify-content: center;
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: none;
-  outline: none;
-  cursor: pointer;
   font-size: 12px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  background: linear-gradient(90deg, #ff4af0, #8f5dff);
-  color: #ffffff;
-  box-shadow: 0 0 26px rgba(255, 105, 255, 0.8);
-  transition: transform 0.12s ease-out,
-    box-shadow 0.12s ease-out,
-    opacity 0.12s ease-out,
-    background 0.12s ease-out;
+  line-height: 1.6;
+  opacity: 0.78;
+  color: #e4d7ff;
+  margin-bottom: 24px;
 }
 
-.walletButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(255, 105, 255, 0.95);
-  background: linear-gradient(90deg, #ff72ff, #a77dff);
-}
-
-/* --------- Tabs LOGIN / REGISTER --------- */
-
-.tabRow {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  background: rgba(0, 0, 0, 0.35);
+/* Tabs Login / Register */
+.tabs {
+  display: inline-flex;
   border-radius: 999px;
-  padding: 3px;
-  width: fit-content;
-  margin-bottom: 16px;
+  padding: 2px;
+  background: linear-gradient(90deg, #ff6fd8, #6b5bff);
+  margin-bottom: 24px;
 }
 
-.tab,
-.tabActive {
+.tabButton {
   border: none;
   outline: none;
-  cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 12px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 6px 18px;
+  padding: 7px 20px;
+  cursor: pointer;
   border-radius: 999px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  transition: all 0.18s ease-out;
-}
-
-.tab:hover {
   color: #ffffff;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
 .tabActive {
-  background: linear-gradient(90deg, #ff4af0, #8f5dff);
+  background: #06041a;
   color: #ffffff;
-  box-shadow: 0 0 18px rgba(255, 105, 255, 0.7);
 }
 
-/* --------- Formular --------- */
+.tabInactive {
+  opacity: 0.7;
+}
 
+/* Formular */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   margin-top: 4px;
 }
 
 .label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.labelText {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.75;
+  color: #e4d7ff;
+  gap: 6px;
 }
 
 .input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: radial-gradient(circle at top, #1a102b 0, #05030c 70%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(5, 3, 20, 0.9);
   color: #ffffff;
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
-  transition: border-color 0.18s ease-out,
-    box-shadow 0.18s ease-out,
-    background 0.18s ease-out;
 }
 
 .input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(221, 205, 255, 0.5);
 }
 
-.input:focus {
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 18px rgba(151, 71, 255, 0.6);
-  background: radial-gradient(circle at top, #261343 0, #05030c 70%);
-}
-
-/* --------- Messages --------- */
-
-.error {
-  margin: 4px 2px 0;
+/* Fehlermeldung / Erfolg */
+.errorMessage {
+  margin-top: 4px;
   font-size: 11px;
-  color: #ff6b81;
+  color: #ff8080;
 }
 
-.message {
-  margin: 4px 2px 0;
+.successMessage {
+  margin-top: 4px;
   font-size: 11px;
-  color: #6dffb5;
+  color: #7bffbf;
 }
 
-/* --------- Submit Button --------- */
-
-.submit {
-  margin-top: 10px;
+/* Submit-Button */
+.submitButton {
+  margin-top: 18px;
   width: 100%;
-  padding: 11px 16px;
+  padding: 12px 18px;
   border-radius: 999px;
   border: none;
-  outline: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  background: linear-gradient(90deg, #ff4af0, #8f5dff);
+  font-weight: 600;
+
+  background: linear-gradient(90deg, #ff6fd8, #6b5bff);
   color: #ffffff;
-  box-shadow: 0 0 26px rgba(255, 105, 255, 0.8);
-  transition: transform 0.12s ease-out,
-    box-shadow 0.12s ease-out,
-    opacity 0.12s ease-out;
+  box-shadow: 0 0 22px rgba(153, 98, 255, 0.8);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
-.submit:hover:not(:disabled) {
+.submitButton:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(255, 105, 255, 0.95);
+  box-shadow: 0 0 30px rgba(153, 98, 255, 1);
 }
 
-.submit:disabled {
-  opacity: 0.7;
+.submitButton:disabled {
+  opacity: 0.6;
   cursor: default;
 }
 
-/* --------- Mobile --------- */
+/* Text unter dem Formular */
+.helperText {
+  margin-top: 18px;
+  font-size: 11px;
+  text-align: center;
+  color: #cbbcff;
+  opacity: 0.9;
+}
 
-@media (max-width: 640px) {
+/* Link-Button im Text */
+.linkButton {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-left: 4px;
+  font-size: 11px;
+  color: #ff8ff5;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Wallet-Button im Account-Panel */
+.walletButtonRow {
+  margin-bottom: 18px;
+}
+
+.walletButtonRow button {
+  width: 160px;
+}
+
+/* Mobile Anpassung */
+@media (max-width: 768px) {
   .pageWrapper {
-    padding: 120px 12px 60px;
+    padding: 120px 12px 48px;
   }
 
   .card {
-    width: 100%;
     padding: 24px 20px 30px;
-  }
-
-  .title {
-    font-size: 20px;
-  }
-
-  .subtitle {
-    font-size: 10px;
+    border-radius: 22px;
   }
 }
