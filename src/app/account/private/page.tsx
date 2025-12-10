@@ -1,193 +1,185 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { supabase } from '@/lib/supabaseClient';
-import styles from '../AccountPrivate.module.css';
+import styles from './AccountPrivate.module.css';
 
 type PresaleOrder = {
   id: string;
+  created_at: string;
   wallet: string | null;
   sol_amount: number | null;
   memex_amount: number | null;
   level: number | null;
-  created_at: string | null;
   payment_status: string | null;
 };
 
 export default function AccountPrivatePage() {
-  const { publicKey } = useWallet();
+  const router = useRouter();
+  const { connected, publicKey } = useWallet();
 
-  const [email, setEmail] = useState<string | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [orders, setOrders] = useState<PresaleOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<PresaleOrder[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // E-Mail-User aus Supabase laden
   useEffect(() => {
-    let isMounted = true;
-
-    const loadUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('Supabase auth error:', error);
-        return;
-      }
-      if (!isMounted) return;
-      setEmail(data.user?.email ?? null);
-    };
-
-    loadUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Wallet-Adresse setzen
-  useEffect(() => {
-    if (publicKey) {
-      setWalletAddress(publicKey.toBase58());
+    // Wenn keine Wallet verbunden ist, zurück zur öffentlichen Account-Seite
+    if (!connected || !publicKey) {
+      router.push('/account');
+      return;
     }
-  }, [publicKey]);
 
-  // Presale-Orders laden (nach Wallet)
-  useEffect(() => {
-    const loadOrders = async () => {
-      if (!walletAddress) {
-        setOrders([]);
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const walletAddress = publicKey.toBase58();
+
+        const { data, error } = await supabase
+          .from('presale_orders')
+          .select(
+            `
+            id,
+            created_at,
+            wallet,
+            sol_amount,
+            memex_amount,
+            level,
+            payment_status
+          `
+          )
+          .eq('wallet', walletAddress)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Supabase error loading presale_orders:', error);
+          setError('Could not load your presale data. Please try again later.');
+        } else if (data) {
+          setOrders(data as PresaleOrder[]);
+        }
+      } catch (err) {
+        console.error('Unknown error loading presale_orders:', err);
+        setError('Unexpected error while loading your account data.');
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('presale_orders')
-        .select(
-          'id, wallet, sol_amount, memex_amount, level, created_at, payment_status'
-        )
-        .eq('wallet', walletAddress)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase select error (presale_orders):', error);
-        setOrders([]);
-      } else {
-        setOrders((data ?? []) as PresaleOrder[]);
-      }
-      setLoading(false);
     };
 
-    loadOrders();
-  }, [walletAddress]);
-
-  const totalSol = orders.reduce(
-    (sum, o) => sum + (o.sol_amount ?? 0),
-    0
-  );
-  const totalMemex = orders.reduce(
-    (sum, o) => sum + (o.memex_amount ?? 0),
-    0
-  );
+    fetchOrders();
+  }, [connected, publicKey, router]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    // Einfach reload – du kannst später einen Redirect auf /account machen
-    window.location.href = '/account';
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Supabase signOut error:', err);
+    } finally {
+      router.push('/account');
+    }
   };
 
   return (
-    <div className={styles.accountWrapper}>
-      <div className={styles.topBar}>
-        <h1 className={styles.title}>MY ACCOUNT</h1>
-        <button className={styles.logoutButton} onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-
-      <div className={styles.infoRow}>
-        <div className={styles.infoBox}>
-          <h2>Profile</h2>
-          <p>
-            <strong>Email:</strong>{' '}
-            {email ? email : 'No email account linked'}
-          </p>
-          <p>
-            <strong>Wallet:</strong>{' '}
-            {walletAddress ? walletAddress : 'No wallet connected'}
-          </p>
+    <div className={styles.pageWrapper}>
+      <div className={styles.content}>
+        {/* Header */}
+        <div className={styles.headerRow}>
+          <div>
+            <h1 className={styles.title}>My Account</h1>
+            <p className={styles.subtitle}>
+              Overview of your locked MEMEX, future NFTs and staking.
+            </p>
+          </div>
+          <button className={styles.logoutButton} onClick={handleLogout}>
+            Logout
+          </button>
         </div>
 
-        <div className={styles.infoBox}>
-          <h2>Presale Summary</h2>
-          {loading ? (
-            <p>Loading your presale data…</p>
-          ) : orders.length === 0 ? (
-            <p>No presale purchases found for this wallet.</p>
-          ) : (
-            <>
-              <p>
-                <strong>Total SOL spent:</strong> {totalSol.toFixed(3)} SOL
-              </p>
-              <p>
-                <strong>Total MEMEX locked:</strong>{' '}
-                {totalMemex.toLocaleString()} MEMEX
-              </p>
-              <p className={styles.helperText}>
-                Your MEMEX tokens will be claimable after the presale ends.
-              </p>
-            </>
+        {/* Wallet Info */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Connected Wallet</h2>
+          <div className={styles.infoBox}>
+            <p className={styles.infoLabel}>Wallet Address</p>
+            <p className={styles.infoValue}>
+              {publicKey ? publicKey.toBase58() : 'Not connected'}
+            </p>
+          </div>
+        </section>
+
+        {/* Presale Orders */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Presale Allocation</h2>
+
+          {loading && <p className={styles.muted}>Loading your MEMEX allocation…</p>}
+          {error && <p className={styles.errorText}>{error}</p>}
+
+          {!loading && !error && orders.length === 0 && (
+            <p className={styles.muted}>
+              No presale orders found yet for this wallet.
+            </p>
           )}
-        </div>
-      </div>
 
-      <div className={styles.gridRow}>
-        <div className={styles.sectionBox}>
-          <h2>Your Presale Orders</h2>
-          {loading ? (
-            <p>Loading…</p>
-          ) : orders.length === 0 ? (
-            <p>No orders yet.</p>
-          ) : (
-            <div className={styles.orderList}>
-              {orders.map((o) => (
-                <div key={o.id} className={styles.orderItem}>
+          {!loading && !error && orders.length > 0 && (
+            <div className={styles.cardGrid}>
+              {orders.map((order) => (
+                <div key={order.id} className={styles.orderCard}>
                   <div className={styles.orderHeader}>
-                    <span>Level {o.level ?? '-'}</span>
-                    <span>{o.payment_status ?? 'pending'}</span>
+                    <span className={styles.badge}>
+                      Level {order.level ?? '-'}
+                    </span>
+                    <span className={styles.status}>
+                      {order.payment_status ?? 'pending'}
+                    </span>
                   </div>
                   <div className={styles.orderBody}>
-                    <p>
-                      <strong>SOL:</strong>{' '}
-                      {o.sol_amount?.toFixed(3) ?? '—'}
-                    </p>
-                    <p>
-                      <strong>MEMEX:</strong>{' '}
-                      {o.memex_amount
-                        ? o.memex_amount.toLocaleString()
-                        : '—'}
-                    </p>
-                    <p className={styles.orderDate}>
-                      {o.created_at
-                        ? new Date(o.created_at).toLocaleString()
-                        : ''}
-                    </p>
+                    <div className={styles.orderRow}>
+                      <span>SOL contributed</span>
+                      <span>{order.sol_amount ?? 0}</span>
+                    </div>
+                    <div className={styles.orderRow}>
+                      <span>MEMEX allocated</span>
+                      <span>{order.memex_amount?.toLocaleString() ?? 0}</span>
+                    </div>
+                    <div className={styles.orderRowSmall}>
+                      <span>Purchase date</span>
+                      <span>
+                        {order.created_at
+                          ? new Date(order.created_at).toLocaleString()
+                          : '-'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className={styles.sectionBox}>
-          <h2>Your NFTs</h2>
-          <p>Coming soon – your MemeX Duelverse cards will appear here.</p>
-        </div>
+        {/* NFTs Placeholder */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>NFT Collection</h2>
+          <div className={styles.placeholderBox}>
+            <p className={styles.placeholderTitle}>NFT inventory coming soon</p>
+            <p className={styles.placeholderText}>
+              Your MemeX cards and special NFT drops will appear here once the
+              Duelverse marketplace is live.
+            </p>
+          </div>
+        </section>
 
-        <div className={styles.sectionBox}>
-          <h2>MEMEX Staking</h2>
-          <p>Coming soon – stake your MEMEX to earn rewards after launch.</p>
-        </div>
+        {/* Staking Placeholder */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>MEMEX Staking</h2>
+          <div className={styles.placeholderBox}>
+            <p className={styles.placeholderTitle}>Staking launches after presale</p>
+            <p className={styles.placeholderText}>
+              Lock your MEMEX to earn rewards and unlock elite Duelverse
+              features. Staking goes live after the main presale is completed.
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   );
