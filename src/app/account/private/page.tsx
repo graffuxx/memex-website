@@ -1,185 +1,194 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { supabase } from '@/lib/supabaseClient';
-import styles from './AccountPrivate.module.css';
+import styles from '../AccountPrivate.module.css';
 
 type PresaleOrder = {
   id: string;
-  level: number | null;
+  wallet: string | null;
   sol_amount: number | null;
   memex_amount: number | null;
-  tx_hash: string | null;
-  created_at: string;
+  level: number | null;
+  created_at: string | null;
+  payment_status: string | null;
 };
 
 export default function AccountPrivatePage() {
-  const router = useRouter();
-  const { publicKey, connected } = useWallet();
+  const { publicKey } = useWallet();
 
   const [email, setEmail] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [orders, setOrders] = useState<PresaleOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // E-Mail-User aus Supabase laden
   useEffect(() => {
-    const run = async () => {
-      // Supabase-User (Mail) holen
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user ?? null;
-      if (user?.email) setEmail(user.email);
+    let isMounted = true;
 
-      // Wenn weder Wallet noch Mail-User vorhanden -> zurück zur Login-Seite
-      if (!user && (!connected || !publicKey)) {
-        router.replace('/account');
+    const loadUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Supabase auth error:', error);
+        return;
+      }
+      if (!isMounted) return;
+      setEmail(data.user?.email ?? null);
+    };
+
+    loadUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Wallet-Adresse setzen
+  useEffect(() => {
+    if (publicKey) {
+      setWalletAddress(publicKey.toBase58());
+    }
+  }, [publicKey]);
+
+  // Presale-Orders laden (nach Wallet)
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (!walletAddress) {
+        setOrders([]);
+        setLoading(false);
         return;
       }
 
-      // Wenn Wallet da ist, Presale-Orders laden
-      if (connected && publicKey) {
-        const { data, error } = await supabase
-          .from('presale_orders')
-          .select('id, level, sol_amount, memex_amount, tx_hash, created_at')
-          .eq('wallet', publicKey.toBase58())
-          .order('created_at', { ascending: false });
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('presale_orders')
+        .select(
+          'id, wallet, sol_amount, memex_amount, level, created_at, payment_status'
+        )
+        .eq('wallet', walletAddress)
+        .order('created_at', { ascending: false });
 
-        if (!error && data) {
-          setOrders(data as PresaleOrder[]);
-        } else if (error) {
-          console.error('Error loading presale_orders:', error);
-        }
+      if (error) {
+        console.error('Supabase select error (presale_orders):', error);
+        setOrders([]);
+      } else {
+        setOrders((data ?? []) as PresaleOrder[]);
       }
-
       setLoading(false);
     };
 
-    run();
-  }, [connected, publicKey, router]);
+    loadOrders();
+  }, [walletAddress]);
+
+  const totalSol = orders.reduce(
+    (sum, o) => sum + (o.sol_amount ?? 0),
+    0
+  );
+  const totalMemex = orders.reduce(
+    (sum, o) => sum + (o.memex_amount ?? 0),
+    0
+  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.replace('/account');
+    // Einfach reload – du kannst später einen Redirect auf /account machen
+    window.location.href = '/account';
   };
 
-  const totalMemex = orders.reduce(
-    (sum, o) => sum + (o.memex_amount || 0),
-    0
-  );
-  const totalSol = orders.reduce((sum, o) => sum + (o.sol_amount || 0), 0);
-
   return (
-    <div className={styles.wrapper}>
-      <button className={styles.logout} onClick={handleLogout}>
-        Logout
-      </button>
+    <div className={styles.accountWrapper}>
+      <div className={styles.topBar}>
+        <h1 className={styles.title}>MY ACCOUNT</h1>
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
 
-      <h1 className={styles.title}>MY ACCOUNT</h1>
+      <div className={styles.infoRow}>
+        <div className={styles.infoBox}>
+          <h2>Profile</h2>
+          <p>
+            <strong>Email:</strong>{' '}
+            {email ? email : 'No email account linked'}
+          </p>
+          <p>
+            <strong>Wallet:</strong>{' '}
+            {walletAddress ? walletAddress : 'No wallet connected'}
+          </p>
+        </div>
 
-      {loading ? (
-        <p className={styles.info}>Loading your data...</p>
-      ) : (
-        <>
-          <section className={styles.identity}>
-            {publicKey && (
+        <div className={styles.infoBox}>
+          <h2>Presale Summary</h2>
+          {loading ? (
+            <p>Loading your presale data…</p>
+          ) : orders.length === 0 ? (
+            <p>No presale purchases found for this wallet.</p>
+          ) : (
+            <>
               <p>
-                Wallet: <span>{publicKey.toBase58()}</span>
+                <strong>Total SOL spent:</strong> {totalSol.toFixed(3)} SOL
               </p>
-            )}
-            {email && (
               <p>
-                Email: <span>{email}</span>
+                <strong>Total MEMEX locked:</strong>{' '}
+                {totalMemex.toLocaleString()} MEMEX
               </p>
-            )}
-          </section>
+              <p className={styles.helperText}>
+                Your MEMEX tokens will be claimable after the presale ends.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
-          <section className={styles.summary}>
-            <h2>Presale Summary</h2>
-            {orders.length === 0 ? (
-              <p>No presale purchases found for this wallet yet.</p>
-            ) : (
-              <div className={styles.summaryGrid}>
-                <div className={styles.summaryCard}>
-                  <span className={styles.summaryLabel}>Total MEMEX</span>
-                  <span className={styles.summaryValue}>
-                    {totalMemex.toLocaleString()}
-                  </span>
-                </div>
-                <div className={styles.summaryCard}>
-                  <span className={styles.summaryLabel}>Total SOL spent</span>
-                  <span className={styles.summaryValue}>
-                    {totalSol.toFixed(3)} SOL
-                  </span>
-                </div>
-                <div className={styles.summaryCard}>
-                  <span className={styles.summaryLabel}>Orders</span>
-                  <span className={styles.summaryValue}>
-                    {orders.length}
-                  </span>
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section className={styles.orders}>
-            <h2>Your Presale Orders</h2>
-            {orders.length === 0 ? (
-              <p>No orders so far.</p>
-            ) : (
-              <div className={styles.ordersTable}>
-                <div className={styles.ordersHeader}>
-                  <span>Date</span>
-                  <span>Level</span>
-                  <span>SOL</span>
-                  <span>MEMEX</span>
-                  <span>Tx</span>
-                </div>
-                {orders.map((o) => (
-                  <div key={o.id} className={styles.ordersRow}>
-                    <span>
-                      {new Date(o.created_at).toLocaleDateString()}
-                    </span>
-                    <span>{o.level ?? '-'}</span>
-                    <span>
-                      {o.sol_amount !== null
-                        ? o.sol_amount.toFixed(3)
-                        : '-'}
-                    </span>
-                    <span>
-                      {o.memex_amount !== null
-                        ? o.memex_amount.toLocaleString()
-                        : '-'}
-                    </span>
-                    <span>
-                      {o.tx_hash ? (
-                        <a
-                          href={`https://solscan.io/tx/${o.tx_hash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View
-                        </a>
-                      ) : (
-                        '-'
-                      )}
-                    </span>
+      <div className={styles.gridRow}>
+        <div className={styles.sectionBox}>
+          <h2>Your Presale Orders</h2>
+          {loading ? (
+            <p>Loading…</p>
+          ) : orders.length === 0 ? (
+            <p>No orders yet.</p>
+          ) : (
+            <div className={styles.orderList}>
+              {orders.map((o) => (
+                <div key={o.id} className={styles.orderItem}>
+                  <div className={styles.orderHeader}>
+                    <span>Level {o.level ?? '-'}</span>
+                    <span>{o.payment_status ?? 'pending'}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
+                  <div className={styles.orderBody}>
+                    <p>
+                      <strong>SOL:</strong>{' '}
+                      {o.sol_amount?.toFixed(3) ?? '—'}
+                    </p>
+                    <p>
+                      <strong>MEMEX:</strong>{' '}
+                      {o.memex_amount
+                        ? o.memex_amount.toLocaleString()
+                        : '—'}
+                    </p>
+                    <p className={styles.orderDate}>
+                      {o.created_at
+                        ? new Date(o.created_at).toLocaleString()
+                        : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-          <section className={styles.nfts}>
-            <h2>Your NFTs</h2>
-            <p>Coming soon – your MemeX NFT collection will appear here.</p>
-          </section>
+        <div className={styles.sectionBox}>
+          <h2>Your NFTs</h2>
+          <p>Coming soon – your MemeX Duelverse cards will appear here.</p>
+        </div>
 
-          <section className={styles.staking}>
-            <h2>MEMEX Staking</h2>
-            <p>Staking will open after the presale. Stay tuned.</p>
-          </section>
-        </>
-      )}
+        <div className={styles.sectionBox}>
+          <h2>MEMEX Staking</h2>
+          <p>Coming soon – stake your MEMEX to earn rewards after launch.</p>
+        </div>
+      </div>
     </div>
   );
 }
