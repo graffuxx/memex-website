@@ -40,9 +40,9 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
 
-      console.log('[Register] Calling supabase.auth.signUp', { email });
+      // Debug-Log: wir wollen GENAU sehen, was Supabase zurückgibt
+      console.log('[Register] submitting signUp', { email });
 
-      // WICHTIG: einfacher signUp ohne Redirect-Optionen
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -56,21 +56,35 @@ export default function RegisterPage() {
         return;
       }
 
-      if (!data || !data.user) {
-        console.error('Supabase signUp returned no user:', data);
-        setErrorMessage('Registration failed: no user returned from Supabase.');
+      // Falls Supabase nichts zurückgibt (sehr unwahrscheinlich), trotzdem abbrechen
+      if (!data) {
+        setErrorMessage('No response from auth server. Please try again.');
         return;
       }
 
-      // Erfolgreich: Hinweis anzeigen
-      setSuccessMessage(
-        'Registration successful! You can now log in with your email and password.'
-      );
+      // Direkt nach erfolgreichem SignUp einloggen
+      const {
+        data: signInData,
+        error: signInError,
+      } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // Felder leeren
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      console.log('[Register] signIn after signUp:', { signInData, signInError });
+
+      if (signInError) {
+        // Account ist angelegt, Login hat aber nicht geklappt
+        console.error('Supabase signIn error after signUp:', signInError);
+        setSuccessMessage(
+          'Your account has been created, but automatic login failed. Please try to log in manually.'
+        );
+        setErrorMessage(signInError.message);
+        return;
+      }
+
+      // Alles gut: direkt in den privaten Bereich
+      router.push('/account/private');
     } catch (err) {
       console.error('Unexpected error during registration:', err);
       setErrorMessage('Unexpected error. Please try again.');
@@ -141,11 +155,15 @@ export default function RegisterPage() {
           </label>
 
           {errorMessage && (
-            <div className={styles.errorMessage}>{errorMessage}</div>
+            <div className={styles.errorMessage}>
+              {errorMessage}
+            </div>
           )}
 
           {successMessage && (
-            <div className={styles.successMessage}>{successMessage}</div>
+            <div className={styles.successMessage}>
+              {successMessage}
+            </div>
           )}
 
           <button
