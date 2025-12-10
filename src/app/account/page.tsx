@@ -1,172 +1,211 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import WalletButton from '@/components/Wallet/WalletButton';
 import { supabase } from '@/lib/supabaseClient';
+import WalletButton from '@/components/Wallet/WalletButton';
 import styles from './page.module.css';
 
-export default function AccountPage() {
-  const router = useRouter();
-  const { connected, publicKey } = useWallet();
+type Mode = 'login' | 'register';
 
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+export default function AccountPage() {
+  const { publicKey, connected } = useWallet();
+
+  const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [passwordConfirm, setPasswordConfirm] = useState(''); // NEW
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
-  // Wenn Wallet verbunden -> automatisch in den privaten Bereich
+  // Wenn Wallet verbunden ist, automatisch in den privaten Bereich weiterleiten
   useEffect(() => {
     if (connected && publicKey) {
-      router.push('/account/private');
+      // Optional: Wallet im localStorage merken
+      try {
+        localStorage.setItem('memex_connected_wallet', publicKey.toBase58());
+      } catch {
+        // Ignorieren – nur Komfort
+      }
+      window.location.href = '/account/private';
     }
-  }, [connected, publicKey, router]);
+  }, [connected, publicKey]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setMessage(null);
     setError(null);
-    setLoading(true);
+    setInfo(null);
 
+    if (!email || !password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+
+    // Nur beim Registrieren: Passwörter vergleichen
+    if (mode === 'register') {
+      if (!passwordConfirm) {
+        setError('Please repeat your password.');
+        return;
+      }
+      if (password !== passwordConfirm) {
+        setError('Passwords do not match.');
+        return;
+      }
+    }
+
+    setLoading(true);
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) {
-          setError(error.message);
-        } else {
-          router.push('/account/private');
+
+        if (signInError) {
+          throw signInError;
         }
+
+        // Erfolgreich eingeloggt → weiter in den privaten Account
+        window.location.href = '/account/private';
       } else {
-        const { error } = await supabase.auth.signUp({
+        // REGISTER
+        const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/account/private`,
-          },
         });
-        if (error) {
-          setError(error.message);
-        } else {
-          setMessage(
-            'Check your inbox – we sent you a confirmation mail. After verifying you can log in to your account.'
-          );
+
+        if (signUpError) {
+          // z.B. "Email rate limit exceeded" o.ä.
+          throw signUpError;
         }
+
+        // Hinweis für Verifizierungs-Mail
+        setInfo('Check your inbox to confirm your email. After verification you can log in.');
       }
     } catch (err: any) {
-      setError('Something went wrong. Please try again later.');
-      console.error('Supabase auth error:', err);
+      console.error('Auth error:', err);
+      const msg =
+        err?.message ||
+        'Something went wrong. Please try again in a moment.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const switchMode = (newMode: Mode) => {
+    setMode(newMode);
+    setError(null);
+    setInfo(null);
+  };
+
   return (
     <div className={styles.pageWrapper}>
-      {/* Video-Hintergrund */}
-      <video
-        className={styles.backgroundVideo}
-        src="/memex-accountlogin.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-      />
-      <div className={styles.overlay} />
+      <div className={styles.card}>
+        <h1 className={styles.title}>MY ACCOUNT</h1>
+        <p className={styles.subtitle}>
+          CONNECT YOUR WALLET OR LOG IN WITH EMAIL TO SEE YOUR LOCKED MEMEX AND FUTURE NFTS.
+        </p>
 
-      <div className={styles.content}>
-        <div className={styles.card}>
-          <h1 className={styles.title}>MY ACCOUNT</h1>
-          <p className={styles.subtitle}>
-            Connect your wallet or log in with email to see your locked MEMEX and future NFTs.
+        {/* WALLET CONNECT SECTION */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>CONNECT WITH WALLET</h2>
+          <p className={styles.sectionText}>
+            CONNECT YOUR SOLANA WALLET TO LINK YOUR PRESALE PURCHASES TO THIS ACCOUNT. AFTER
+            CONNECTING YOU&apos;LL BE REDIRECTED AUTOMATICALLY TO YOUR PRIVATE DASHBOARD.
           </p>
+          <div className={styles.walletButtonRow}>
+            <WalletButton />
+          </div>
+        </section>
 
-          {/* WALLET-BEREICH */}
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Connect with Wallet</h2>
-            <p className={styles.sectionText}>
-              Connect your Solana wallet to link your presale purchases to this account. After
-              connecting you&apos;ll be redirected automatically to your private dashboard.
-            </p>
-            <div className={styles.walletRow}>
-              <WalletButton />
-            </div>
-          </section>
+        {/* EMAIL LOGIN / REGISTER SECTION */}
+        <section className={styles.section}>
+          <div className={styles.tabsRow}>
+            <button
+              type="button"
+              className={`${styles.tabButton} ${
+                mode === 'login' ? styles.tabButtonActive : ''
+              }`}
+              onClick={() => switchMode('login')}
+            >
+              LOGIN
+            </button>
+            <button
+              type="button"
+              className={`${styles.tabButton} ${
+                mode === 'register' ? styles.tabButtonActive : ''
+              }`}
+              onClick={() => switchMode('register')}
+            >
+              REGISTER
+            </button>
+          </div>
 
-          {/* EMAIL LOGIN / REGISTER */}
-          <section className={styles.section}>
-            <div className={styles.tabs}>
-              <button
-                type="button"
-                className={`${styles.tabButton} ${
-                  mode === 'login' ? styles.tabButtonActive : ''
-                }`}
-                onClick={() => {
-                  setMode('login');
-                  setMessage(null);
-                  setError(null);
-                }}
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                className={`${styles.tabButton} ${
-                  mode === 'register' ? styles.tabButtonActive : ''
-                }`}
-                onClick={() => {
-                  setMode('register');
-                  setMessage(null);
-                  setError(null);
-                }}
-              >
-                Register
-              </button>
-            </div>
+          <form className={styles.form} onSubmit={handleSubmit}>
+            {/* EMAIL */}
+            <label className={styles.label}>
+              EMAIL
+              <input
+                type="email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
+              />
+            </label>
 
-            <form className={styles.form} onSubmit={handleSubmit}>
+            {/* PASSWORD */}
+            <label className={styles.label}>
+              PASSWORD
+              <input
+                type="password"
+                className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
+            </label>
+
+            {/* CONFIRM PASSWORD – nur im REGISTER-Modus */}
+            {mode === 'register' && (
               <label className={styles.label}>
-                Email
-                <input
-                  type="email"
-                  className={styles.input}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </label>
-
-              <label className={styles.label}>
-                Password
+                CONFIRM PASSWORD
                 <input
                   type="password"
                   className={styles.input}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  placeholder="Repeat your password"
+                  autoComplete="new-password"
                 />
               </label>
+            )}
 
-              {error && <p className={styles.errorText}>{error}</p>}
-              {message && <p className={styles.infoText}>{message}</p>}
+            {/* Fehlermeldung */}
+            {error && <p className={styles.errorText}>{error}</p>}
 
-              <button className={styles.submitButton} type="submit" disabled={loading}>
-                {loading
-                  ? 'Please wait…'
-                  : mode === 'login'
-                  ? 'Login to my account'
-                  : 'Create my account'}
-              </button>
-            </form>
-          </section>
-        </div>
+            {/* Info (z.B. E-Mail-Bestätigung) */}
+            {info && <p className={styles.infoText}>{info}</p>}
+
+            <button
+              type="submit"
+              className={styles.primaryButton}
+              disabled={loading}
+            >
+              {loading
+                ? mode === 'login'
+                  ? 'LOGGING IN...'
+                  : 'CREATING ACCOUNT...'
+                : mode === 'login'
+                ? 'LOGIN TO MY ACCOUNT'
+                : 'CREATE MY ACCOUNT'}
+            </button>
+          </form>
+        </section>
       </div>
     </div>
   );
