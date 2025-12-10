@@ -40,33 +40,37 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
 
-      const redirectUrl =
-        typeof window !== 'undefined'
-          ? `${window.location.origin}/account`
-          : undefined;
+      console.log('[Register] Calling supabase.auth.signUp', { email });
 
-      const { error } = await supabase.auth.signUp({
+      // WICHTIG: einfacher signUp ohne Redirect-Optionen
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-        },
       });
 
+      console.log('[Register] signUp result:', { data, error });
+
       if (error) {
-        // Supabase typische Fehlermeldung z.B. "Email rate limit exceeded"
         console.error('Supabase signUp error:', error);
         setErrorMessage(error.message || 'Registration failed. Please try again.');
         return;
       }
 
+      if (!data || !data.user) {
+        console.error('Supabase signUp returned no user:', data);
+        setErrorMessage('Registration failed: no user returned from Supabase.');
+        return;
+      }
+
       // Erfolgreich: Hinweis anzeigen
       setSuccessMessage(
-        'Registration successful! Please check your email and confirm your account to continue.'
+        'Registration successful! You can now log in with your email and password.'
       );
 
-      // Optional: nach ein paar Sekunden zurück auf /account
-      // setTimeout(() => router.push('/account'), 3000);
+      // Felder leeren
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (err) {
       console.error('Unexpected error during registration:', err);
       setErrorMessage('Unexpected error. Please try again.');
@@ -137,15 +141,11 @@ export default function RegisterPage() {
           </label>
 
           {errorMessage && (
-            <div className={styles.errorMessage}>
-              {errorMessage}
-            </div>
+            <div className={styles.errorMessage}>{errorMessage}</div>
           )}
 
           {successMessage && (
-            <div className={styles.successMessage}>
-              {successMessage}
-            </div>
+            <div className={styles.successMessage}>{successMessage}</div>
           )}
 
           <button
