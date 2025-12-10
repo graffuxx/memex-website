@@ -1,74 +1,103 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { supabase } from '@/lib/supabaseClient';
-import WalletButton from '@/components/Wallet/WalletButton';
 import styles from './page.module.css';
 
-type Mode = 'login' | 'register';
+type Tab = 'login' | 'register';
 
 export default function AccountPage() {
-  const [mode, setMode] = useState<Mode>('login');
+  const router = useRouter();
+
+  // Wallet
+  const { connected, publicKey } = useWallet();
+  const { setVisible } = useWalletModal();
+
+  // Tabs & Form
+  const [activeTab, setActiveTab] = useState<Tab>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
-  const router = useRouter();
+  // Wenn Wallet verbunden -> in privaten Bereich
+  useEffect(() => {
+    if (connected && publicKey) {
+      router.push('/account/private');
+    }
+  }, [connected, publicKey, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Wallet-Modal öffnen
+  const handleSelectWallet = () => {
+    setVisible(true);
+  };
+
+  // Login / Register Submit
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
+    setErrorMsg(null);
+    setInfoMsg(null);
 
     if (!email || !password) {
-      setError('Please fill in all required fields.');
+      setErrorMsg('Please enter email and password.');
       return;
     }
 
-    if (mode === 'register' && password !== passwordConfirm) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (mode === 'register') {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (signUpError) {
-          setError(signUpError.message);
-        } else {
-          setMessage('Account created. Redirecting to your dashboard ...');
-          router.push('/account/private');
-        }
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) {
-          setError(signInError.message);
-        } else {
-          router.push('/account/private');
-        }
+    if (activeTab === 'register') {
+      if (!passwordConfirm) {
+        setErrorMsg('Please confirm your password.');
+        return;
       }
+      if (password !== passwordConfirm) {
+        setErrorMsg('Passwords do not match.');
+        return;
+      }
+    }
+
+    try {
+      setLoading(true);
+
+      if (activeTab === 'register') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (error) {
+          console.error('Supabase signUp error:', error);
+          setErrorMsg(error.message || 'Could not create account.');
+          return;
+        }
+
+        setInfoMsg('Account created. You can now log in with your password.');
+        setActiveTab('login');
+        setPassword('');
+        setPasswordConfirm('');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          console.error('Supabase signIn error:', error);
+          setErrorMsg(error.message || 'Login failed.');
+          return;
+        }
+
+        router.push('/account/private');
+      }
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setErrorMsg(err?.message || 'Unexpected error.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const switchTo = (newMode: Mode) => {
-    setMode(newMode);
-    setError(null);
-    setMessage(null);
   };
 
   return (
@@ -79,32 +108,47 @@ export default function AccountPage() {
           CONNECT YOUR WALLET OR LOG IN WITH EMAIL TO SEE YOUR LOCKED MEMEX AND FUTURE NFTS.
         </p>
 
-        {/* WALLET CONNECT */}
+        {/* Wallet Section */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>CONNECT WITH WALLET</h2>
           <p className={styles.sectionText}>
-            CONNECT YOUR SOLANA WALLET TO LINK YOUR PRESALE PURCHASES TO THIS ACCOUNT. AFTER CONNECTING YOU&apos;LL
-            BE REDIRECTED AUTOMATICALLY TO YOUR PRIVATE DASHBOARD.
+            CONNECT YOUR SOLANA WALLET TO LINK YOUR PRESALE PURCHASES TO THIS ACCOUNT. AFTER
+            CONNECTING YOU&apos;LL BE REDIRECTED AUTOMATICALLY TO YOUR PRIVATE DASHBOARD.
           </p>
-          <div className={styles.walletButtonWrapper}>
-            <WalletButton />
+
+          <div className={styles.walletButtonRow}>
+            <button
+              type="button"
+              className={styles.walletButton}
+              onClick={handleSelectWallet}
+            >
+              SELECT WALLET
+            </button>
           </div>
         </section>
 
-        {/* EMAIL LOGIN / REGISTER */}
+        {/* Email Login / Register */}
         <section className={styles.section}>
           <div className={styles.tabRow}>
             <button
               type="button"
-              className={mode === 'login' ? styles.tabActive : styles.tab}
-              onClick={() => switchTo('login')}
+              className={activeTab === 'login' ? styles.tabActive : styles.tab}
+              onClick={() => {
+                setActiveTab('login');
+                setErrorMsg(null);
+                setInfoMsg(null);
+              }}
             >
               LOGIN
             </button>
             <button
               type="button"
-              className={mode === 'register' ? styles.tabActive : styles.tab}
-              onClick={() => switchTo('register')}
+              className={activeTab === 'register' ? styles.tabActive : styles.tab}
+              onClick={() => {
+                setActiveTab('register');
+                setErrorMsg(null);
+                setInfoMsg(null);
+              }}
             >
               REGISTER
             </button>
@@ -116,9 +160,9 @@ export default function AccountPage() {
               <input
                 type="email"
                 className={styles.input}
+                placeholder="ENTER YOUR EMAIL"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="ENTER YOUR EMAIL"
                 autoComplete="email"
               />
             </label>
@@ -128,38 +172,42 @@ export default function AccountPage() {
               <input
                 type="password"
                 className={styles.input}
+                placeholder="ENTER YOUR PASSWORD"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'register' ? 'CHOOSE A PASSWORD' : 'ENTER YOUR PASSWORD'}
-                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
               />
             </label>
 
-            {mode === 'register' && (
+            {activeTab === 'register' && (
               <label className={styles.label}>
                 <span className={styles.labelText}>CONFIRM PASSWORD</span>
                 <input
                   type="password"
                   className={styles.input}
+                  placeholder="REPEAT YOUR PASSWORD"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  placeholder="REPEAT YOUR PASSWORD"
                   autoComplete="new-password"
                 />
               </label>
             )}
 
-            {error && <p className={styles.error}>{error}</p>}
-            {message && <p className={styles.message}>{message}</p>}
+            {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+            {infoMsg && <p className={styles.message}>{infoMsg}</p>}
 
-            <button className={styles.submit} type="submit" disabled={loading}>
-              {loading
-                ? mode === 'register'
+            <button
+              type="submit"
+              className={styles.submit}
+              disabled={loading}
+            >
+              {activeTab === 'login'
+                ? loading
+                  ? 'LOGGING IN...'
+                  : 'LOGIN TO MY ACCOUNT'
+                : loading
                   ? 'CREATING ACCOUNT...'
-                  : 'LOGGING IN...'
-                : mode === 'register'
-                ? 'CREATE MY ACCOUNT'
-                : 'LOGIN TO MY ACCOUNT'}
+                  : 'CREATE MY ACCOUNT'}
             </button>
           </form>
         </section>
