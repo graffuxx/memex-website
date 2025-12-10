@@ -1,74 +1,51 @@
 .pageWrapper {
-  position: relative;
   min-height: 100vh;
-  color: #ffffff;
-  overflow: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-/* Vollbild-Video im Hintergrund */
-.backgroundVideo {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -2;
-}
-
-/* Dunkler Glow-Overlay */
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(circle at top, rgba(129, 88, 255, 0.6), transparent 55%),
-    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.98));
-}
-
-/* Zentrierter Inhalt */
-.content {
-  position: relative;
-  min-height: calc(100vh - 120px);
-  padding: 96px 16px 48px;
+  padding: 120px 16px 80px;
+  box-sizing: border-box;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
+  background: radial-gradient(circle at top, #2b1249 0%, #05030b 60%, #010008 100%);
+  color: #ffffff;
+  font-family: 'Dolce Vita', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Hauptkarte */
+/* Zentrale Card */
+
 .card {
   width: 100%;
-  max-width: 560px;
-  background: rgba(6, 4, 24, 0.9);
-  border-radius: 24px;
-  padding: 32px 28px 32px;
-  box-shadow:
-    0 0 40px rgba(120, 80, 255, 0.6),
-    0 0 80px rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(167, 139, 250, 0.7);
-  backdrop-filter: blur(14px);
+  max-width: 460px;
+  margin: 0 auto;
+  background: radial-gradient(circle at top, #352056 0%, #080213 65%, #05010b 100%);
+  border-radius: 28px;
+  box-shadow: 0 0 45px rgba(188, 99, 255, 0.65);
+  padding: 32px 32px 40px;
+  box-sizing: border-box;
+  position: relative;
 }
 
-/* Titel + Untertitel */
+/* Überschriften */
+
 .title {
-  font-size: 28px;
-  letter-spacing: 0.14em;
+  font-size: 26px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   margin: 0 0 8px;
 }
 
 .subtitle {
-  margin: 0 0 24px;
-  font-size: 14px;
-  opacity: 0.82;
+  font-size: 12px;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0 0 28px;
 }
 
 /* Sektionen */
+
 .section {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .section:first-of-type {
@@ -78,141 +55,161 @@
 }
 
 .sectionTitle {
-  font-size: 16px;
-  text-transform: uppercase;
+  font-size: 13px;
   letter-spacing: 0.16em;
-  margin-bottom: 8px;
+  text-transform: uppercase;
+  margin: 0 0 8px;
 }
 
 .sectionText {
-  font-size: 13px;
-  opacity: 0.85;
-  margin-bottom: 14px;
+  font-size: 11px;
+  opacity: 0.8;
+  line-height: 1.6;
+  margin: 0 0 16px;
 }
 
-/* Wallet-Button-Reihe */
-.walletRow {
+/* Wallet Button Wrapper */
+
+.walletButtonWrapper {
   display: flex;
   justify-content: flex-start;
 }
 
-.walletRow :global(button) {
-  background: linear-gradient(90deg, #8b5cf6, #ec4899) !important;
-  color: #ffffff !important;
-  border-radius: 12px !important;
-  padding: 10px 18px !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.7), 0 0 50px rgba(59, 130, 246, 0.6);
-}
+/* Tabs LOGIN / REGISTER */
 
-/* Tabs Login / Register */
 .tabs {
   display: inline-flex;
+  padding: 4px;
   border-radius: 999px;
-  padding: 3px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
   margin-bottom: 16px;
 }
 
-.tabButton {
+.tab {
   border: none;
+  outline: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   padding: 6px 16px;
   border-radius: 999px;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.tabButtonActive {
-  background: linear-gradient(90deg, #a855ff, #ec4899);
-  color: #fff;
+.tabActive {
+  background: linear-gradient(135deg, #ff53e0, #a55bff);
+  color: #ffffff;
 }
 
 /* Formular */
+
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin-top: 4px;
 }
 
-.label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  opacity: 0.9;
+.field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-bottom: 14px;
+}
+
+.label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
 }
 
 .input {
-  margin-top: 2px;
+  width: 100%;
+  padding: 10px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  padding: 10px 14px;
-  font-size: 14px;
-  background: rgba(6, 4, 24, 0.9);
-  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(3, 0, 12, 0.8);
+  color: #ffffff;
+  font-size: 12px;
   outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .input:focus {
-  border-color: #a855ff;
-  box-shadow: 0 0 0 1px rgba(168, 85, 255, 0.6);
+  border-color: #c979ff;
+  box-shadow: 0 0 0 1px rgba(201, 121, 255, 0.3);
+  background: rgba(10, 0, 25, 0.9);
 }
 
-/* Meldungen */
-.errorText {
-  font-size: 13px;
-  color: #fecaca;
+/* Messages */
+
+.error {
+  margin: 4px 0 8px;
+  font-size: 11px;
+  color: #ff6b81;
 }
 
-.infoText {
-  font-size: 13px;
-  color: #bbf7d0;
+.message {
+  margin: 4px 0 8px;
+  font-size: 11px;
+  color: #7bffcf;
 }
 
-/* Submit-Button */
-.submitButton {
+/* Submit Button */
+
+.submit {
+  width: 100%;
   margin-top: 8px;
-  border: none;
+  padding: 10px 14px;
   border-radius: 999px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  cursor: pointer;
-  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  border: none;
+  outline: none;
+  background: linear-gradient(135deg, #ff53e0, #a55bff);
   color: #ffffff;
-  box-shadow:
-    0 0 25px rgba(168, 85, 247, 0.7),
-    0 0 50px rgba(59, 130, 246, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(188, 99, 255, 0.7);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
 }
 
-.submitButton:disabled {
-  opacity: 0.7;
+.submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px rgba(195, 110, 255, 0.85);
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 0 16px rgba(160, 80, 240, 0.8);
+}
+
+.submit:disabled {
+  opacity: 0.65;
   cursor: default;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+/* Mobile */
+
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: 110px 12px 48px;
+    align-items: flex-start;
+  }
+
   .card {
-    padding: 24px 20px 24px;
-    border-radius: 20px;
+    padding: 24px 18px 28px;
+    border-radius: 22px;
   }
 
   .title {
     font-size: 22px;
-  }
-
-  .subtitle {
-    font-size: 13px;
   }
 }
