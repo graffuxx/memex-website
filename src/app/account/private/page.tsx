@@ -17,7 +17,8 @@ type PresaleOrder = {
 const MAX_MEMEX_PER_WALLET = 1_000_000; // Placeholder, später anpassbar
 
 export default function PrivateAccountPage() {
-  const { publicKey, connected } = useWallet();
+  // disconnect kommt jetzt aus useWallet, damit wir die Wallet sauber trennen können
+  const { publicKey, connected, disconnect } = useWallet();
   const walletAddress = publicKey?.toBase58() ?? null;
 
   const [orders, setOrders] = useState<PresaleOrder[]>([]);
@@ -76,8 +77,25 @@ export default function PrivateAccountPage() {
     Math.min(100, (totalMemex / MAX_MEMEX_PER_WALLET) * 100)
   );
 
-  const handleLogout = () => {
-    // Später Supabase-/Session-Logout ergänzen
+  const handleLogout = async () => {
+    try {
+      // 1) Supabase-Session beenden (für Mail-Login)
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out from Supabase:', err);
+    }
+
+    try {
+      // 2) Solana-Wallet trennen (für Wallet-Login)
+      // disconnect ist optional, also vorsichtig aufrufen
+      if (disconnect) {
+        await disconnect();
+      }
+    } catch (err) {
+      console.error('Error disconnecting wallet:', err);
+    }
+
+    // 3) Redirect zurück zur öffentlichen Account-Seite
     window.location.href = '/account';
   };
 
