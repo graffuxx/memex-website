@@ -1,154 +1,151 @@
-/* Vollflächiger Hintergrund für Login/Register */
 .pageWrapper {
   min-height: 100vh;
-  padding: 140px 16px 80px; /* Platz für Header + Ticker */
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  padding: 120px 16px 64px;
   box-sizing: border-box;
-
-  /* Lila Galaxy / Glow Background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background:
-    radial-gradient(circle at top, rgba(140, 82, 255, 0.35) 0, transparent 55%),
-    radial-gradient(circle at 10% 80%, rgba(255, 0, 170, 0.18) 0, transparent 55%),
-    radial-gradient(circle at 90% 80%, rgba(0, 180, 255, 0.25) 0, transparent 55%),
-    #050212;
-  background-attachment: fixed;
+    radial-gradient(circle at top, #5a1b88 0, transparent 55%),
+    radial-gradient(circle at bottom, #0b5ac2 0, transparent 55%),
+    #050216;
 }
 
-/* Zentrale Karte */
 .card {
   width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  padding: 32px 32px 40px;
-  border-radius: 26px;
+  max-width: 440px;
+  background: rgba(5, 1, 20, 0.94);
+  border-radius: 28px;
+  padding: 32px 32px 36px;
   box-sizing: border-box;
-
-  background:
-    radial-gradient(circle at top, rgba(191, 120, 255, 0.45) 0, rgba(15, 5, 40, 0.96) 52%, #050312 100%);
-  box-shadow:
-    0 0 40px rgba(191, 120, 255, 0.45),
-    0 0 120px rgba(80, 40, 190, 0.65);
+  box-shadow: 0 0 60px rgba(183, 86, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Überschriften & Texte */
 .title {
-  font-size: 22px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #ffffff;
   margin: 0 0 8px;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
 }
 
 .subtitle {
+  margin: 0 0 24px;
   font-size: 12px;
-  line-height: 1.6;
-  opacity: 0.78;
-  color: #e4d7ff;
+  line-height: 1.5;
+  opacity: 0.8;
+  max-width: 360px;
+}
+
+/* Wallet Connect Block */
+
+.walletConnectBox {
   margin-bottom: 24px;
 }
 
-/* Tabs Login / Register */
+.sectionTitle {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.sectionText {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.walletButtonWrapper {
+  margin-top: 16px;
+}
+
+/* Tabs */
+
 .tabs {
-  display: inline-flex;
-  border-radius: 999px;
-  padding: 2px;
-  background: linear-gradient(90deg, #ff6fd8, #6b5bff);
+  display: flex;
+  gap: 8px;
   margin-bottom: 24px;
 }
 
 .tabButton {
-  border: none;
-  outline: none;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 7px 20px;
-  cursor: pointer;
+  flex: 1;
+  padding: 8px 12px;
   border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   background: transparent;
   color: #ffffff;
-  transition: background 0.18s ease, color 0.18s ease;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .tabActive {
-  background: #06041a;
-  color: #ffffff;
+  background: linear-gradient(90deg, #bf5eff, #ff62d2);
+  border-color: transparent;
 }
 
 .tabInactive {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
-/* Formular */
+.tabButton:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Form */
+
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: 4px;
+  gap: 16px;
 }
 
 .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.85;
   display: flex;
   flex-direction: column;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #e4d7ff;
   gap: 6px;
 }
 
 .input {
-  width: 100%;
-  padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(5, 3, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 4, 40, 0.9);
+  padding: 10px 16px;
   color: #ffffff;
   font-size: 13px;
   outline: none;
 }
 
 .input::placeholder {
-  color: rgba(221, 205, 255, 0.5);
+  color: rgba(255, 255, 255, 0.45);
 }
 
-/* Fehlermeldung / Erfolg */
-.errorMessage {
-  margin-top: 4px;
-  font-size: 11px;
-  color: #ff8080;
+.input:focus {
+  border-color: rgba(208, 119, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(208, 119, 255, 0.6);
 }
 
-.successMessage {
-  margin-top: 4px;
-  font-size: 11px;
-  color: #7bffbf;
-}
-
-/* Submit-Button */
 .submitButton {
-  margin-top: 18px;
+  margin-top: 8px;
   width: 100%;
-  padding: 12px 18px;
   border-radius: 999px;
   border: none;
-  cursor: pointer;
-  font-size: 13px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 600;
-
-  background: linear-gradient(90deg, #ff6fd8, #6b5bff);
+  padding: 12px 16px;
+  background: linear-gradient(90deg, #bf5eff, #ff62d2);
   color: #ffffff;
-  box-shadow: 0 0 22px rgba(153, 98, 255, 0.8);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-}
-
-.submitButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 0 30px rgba(153, 98, 255, 1);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  cursor: pointer;
 }
 
 .submitButton:disabled {
@@ -156,44 +153,57 @@
   cursor: default;
 }
 
-/* Text unter dem Formular */
-.helperText {
-  margin-top: 18px;
-  font-size: 11px;
-  text-align: center;
-  color: #cbbcff;
-  opacity: 0.9;
+/* Messages */
+
+.errorMessage,
+.successMessage {
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
-/* Link-Button im Text */
+.errorMessage {
+  background: rgba(255, 80, 120, 0.08);
+  border: 1px solid rgba(255, 80, 120, 0.6);
+  color: #ff9bb4;
+}
+
+.successMessage {
+  background: rgba(88, 255, 182, 0.08);
+  border: 1px solid rgba(88, 255, 182, 0.6);
+  color: #88ffd3;
+}
+
+/* Helper / links */
+
+.helperText {
+  margin-top: 16px;
+  font-size: 12px;
+  text-align: center;
+  opacity: 0.8;
+}
+
 .linkButton {
   border: none;
   background: none;
-  padding: 0;
-  margin-left: 4px;
-  font-size: 11px;
-  color: #ff8ff5;
+  color: #ff8cff;
   cursor: pointer;
+  font-size: 12px;
   text-decoration: underline;
+  padding: 0;
+  margin: 0;
 }
 
-/* Wallet-Button im Account-Panel */
-.walletButtonRow {
-  margin-bottom: 18px;
-}
+/* Responsive */
 
-.walletButtonRow button {
-  width: 160px;
-}
-
-/* Mobile Anpassung */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .pageWrapper {
-    padding: 120px 12px 48px;
+    padding: 110px 12px 40px;
   }
 
   .card {
-    padding: 24px 20px 30px;
-    border-radius: 22px;
+    padding: 24px 20px 28px;
+    border-radius: 24px;
   }
 }
