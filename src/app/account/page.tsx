@@ -1,80 +1,95 @@
+// src/app/account/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
+import styles from './page.module.css';
 
-type Mode = 'login' | 'register';
+type ActiveTab = 'login' | 'register';
 
 export default function AccountPage() {
-  const [mode, setMode] = useState<Mode>('login');
+  const router = useRouter();
+
+  const [activeTab, setActiveTab] = useState<ActiveTab>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const router = useRouter();
-
-  const switchMode = (next: Mode) => {
-    setMode(next);
-    setMessage(null);
-    setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
-    setMessage(null);
-    setError(null);
-    setLoading(true);
+    if (!email || !password) {
+      setErrorMsg('Please enter both email and password.');
+      return;
+    }
 
-    try {
-      if (!email || !password) {
-        setError('Please enter email and password.');
+    if (activeTab === 'register') {
+      if (!passwordConfirm) {
+        setErrorMsg('Please confirm your password.');
         return;
       }
+      if (password !== passwordConfirm) {
+        setErrorMsg('Passwords do not match.');
+        return;
+      }
+    }
 
-      if (mode === 'register') {
-        if (!passwordConfirm) {
-          setError('Please confirm your password.');
-          return;
-        }
-        if (password !== passwordConfirm) {
-          setError('Passwords do not match.');
-          return;
-        }
-
-        const { error: signUpError } = await supabase.auth.signUp({
+    setLoading(true);
+    try {
+      if (activeTab === 'login') {
+        // LOGIN
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (signUpError) {
-          setError(signUpError.message || 'Could not create account.');
+        if (error) {
+          console.error('Supabase login error:', error);
+          setErrorMsg(error.message || 'Login failed.');
+          return;
+        }
+
+        if (data.session) {
+          // erfolgreich eingeloggt → Weiterleitung in privaten Bereich
+          router.push('/account/private');
         } else {
-          setMessage(
-            'Account created. Please check your email inbox to confirm your address.'
-          );
+          setErrorMsg('Login failed. Please try again.');
         }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        // REGISTER
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
 
-        if (signInError) {
-          setError(signInError.message || 'Could not log in.');
-        } else {
-          router.push('/account/private');
+        if (error) {
+          console.error('Supabase signup error:', error);
+          setErrorMsg(error.message || 'Registration failed.');
+          return;
         }
+
+        console.log('Supabase signup result:', data);
+
+        // Hinweistext – funktioniert mit oder ohne E-Mail-Bestätigung
+        setSuccessMsg(
+          'Account created. If email confirmation is enabled, please check your inbox. Otherwise you can now log in with your password.'
+        );
+
+        // Felder zurücksetzen / auf Login wechseln
+        setPassword('');
+        setPasswordConfirm('');
+        setActiveTab('login');
       }
     } catch (err: any) {
-      setError(err?.message || 'Unexpected error.');
+      console.error('Auth error:', err);
+      setErrorMsg('Unexpected error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -83,108 +98,113 @@ export default function AccountPage() {
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.card}>
+        {/* Titelbereich */}
         <h1 className={styles.title}>MY ACCOUNT</h1>
         <p className={styles.subtitle}>
-          Connect your wallet or log in with email to see your locked MEMEX and
-          future NFTs.
+          CONNECT YOUR WALLET OR LOG IN WITH EMAIL TO SEE YOUR LOCKED MEMEX AND FUTURE NFTs.
         </p>
 
-        {/* WALLET CONNECT SECTION */}
-        <section className={styles.section}>
+        {/* Wallet-Connect-Block */}
+        <section className={styles.walletSection}>
           <h2 className={styles.sectionTitle}>CONNECT WITH WALLET</h2>
           <p className={styles.sectionText}>
-            Connect your Solana wallet to link your presale purchases to this
-            account. After connecting you&apos;ll be redirected automatically
-            to your private dashboard.
+            CONNECT YOUR SOLANA WALLET TO LINK YOUR PRESALE PURCHASES TO THIS ACCOUNT. AFTER CONNECTING YOU&apos;LL BE
+            REDIRECTED AUTOMATICALLY TO YOUR PRIVATE DASHBOARD.
           </p>
           <div className={styles.walletButtonWrapper}>
             <WalletButton />
           </div>
         </section>
 
-        {/* EMAIL LOGIN / REGISTER */}
-        <section className={styles.section}>
-          <div className={styles.tabs}>
-            <button
-              type="button"
-              className={`${styles.tab} ${
-                mode === 'login' ? styles.tabActive : ''
-              }`}
-              onClick={() => switchMode('login')}
-            >
-              LOGIN
-            </button>
-            <button
-              type="button"
-              className={`${styles.tab} ${
-                mode === 'register' ? styles.tabActive : ''
-              }`}
-              onClick={() => switchMode('register')}
-            >
-              REGISTER
-            </button>
+        {/* Tabs für Login / Register */}
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeTab === 'login' ? styles.tabButtonActive : ''}`}
+            onClick={() => {
+              setActiveTab('login');
+              setErrorMsg(null);
+              setSuccessMsg(null);
+            }}
+          >
+            LOGIN
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeTab === 'register' ? styles.tabButtonActive : ''}`}
+            onClick={() => {
+              setActiveTab('register');
+              setErrorMsg(null);
+              setSuccessMsg(null);
+            }}
+          >
+            REGISTER
+          </button>
+        </div>
+
+        {/* Formular */}
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="email">
+              EMAIL
+            </label>
+            <input
+              id="email"
+              type="email"
+              className={styles.input}
+              placeholder="ENTER YOUR EMAIL"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <label className={styles.field}>
-              <span className={styles.label}>EMAIL</span>
-              <input
-                type="email"
-                className={styles.input}
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="password">
+              PASSWORD
             </label>
+            <input
+              id="password"
+              type="password"
+              className={styles.input}
+              placeholder={activeTab === 'login' ? 'ENTER YOUR PASSWORD' : 'CHOOSE A PASSWORD'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
+            />
+          </div>
 
-            <label className={styles.field}>
-              <span className={styles.label}>PASSWORD</span>
+          {activeTab === 'register' && (
+            <div className={styles.formGroup}>
+              <label className={styles.label} htmlFor="passwordConfirm">
+                CONFIRM PASSWORD
+              </label>
               <input
+                id="passwordConfirm"
                 type="password"
                 className={styles.input}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                required
+                placeholder="REPEAT YOUR PASSWORD"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                autoComplete="new-password"
               />
-            </label>
+            </div>
+          )}
 
-            {mode === 'register' && (
-              <label className={styles.field}>
-                <span className={styles.label}>CONFIRM PASSWORD</span>
-                <input
-                  type="password"
-                  className={styles.input}
-                  placeholder="Repeat your password"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  autoComplete="new-password"
-                  required
-                />
-              </label>
-            )}
+          {/* Fehlermeldung / Success */}
+          {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+          {successMsg && <p className={styles.success}>{successMsg}</p>}
 
-            {error && <p className={styles.error}>{error}</p>}
-            {message && <p className={styles.message}>{message}</p>}
-
-            <button
-              type="submit"
-              className={styles.submit}
-              disabled={loading}
-            >
-              {loading
-                ? mode === 'register'
-                  ? 'CREATING ACCOUNT...'
-                  : 'LOGGING IN...'
-                : mode === 'register'
-                ? 'CREATE MY ACCOUNT'
-                : 'LOGIN TO MY ACCOUNT'}
-            </button>
-          </form>
-        </section>
+          <button type="submit" className={styles.submitButton} disabled={loading}>
+            {loading
+              ? activeTab === 'login'
+                ? 'LOGGING IN...'
+                : 'CREATING ACCOUNT...'
+              : activeTab === 'login'
+              ? 'LOGIN TO MY ACCOUNT'
+              : 'CREATE MY ACCOUNT'}
+          </button>
+        </form>
       </div>
     </div>
   );
