@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import styles from '../page.module.css';
 
@@ -11,96 +11,163 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
-    if (!email.includes('@')) {
-      return setError('Please enter a valid email address.');
-    }
-
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters long.');
+    // Basic Checks
+    if (!email || !password || !confirmPassword) {
+      setErrorMessage('Please fill in all fields.');
+      return;
     }
 
     if (password !== confirmPassword) {
-      return setError('Passwords do not match.');
+      setErrorMessage('Passwords do not match.');
+      return;
     }
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: 'https://memexduelverse.com/account/private',
-      },
-    });
-
-    if (signUpError) {
-      return setError(signUpError.message);
+    if (password.length < 8) {
+      setErrorMessage('Password should be at least 8 characters long.');
+      return;
     }
 
-    setSuccess('Verification email sent! Please check your inbox.');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
+    try {
+      setIsLoading(true);
+
+      const redirectUrl =
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/account`
+          : undefined;
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (error) {
+        // Supabase typische Fehlermeldung z.B. "Email rate limit exceeded"
+        console.error('Supabase signUp error:', error);
+        setErrorMessage(error.message || 'Registration failed. Please try again.');
+        return;
+      }
+
+      // Erfolgreich: Hinweis anzeigen
+      setSuccessMessage(
+        'Registration successful! Please check your email and confirm your account to continue.'
+      );
+
+      // Optional: nach ein paar Sekunden zurück auf /account
+      // setTimeout(() => router.push('/account'), 3000);
+    } catch (err) {
+      console.error('Unexpected error during registration:', err);
+      setErrorMessage('Unexpected error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <section className={styles.accountLoginPage}>
-      {/* Hintergrundvideo */}
-      <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
-        <source src="/memex-accountlogin.mp4" type="video/mp4" />
-      </video>
+    <div className={styles.pageWrapper}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Create your MemeX Account</h1>
+        <p className={styles.subtitle}>
+          Register with your email to link your future MEMEX purchases and NFT drops to a private account.
+        </p>
 
-      <div className={styles.loginBox}>
-        <h2 className={styles.loginTitle}>Create Your Duelverse Account</h2>
-
-        <form onSubmit={handleRegister} className={styles.loginForm}>
-          <input
-            type="email"
-            placeholder="Enter Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={styles.emailInput}
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={styles.emailInput}
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className={styles.emailInput}
-            required
-          />
-
-          <button type="submit" className={styles.loginButton}>
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${styles.tabInactive}`}
+            onClick={() => router.push('/account')}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${styles.tabActive}`}
+          >
             Register
           </button>
+        </div>
 
-          {error && <p className={styles.errorText}>{error}</p>}
-          {success && <p className={styles.successText}>{success}</p>}
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <label className={styles.label}>
+            Email
+            <input
+              type="email"
+              className={styles.input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+
+          <label className={styles.label}>
+            Password
+            <input
+              type="password"
+              className={styles.input}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Choose a strong password"
+              required
+            />
+          </label>
+
+          <label className={styles.label}>
+            Repeat Password
+            <input
+              type="password"
+              className={styles.input}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repeat your password"
+              required
+            />
+          </label>
+
+          {errorMessage && (
+            <div className={styles.errorMessage}>
+              {errorMessage}
+            </div>
+          )}
+
+          {successMessage && (
+            <div className={styles.successMessage}>
+              {successMessage}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creating your account…' : 'Create my account'}
+          </button>
         </form>
 
-        <div className={styles.or}>OR</div>
-        <div className={styles.registerText}>
+        <p className={styles.helperText}>
           Already have an account?{' '}
-          <a href="/account">Login here</a>
-        </div>
+          <button
+            type="button"
+            className={styles.linkButton}
+            onClick={() => router.push('/account')}
+          >
+            Login here
+          </button>
+        </p>
       </div>
-    </section>
+    </div>
   );
 }
