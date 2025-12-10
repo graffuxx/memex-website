@@ -1,127 +1,174 @@
+/* src/app/account/page.module.css */
+
 .pageWrapper {
-  min-height: 100vh;
-  padding: 120px 16px 64px;
-  box-sizing: border-box;
+  position: relative;
+  min-height: calc(100vh - 120px);
+  padding: 140px 16px 40px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  background:
-    radial-gradient(circle at top, #5a1b88 0, transparent 55%),
-    radial-gradient(circle at bottom, #0b5ac2 0, transparent 55%),
-    #050216;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+/* Video-Hintergrund */
+.backgroundVideo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.backdropOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(154, 85, 255, 0.45), rgba(3, 0, 15, 0.95));
+  z-index: -1;
+}
+
+.centerWrapper {
+  width: 100%;
+  max-width: 540px;
 }
 
 .card {
-  width: 100%;
-  max-width: 440px;
-  background: rgba(5, 1, 20, 0.94);
-  border-radius: 28px;
+  background: radial-gradient(circle at top, rgba(26, 10, 60, 0.96), rgba(5, 1, 20, 0.98));
+  border-radius: 24px;
   padding: 32px 32px 36px;
+  box-shadow: 0 0 40px rgba(180, 80, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #ffffff;
   box-sizing: border-box;
-  box-shadow: 0 0 60px rgba(183, 86, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .title {
-  margin: 0 0 8px;
+  font-family: 'Montserrat', system-ui, sans-serif;
   font-size: 24px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  margin: 0 0 8px;
 }
 
 .subtitle {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.78;
   margin: 0 0 24px;
-  font-size: 12px;
-  line-height: 1.5;
-  opacity: 0.8;
-  max-width: 360px;
 }
 
-/* Wallet Connect Block */
+/* Sections */
 
-.walletConnectBox {
-  margin-bottom: 24px;
+.section {
+  margin-bottom: 20px;
 }
 
 .sectionTitle {
-  margin: 0;
-  font-size: 13px;
-  text-transform: uppercase;
+  font-size: 12px;
   letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0 0 6px;
 }
 
 .sectionText {
-  margin: 6px 0 0;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.6;
   opacity: 0.8;
+  margin: 0 0 14px;
 }
 
 .walletButtonWrapper {
-  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
 }
 
-/* Tabs */
+/* macht den WalletButton vollbreit & hübsch */
+.walletButtonWrapper > * {
+  width: 190px;
+}
+
+.sectionDivider {
+  height: 1px;
+  margin: 18px 0 20px;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.09),
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.09)
+  );
+}
+
+/* Tabs Login / Register */
 
 .tabs {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .tabButton {
-  flex: 1;
-  padding: 8px 12px;
+  flex: 0 0 auto;
+  min-width: 90px;
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid transparent;
+  cursor: pointer;
   background: transparent;
   color: #ffffff;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  transition: all 0.18s ease-out;
 }
 
 .tabActive {
-  background: linear-gradient(90deg, #bf5eff, #ff62d2);
-  border-color: transparent;
+  background: linear-gradient(90deg, #ff4fd8, #b465ff);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 16px rgba(186, 99, 255, 0.7);
 }
 
 .tabInactive {
-  opacity: 0.8;
+  background: rgba(18, 5, 50, 0.9);
+  border-color: rgba(255, 255, 255, 0.15);
+  opacity: 0.75;
 }
 
-.tabButton:hover {
-  border-color: rgba(255, 255, 255, 0.6);
+.tabInactive:hover {
+  opacity: 1;
 }
 
-/* Form */
+/* Formular */
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .label {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  opacity: 0.85;
+  letter-spacing: 0.16em;
+  opacity: 0.8;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
 .input {
+  height: 40px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(12, 4, 40, 0.9);
-  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(5, 0, 20, 0.92);
+  padding: 0 16px;
   color: #ffffff;
   font-size: 13px;
   outline: none;
+  box-sizing: border-box;
 }
 
 .input::placeholder {
@@ -129,23 +176,41 @@
 }
 
 .input:focus {
-  border-color: rgba(208, 119, 255, 0.9);
-  box-shadow: 0 0 0 1px rgba(208, 119, 255, 0.6);
+  border-color: rgba(214, 140, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(214, 140, 255, 0.6);
 }
 
+.errorMessage {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 80, 120, 0.18);
+  border: 1px solid rgba(255, 120, 150, 0.7);
+}
+
+/* Submit */
+
 .submitButton {
-  margin-top: 8px;
+  margin-top: 6px;
   width: 100%;
+  height: 42px;
   border-radius: 999px;
   border: none;
-  padding: 12px 16px;
-  background: linear-gradient(90deg, #bf5eff, #ff62d2);
-  color: #ffffff;
   font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #ff4fd8, #b465ff);
+  color: #ffffff;
   cursor: pointer;
+  box-shadow: 0 0 20px rgba(186, 99, 255, 0.65);
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(186, 99, 255, 0.9);
 }
 
 .submitButton:disabled {
@@ -153,57 +218,43 @@
   cursor: default;
 }
 
-/* Messages */
-
-.errorMessage,
-.successMessage {
-  margin-top: 4px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-}
-
-.errorMessage {
-  background: rgba(255, 80, 120, 0.08);
-  border: 1px solid rgba(255, 80, 120, 0.6);
-  color: #ff9bb4;
-}
-
-.successMessage {
-  background: rgba(88, 255, 182, 0.08);
-  border: 1px solid rgba(88, 255, 182, 0.6);
-  color: #88ffd3;
-}
-
-/* Helper / links */
+/* Helper Text */
 
 .helperText {
-  margin-top: 16px;
-  font-size: 12px;
-  text-align: center;
+  margin-top: 4px;
+  font-size: 11px;
   opacity: 0.8;
 }
 
 .linkButton {
   border: none;
   background: none;
-  color: #ff8cff;
-  cursor: pointer;
-  font-size: 12px;
-  text-decoration: underline;
   padding: 0;
-  margin: 0;
+  margin-left: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #ff9cff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
 }
 
 /* Responsive */
 
 @media (max-width: 640px) {
   .pageWrapper {
-    padding: 110px 12px 40px;
+    padding: 120px 12px 32px;
   }
 
   .card {
     padding: 24px 20px 28px;
-    border-radius: 24px;
+  }
+
+  .title {
+    font-size: 20px;
   }
 }

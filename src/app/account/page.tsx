@@ -1,30 +1,45 @@
+// src/app/account/page.tsx
 'use client';
 
-import React, { useState, FormEvent } from 'react';
+import React, { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
 import styles from './page.module.css';
 
 export default function AccountPage() {
   const router = useRouter();
+  const { publicKey, connected } = useWallet();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = async (e: FormEvent) => {
+  // Wenn Wallet verbunden -> Private Account
+  useEffect(() => {
+    if (connected && publicKey) {
+      const addr = publicKey.toBase58();
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('memex_last_wallet', addr);
+      }
+      router.push('/account/private');
+    }
+  }, [connected, publicKey, router]);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
     if (!email || !password) {
-      setErrorMessage('Please fill in all fields.');
+      setErrorMessage('Please enter email and password.');
       return;
     }
 
     try {
       setIsLoading(true);
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -45,98 +60,111 @@ export default function AccountPage() {
     }
   };
 
-  const handleGoRegister = () => {
-    router.push('/account/register');
-  };
-
   return (
     <div className={styles.pageWrapper}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>My Account</h1>
-        <p className={styles.subtitle}>
-          Connect your wallet or log in with email to see your locked MEMEX and
-          future NFTs.
-        </p>
+      {/* Video-Background */}
+      <video
+        className={styles.backgroundVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src="/memex-accountlogin.mp4" type="video/mp4" />
+      </video>
+      <div className={styles.backdropOverlay} />
 
-        {/* Wallet Connect Block */}
-        <div className={styles.walletConnectBox}>
-          <h2 className={styles.sectionTitle}>Connect with wallet</h2>
-          <p className={styles.sectionText}>
-            Connect your Solana wallet to link your presale purchases to this
-            account. After connecting you&apos;ll be redirected automatically
-            to your private dashboard.
+      <div className={styles.centerWrapper}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>MY ACCOUNT</h1>
+          <p className={styles.subtitle}>
+            Connect your wallet or log in with email to see your locked MEMEX
+            and future NFTs.
           </p>
-          <div className={styles.walletButtonWrapper}>
-            <WalletButton />
+
+          {/* WALLET SECTION */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>CONNECT WITH WALLET</h2>
+            <p className={styles.sectionText}>
+              Connect your Solana wallet to link your presale purchases to this
+              account. After connecting you&apos;ll be redirected automatically
+              to your private dashboard.
+            </p>
+
+            <div className={styles.walletButtonWrapper}>
+              <WalletButton />
+            </div>
+          </section>
+
+          <div className={styles.sectionDivider} />
+
+          {/* LOGIN TABS */}
+          <div className={styles.tabs}>
+            <button
+              type="button"
+              className={`${styles.tabButton} ${styles.tabActive}`}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              className={`${styles.tabButton} ${styles.tabInactive}`}
+              onClick={() => router.push('/account/register')}
+            >
+              Register
+            </button>
           </div>
+
+          {/* LOGIN FORM */}
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <label className={styles.label}>
+              Email
+              <input
+                type="email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
+              />
+            </label>
+
+            <label className={styles.label}>
+              Password
+              <input
+                type="password"
+                className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+              />
+            </label>
+
+            {errorMessage && (
+              <div className={styles.errorMessage}>{errorMessage}</div>
+            )}
+
+            <button
+              type="submit"
+              className={styles.submitButton}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in…' : 'Login to my account'}
+            </button>
+          </form>
+
+          <p className={styles.helperText}>
+            First time here?{' '}
+            <button
+              type="button"
+              className={styles.linkButton}
+              onClick={() => router.push('/account/register')}
+            >
+              Create your account
+            </button>
+          </p>
         </div>
-
-        {/* Tabs */}
-        <div className={styles.tabs}>
-          <button
-            type="button"
-            className={`${styles.tabButton} ${styles.tabActive}`}
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            className={`${styles.tabButton} ${styles.tabInactive}`}
-            onClick={handleGoRegister}
-          >
-            Register
-          </button>
-        </div>
-
-        {/* Login Form */}
-        <form className={styles.form} onSubmit={handleLogin}>
-          <label className={styles.label}>
-            Email
-            <input
-              type="email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </label>
-
-          <label className={styles.label}>
-            Password
-            <input
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-          </label>
-
-          {errorMessage && (
-            <div className={styles.errorMessage}>{errorMessage}</div>
-          )}
-
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Logging you in…' : 'Login to my account'}
-          </button>
-        </form>
-
-        <p className={styles.helperText}>
-          First time here?{' '}
-          <button
-            type="button"
-            className={styles.linkButton}
-            onClick={handleGoRegister}
-          >
-            Create your account
-          </button>
-        </p>
       </div>
     </div>
   );
