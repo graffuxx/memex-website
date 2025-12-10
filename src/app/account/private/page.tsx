@@ -1,103 +1,185 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
-import styles from '@/components/AccountPrivate.module.css';
-import { getUserData } from '@/lib/accountData';
 import { supabase } from '@/lib/supabaseClient';
+import styles from './AccountPrivate.module.css';
 
-export default function PrivateAccountPage() {
-  const { publicKey } = useWallet();
+type PresaleOrder = {
+  id: string;
+  level: number | null;
+  sol_amount: number | null;
+  memex_amount: number | null;
+  tx_hash: string | null;
+  created_at: string;
+};
+
+export default function AccountPrivatePage() {
   const router = useRouter();
+  const { publicKey, connected } = useWallet();
 
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [orders, setOrders] = useState<PresaleOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('memexUser');
-    const parsed = storedUser ? JSON.parse(storedUser) : null;
+    const run = async () => {
+      // Supabase-User (Mail) holen
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user ?? null;
+      if (user?.email) setEmail(user.email);
 
-    if (parsed?.email) {
-      getUserData(null, parsed.email).then((res) => {
-        setData(res);
-        setLoading(false);
-      });
-    } else if (publicKey) {
-      const address = publicKey.toBase58();
-      setWalletAddress(address);
-      getUserData(address, null).then((res) => {
-        setData(res);
-        setLoading(false);
-      });
-    } else {
+      // Wenn weder Wallet noch Mail-User vorhanden -> zurück zur Login-Seite
+      if (!user && (!connected || !publicKey)) {
+        router.replace('/account');
+        return;
+      }
+
+      // Wenn Wallet da ist, Presale-Orders laden
+      if (connected && publicKey) {
+        const { data, error } = await supabase
+          .from('presale_orders')
+          .select('id, level, sol_amount, memex_amount, tx_hash, created_at')
+          .eq('wallet', publicKey.toBase58())
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          setOrders(data as PresaleOrder[]);
+        } else if (error) {
+          console.error('Error loading presale_orders:', error);
+        }
+      }
+
       setLoading(false);
-    }
-  }, [publicKey]);
+    };
+
+    run();
+  }, [connected, publicKey, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('memexUser');
-    router.push('/account');
+    router.replace('/account');
   };
 
-  if (loading) return <div className={styles.loading}>Loading...</div>;
-  if (!data) return <div className={styles.error}>No data found.</div>;
+  const totalMemex = orders.reduce(
+    (sum, o) => sum + (o.memex_amount || 0),
+    0
+  );
+  const totalSol = orders.reduce((sum, o) => sum + (o.sol_amount || 0), 0);
 
   return (
-    <section className={styles.accountWrapper}>
-      {/* Background */}
-      <video autoPlay muted playsInline className={styles.backgroundVideo}>
-        <source src="/memex-accountlogin.mp4" type="video/mp4" />
-      </video>
-
-      {/* Logout Button */}
-      <button onClick={handleLogout} className={styles.logoutButton}>
+    <div className={styles.wrapper}>
+      <button className={styles.logout} onClick={handleLogout}>
         Logout
       </button>
 
-      <div className={styles.content}>
-        <h1 className={styles.title}>MY ACCOUNT</h1>
+      <h1 className={styles.title}>MY ACCOUNT</h1>
 
-        {/* Presale Summary */}
-        <div className={styles.sectionBox}>
-          <h2>Presale Summary</h2>
-          <p>Total MEMEX Purchased: <strong>{data.memexPurchased}</strong></p>
-          <p>Status: Locked until Presale ends</p>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: '45%' }}></div>
-          </div>
-        </div>
-
-        {/* NFT Section */}
-        <div className={styles.sectionBox}>
-          <h2>Your NFT Cards</h2>
-          <div className={styles.nftGrid}>
-            {data.nfts?.length > 0 ? (
-              data.nfts.map((nft: any, idx: number) => (
-                <div key={idx} className={styles.nftCard}>
-                  <img src={nft.image} alt={nft.name} />
-                  <p>{nft.name}</p>
-                </div>
-              ))
-            ) : (
-              <p>No NFTs found.</p>
+      {loading ? (
+        <p className={styles.info}>Loading your data...</p>
+      ) : (
+        <>
+          <section className={styles.identity}>
+            {publicKey && (
+              <p>
+                Wallet: <span>{publicKey.toBase58()}</span>
+              </p>
             )}
-          </div>
-        </div>
+            {email && (
+              <p>
+                Email: <span>{email}</span>
+              </p>
+            )}
+          </section>
 
-        {/* Staking (Coming Soon) */}
-        <div className={`${styles.sectionBox} ${styles.disabledBox}`}>
-          <h2>Stake MEMEX</h2>
-          <p className={styles.comingSoon}>
-            {data.staking?.info || 'Coming Soon...'}
-          </p>
-          <button className={styles.disabledButton} disabled>
-            Start Staking
-          </button>
-        </div>
-      </div>
-    </section>
+          <section className={styles.summary}>
+            <h2>Presale Summary</h2>
+            {orders.length === 0 ? (
+              <p>No presale purchases found for this wallet yet.</p>
+            ) : (
+              <div className={styles.summaryGrid}>
+                <div className={styles.summaryCard}>
+                  <span className={styles.summaryLabel}>Total MEMEX</span>
+                  <span className={styles.summaryValue}>
+                    {totalMemex.toLocaleString()}
+                  </span>
+                </div>
+                <div className={styles.summaryCard}>
+                  <span className={styles.summaryLabel}>Total SOL spent</span>
+                  <span className={styles.summaryValue}>
+                    {totalSol.toFixed(3)} SOL
+                  </span>
+                </div>
+                <div className={styles.summaryCard}>
+                  <span className={styles.summaryLabel}>Orders</span>
+                  <span className={styles.summaryValue}>
+                    {orders.length}
+                  </span>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className={styles.orders}>
+            <h2>Your Presale Orders</h2>
+            {orders.length === 0 ? (
+              <p>No orders so far.</p>
+            ) : (
+              <div className={styles.ordersTable}>
+                <div className={styles.ordersHeader}>
+                  <span>Date</span>
+                  <span>Level</span>
+                  <span>SOL</span>
+                  <span>MEMEX</span>
+                  <span>Tx</span>
+                </div>
+                {orders.map((o) => (
+                  <div key={o.id} className={styles.ordersRow}>
+                    <span>
+                      {new Date(o.created_at).toLocaleDateString()}
+                    </span>
+                    <span>{o.level ?? '-'}</span>
+                    <span>
+                      {o.sol_amount !== null
+                        ? o.sol_amount.toFixed(3)
+                        : '-'}
+                    </span>
+                    <span>
+                      {o.memex_amount !== null
+                        ? o.memex_amount.toLocaleString()
+                        : '-'}
+                    </span>
+                    <span>
+                      {o.tx_hash ? (
+                        <a
+                          href={`https://solscan.io/tx/${o.tx_hash}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        '-'
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className={styles.nfts}>
+            <h2>Your NFTs</h2>
+            <p>Coming soon – your MemeX NFT collection will appear here.</p>
+          </section>
+
+          <section className={styles.staking}>
+            <h2>MEMEX Staking</h2>
+            <p>Staking will open after the presale. Stay tuned.</p>
+          </section>
+        </>
+      )}
+    </div>
   );
 }

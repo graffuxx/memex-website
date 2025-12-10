@@ -1,115 +1,160 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { supabase } from '@/lib/supabaseClient';
+import WalletButton from '@/components/Wallet/WalletButton';
 import styles from './page.module.css';
 
-export default function AccountLoginPage() {
+export default function AccountPage() {
   const router = useRouter();
-  const { setVisible } = useWalletModal();
+  const { publicKey, connected } = useWallet();
 
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showLoginForm, setShowLoginForm] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  // Wenn Wallet schon verbunden ist -> direkt in den privaten Bereich
   useEffect(() => {
-    const stored = localStorage.getItem('memexUser');
-    if (stored) setIsLoggedIn(true);
-  }, []);
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (loginError) {
-      setError(loginError.message);
-      return;
-    }
-
-    if (data.user) {
-      localStorage.setItem('memexUser', JSON.stringify({ email }));
+    if (connected && publicKey) {
       router.push('/account/private');
-    } else {
-      setError('Login failed. Please try again.');
     }
-  };
+  }, [connected, publicKey, router]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('memexUser');
-    setIsLoggedIn(false);
-    router.refresh();
+  // Wenn bereits per Mail eingeloggt -> auch direkt weiterleiten
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.push('/account/private');
+      }
+    });
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    setLoading(true);
+
+    try {
+      if (mode === 'register') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/account`,
+          },
+        });
+        if (error) throw error;
+        setInfo('Check your inbox to confirm your email address.');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        router.push('/account/private');
+      }
+    } catch (err: any) {
+      setError(err.message ?? 'Authentication failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <section className={styles.accountLoginPage}>
-      {/* Hintergrundvideo */}
-      <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
-        <source src="/memex-accountlogin.mp4" type="video/mp4" />
-      </video>
+    <div className={styles.accountWrapper}>
+      {/* Hintergrundvideo etc. kann in page.module.css kommen – Hauptsache, die Logik steht */}
+      <div className={styles.overlay} />
 
-      {/* Logout oben rechts */}
-      {isLoggedIn && (
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Logout
-        </button>
-      )}
+      <div className={styles.box}>
+        <h1 className={styles.title}>MY ACCOUNT</h1>
 
-      <div className={styles.loginBox}>
-        <h2 className={styles.loginTitle}>Connect Wallet or Login</h2>
-
-        <button className={styles.loginButton} onClick={() => setVisible(true)}>
-          Select Wallet
-        </button>
-
-        <div className={styles.or}>OR</div>
-
-        <button className={styles.loginButton} onClick={() => setShowLoginForm(true)}>
-          Login via Email
-        </button>
-
-        {showLoginForm && (
-          <form onSubmit={handleEmailLogin} className={styles.loginForm}>
-            <input
-              type="email"
-              placeholder="Enter Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.emailInput}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Enter Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.emailInput}
-              required
-            />
-            <button type="submit" className={styles.loginButton}>
-              Login
-            </button>
-            {error && <p className={styles.errorText}>{error}</p>}
-            <div className={styles.registerText}>
-              <a href="/account/reset">Forgot your password?</a>
+        <div className={styles.columns}>
+          {/* WALLET-LOGIN */}
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Connect with Wallet</h2>
+            <p className={styles.cardText}>
+              Connect your Solana wallet to see your locked MEMEX and future
+              NFTs.
+            </p>
+            <div className={styles.walletButtonArea}>
+              <WalletButton />
             </div>
-          </form>
-        )}
+            <p className={styles.cardHint}>
+              After connecting you’ll be redirected automatically to your
+              private account.
+            </p>
+          </div>
 
-        <div className={styles.or}>OR</div>
-        <div className={styles.registerText}>
-          No account? <a href="/account/register">Register here</a>
+          {/* E-MAIL LOGIN / REGISTER */}
+          <div className={styles.card}>
+            <div className={styles.tabRow}>
+              <button
+                type="button"
+                className={`${styles.tabButton} ${
+                  mode === 'login' ? styles.tabActive : ''
+                }`}
+                onClick={() => setMode('login')}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className={`${styles.tabButton} ${
+                  mode === 'register' ? styles.tabActive : ''
+                }`}
+                onClick={() => setMode('register')}
+              >
+                Register
+              </button>
+            </div>
+
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <label className={styles.label}>
+                Email
+                <input
+                  className={styles.input}
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </label>
+
+              <label className={styles.label}>
+                Password
+                <input
+                  className={styles.input}
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </label>
+
+              {error && <p className={styles.error}>{error}</p>}
+              {info && <p className={styles.info}>{info}</p>}
+
+              <button
+                className={styles.submit}
+                type="submit"
+                disabled={loading}
+              >
+                {loading
+                  ? 'Please wait...'
+                  : mode === 'login'
+                  ? 'Login'
+                  : 'Create account'}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
