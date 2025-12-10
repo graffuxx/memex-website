@@ -1,119 +1,206 @@
-/* src/app/account/page.module.css */
-
-.accountLoginPage {
+.pageWrapper {
   position: relative;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #ffffff;
   overflow: hidden;
-  background-color: #0b0b1e;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* Vollbild-Video im Hintergrund */
 .backgroundVideo {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0;
-  opacity: 0.4;
+  z-index: -2;
 }
 
-.loginBox {
+/* Dunkler Glow-Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at top, rgba(129, 88, 255, 0.6), transparent 55%),
+    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.98));
+}
+
+/* Zentrierter Inhalt */
+.content {
   position: relative;
-  z-index: 1;
-  background-color: rgba(15, 15, 30, 0.9);
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 0 30px rgba(150, 50, 255, 0.5);
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  color: white;
+  min-height: calc(100vh - 120px);
+  padding: 96px 16px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.loginTitle {
-  font-size: 24px;
-  margin-bottom: 20px;
+/* Hauptkarte */
+.card {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(6, 4, 24, 0.9);
+  border-radius: 24px;
+  padding: 32px 28px 32px;
+  box-shadow:
+    0 0 40px rgba(120, 80, 255, 0.6),
+    0 0 80px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(167, 139, 250, 0.7);
+  backdrop-filter: blur(14px);
 }
 
-.loginButton {
-  background-color: #8c4fff;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  margin: 10px 0;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+/* Titel + Untertitel */
+.title {
+  font-size: 28px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
 }
 
-.loginButton:hover {
-  background-color: #a96dff;
-}
-
-.or {
-  margin: 10px 0;
+.subtitle {
+  margin: 0 0 24px;
   font-size: 14px;
-  color: #ccc;
+  opacity: 0.82;
 }
 
-.loginForm {
+/* Sektionen */
+.section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 8px;
+}
+
+.sectionText {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-bottom: 14px;
+}
+
+/* Wallet-Button-Reihe */
+.walletRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Tabs Login / Register */
+.tabs {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 16px;
+}
+
+.tabButton {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.tabButtonActive {
+  background: linear-gradient(90deg, #a855ff, #ec4899);
+  color: #fff;
+}
+
+/* Formular */
+.form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 12px;
 }
 
-.inputField {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  opacity: 0.9;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.errorText {
-  color: #ff4d4f;
+.input {
+  margin-top: 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 10px 14px;
   font-size: 14px;
-  margin-top: 10px;
-}
-
-.registerText {
-  margin-top: 10px;
-  font-size: 14px;
+  background: rgba(6, 4, 24, 0.9);
   color: #fff;
-  text-decoration: underline;
-  cursor: pointer;
+  outline: none;
 }
 
-.registerLink {
-  color: #c197ff;
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color 0.3s ease;
+.input:focus {
+  border-color: #a855ff;
+  box-shadow: 0 0 0 1px rgba(168, 85, 255, 0.6);
 }
 
-.registerLink:hover {
-  color: #ffffff;
+/* Meldungen */
+.errorText {
+  font-size: 13px;
+  color: #fecaca;
 }
 
-.logoutButton {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  background-color: #8c4fff;
+.infoText {
+  font-size: 13px;
+  color: #bbf7d0;
+}
+
+/* Submit-Button */
+.submitButton {
+  margin-top: 8px;
   border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
-  color: white;
+  border-radius: 999px;
+  padding: 10px 20px;
   font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
   cursor: pointer;
-  z-index: 10;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  color: #ffffff;
+  box-shadow:
+    0 0 25px rgba(168, 85, 247, 0.7),
+    0 0 50px rgba(59, 130, 246, 0.6);
 }
 
-.logoutButton:hover {
-  background-color: #a96dff;
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .card {
+    padding: 24px 20px 24px;
+    border-radius: 20px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
 }
