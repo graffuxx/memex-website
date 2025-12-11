@@ -4,15 +4,24 @@ import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
+import { useWallet } from '@solana/wallet-adapter-react';
 import styles from './page.module.css';
 
 export default function AccountPage() {
   const router = useRouter();
 
+  // E-Mail Login State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Wallet State
+  const { publicKey, connected } = useWallet();
+  const walletAddress = publicKey?.toBase58() ?? null;
+  const shortWallet = walletAddress
+    ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
+    : '';
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -46,6 +55,11 @@ export default function AccountPage() {
     }
   };
 
+  const handleWalletEnter = () => {
+    // Kein E-Mail-Login nötig – wir nutzen nur die verbundene Wallet
+    router.push('/account/private');
+  };
+
   return (
     <div className={styles.pageWrapper}>
       {/* Video-Hintergrund */}
@@ -73,12 +87,35 @@ export default function AccountPage() {
             <h2 className={styles.sectionTitle}>Connect with Wallet</h2>
             <p className={styles.sectionText}>
               Connect your Solana wallet to link your presale purchases to this
-              account. After connecting you&apos;ll be redirected automatically
-              to your private dashboard.
+              account. You can access your private dashboard with wallet only,
+              no email required.
             </p>
+
             <div className={styles.walletButtonWrapper}>
               <WalletButton />
             </div>
+
+            {/* Status + Dashboard-Button für Wallet */}
+            {connected && walletAddress ? (
+              <>
+                <p className={styles.helperText} style={{ marginTop: '8px' }}>
+                  Wallet connected: <strong>{shortWallet}</strong>
+                </p>
+                <button
+                  type="button"
+                  className={styles.submitButton}
+                  style={{ marginTop: '8px' }}
+                  onClick={handleWalletEnter}
+                >
+                  Enter wallet dashboard
+                </button>
+              </>
+            ) : (
+              <p className={styles.helperText} style={{ marginTop: '8px' }}>
+                Use the <strong>Select Wallet</strong> button here to connect.
+                Once connected, you can enter your dashboard with wallet only.
+              </p>
+            )}
           </section>
 
           {/* LOGIN / REGISTER TABS */}
