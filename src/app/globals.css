@@ -75,3 +75,17 @@ button {
     gap: 20px !important;
   }
 }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #050016; /* dunkles Lila wie auf der Seite */
+  color: #ffffff;
+  overflow-x: hidden;        /* verhindert den weißen Streifen rechts */
+}
+
+/* Optional, aber sinnvoll */
+body {
+  min-height: 100vh;
+}
