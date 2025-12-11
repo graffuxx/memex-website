@@ -1,7 +1,9 @@
 .tickerWrapper {
-  position: sticky; /* bleibt beim Scrollen unter dem Header hängen */
-  top: 64px;        /* Abstand unter deinem festen Header */
-  z-index: 55;      /* unter Header (60), über Content */
+  position: fixed;          /* immer unter dem Header sichtbar */
+  top: 64px;                /* Höhe unter deinem Header (kannst du feinjustieren) */
+  left: 0;
+  right: 0;
+  z-index: 55;              /* unter Header (60), über Content */
 
   width: 100%;
   background: linear-gradient(
@@ -40,12 +42,27 @@
 
 .text {
   text-align: center;
-  transition: opacity 0.25s ease;
-  opacity: 1;
+  animation: tickerFade 5s ease-in-out infinite;
 }
 
-.textFading {
-  opacity: 0;
+/* Fade-Animation für den Text */
+@keyframes tickerFade {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 /* Mobile: kompakter */
@@ -54,5 +71,9 @@
     height: 32px;
     font-size: 11px;
     letter-spacing: 0.06em;
+  }
+
+  .tickerWrapper {
+    top: 58px; /* etwas näher an den kleineren Header ranrücken */
   }
 }

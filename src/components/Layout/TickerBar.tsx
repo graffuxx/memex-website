@@ -12,29 +12,15 @@ const messages = [
 
 export default function TickerBar() {
   const [current, setCurrent] = useState(0);
-  const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
     if (!messages.length) return;
 
-    let intervalId: any;
-    let timeoutId: any;
-
-    intervalId = setInterval(() => {
-      // erst ausblenden
-      setIsFading(true);
-
-      // nach kurzer Zeit Text wechseln & wieder einblenden
-      timeoutId = setTimeout(() => {
-        setCurrent((prev) => (prev + 1) % messages.length);
-        setIsFading(false);
-      }, 250);
+    const intervalId = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % messages.length);
     }, 5000);
 
-    return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    };
+    return () => clearInterval(intervalId);
   }, []);
 
   if (!messages.length) return null;
@@ -43,11 +29,7 @@ export default function TickerBar() {
     <div className={styles.tickerWrapper}>
       <div className={styles.tickerInner}>
         <span className={styles.icon}>🎉</span>
-        <span
-          className={`${styles.text} ${isFading ? styles.textFading : ''}`}
-        >
-          {messages[current]}
-        </span>
+        <span className={styles.text}>{messages[current]}</span>
       </div>
     </div>
   );
