@@ -61,7 +61,12 @@ export default function PresaleOverview() {
   const [walletError, setWalletError] = useState<string | null>(null);
 
   const { publicKey, sendTransaction, connected } = useWallet();
-  const connection = new Connection('https://api.mainnet-beta.solana.com');
+ // RPC Endpoint priorisieren: Helius → fallback auf Solana clusterApiUrl
+const RPC_ENDPOINT =
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+  'https://api.mainnet-beta.solana.com';
+
+const connection = new Connection(RPC_ENDPOINT, 'confirmed');
 
   const currentLevel = levels[activeLevelIndex];
   const nextLevel = levels[activeLevelIndex + 1];
