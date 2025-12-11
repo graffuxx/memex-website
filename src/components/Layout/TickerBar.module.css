@@ -1,11 +1,16 @@
 .tickerWrapper {
+  position: sticky; /* bleibt beim Scrollen unter dem Header hängen */
+  top: 64px;        /* Abstand unter deinem festen Header */
+  z-index: 55;      /* unter Header (60), über Content */
+
   width: 100%;
   background: linear-gradient(
     90deg,
-    rgba(120, 50, 255, 0.9),
-    rgba(255, 80, 200, 0.9)
+    rgba(120, 50, 255, 0.55),
+    rgba(255, 80, 200, 0.55)
   );
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
 .tickerInner {
@@ -35,6 +40,12 @@
 
 .text {
   text-align: center;
+  transition: opacity 0.25s ease;
+  opacity: 1;
+}
+
+.textFading {
+  opacity: 0;
 }
 
 /* Mobile: kompakter */
