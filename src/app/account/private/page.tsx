@@ -217,18 +217,46 @@ export default function PrivateAccountPage() {
           </p>
           <div className={styles.nftGrid}>
             <div className={styles.nftSlot}>
+              <div className={styles.nftPreview}>
+                <img
+                  src="/background-card.png"
+                  alt="NFT placeholder card"
+                  className={styles.nftPreviewImage}
+                />
+              </div>
               <span className={styles.nftSlotTitle}>Card Slot #1</span>
               <span className={styles.nftSlotStatus}>Locked · Coming Soon</span>
             </div>
             <div className={styles.nftSlot}>
+              <div className={styles.nftPreview}>
+                <img
+                  src="/background-card.png"
+                  alt="NFT placeholder card"
+                  className={styles.nftPreviewImage}
+                />
+              </div>
               <span className={styles.nftSlotTitle}>Card Slot #2</span>
               <span className={styles.nftSlotStatus}>Locked · Coming Soon</span>
             </div>
             <div className={styles.nftSlot}>
+              <div className={styles.nftPreview}>
+                <img
+                  src="/background-card.png"
+                  alt="NFT placeholder card"
+                  className={styles.nftPreviewImage}
+                />
+              </div>
               <span className={styles.nftSlotTitle}>Card Slot #3</span>
               <span className={styles.nftSlotStatus}>Locked · Coming Soon</span>
             </div>
             <div className={styles.nftSlot}>
+              <div className={styles.nftPreview}>
+                <img
+                  src="/background-card.png"
+                  alt="NFT placeholder card"
+                  className={styles.nftPreviewImage}
+                />
+              </div>
               <span className={styles.nftSlotTitle}>Card Slot #4</span>
               <span className={styles.nftSlotStatus}>Locked · Coming Soon</span>
             </div>
