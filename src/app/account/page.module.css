@@ -263,3 +263,9 @@
     padding: 24px 20px 22px;
   }
 }
+
+/* Prevent layout shift between /account and /account/register */
+:global(html),
+:global(body) {
+  overflow-y: scroll;
+}
