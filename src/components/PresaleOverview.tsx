@@ -13,6 +13,8 @@ import {
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
 
+
+
 const presaleStart = new Date('2025-12-21T01:00:00Z');
 const treasuryWallet = new PublicKey(
   '42MZFG1imQ9eE6z3YNgC8LgeFVH3u8csppbnRNDAdtYw'
@@ -20,6 +22,9 @@ const treasuryWallet = new PublicKey(
 
 // Kreditkartenaufschlag (z.B. 2 % Gebühr)
 const CARD_FEE_MULTIPLIER = 1.02;
+
+// ⚠️ Admin-Override: solange TRUE, ist der Presale immer aktiv
+const ADMIN_FORCE_PRESALE = true;
 
 const levels = [
   { level: 1, rate: 1800000, durationDays: 14 },
@@ -90,34 +95,42 @@ export default function PresaleOverview() {
     loadPrice();
   }, []);
 
-  // --- PRESALE TIMER / LEVEL LOGIK ---
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
+// --- PRESALE TIMER / LEVEL LOGIK ---
+useEffect(() => {
+  // Admin-Override: Presale immer aktiv, kein Countdown
+  if (ADMIN_FORCE_PRESALE) {
+    setIsPresaleStarted(true);
+    setActiveLevelIndex(0); // Level 1
+    setCountdown('');
+    return;
+  }
 
-      if (now >= presaleStart) {
-        setIsPresaleStarted(true);
-        const diffTime = Math.floor(
-          (now.getTime() - presaleStart.getTime()) / 1000
-        );
-        const levelDuration = 60 * 60 * 24 * 14;
-        const currentIndex = Math.min(
-          Math.floor(diffTime / levelDuration),
-          levels.length - 1
-        );
-        setActiveLevelIndex(currentIndex);
-      } else {
-        const diff = presaleStart.getTime() - now.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-        setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-      }
-    }, 1000);
+  const interval = setInterval(() => {
+    const now = new Date();
 
-    return () => clearInterval(interval);
-  }, []);
+    if (now >= presaleStart) {
+      setIsPresaleStarted(true);
+      const diffTime = Math.floor(
+        (now.getTime() - presaleStart.getTime()) / 1000
+      );
+      const levelDuration = 60 * 60 * 24 * 14;
+      const currentIndex = Math.min(
+        Math.floor(diffTime / levelDuration),
+        levels.length - 1
+      );
+      setActiveLevelIndex(currentIndex);
+    } else {
+      const diff = presaleStart.getTime() - now.getTime();
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    }
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
 
   const handleWalletBuy = async () => {
     // Feedback zurücksetzen
