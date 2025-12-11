@@ -70,7 +70,7 @@ const connection = new Connection(RPC_ENDPOINT, 'confirmed');
 
   const currentLevel = levels[activeLevelIndex];
   const nextLevel = levels[activeLevelIndex + 1];
-  const currentProgress = 42; // TODO: später dynamisch aus DB
+  const currentProgress = 0; // TODO: später dynamisch aus DB
 
   const solAmountNumber = Number(solAmount) || 0;
   const memexAmount = solAmountNumber * currentLevel.rate;
