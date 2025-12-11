@@ -1,8 +1,10 @@
 .pageWrapper {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
-  overflow-y: scroll; /* <-- immer vertikalen Scrollbar erzwingen, kein Layout-Springen */
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
   color: #ffffff;
   font-family: 'Rajdhani', system-ui, -apple-system, BlinkMacSystemFont,
     'Segoe UI', sans-serif;

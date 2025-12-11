@@ -76,17 +76,10 @@ button {
   }
 }
 
-/* --- MEMEX: fix white stripe on the right edge --- */
 html,
 body {
   margin: 0;
   padding: 0;
-  background-color: #050010; /* dunkles Lila/Schwarz statt Weiß */
-  color: #ffffff;
-  overflow-x: hidden;        /* verhindert horizontales Scrollen / Überstand */
-}
-
-/* sorgt dafür, dass der Hintergrund wirklich vollflächig geht */
-body {
-  min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
