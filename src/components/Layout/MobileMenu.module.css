@@ -1,136 +1,162 @@
-/* Burger-Button */
+/* Burger-Button (nur mobil sichtbar) */
 
 .menuButton {
   display: none;
-  background: none;
-  border: none;
-  color: #ffffff;
-  position: absolute;
-  left: 16px;
-  top: 18px;
-  z-index: 110;
-  padding: 0;
-}
-
-/* Icon: einfache drei Linien */
-
-.menuIcon,
-.menuIcon::before,
-.menuIcon::after {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: #ffffff;
+  position: fixed;
+  top: 10px;
+  right: 14px;
+  z-index: 75;
+  width: 40px;
+  height: 32px;
   border-radius: 999px;
-  position: relative;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  border: 1px solid rgba(228, 197, 255, 0.7);
+  background: radial-gradient(circle at top, #201238, #0b0618);
+  box-shadow: 0 0 16px rgba(160, 100, 255, 0.8);
+  padding: 6px 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
 }
 
-.menuIcon::before,
-.menuIcon::after {
-  content: '';
-  position: absolute;
-  left: 0;
+.menuIconLine {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #f9f5ff;
 }
 
-.menuIcon::before {
-  top: -6px;
-}
-
-.menuIcon::after {
-  top: 6px;
-}
-
-@media (max-width: 768px) {
-  .menuButton {
-    display: block;
-  }
-}
-
-/* Vollbild-Overlay für das mobile Menü */
+/* Vollbild-Overlay */
 
 .menuOverlay {
   position: fixed;
-  top: 64px; /* direkt unter dem Header */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 90;
-  background: radial-gradient(
-    circle at top,
-    rgba(120, 60, 255, 0.4),
-    rgba(3, 0, 15, 0.96)
-  );
+  inset: 0;
+  z-index: 70;
+  background: radial-gradient(circle at top, rgba(35, 18, 69, 0.96), #020016);
+  backdrop-filter: blur(18px);
   display: flex;
-  flex-direction: column;
-  padding: 24px 20px 32px;
-  box-sizing: border-box;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
-/* Kopfzeile im Overlay */
+.menuPanel {
+  width: 100%;
+  max-width: 320px;
+  height: 100%;
+  padding: 16px 18px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Header im Mobile-Menü */
 
 .menuHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  color: #ffffff;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .menuTitle {
   font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: #f4e7ff;
 }
 
 .closeButton {
-  background: none;
   border: none;
-  color: #ffffff;
-  font-size: 24px;
+  background: none;
+  color: #f9fafb;
+  font-size: 18px;
+  cursor: pointer;
 }
 
-/* Menüeinträge */
+/* Login-Section */
 
-.menuNav {
+.menuLoginSection {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(209, 213, 255, 0.45);
+  background: radial-gradient(circle at top, #28154e, rgba(2, 6, 23, 0.95));
+}
+
+.menuLoginTitle {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.menuLoginOptions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 4px;
+}
+
+.menuLoginOptions a {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+  background: rgba(15, 23, 42, 0.96);
+  color: #f9fafb;
+  border: 1px solid transparent;
+}
+
+.menuLoginOptions a:hover {
+  background: radial-gradient(circle at top, #3b1c6f, #020617);
+  border-color: rgba(244, 114, 182, 0.9);
+}
+
+/* Navigation im Overlay */
+
+.menuNav {
   margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .menuNav a {
-  color: #ffffff;
-  text-decoration: none;
-  padding: 10px 14px;
+  display: block;
+  padding: 9px 11px;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(160, 90, 255, 0.9),
-    rgba(255, 80, 200, 0.9)
-  );
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  text-decoration: none;
   text-transform: uppercase;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  background: linear-gradient(135deg, #9b5bff, #f15cff);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 18px rgba(201, 120, 255, 0.7);
 }
 
-.menuNav a:active {
-  transform: scale(0.97);
+.menuNav a:hover {
+  background: linear-gradient(135deg, #b973ff, #ff75ff);
 }
 
-/* Wallet-Button unten im Overlay */
+/* Wallet unten */
 
 .menuWallet {
   margin-top: auto;
-  display: flex;
-  justify-content: center;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 253, 0.35);
 }
 
-/* Sicherheit: Overlay nur auf Mobile nutzen */
+/* Sichtbarkeit nur auf Mobile */
+
+@media (max-width: 768px) {
+  .menuButton {
+    display: inline-flex;
+  }
+}
 
 @media (min-width: 769px) {
   .menuOverlay {

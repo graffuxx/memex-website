@@ -7,32 +7,108 @@ import MobileMenu from './MobileMenu';
 
 export default function ModernHeader() {
   const [scrolled, setScrolled] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
+      // Dropdown beim Scrollen schließen
+      setLoginOpen(false);
     };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const toggleLoginDropdown = () => {
+    setLoginOpen((prev) => !prev);
+  };
+
+  const closeLoginDropdown = () => {
+    setLoginOpen(false);
+  };
+
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
-      {/* Mobile Menu (Burger + Overlay) */}
+      {/* Mobile Navigation (Burger + Overlay) */}
       <MobileMenu />
 
       {/* Desktop Navigation */}
       <div className={styles.container}>
+        {/* Logo + Login-Dropdown */}
+        <div className={styles.leftGroup}>
+          <a href="/" className={styles.logoLink}>
+            <img
+              src="/background-card.png"
+              alt="MemeX Duelverse"
+              className={styles.logoImage}
+            />
+            <span className={styles.logoText}>MEMEX</span>
+          </a>
+
+          <div
+            className={styles.loginWrapper}
+            onMouseLeave={closeLoginDropdown}
+          >
+            <button
+              type="button"
+              className={styles.loginButton}
+              onClick={toggleLoginDropdown}
+            >
+              LOGIN
+              <span className={styles.loginCaret}>▾</span>
+            </button>
+
+            {loginOpen && (
+              <div className={styles.loginDropdown}>
+                <a
+                  href="/account"
+                  onClick={closeLoginDropdown}
+                  className={styles.loginDropdownItem}
+                >
+                  Wallet Login
+                </a>
+                <a
+                  href="/account"
+                  onClick={closeLoginDropdown}
+                  className={styles.loginDropdownItem}
+                >
+                  Email Login
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Hauptnavigation */}
         <nav className={styles.navbar}>
-          <a href="/">HOME</a>
-          <a href="/presale">PRESALE</a>
-          <a href="/how-to-play">HOW TO PLAY</a>
-          <a href="/whitepaper">WHITEPAPER</a>
-          <a href="/socials">SOCIALS</a>
-          <a href="/nft-shop">NFT SHOP</a>
-          <a href="/account">ACCOUNT</a>
+          <a href="/" className={styles.navItem}>
+            HOME
+          </a>
+          <a
+            href="/presale"
+            className={`${styles.navItem} ${styles.navItemPresale}`}
+          >
+            PRESALE
+          </a>
+          <a href="/how-to-play" className={styles.navItem}>
+            HOW TO PLAY
+          </a>
+          <a href="/whitepaper" className={styles.navItem}>
+            WHITEPAPER
+          </a>
+          <a href="/socials" className={styles.navItem}>
+            SOCIALS
+          </a>
+          <a href="/nft-shop" className={styles.navItem}>
+            NFT SHOP
+          </a>
+          <a href="/account" className={styles.navItem}>
+            ACCOUNT
+          </a>
         </nav>
 
+        {/* Wallet-Button rechts (nur Desktop) */}
         <div className={styles.wallet}>
           <WalletButton />
         </div>
