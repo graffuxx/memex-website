@@ -1,31 +1,43 @@
 .tickerWrapper {
-  position: fixed;          /* immer unter dem Header sichtbar */
-  top: 64px;                /* Höhe unter deinem Header (kannst du feinjustieren) */
-  left: 0;
-  right: 0;
-  z-index: 55;              /* unter Header (60), über Content */
+  position: sticky;
+  top: 64px; /* unter der Navbar */
+  z-index: 55;
 
+  /* WICHTIG: kein 100vw, damit nichts über den Viewport hinausragt */
   width: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(120, 50, 255, 0.55),
-    rgba(255, 80, 200, 0.55)
-  );
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden; /* falls irgendwas breiter wird, kein horizontaler Scroll */
+  background: transparent;
+  display: block;
 }
 
+/* der eigentliche Balken */
 .tickerInner {
+  position: relative;
   margin: 0 auto;
   max-width: 1200px;
+
   height: 36px;
+  padding: 0 16px;
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
 
-  padding: 0 16px;
   box-sizing: border-box;
+
+  background: linear-gradient(
+    90deg,
+    rgba(120, 50, 255, 0.7),
+    rgba(255, 80, 200, 0.7)
+  );
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  border-radius: 999px;
+
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
@@ -36,32 +48,61 @@
   text-overflow: ellipsis;
 }
 
+/* leichte Fades links/rechts, aber innerhalb der max-width */
+.tickerInner::before,
+.tickerInner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  pointer-events: none;
+}
+
+.tickerInner::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(8, 4, 24, 0.9),
+    transparent
+  );
+}
+
+.tickerInner::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(8, 4, 24, 0.9),
+    transparent
+  );
+}
+
 .icon {
   font-size: 16px;
+  flex-shrink: 0;
 }
 
 .text {
   text-align: center;
-  animation: tickerFade 5s ease-in-out infinite;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Fade-Animation für den Text */
+/* Fade-Animation beim Wechsel */
+.fade {
+  animation: tickerFade 0.25s ease-in-out;
+}
+
 @keyframes tickerFade {
   0% {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  10% {
     opacity: 1;
-    transform: translateY(0);
   }
-  80% {
-    opacity: 1;
-    transform: translateY(0);
+  50% {
+    opacity: 0.1;
   }
   100% {
-    opacity: 0;
-    transform: translateY(-4px);
+    opacity: 1;
   }
 }
 
@@ -71,9 +112,6 @@
     height: 32px;
     font-size: 11px;
     letter-spacing: 0.06em;
-  }
-
-  .tickerWrapper {
-    top: 58px; /* etwas näher an den kleineren Header ranrücken */
+    padding: 0 12px;
   }
 }
