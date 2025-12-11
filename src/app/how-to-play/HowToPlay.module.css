@@ -1,16 +1,40 @@
+.pageRoot {
+  position: relative;
+  min-height: 100vh;
+  padding: 120px 16px 80px;
+  box-sizing: border-box;
+}
+
+/* Video-Hintergrund über die ganze Seite */
+
+.backgroundVideo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.backgroundOverlay {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(122, 77, 255, 0.65), transparent 55%),
+    radial-gradient(circle at bottom, rgba(18, 213, 255, 0.45), transparent 55%);
+  z-index: -1;
+}
+
 .wrapper {
   position: relative;
   max-width: 1200px;
-  margin: 120px auto 80px;
+  margin: 0 auto;
   padding: 0;
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid rgba(180, 120, 255, 0.35);
-  box-shadow: 0 0 35px rgba(130, 50, 255, 0.35);
-  background-image: url('/howtoplay-bg.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  box-shadow: 0 0 35px rgba(130, 50, 255, 0.55);
+  background: radial-gradient(circle at top, rgba(8, 4, 32, 0.92), rgba(4, 2, 16, 0.98));
 }
 
 .overlay {
@@ -127,15 +151,23 @@
 
 .elementWheel {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.elementPair {
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
 }
 
 .elementNode {
-  min-width: 100px;
+  min-width: 110px;
   padding: 10px 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -189,6 +221,18 @@
   color: #041404;
 }
 
+.fire {
+  background: radial-gradient(circle, #ffb199, #ff0844);
+  border-color: rgba(255, 220, 220, 0.9);
+  color: #3b0500;
+}
+
+.stone {
+  background: radial-gradient(circle, #e5e7eb, #4b5563);
+  border-color: rgba(243, 244, 246, 0.9);
+  color: #111827;
+}
+
 .arrow {
   font-size: 18px;
   opacity: 0.8;
@@ -203,8 +247,12 @@
 /* Responsive */
 
 @media (max-width: 768px) {
+  .pageRoot {
+    padding: 100px 12px 40px;
+  }
+
   .wrapper {
-    margin: 100px 16px 40px;
+    margin: 0 auto;
   }
 
   .inner {
