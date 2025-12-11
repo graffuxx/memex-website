@@ -13,13 +13,10 @@ import {
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
 
-// *** ADMIN OVERRIDE ***
-// Wenn true, gilt der Presale IMMER als gestartet – unabhängig vom Datum.
-// NUR für Tests benutzen, später wieder auf false oder entfernen.
-const ADMIN_OVERRIDE = true;
-
 const presaleStart = new Date('2025-12-21T01:00:00Z');
-const treasuryWallet = new PublicKey('42MZFG1imQ9eE6z3YNgC8LgeFVH3u8csppbnRNDAdtYw');
+const treasuryWallet = new PublicKey(
+  '42MZFG1imQ9eE6z3YNgC8LgeFVH3u8csppbnRNDAdtYw'
+);
 
 // Kreditkartenaufschlag (z.B. 2 % Gebühr)
 const CARD_FEE_MULTIPLIER = 1.02;
@@ -53,6 +50,10 @@ export default function PresaleOverview() {
   const [cardError, setCardError] = useState<string | null>(null);
 
   const [solPrice, setSolPrice] = useState<number | null>(null); // Live SOL/EUR Preis
+
+  // NEU: Wallet-Feedback
+  const [walletMessage, setWalletMessage] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
 
   const { publicKey, sendTransaction, connected } = useWallet();
   const connection = new Connection('https://api.mainnet-beta.solana.com');
@@ -91,14 +92,6 @@ export default function PresaleOverview() {
 
   // --- PRESALE TIMER / LEVEL LOGIK ---
   useEffect(() => {
-    // Wenn Admin-Override aktiv ist, direkt Level 1 aktiv setzen
-    if (ADMIN_OVERRIDE) {
-      setIsPresaleStarted(true);
-      setActiveLevelIndex(0);
-      setCountdown('');
-      return;
-    }
-
     const interval = setInterval(() => {
       const now = new Date();
 
@@ -126,11 +119,19 @@ export default function PresaleOverview() {
     return () => clearInterval(interval);
   }, []);
 
-  // Effektiver „Presale aktiv“-Status (entweder echtes Datum oder Admin Override)
-  const presaleIsActive = isPresaleStarted || ADMIN_OVERRIDE;
-
   const handleWalletBuy = async () => {
+    // Feedback zurücksetzen
+    setWalletMessage(null);
+    setWalletError(null);
+
     if (!connected || !publicKey) {
+      console.log('[Presale] Wallet NOT connected');
+      setWalletError('Wallet is not connected. Please connect your wallet first.');
+      return;
+    }
+
+    if (!solAmountNumber || solAmountNumber <= 0) {
+      setWalletError('Please enter a valid SOL amount.');
       return;
     }
 
@@ -138,7 +139,19 @@ export default function PresaleOverview() {
       setIsProcessing(true);
 
       const lamports = solAmountNumber * LAMPORTS_PER_SOL;
-      if (!lamports || lamports <= 0) return;
+      if (!lamports || lamports <= 0) {
+        setWalletError('Invalid amount. Please check your SOL input.');
+        return;
+      }
+
+      console.log(
+        '[Presale] Sending transaction:',
+        solAmountNumber,
+        'SOL from',
+        publicKey.toBase58(),
+        'to',
+        treasuryWallet.toBase58()
+      );
 
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -149,7 +162,10 @@ export default function PresaleOverview() {
       );
 
       const signature = await sendTransaction(transaction, connection);
+      console.log('[Presale] tx signature:', signature);
+
       await connection.confirmTransaction(signature, 'confirmed');
+      console.log('[Presale] tx confirmed on-chain');
 
       const { error } = await supabase.from('presale_orders').insert([
         {
@@ -165,13 +181,32 @@ export default function PresaleOverview() {
 
       if (error) {
         console.error('Supabase insert error:', error);
+        setWalletError(
+          'Purchase succeeded on-chain, but database entry failed. Please contact support with your TX hash.'
+        );
       } else {
         setTxHash(signature);
         setIsSuccess(true);
         setSolAmount('1');
+        setWalletMessage('BUY SUCCESS – your MEMEX is locked for this level.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Transaction failed:', err);
+
+      const message =
+        typeof err?.message === 'string' ? err.message.toLowerCase() : '';
+
+      if (message.includes('rejected') || message.includes('user rejected')) {
+        setWalletError(
+          'Transaction was rejected in your wallet. Please approve the transaction to complete your MEMEX purchase.'
+        );
+      } else if (message.includes('insufficient funds')) {
+        setWalletError(
+          'Not enough SOL in your wallet to cover amount + fees. Please top up and try again.'
+        );
+      } else {
+        setWalletError('Transaction failed. Please try again in a moment.');
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -181,7 +216,9 @@ export default function PresaleOverview() {
     setCardError(null);
 
     if (!connected || !publicKey) {
-      setCardError('Please connect your wallet first so we can assign your MEMEX.');
+      setCardError(
+        'Please connect your wallet first so we can assign your MEMEX.'
+      );
       return;
     }
 
@@ -237,15 +274,20 @@ export default function PresaleOverview() {
   };
 
   const shortWallet =
-    publicKey && `${publicKey.toBase58().slice(0, 4)}...${publicKey
-      .toBase58()
-      .slice(-4)}`;
+    publicKey &&
+    `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}`;
 
   return (
     <section className={styles.presaleSection}>
       <div className={styles.fadeTopOverlay}></div>
       <div className={styles.videoWrapper}>
-        <video autoPlay muted loop playsInline className={styles.videoBackground}>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className={styles.videoBackground}
+        >
           <source src="/memex-presale.mp4" type="video/mp4" />
         </video>
         <div className={styles.fadeBottom}></div>
@@ -254,7 +296,7 @@ export default function PresaleOverview() {
       <div className={styles.box}>
         <h2 className={styles.title}>Presale Overview</h2>
 
-        {!presaleIsActive ? (
+        {!isPresaleStarted ? (
           <div className={styles.countdownBox}>
             <p>Presale starts in:</p>
             <p className={styles.timer}>{countdown}</p>
@@ -296,7 +338,9 @@ export default function PresaleOverview() {
                     Max. {currentLevel.durationDays} days or until sold out
                   </p>
                 </div>
-                <p className={styles.nftTeaser}>🔥 Random NFT drops in this level!</p>
+                <p className={styles.nftTeaser}>
+                  🔥 Random NFT drops in this level!
+                </p>
               </div>
 
               {nextLevel && (
@@ -309,7 +353,8 @@ export default function PresaleOverview() {
                     1 SOL = {nextLevel.rate.toLocaleString()} MEMEX
                   </p>
                   <p className={styles.levelHint}>
-                    Starts after full sell-out or in {nextLevel.durationDays} days.
+                    Starts after full sell-out or in {nextLevel.durationDays}{' '}
+                    days.
                   </p>
                 </div>
               )}
@@ -373,6 +418,14 @@ export default function PresaleOverview() {
                       </p>
                     </>
                   )}
+
+                  {/* NEU: Wallet-Feedback direkt unter dem Button */}
+                  {walletMessage && (
+                    <p className={styles.walletSuccess}>{walletMessage}</p>
+                  )}
+                  {walletError && (
+                    <p className={styles.errorText}>{walletError}</p>
+                  )}
                 </div>
 
                 {/* CREDIT CARD */}
@@ -401,10 +454,12 @@ export default function PresaleOverview() {
                   >
                     {isCardProcessing ? 'Redirecting…' : 'Continue with Credit Card'}
                   </button>
-                  {cardError && <p className={styles.errorText}>{cardError}</p>}
+                  {cardError && (
+                    <p className={styles.errorText}>{cardError}</p>
+                  )}
                   <p className={styles.helperText}>
-                    Payments are processed securely via NOWPayments.
-                    Your MEMEX allocation will always be linked to your wallet.
+                    Payments are processed securely via NOWPayments. Your MEMEX
+                    allocation will always be linked to your wallet.
                   </p>
                 </div>
               </div>

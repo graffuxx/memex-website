@@ -541,3 +541,11 @@
     margin: 0 12px;
   }
 }
+
+.walletSuccess {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4ade80; /* helles Grün */
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
