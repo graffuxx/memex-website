@@ -15,60 +15,56 @@ type PresaleOrder = {
   created_at: string;
 };
 
-const MAX_MEMEX_PER_WALLET = 10_000_000; // rein visueller Cap für den Fortschrittsbalken
+const MAX_MEMEX_PER_WALLET = 10_000_000;
 
 export default function PrivateAccountPage() {
   const router = useRouter();
   const { publicKey } = useWallet();
 
-  const walletAddress = publicKey ? publicKey.toBase58() : null;
-
   const [orders, setOrders] = useState<PresaleOrder[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const walletAddress = publicKey?.toBase58() ?? null;
+
+  // Wenn keine Wallet verbunden ist -> zurück zur Account-Login-Seite
   useEffect(() => {
+    if (!walletAddress) {
+      router.push('/account');
+    }
+  }, [walletAddress, router]);
+
+  // Presale Orders laden
+  useEffect(() => {
+    if (!walletAddress) return;
+
     const loadOrders = async () => {
-      if (!walletAddress) {
-        setIsLoading(false);
-        return;
+      setIsLoading(true);
+
+      const { data, error } = await supabase
+        .from('presale_orders')
+        .select('id, wallet, memex_amount, sol_amount, level, created_at')
+        .eq('wallet', walletAddress)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading presale orders:', error);
+      } else if (data) {
+        setOrders(
+          data.map((row: any) => ({
+            id: row.id,
+            wallet: row.wallet,
+            memex_amount: row.memex_amount ?? 0,
+            sol_amount: row.sol_amount ?? 0,
+            level: row.level ?? null,
+            created_at: row.created_at,
+          }))
+        );
       }
 
-      try {
-        setIsLoading(true);
-
-        const { data, error } = await supabase
-          .from('presale_orders')
-          .select('id, wallet, memex_amount, sol_amount, level, created_at')
-          .eq('wallet', walletAddress)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error loading presale orders:', error);
-          setOrders([]);
-          return;
-        }
-
-        if (data) {
-          setOrders(
-            data.map((row: any) => ({
-              id: row.id,
-              wallet: row.wallet,
-              memex_amount: row.memex_amount ?? 0,
-              sol_amount: row.sol_amount ?? 0,
-              level: row.level ?? null,
-              created_at: row.created_at,
-            }))
-          );
-        }
-      } catch (err) {
-        console.error('Unexpected error while loading presale orders:', err);
-        setOrders([]);
-      } finally {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     };
 
-    void loadOrders();
+    loadOrders();
   }, [walletAddress]);
 
   const totalMemex = orders.reduce(
@@ -80,180 +76,213 @@ export default function PrivateAccountPage() {
     0
   );
 
-  const progressPercent = Math.max(
-    0,
-    Math.min(
-      100,
-      MAX_MEMEX_PER_WALLET > 0
-        ? (totalMemex / MAX_MEMEX_PER_WALLET) * 100
-        : 0
-    )
+  const progressPercent = Math.min(
+    100,
+    Math.max(0, (totalMemex / MAX_MEMEX_PER_WALLET) * 100)
   );
 
   const handleLogout = () => {
-    // Für später kannst du hier Supabase-Sessions o.ä. ergänzen
-    window.location.href = '/account';
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('memex-email');
+      }
+    } catch (e) {
+      console.warn('Could not clear local storage on logout', e);
+    }
+    router.push('/account');
   };
 
   return (
     <div className={styles.pageWrapper}>
       {/* Video-Hintergrund */}
       <video
-        className={styles.videoBg}
-        src="/memex-accountlogin.mp4"
+        className={styles.backgroundVideo}
         autoPlay
         muted
-        playsInline
         loop
-      />
+        playsInline
+      >
+        <source src="/memex-accountlogin.mp4" type="video/mp4" />
+      </video>
 
-      {/* dunkle Overlay-Fläche über dem Video */}
-      <div className={styles.videoOverlay} />
+      <div className={styles.overlay} />
 
-      {/* Haupt-Content */}
-      <div className={styles.content}>
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>My Account</h1>
-            <p className={styles.subtitle}>
-              Overview of your locked MEMEX, future NFTs and staking.
-            </p>
-          </div>
+      <main className={styles.content}>
+        <section className={styles.card}>
+          <header className={styles.headerRow}>
+            <div>
+              <h1 className={styles.title}>My Account</h1>
+              <p className={styles.subtitle}>
+                Overview of your locked MEMEX, future NFTs and staking.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.logoutButton}
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </header>
 
-          <button
-            type="button"
-            className={styles.logoutButton}
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </div>
-
-        <div className={styles.sectionsGrid}>
           {/* CONNECTED WALLET */}
-          <section className={styles.sectionCard}>
+          <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Connected Wallet</h2>
-              <span className={styles.sectionBadge}>
+              <div>
+                <h2 className={styles.sectionTitle}>Connected wallet</h2>
+                <p className={styles.sectionSubtitle}>
+                  The wallet currently linked to this account.
+                </p>
+              </div>
+              <span className={styles.sectionTag}>
                 {walletAddress ? 'Connected' : 'Not connected'}
               </span>
             </div>
             <div className={styles.sectionBody}>
-              <p className={styles.statLabel}>Wallet address</p>
-              <p className={styles.walletAddress}>
-                {walletAddress ??
-                  'No wallet connected. Please connect your wallet on the Account page.'}
+              <p className={styles.label}>Wallet address</p>
+              <p className={styles.value}>
+                {walletAddress ?? '—'}
               </p>
             </div>
           </section>
 
           {/* PRESALE ALLOCATION */}
-          <section className={styles.sectionCard}>
+          <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Presale Allocation</h2>
-              <span className={styles.sectionBadge}>Locked MEMEX</span>
-            </div>
-            <div className={styles.sectionBody}>
-              {isLoading ? (
-                <p className={styles.helperText}>
-                  Loading your presale orders…
+              <div>
+                <h2 className={styles.sectionTitle}>Presale allocation</h2>
+                <p className={styles.sectionSubtitle}>
+                  Track how many MEMEX you have locked for launch.
                 </p>
+              </div>
+              <span className={styles.sectionTag}>Locked MEMEX</span>
+            </div>
+
+            <div className={styles.sectionBody}>
+              <div className={styles.progressRow}>
+                <div className={styles.progressBar}>
+                  <div
+                    className={styles.progressBarFill}
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <span className={styles.progressLabel}>
+                  {totalMemex.toLocaleString()} /{' '}
+                  {MAX_MEMEX_PER_WALLET.toLocaleString()} MEMEX
+                </span>
+              </div>
+
+              {isLoading ? (
+                <p className={styles.helperText}>Loading your orders…</p>
               ) : orders.length === 0 ? (
                 <p className={styles.helperText}>
                   No presale orders found yet for this wallet. Join the presale
                   to start filling this bar with locked MEMEX.
                 </p>
               ) : (
-                <>
-                  <div className={styles.statRow}>
-                    <span className={styles.statLabel}>
-                      Total locked MEMEX
-                    </span>
-                    <span className={styles.statValue}>
-                      {totalMemex.toLocaleString()} MEMEX
-                    </span>
-                  </div>
-
-                  <div className={styles.statRow}>
-                    <span className={styles.statLabel}>Total paid in SOL</span>
-                    <span className={styles.statValue}>
-                      {totalSol.toLocaleString()} SOL
-                    </span>
-                  </div>
-
-                  <div className={styles.progressWrapper}>
-                    <div className={styles.progressBar}>
-                      <div
-                        className={styles.progressInner}
-                        style={{ width: `${progressPercent}%` }}
-                      />
+                <div className={styles.ordersList}>
+                  {orders.map((order) => (
+                    <div key={order.id} className={styles.orderItem}>
+                      <div className={styles.orderMeta}>
+                        <span className={styles.orderLabel}>
+                          Level {order.level ?? '-'}
+                        </span>
+                        <span className={styles.orderDate}>
+                          {new Date(order.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.orderValues}>
+                        <span>
+                          MEMEX:{' '}
+                          <strong>
+                            {order.memex_amount?.toLocaleString() ?? '0'}
+                          </strong>
+                        </span>
+                        <span>
+                          SOL:{' '}
+                          <strong>
+                            {order.sol_amount?.toLocaleString() ?? '0'}
+                          </strong>
+                        </span>
+                      </div>
                     </div>
-                    <span className={styles.progressLabel}>
-                      {progressPercent.toFixed(1)}% of your personal MEMEX cap
-                    </span>
-                  </div>
-                </>
+                  ))}
+                </div>
               )}
+
+              <p className={styles.helperText}>
+                Total locked MEMEX: {totalMemex.toLocaleString()} — total SOL
+                spent: {totalSol.toLocaleString()}.
+              </p>
             </div>
           </section>
 
           {/* NFT COLLECTION */}
-          <section className={styles.sectionCard}>
+          <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>NFT Collection</h2>
-              <span className={styles.sectionBadge}>Coming soon</span>
+              <div>
+                <h2 className={styles.sectionTitle}>NFT collection</h2>
+                <p className={styles.sectionSubtitle}>
+                  Your MemeX cards and special NFT drops will appear here once
+                  the Duelverse marketplace is live.
+                </p>
+              </div>
+              <span className={styles.sectionTag}>Coming soon</span>
             </div>
             <div className={styles.sectionBody}>
-              <p className={styles.helperText}>
-                Your MemeX cards and special NFT drops will appear here once the
-                Duelverse marketplace is live.
-              </p>
-
               <div className={styles.nftGrid}>
-                {['Card slot #1', 'Card slot #2', 'Card slot #3', 'Card slot #4'].map(
-                  (label) => (
-                    <div key={label} className={styles.nftSlot}>
-                      <span className={styles.nftLabel}>{label}</span>
-                      <span className={styles.nftStatus}>
-                        Locked · Coming soon
-                      </span>
-                    </div>
-                  )
-                )}
+                <div className={styles.nftSlot}>
+                  <span className={styles.nftSlotLabel}>Card slot #1</span>
+                  <span className={styles.nftSlotStatus}>Locked · Coming soon</span>
+                </div>
+                <div className={styles.nftSlot}>
+                  <span className={styles.nftSlotLabel}>Card slot #2</span>
+                  <span className={styles.nftSlotStatus}>Locked · Coming soon</span>
+                </div>
+                <div className={styles.nftSlot}>
+                  <span className={styles.nftSlotLabel}>Card slot #3</span>
+                  <span className={styles.nftSlotStatus}>Locked · Coming soon</span>
+                </div>
+                <div className={styles.nftSlot}>
+                  <span className={styles.nftSlotLabel}>Card slot #4</span>
+                  <span className={styles.nftSlotStatus}>Locked · Coming soon</span>
+                </div>
               </div>
             </div>
           </section>
 
           {/* MEMEX STAKING */}
-          <section className={styles.sectionCard}>
+          <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>MEMEX Staking</h2>
-              <span className={styles.sectionBadge}>Locked</span>
+              <div>
+                <h2 className={styles.sectionTitle}>MEMEX staking</h2>
+                <p className={styles.sectionSubtitle}>
+                  Stake your MEMEX to earn rewards once the Duelverse is live.
+                  Staking tiers are already prepared below.
+                </p>
+              </div>
+              <span className={styles.sectionTag}>Locked</span>
             </div>
-            <div className={`${styles.sectionBody} ${styles.stakingBody}`}>
-              <p className={styles.helperText}>
-                Stake your MEMEX to earn rewards once the Duelverse is live.
-                Tiers are already prepared below.
-              </p>
 
-              <ul className={styles.stakingList}>
-                <li className={styles.stakingRow}>
-                  <span className={styles.stakingTier}>Casual Supporter</span>
-                  <span className={styles.stakingStatus}>Coming soon</span>
+            <div className={styles.sectionBody}>
+              <ul className={styles.stakingTierList}>
+                <li className={styles.stakingTier}>
+                  <span className={styles.stakingTierName}>Casual supporter</span>
+                  <span className={styles.stakingTierStatus}>Tier coming soon</span>
                 </li>
-                <li className={styles.stakingRow}>
-                  <span className={styles.stakingTier}>Core Duelist</span>
-                  <span className={styles.stakingStatus}>Coming soon</span>
+                <li className={styles.stakingTier}>
+                  <span className={styles.stakingTierName}>Core duelist</span>
+                  <span className={styles.stakingTierStatus}>Tier coming soon</span>
                 </li>
-                <li className={styles.stakingRow}>
-                  <span className={styles.stakingTier}>Void Guardian</span>
-                  <span className={styles.stakingStatus}>Coming soon</span>
+                <li className={styles.stakingTier}>
+                  <span className={styles.stakingTierName}>Void guardian</span>
+                  <span className={styles.stakingTierStatus}>Tier coming soon</span>
                 </li>
               </ul>
             </div>
           </section>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
