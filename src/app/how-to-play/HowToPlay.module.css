@@ -1,53 +1,39 @@
-.pageRoot {
-  position: relative;
-  min-height: 100vh;
-  padding: 120px 16px 80px;
-  box-sizing: border-box;
-}
-
-/* Video-Hintergrund über die ganze Seite */
-
-.backgroundVideo {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -2;
-}
-
-.backgroundOverlay {
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at top, rgba(122, 77, 255, 0.65), transparent 55%),
-    radial-gradient(circle at bottom, rgba(18, 213, 255, 0.45), transparent 55%);
-  z-index: -1;
-}
-
 .wrapper {
   position: relative;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 120px auto 80px;
   padding: 0;
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid rgba(180, 120, 255, 0.35);
-  box-shadow: 0 0 35px rgba(130, 50, 255, 0.55);
-  background: radial-gradient(circle at top, rgba(8, 4, 32, 0.92), rgba(4, 2, 16, 0.98));
+  box-shadow: 0 0 35px rgba(130, 50, 255, 0.35);
+  background: #050516;
+}
+
+/* Video-Hintergrund */
+
+.backgroundVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
 
 .overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(10, 10, 25, 0.7), rgba(0, 0, 0, 0.9));
+  background:
+    radial-gradient(circle at top, rgba(10, 10, 25, 0.7), rgba(0, 0, 0, 0.9)),
+    radial-gradient(circle at bottom, rgba(120, 60, 255, 0.35), transparent 60%);
   backdrop-filter: blur(10px);
-  z-index: 0;
+  z-index: 1;
 }
 
 .inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   padding: 24px 32px 40px;
   color: white;
 }
@@ -116,11 +102,13 @@
 .imageFrame {
   width: 100%;
   max-width: 360px;
-  border-radius: 20px;
+  border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(220, 200, 255, 0.65);
-  box-shadow: 0 0 22px rgba(130, 50, 255, 0.7);
-  background: rgba(5, 5, 20, 0.8);
+  box-shadow:
+    0 0 26px rgba(130, 50, 255, 0.85),
+    0 0 8px rgba(0, 0, 0, 0.8);
+  background: radial-gradient(circle at top, rgba(15, 8, 40, 0.95), rgba(4, 2, 18, 0.98));
 }
 
 .image {
@@ -129,7 +117,7 @@
   height: auto;
 }
 
-/* ELEMENT WHEEL */
+/* ELEMENT SYSTEM */
 
 .elementWheelWrapper {
   margin-top: 24px;
@@ -149,93 +137,78 @@
   letter-spacing: 0.08em;
 }
 
-.elementWheel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+/* Grid für die 6 Matchups */
+
+.elementGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   margin-bottom: 10px;
 }
 
 .elementPair {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.elementNode {
-  min-width: 110px;
   padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: center;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
-  flex-direction: column;
-  gap: 2px;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   font-size: 14px;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .elementEmoji {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .elementName {
   font-weight: 600;
 }
 
-/* Colors per element */
+.pairArrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
 
-.light {
+/* Farben für die einzelnen Matchups */
+
+.lightDark {
   background: radial-gradient(circle, #ffe89a, #c58c3b);
   border-color: rgba(255, 248, 211, 0.9);
   color: #3b2500;
 }
 
-.dark {
-  background: radial-gradient(circle, #4a1f4a, #150415);
-  border-color: rgba(230, 180, 255, 0.9);
-  color: #f7e7ff;
+.electricWater {
+  background: radial-gradient(circle, #ffe877, #0b3550);
+  border-color: rgba(226, 244, 255, 0.9);
+  color: #041010;
 }
 
-.water {
-  background: radial-gradient(circle, #6cd6ff, #0b3550);
-  border-color: rgba(195, 240, 255, 0.9);
-  color: #021623;
+.firePlant {
+  background: radial-gradient(circle, #ffb47a, #204f19);
+  border-color: rgba(255, 232, 210, 0.9);
+  color: #261004;
 }
 
-.electric {
-  background: radial-gradient(circle, #ffe877, #c29800);
-  border-color: rgba(255, 250, 210, 0.9);
-  color: #341f00;
+.waterFire {
+  background: radial-gradient(circle, #6cd6ff, #ff8f7a);
+  border-color: rgba(220, 245, 255, 0.9);
+  color: #021018;
 }
 
-.plant {
-  background: radial-gradient(circle, #9df49a, #20702c);
+.stoneElectric {
+  background: radial-gradient(circle, #c1c1c1, #3c2a5f);
+  border-color: rgba(240, 240, 255, 0.9);
+  color: #140c24;
+}
+
+.plantStone {
+  background: radial-gradient(circle, #9df49a, #4b4b4b);
   border-color: rgba(210, 255, 210, 0.9);
   color: #041404;
-}
-
-.fire {
-  background: radial-gradient(circle, #ffb199, #ff0844);
-  border-color: rgba(255, 220, 220, 0.9);
-  color: #3b0500;
-}
-
-.stone {
-  background: radial-gradient(circle, #e5e7eb, #4b5563);
-  border-color: rgba(243, 244, 246, 0.9);
-  color: #111827;
-}
-
-.arrow {
-  font-size: 18px;
-  opacity: 0.8;
 }
 
 .elementWheelHint {
@@ -246,13 +219,15 @@
 
 /* Responsive */
 
-@media (max-width: 768px) {
-  .pageRoot {
-    padding: 100px 12px 40px;
+@media (max-width: 900px) {
+  .elementGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
+@media (max-width: 768px) {
   .wrapper {
-    margin: 0 auto;
+    margin: 100px 16px 40px;
   }
 
   .inner {
@@ -283,5 +258,13 @@
   .section p,
   .section ul {
     font-size: 15px;
+  }
+
+  .imageFrame {
+    max-width: 100%;
+  }
+
+  .elementGrid {
+    grid-template-columns: 1fr;
   }
 }
