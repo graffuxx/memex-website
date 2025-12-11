@@ -12,7 +12,6 @@ export default function ModernHeader() {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
-      // Dropdown beim Scrollen schließen
       setLoginOpen(false);
     };
 
@@ -35,7 +34,7 @@ export default function ModernHeader() {
 
       {/* Desktop Navigation */}
       <div className={styles.container}>
-        {/* Logo + Login-Dropdown */}
+        {/* Links: nur Logo */}
         <div className={styles.leftGroup}>
           <a href="/" className={styles.logoLink}>
             <img
@@ -43,9 +42,39 @@ export default function ModernHeader() {
               alt="MemeX Duelverse"
               className={styles.logoImage}
             />
-            <span className={styles.logoText}>MEMEX</span>
           </a>
+        </div>
 
+        {/* Mitte: Navigation */}
+        <nav className={styles.navbar}>
+          <a href="/" className={styles.navItem}>
+            HOME
+          </a>
+          <a
+            href="/presale"
+            className={`${styles.navItem} ${styles.navItemPresale}`}
+          >
+            PRESALE
+          </a>
+          <a href="/how-to-play" className={styles.navItem}>
+            HOW TO PLAY
+          </a>
+          <a href="/whitepaper" className={styles.navItem}>
+            WHITEPAPER
+          </a>
+          <a href="/socials" className={styles.navItem}>
+            SOCIALS
+          </a>
+          <a href="/nft-shop" className={styles.navItem}>
+            NFT SHOP
+          </a>
+          <a href="/account" className={styles.navItem}>
+            ACCOUNT
+          </a>
+        </nav>
+
+        {/* Rechts: Login-Text + Wallet */}
+        <div className={styles.rightGroup}>
           <div
             className={styles.loginWrapper}
             onMouseLeave={closeLoginDropdown}
@@ -78,39 +107,10 @@ export default function ModernHeader() {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Hauptnavigation */}
-        <nav className={styles.navbar}>
-          <a href="/" className={styles.navItem}>
-            HOME
-          </a>
-          <a
-            href="/presale"
-            className={`${styles.navItem} ${styles.navItemPresale}`}
-          >
-            PRESALE
-          </a>
-          <a href="/how-to-play" className={styles.navItem}>
-            HOW TO PLAY
-          </a>
-          <a href="/whitepaper" className={styles.navItem}>
-            WHITEPAPER
-          </a>
-          <a href="/socials" className={styles.navItem}>
-            SOCIALS
-          </a>
-          <a href="/nft-shop" className={styles.navItem}>
-            NFT SHOP
-          </a>
-          <a href="/account" className={styles.navItem}>
-            ACCOUNT
-          </a>
-        </nav>
-
-        {/* Wallet-Button rechts (nur Desktop) */}
-        <div className={styles.wallet}>
-          <WalletButton />
+          <div className={styles.wallet}>
+            <WalletButton />
+          </div>
         </div>
       </div>
     </header>

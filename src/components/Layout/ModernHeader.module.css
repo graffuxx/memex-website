@@ -34,18 +34,18 @@
   gap: 16px;
 }
 
-/* LINKSBEREICH: LOGO + LOGIN */
+/* LINKS – nur Logo */
 
 .leftGroup {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .logoLink {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   text-decoration: none;
 }
 
@@ -57,15 +57,88 @@
   object-fit: cover;
 }
 
-.logoText {
-  font-size: 14px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #f9f5ff;
-  text-shadow: 0 0 8px rgba(200, 154, 255, 0.9);
+/* MITTE – Nav */
+
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-/* Login-Dropdown */
+.navItem {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 999px;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #f5e9ff;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transition:
+    color 0.16s ease,
+    opacity 0.16s ease;
+  white-space: nowrap;
+}
+
+.navItem::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b973ff, #ff75ff);
+  opacity: 0;
+  transform: scaleX(0.6);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.navItem:hover {
+  color: #ffffff;
+}
+
+.navItem:hover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* PRESALE – bleibt shiny */
+
+.navItemPresale {
+  padding: 8px 22px;
+  background: linear-gradient(135deg, #ffd876, #ffb347);
+  box-shadow: 0 0 24px rgba(255, 215, 130, 0.95);
+  color: #3b2100;
+  border: 1px solid rgba(255, 248, 210, 0.9);
+}
+
+.navItemPresale::after {
+  display: none;
+}
+
+.navItemPresale:hover {
+  background: linear-gradient(135deg, #ffe699, #ffc75c);
+  box-shadow: 0 0 30px rgba(255, 225, 140, 1);
+}
+
+/* RECHTS – Login + Wallet */
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Login als Text-Link */
 
 .loginWrapper {
   position: relative;
@@ -74,42 +147,34 @@
 .loginButton {
   border: none;
   outline: none;
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 11px;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 14px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
-  background: radial-gradient(circle at top, #1f1038, #0b0618);
-  color: #f4e7ff;
-  border: 1px solid rgba(211, 189, 255, 0.7);
-  box-shadow: 0 0 18px rgba(80, 40, 160, 0.9);
+  color: #e5d9ff;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition:
-    background 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.16s ease,
-    opacity 0.16s ease;
+  gap: 4px;
 }
 
 .loginButton:hover {
-  background: radial-gradient(circle at top, #2a174a, #0f0820);
-  box-shadow: 0 0 24px rgba(120, 70, 210, 1);
-  transform: translateY(-1px);
+  color: #ffffff;
 }
 
 .loginCaret {
-  font-size: 9px;
+  font-size: 10px;
   opacity: 0.9;
 }
 
+/* Dropdown */
+
 .loginDropdown {
   position: absolute;
-  top: 110%;
-  left: 0;
-  min-width: 180px;
+  top: 130%;
+  right: 0;
+  min-width: 190px;
   padding: 8px;
   border-radius: 14px;
   background: radial-gradient(circle at top, #1c102f, #050313);
@@ -124,7 +189,7 @@
 .loginDropdownItem {
   border-radius: 10px;
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: 13px;
   text-decoration: none;
   color: #f9fafb;
   background: rgba(15, 23, 42, 0.95);
@@ -141,61 +206,6 @@
   transform: translateY(-1px);
 }
 
-/* DESKTOP NAV BUTTONS */
-
-.navbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.navItem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 22px;
-  border-radius: 999px;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #ffffff;
-  background: linear-gradient(135deg, #9b5bff, #f15cff);
-  box-shadow: 0 0 18px rgba(201, 120, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    background 0.18s ease,
-    opacity 0.18s ease;
-  white-space: nowrap;
-}
-
-.navItem:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 26px rgba(221, 150, 255, 0.9);
-  background: linear-gradient(135deg, #b973ff, #ff75ff);
-}
-
-.navItem:active {
-  transform: translateY(0);
-  box-shadow: 0 0 14px rgba(180, 100, 255, 0.7);
-}
-
-/* PRESALE SPECIAL (GOLD) */
-
-.navItemPresale {
-  background: linear-gradient(135deg, #ffd876, #ffb347);
-  box-shadow: 0 0 24px rgba(255, 215, 130, 0.95);
-  color: #3b2100;
-  border-color: rgba(255, 248, 210, 0.9);
-}
-
-.navItemPresale:hover {
-  background: linear-gradient(135deg, #ffe699, #ffc75c);
-  box-shadow: 0 0 30px rgba(255, 225, 140, 1);
-}
-
 /* Wallet Button rechts */
 
 .wallet {
@@ -205,7 +215,7 @@
   min-width: 150px;
 }
 
-/* Mobile: Desktop-Nav & Logo ausblenden – kommt aus MobileMenu */
+/* Mobile: Desktop-Header ausblenden – MobileMenu übernimmt */
 
 @media (max-width: 768px) {
   .header {
@@ -225,7 +235,7 @@
     display: none;
   }
 
-  .wallet {
-    display: none; /* Mobile Wallet-Button kommt aus MobileMenu */
+  .rightGroup {
+    display: none;
   }
 }

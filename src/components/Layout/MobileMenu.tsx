@@ -12,22 +12,28 @@ export default function MobileMenu() {
 
   return (
     <>
-      {/* Burger-Button – nur mobil sichtbar (per CSS) */}
+      {/* Burger-Button (nur mobil sichtbar, per CSS) */}
       <button
         className={styles.menuButton}
         onClick={toggle}
         aria-label="Open menu"
       >
-        <span className={styles.menuIconLine} />
-        <span className={styles.menuIconLine} />
-        <span className={styles.menuIconLine} />
+        <span className={styles.menuIcon} />
       </button>
 
       {open && (
         <div className={styles.menuOverlay}>
           <div className={styles.menuPanel}>
+            {/* Header oben im Panel */}
             <div className={styles.menuHeader}>
-              <span className={styles.menuTitle}>MemeX Menu</span>
+              <div className={styles.menuLogo}>
+                <img
+                  src="/background-card.png"
+                  alt="MemeX Duelverse"
+                  className={styles.menuLogoImage}
+                />
+                <span className={styles.menuLogoText}>MEMEX</span>
+              </div>
               <button
                 className={styles.closeButton}
                 onClick={close}
@@ -37,24 +43,12 @@ export default function MobileMenu() {
               </button>
             </div>
 
-            {/* Login-Bereich (Wallet / Email) */}
-            <div className={styles.menuLoginSection}>
-              <div className={styles.menuLoginTitle}>Login</div>
-              <div className={styles.menuLoginOptions}>
-                <a href="/account" onClick={close}>
-                  Wallet Login
-                </a>
-                <a href="/account" onClick={close}>
-                  Email Login
-                </a>
-              </div>
-            </div>
-
+            {/* Navigation */}
             <nav className={styles.menuNav}>
               <a href="/" onClick={close}>
                 Home
               </a>
-              <a href="/presale" onClick={close}>
+              <a href="/presale" onClick={close} className={styles.presaleLink}>
                 Presale
               </a>
               <a href="/how-to-play" onClick={close}>
@@ -74,6 +68,30 @@ export default function MobileMenu() {
               </a>
             </nav>
 
+            {/* Login Optionen */}
+            <div className={styles.loginSection}>
+              <div className={styles.loginTitle}>Login</div>
+              <button
+                className={styles.loginOption}
+                onClick={() => {
+                  close();
+                  window.location.href = '/account';
+                }}
+              >
+                Wallet Login
+              </button>
+              <button
+                className={styles.loginOption}
+                onClick={() => {
+                  close();
+                  window.location.href = '/account';
+                }}
+              >
+                Email Login
+              </button>
+            </div>
+
+            {/* Wallet Button unten */}
             <div className={styles.menuWallet}>
               <WalletButton />
             </div>
