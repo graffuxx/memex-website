@@ -198,8 +198,8 @@ export default function HowToPlayPage() {
           <div className={styles.colVisual}>
             <div className={styles.imageFrame}>
               <img
-                src="/memex-matchfield-demo.png"
-                alt="Best of three round flow"
+                src="/memex-matchflow-demo.png"
+                alt="Best of three to victory"
                 className={styles.image}
               />
             </div>
