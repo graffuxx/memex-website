@@ -13,6 +13,11 @@ import {
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
 
+// *** ADMIN OVERRIDE ***
+// Wenn true, gilt der Presale IMMER als gestartet – unabhängig vom Datum.
+// NUR für Tests benutzen, später wieder auf false oder entfernen.
+const ADMIN_OVERRIDE = true;
+
 const presaleStart = new Date('2025-12-21T01:00:00Z');
 const treasuryWallet = new PublicKey('42MZFG1imQ9eE6z3YNgC8LgeFVH3u8csppbnRNDAdtYw');
 
@@ -86,6 +91,14 @@ export default function PresaleOverview() {
 
   // --- PRESALE TIMER / LEVEL LOGIK ---
   useEffect(() => {
+    // Wenn Admin-Override aktiv ist, direkt Level 1 aktiv setzen
+    if (ADMIN_OVERRIDE) {
+      setIsPresaleStarted(true);
+      setActiveLevelIndex(0);
+      setCountdown('');
+      return;
+    }
+
     const interval = setInterval(() => {
       const now = new Date();
 
@@ -112,6 +125,9 @@ export default function PresaleOverview() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Effektiver „Presale aktiv“-Status (entweder echtes Datum oder Admin Override)
+  const presaleIsActive = isPresaleStarted || ADMIN_OVERRIDE;
 
   const handleWalletBuy = async () => {
     if (!connected || !publicKey) {
@@ -238,7 +254,7 @@ export default function PresaleOverview() {
       <div className={styles.box}>
         <h2 className={styles.title}>Presale Overview</h2>
 
-        {!isPresaleStarted ? (
+        {!presaleIsActive ? (
           <div className={styles.countdownBox}>
             <p>Presale starts in:</p>
             <p className={styles.timer}>{countdown}</p>
