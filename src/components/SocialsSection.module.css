@@ -1,38 +1,46 @@
 .socialSection {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+
+  /* DAS ist der Killer-Fix:
+     isoliert z-index / stacking context -> nichts kann “rausbluten” */
+  isolation: isolate;
+
+  /* Sicherheitsnetz gegen 1px Seams */
   overflow: hidden;
-  background: #050013;
 }
 
-/* Wrapper bleibt für Overlays/Content */
 .videoWrapper {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 720px;
   overflow: hidden;
 }
 
-/* FIX: Background muss VIEWPORT-FIXED sein, sonst gibt’s oben den Gap */
+/* Video MUSS innerhalb bleiben */
 .backgroundVideo {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02); /* kill seams */
+
+  /* Video garantiert hinter Content – aber NUR innerhalb der Section */
   z-index: 0;
 }
 
-/* Content bleibt absolut zentriert */
+/* Content bleibt drüber */
 .overlayContent {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+  inset: 0;
   z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
   color: white;
 }
 
@@ -61,35 +69,24 @@
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
 }
 
-/* FIX: Fade-Overlays müssen auch viewport-fixed sein, sonst sieht man oben “Rand” */
+/* Deine Fades – wenn du die "Trennschatten" NICHT willst:
+   -> diese beiden Klassen einfach komplett löschen + Divs in TSX löschen */
 .fadeTopOverlay {
-  position: fixed;
+  position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  width: 100%;
   height: 160px;
-  background: linear-gradient(
-    to bottom,
-    #0e0d1c 0%,
-    rgba(14, 13, 28, 0.6) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom, #0e0d1c 0%, rgba(14, 13, 28, 0.6) 60%, transparent 100%);
   z-index: 1;
   pointer-events: none;
 }
 
 .fadeBottomOverlay {
-  position: fixed;
-  left: 0;
-  right: 0;
+  position: absolute;
   bottom: 0;
+  width: 100%;
   height: 160px;
-  background: linear-gradient(
-    to top,
-    #0e0d1c 0%,
-    rgba(14, 13, 28, 0.6) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(to top, #0e0d1c 0%, rgba(14, 13, 28, 0.6) 60%, transparent 100%);
   z-index: 1;
   pointer-events: none;
 }
