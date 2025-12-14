@@ -1,15 +1,44 @@
-/* src/app/news/page.module.css */
-
 .page {
+  position: relative;
   min-height: 100vh;
   padding: 120px 16px 64px;
   display: flex;
   justify-content: center;
+  overflow: hidden;
+}
+
+/* Background video */
+.backgroundVideo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -3;
+}
+
+/* Dark overlay for contrast */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+      1200px 600px at 20% 0%,
+      rgba(160, 110, 255, 0.18),
+      transparent 60%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(8, 6, 16, 0.75),
+      rgba(8, 6, 16, 0.9)
+    );
+  z-index: -2;
 }
 
 .wrap {
   width: 100%;
   max-width: 980px;
+  position: relative;
+  z-index: 1;
 }
 
 .header {
@@ -93,7 +122,6 @@
   color: #ffffff;
   background: rgba(160, 110, 255, 0.22);
   border: 1px solid rgba(160, 110, 255, 0.38);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   transition: transform 0.15s ease, background 0.15s ease, border 0.15s ease;
 }
 
@@ -111,7 +139,7 @@
   padding: 8px;
 }
 
-/* Mobile tweaks */
+/* Mobile */
 @media (max-width: 640px) {
   .page {
     padding: 96px 12px 48px;

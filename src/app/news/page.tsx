@@ -1,13 +1,25 @@
-// src/app/news/page.tsx
 import Script from "next/script";
 import styles from "./page.module.css";
 
 export default function NewsPage() {
-  // Change this if your handle is different (WITHOUT @)
-  const X_HANDLE = "memex_duelverse";
+  const X_HANDLE = "memex_duelverse"; // ohne @
 
   return (
     <main className={styles.page}>
+      {/* Background Video */}
+      <video
+        className={styles.backgroundVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src="/socialmedia-background.mp4" type="video/mp4" />
+      </video>
+
+      {/* Dark overlay for readability */}
+      <div className={styles.overlay} />
+
       <section className={styles.wrap}>
         <header className={styles.header}>
           <h1 className={styles.title}>NEWS</h1>
