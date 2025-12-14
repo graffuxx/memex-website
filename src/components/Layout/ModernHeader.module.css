@@ -1,12 +1,23 @@
 .header {
   position: fixed;
-  top: 0;                 /* FIX: kein sichtbarer Gap */
+  top: 0;
   left: 0;
   right: 0;
   z-index: 999;
+
   display: flex;
   justify-content: center;
-  padding: 12px 16px 0;   /* Luft nach innen statt “Absatz” */
+
+  /* FIX: kein Abstand oben mehr */
+  padding: 0 16px;
+
+  /* optional: zarter Top-Blend, damit es premium wirkt */
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 4, 24, 0.72),
+    rgba(8, 4, 24, 0.22),
+    transparent
+  );
 }
 
 /* Floating centered bar */
@@ -15,6 +26,9 @@
   border-radius: 999px;
   position: relative;
   overflow: hidden;
+ 
+  margin-top: 12px; /* Luft, aber Background bleibt bis ganz oben */
+
 
   background: linear-gradient(
     to bottom,
