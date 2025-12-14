@@ -1,283 +1,46 @@
-.header {
-  position: fixed;
-  top: 14px;               /* FLOATING */
-  left: 0;
-  right: 0;
-  z-index: 60;
-  display: flex;
-  justify-content: center;
-  padding: 0 16px;         /* Seitenabstand */
-  pointer-events: none;    /* Header selbst klickt nicht */
-}
+/* ===== WALLET BUTTON FIX (Header only) ===== */
 
-/* Die eigentliche Bar */
-.bar {
-  pointer-events: auto;    /* Bar ist klickbar */
-  width: min(1120px, calc(100% - 32px));
-  border-radius: 999px;
-  position: relative;
-  overflow: hidden;        /* damit Fade INSIDE bleibt */
-
-  /* Optik */
-  background: linear-gradient(
-    to bottom,
-    rgba(8, 4, 24, 0.92),
-    rgba(8, 4, 24, 0.76)
-  );
-  border: 1px solid rgba(160, 110, 255, 0.22);
-  box-shadow:
-    0 18px 55px rgba(0, 0, 0, 0.55),
-    0 0 26px rgba(160, 110, 255, 0.18);
-
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* Bei Scroll: etwas dichter */
-.barScrolled {
-  background: linear-gradient(
-    to bottom,
-    rgba(8, 4, 24, 0.96),
-    rgba(8, 4, 24, 0.88)
-  );
-  border-color: rgba(160, 110, 255, 0.32);
-  box-shadow:
-    0 18px 55px rgba(0, 0, 0, 0.62),
-    0 0 34px rgba(160, 110, 255, 0.22);
-}
-
-/* Fades links/rechts innerhalb der Bar */
-.bar::before,
-.bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 58px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.bar::before {
-  left: 0;
-  background: linear-gradient(
-    to right,
-    rgba(8, 4, 24, 0.95),
-    rgba(8, 4, 24, 0.0)
-  );
-}
-
-.bar::after {
-  right: 0;
-  background: linear-gradient(
-    to left,
-    rgba(8, 4, 24, 0.95),
-    rgba(8, 4, 24, 0.0)
-  );
-}
-
-/* Inner layout */
-.container {
-  position: relative;
-  z-index: 3; /* über den Fades */
-  width: 100%;
-  padding: 10px 14px;      /* Höhe der Bar -> kein Abschneiden */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-/* LINKS – nur Logo */
-.leftGroup {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logoLink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
-
-.logoImage {
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
-  object-fit: cover;
-}
-
-/* MITTE – Nav */
-.navbar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.navItem {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 6px;
-  border-radius: 999px;
-  font-size: 13px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #f5e9ff;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  transition: color 0.16s ease, opacity 0.16s ease;
-  white-space: nowrap;
-}
-
-.navItem::after {
-  content: '';
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: -4px;
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #b973ff, #ff75ff);
-  opacity: 0;
-  transform: scaleX(0.6);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.navItem:hover {
+.wallet button,
+.wallet :global(button),
+.wallet :global(.wallet-adapter-button) {
+  background: linear-gradient(135deg, #7a4dff, #b973ff);
   color: #ffffff;
-}
-
-.navItem:hover::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
-/* PRESALE – bleibt shiny */
-.navItemPresale {
-  padding: 8px 20px;
-  background: linear-gradient(135deg, #ffd876, #ffb347);
-  box-shadow: 0 0 24px rgba(255, 215, 130, 0.95);
-  color: #3b2100;
-  border: 1px solid rgba(255, 248, 210, 0.9);
-}
-
-.navItemPresale::after {
-  display: none;
-}
-
-.navItemPresale:hover {
-  background: linear-gradient(135deg, #ffe699, #ffc75c);
-  box-shadow: 0 0 30px rgba(255, 225, 140, 1);
-}
-
-/* RECHTS – Login + Wallet */
-.rightGroup {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-/* Login als Text-Link */
-.loginWrapper {
-  position: relative;
-}
-
-.loginButton {
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 4px 0;
+  border-radius: 999px;
+  padding: 10px 18px;
   font-size: 13px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  font-family: 'Dolce Vita', sans-serif;
+
+  border: 1px solid rgba(200, 170, 255, 0.45);
+  box-shadow:
+    0 0 22px rgba(160, 110, 255, 0.55),
+    inset 0 0 10px rgba(255, 255, 255, 0.12);
+
   cursor: pointer;
-  color: #e5d9ff;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
 }
 
-.loginButton:hover {
-  color: #ffffff;
-}
-
-.loginCaret {
-  font-size: 10px;
-  opacity: 0.9;
-}
-
-/* Dropdown */
-.loginDropdown {
-  position: absolute;
-  top: 130%;
-  right: 0;
-  min-width: 190px;
-  padding: 8px;
-  border-radius: 14px;
-  background: radial-gradient(circle at top, #1c102f, #050313);
-  border: 1px solid rgba(209, 213, 255, 0.5);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 70;
-}
-
-.loginDropdownItem {
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 13px;
-  text-decoration: none;
-  color: #f9fafb;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid transparent;
-  transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
-}
-
-.loginDropdownItem:hover {
-  background: radial-gradient(circle at top, #3b1c6f, #0f172a);
-  border-color: rgba(244, 114, 182, 0.9);
+/* Hover */
+.wallet button:hover,
+.wallet :global(button):hover,
+.wallet :global(.wallet-adapter-button):hover {
   transform: translateY(-1px);
+  box-shadow:
+    0 0 30px rgba(180, 140, 255, 0.75),
+    inset 0 0 12px rgba(255, 255, 255, 0.18);
+  filter: brightness(1.05);
 }
 
-/* Wallet Button rechts */
-.wallet {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 150px;
-}
-
-/* Mobile: Desktop-Header ausblenden – MobileMenu übernimmt */
-@media (max-width: 768px) {
-  .header {
-    top: 0;
-    padding: 0;
-    pointer-events: auto;
-  }
-
-  .bar {
-    width: 100%;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-
-  .container {
-    justify-content: flex-end;
-    padding: 10px 12px;
-  }
-
-  .leftGroup,
-  .navbar,
-  .rightGroup {
-    display: none;
-  }
+/* Active */
+.wallet button:active,
+.wallet :global(button):active,
+.wallet :global(.wallet-adapter-button):active {
+  transform: translateY(0);
+  box-shadow:
+    0 0 18px rgba(140, 90, 255, 0.45),
+    inset 0 0 8px rgba(0, 0, 0, 0.35);
 }
