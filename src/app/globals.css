@@ -6,28 +6,40 @@
   font-style: normal;
 }
 
-/* Globale Styles */
+/* Global Box Model */
 html {
   scroll-behavior: smooth;
   box-sizing: border-box;
+  background: #050013;
+  scrollbar-gutter: stable;
 }
 
 *, *::before, *::after {
   box-sizing: inherit;
 }
 
+/* Base */
 body {
   margin: 0;
   padding: 0;
-  background-color: #0e0d1c;
-  color: white;
+  background: #050013;
+  color: #fff;
   font-family: 'Dolce Vita', sans-serif;
   line-height: 1.5;
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Important: prevent 1px horizontal artifacts */
   overflow-x: hidden;
+  overflow-x: clip;
+
   transition: color 0.25s ease;
+}
+
+/* Ensure root wrapper doesn't create gaps */
+body > div {
+  max-width: 100%;
 }
 
 /* Headings & Text */
@@ -55,6 +67,21 @@ button {
   border: none;
 }
 
+/* Dark scrollbars (kills the "white stripe" on desktop browsers) */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050013;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(160, 110, 255, 0.35);
+  border-radius: 10px;
+  border: 3px solid #050013;
+}
+
 /* Responsive Utils */
 @media (max-width: 768px) {
   body {
@@ -74,15 +101,4 @@ button {
     flex-direction: column !important;
     gap: 20px !important;
   }
-}
-
-html,
-body,
-#__next {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  background-color: #050013; /* dein dunkler Global-Background */
 }
