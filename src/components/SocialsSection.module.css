@@ -21,14 +21,17 @@
   overflow: hidden;
 }
 
-/* SECTION BACKGROUND (kein fixed!) */
+/* SECTION BACKGROUND (WICHTIG: NICHT fixed!) */
 .backgroundVideo {
   position: absolute;
   inset: 0;
+
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02); /* kill seams */
+
+  /* kill seams */
+  transform: scale(1.02);
   backface-visibility: hidden;
   -webkit-transform: translateZ(0) scale(1.02);
 }
@@ -59,7 +62,8 @@
   flex-wrap: wrap;
 }
 
-.iconBtn {
+/* ✅ funktioniert mit DEINER bestehenden TSX (Links + IMG Logos) */
+.iconRow a {
   width: 56px;
   height: 56px;
   border-radius: 16px;
@@ -75,12 +79,21 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
-.iconBtn:hover {
+.iconRow a:hover {
   transform: translateY(-2px) scale(1.05);
   box-shadow: 0 0 34px rgba(150, 50, 255, 0.45);
   filter: brightness(1.06);
 }
 
+.iconRow img {
+  width: 28px;
+  height: 28px;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.18));
+}
+
+/* (optional) falls du irgendwo SVG nutzt, bleibt’s auch kompatibel */
 .icon {
   width: 28px;
   height: 28px;
@@ -104,12 +117,13 @@
     font-size: 22px;
   }
 
-  .iconBtn {
+  .iconRow a {
     width: 52px;
     height: 52px;
     border-radius: 14px;
   }
 
+  .iconRow img,
   .icon {
     width: 26px;
     height: 26px;
