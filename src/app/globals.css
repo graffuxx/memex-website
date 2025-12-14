@@ -19,22 +19,21 @@ html {
 }
 
 /* Base */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: #050013;
+}
+
 body {
   margin: 0;
-  padding: 0;
-  background: #050013;
-  color: #fff;
-  font-family: 'Dolce Vita', sans-serif;
-  line-height: 1.5;
-  font-size: 16px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
 
-  /* Important: prevent 1px horizontal artifacts */
-  overflow-x: hidden;
-  overflow-x: clip;
-
-  transition: color 0.25s ease;
+/* verhindert 1px seams in manchen Browsern */
+video, img {
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
 }
 
 /* Ensure root wrapper doesn't create gaps */
