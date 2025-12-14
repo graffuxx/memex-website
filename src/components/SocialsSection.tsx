@@ -49,10 +49,12 @@ function IconYouTube() {
 export default function SocialsSection() {
   return (
     <section className={styles.socialSection}>
-      {/* FULLSCREEN VIDEO BACKGROUND (wie NFTShop) */}
-      <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
-        <source src="/socialmedia-background.mp4" type="video/mp4" />
-      </video>
+      {/* SECTION-BACKGROUND (NICHT fixed -> kann Home nie “übernehmen”) */}
+      <div className={styles.videoLayer}>
+        <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
+          <source src="/socialmedia-background.mp4" type="video/mp4" />
+        </video>
+      </div>
 
       <div className={styles.content}>
         <h2 className={styles.title}>FOLLOW THE DUELVERSE</h2>
