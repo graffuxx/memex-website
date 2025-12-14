@@ -73,7 +73,7 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050013;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
