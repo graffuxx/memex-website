@@ -1,28 +1,34 @@
 .socialSection {
   position: relative;
   width: 100%;
+  min-height: 100vh;          /* FIX: immer fullscreen */
+  overflow: hidden;
+  background-color: #0e0d1c;  /* Fallback, falls Video lädt */
 }
 
+/* Video-Container jetzt fullscreen */
 .videoWrapper {
   position: relative;
   width: 100%;
-  height: 720px;
+  min-height: 100vh;          /* FIX */
   overflow: hidden;
 }
 
+/* Video IMMER fullscreen */
 .backgroundVideo {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
+  transform: scale(1.02);    /* kill 1px seams */
   z-index: 0;
 }
 
+/* Content zentriert, aber unter Header + Ticker */
 .overlayContent {
   position: absolute;
-  top: 50%;
+  top: calc(50% + 62px);     /* FIX: Header + Ticker Offset */
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
@@ -30,6 +36,7 @@
   color: white;
 }
 
+/* Titel */
 .title {
   font-size: 28px;
   margin-bottom: 24px;
@@ -37,6 +44,7 @@
   letter-spacing: 1px;
 }
 
+/* Icons */
 .iconRow {
   display: flex;
   justify-content: center;
@@ -55,12 +63,18 @@
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
 }
 
+/* Fades – bleiben wie gehabt */
 .fadeTopOverlay {
   position: absolute;
   top: 0;
   width: 100%;
   height: 160px;
-  background: linear-gradient(to bottom, #0e0d1c 0%, rgba(14, 13, 28, 0.6) 60%, transparent 100%);
+  background: linear-gradient(
+    to bottom,
+    #0e0d1c 0%,
+    rgba(14, 13, 28, 0.6) 60%,
+    transparent 100%
+  );
   z-index: 1;
   pointer-events: none;
 }
@@ -70,7 +84,12 @@
   bottom: 0;
   width: 100%;
   height: 160px;
-  background: linear-gradient(to top, #0e0d1c 0%, rgba(14, 13, 28, 0.6) 60%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    #0e0d1c 0%,
+    rgba(14, 13, 28, 0.6) 60%,
+    transparent 100%
+  );
   z-index: 1;
   pointer-events: none;
 }
