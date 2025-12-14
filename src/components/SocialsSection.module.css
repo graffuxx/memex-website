@@ -2,34 +2,32 @@
   position: relative;
   width: 100%;
 
-  /* DAS ist der Killer-Fix:
-     isoliert z-index / stacking context -> nichts kann “rausbluten” */
+  /* verhindert, dass das Video irgendwo “global” durchscheint */
   isolation: isolate;
-
-  /* Sicherheitsnetz gegen 1px Seams */
   overflow: hidden;
 }
 
 .videoWrapper {
   position: relative;
   width: 100%;
+
+  /* Optisch sauber: keine “Kanten”/Ränder */
   height: 720px;
   overflow: hidden;
 }
 
-/* Video MUSS innerhalb bleiben */
 .backgroundVideo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-
-  /* Video garantiert hinter Content – aber NUR innerhalb der Section */
   z-index: 0;
+
+  /* optional: minimaler Zoom killt 1px seams */
+  transform: scale(1.02);
 }
 
-/* Content bleibt drüber */
 .overlayContent {
   position: absolute;
   inset: 0;
@@ -69,24 +67,18 @@
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
 }
 
-/* Deine Fades – wenn du die "Trennschatten" NICHT willst:
-   -> diese beiden Klassen einfach komplett löschen + Divs in TSX löschen */
-.fadeTopOverlay {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 160px;
-  background: linear-gradient(to bottom, #0e0d1c 0%, rgba(14, 13, 28, 0.6) 60%, transparent 100%);
-  z-index: 1;
-  pointer-events: none;
-}
+/* Mobile */
+@media (max-width: 768px) {
+  .videoWrapper {
+    height: 560px;
+  }
 
-.fadeBottomOverlay {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 160px;
-  background: linear-gradient(to top, #0e0d1c 0%, rgba(14, 13, 28, 0.6) 60%, transparent 100%);
-  z-index: 1;
-  pointer-events: none;
+  .title {
+    font-size: 22px;
+  }
+
+  .iconRow img {
+    width: 38px;
+    height: 38px;
+  }
 }
