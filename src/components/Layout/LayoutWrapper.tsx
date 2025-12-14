@@ -3,24 +3,24 @@
 import React from 'react';
 import TickerBar from './TickerBar';
 
-type Props = { children: React.ReactNode };
+type Props = {
+  children: React.ReactNode;
+};
 
 export default function LayoutWrapper({ children }: Props) {
   return (
     <div
       style={{
         minHeight: '100vh',
-        width: '100%',
-        overflowX: 'hidden',
+        paddingTop: 0, // WICHTIG: kein globaler Offset -> sonst “leere Seite” oben bei Home
         position: 'relative',
       }}
     >
-      {/* Header ist fixed, Ticker ist sticky – wir geben NUR Platz für Content */}
-      <div style={{ height: 120 }} /> {/* 80 Header + ~40 Ticker */}
-
+      {/* News-Banner direkt unter der Navi (fixed overlay) */}
       <TickerBar />
 
-      <main style={{ width: '100%' }}>{children}</main>
+      {/* Seiteninhalt (Sections regeln ihren eigenen Abstand) */}
+      {children}
     </div>
   );
 }

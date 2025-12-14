@@ -5,51 +5,46 @@
   overflow: hidden;
   background: #050013;
 
-  /* WICHTIG: KEIN padding hier – sonst wirkt der Background “zu tief” */
-  padding: 0;
+  /* Content startet optisch unter Header+Ticker (du willst keine Überdeckung) */
+  padding: 140px 0 80px;
 
-  /* verhindert Bleed durch stacking contexts */
+  /* verhindert bleed/stacking-bugs */
   isolation: isolate;
-  transform: translateZ(0);
 }
 
-/* Layer für Section-Video */
+/* Layer für Background: sticky = “fixed” innerhalb der Section (kein bleed in andere Pages) */
 .videoLayer {
   position: sticky;
   top: 0;
   height: 100vh;
   width: 100%;
-
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
 }
 
-/* Background bleibt SECTION-gebunden (nicht fixed -> kein Home-Bleed) */
 .backgroundVideo {
   position: absolute;
   inset: 0;
-
   width: 100%;
   height: 100%;
   object-fit: cover;
 
+  /* seams kill */
   transform: scale(1.02);
   backface-visibility: hidden;
   -webkit-transform: translateZ(0) scale(1.02);
-  z-index: 0;
 }
 
-/* Content startet unter Header+Ticker */
+/* CONTENT */
 .content {
   position: relative;
   z-index: 2;
-
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
 
-  padding: 140px 24px 80px; /* HIER gehört der Abstand hin */
+  padding: 0 24px;
   text-align: center;
   color: #fff;
 }
@@ -68,8 +63,6 @@
   flex-wrap: wrap;
 }
 
-/* TSX-kompatibel: egal ob <a><img/></a> oder Button */
-.iconRow a,
 .iconBtn {
   width: 56px;
   height: 56px;
@@ -86,23 +79,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
-.iconRow a:hover,
 .iconBtn:hover {
   transform: translateY(-2px) scale(1.05);
   box-shadow: 0 0 34px rgba(150, 50, 255, 0.45);
   filter: brightness(1.06);
 }
 
-/* IMG-Logos wieder sichtbar */
-.iconRow img {
-  width: 28px;
-  height: 28px;
-  display: block;
-  object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.18));
-}
-
-/* SVG fallback */
 .icon {
   width: 28px;
   height: 28px;
@@ -116,23 +98,22 @@
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.18));
 }
 
+/* Mobile */
 @media (max-width: 768px) {
-  .content {
-    padding: 130px 16px 60px;
+  .socialSection {
+    padding: 130px 0 60px;
   }
 
   .title {
     font-size: 22px;
   }
 
-  .iconRow a,
   .iconBtn {
     width: 52px;
     height: 52px;
     border-radius: 14px;
   }
 
-  .iconRow img,
   .icon {
     width: 26px;
     height: 26px;
