@@ -2,6 +2,7 @@
 
 .nftShopSection {
   position: relative;
+  isolation: isolate;
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
@@ -13,7 +14,7 @@
 
 /* ===== FULLSCREEN BACKGROUND (wie Account, korrekt) ===== */
 .backgroundVideo {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
