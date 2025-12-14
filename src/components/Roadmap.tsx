@@ -7,11 +7,16 @@ export default function Roadmap() {
     <section className={styles.roadmapSection}>
       {/* Hintergrundvideo */}
       <div className={styles.videoWrapper}>
-        <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
-          <source src="/memex-whitepaper.mp4" type="video/mp4" />
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className={styles.backgroundVideo}
+        >
+          <source src="/memex-ourmission.mp4" type="video/mp4" />
         </video>
-        <div className={styles.fadeTopOverlay}></div>
-        <div className={styles.fadeBottomOverlay}></div>
       </div>
 
       {/* Inhaltsbereich */}
@@ -50,7 +55,8 @@ export default function Roadmap() {
         </div>
 
         <div className={styles.note}>
-          <strong>Thank you, Presale Supporters!</strong><br />
+          <strong>Thank you, Presale Supporters!</strong>
+          <br />
           Every early backer will receive exclusive NFT rewards for funding the Memevolution.
         </div>
       </div>
