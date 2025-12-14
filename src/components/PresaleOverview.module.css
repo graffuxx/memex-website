@@ -1,11 +1,21 @@
 .presaleSection {
   position: relative;
+  width: 100%;
   min-height: 100vh;
-  padding: 120px 16px 80px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+
+  /* consistent site background */
+  background: #050013;
+
+  /* space for fixed header + ticker */
+  padding: 140px 16px 80px;
+
+  /* prevents stacking-context bleed into other sections */
+  isolation: isolate;
+
   color: #ffffff;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -18,14 +28,21 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  transform: translateZ(0);
 }
 
 .videoBackground {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   filter: blur(1px);
+
+  /* kill 1px seams */
   transform: scale(1.02);
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0) scale(1.02);
 }
 
 .fadeTopOverlay {
@@ -34,7 +51,7 @@
   left: 0;
   right: 0;
   height: 160px;
-  background: linear-gradient(to bottom, rgba(5, 5, 15, 0.95), transparent);
+  background: linear-gradient(to bottom, #050013 0%, rgba(5, 0, 19, 0.55) 60%, transparent 100%);
   z-index: 1;
 }
 
@@ -44,7 +61,7 @@
   left: 0;
   right: 0;
   height: 220px;
-  background: linear-gradient(to top, rgba(5, 5, 15, 0.98), transparent);
+  background: linear-gradient(to top, #050013 0%, rgba(5, 0, 19, 0.65) 60%, transparent 100%);
   z-index: 1;
 }
 
