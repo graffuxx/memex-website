@@ -1,21 +1,25 @@
 .tickerWrapper {
-  position: sticky;
-  top: 64px; /* unter der Navbar */
+  position: fixed;         /* FIX: overlay, drückt nichts nach unten */
+  top: 72px;               /* unter der Navbar (ggf. 68–84 feinjustieren) */
+  left: 0;
+  right: 0;
   z-index: 55;
 
-  /* WICHTIG: kein 100vw, damit nichts über den Viewport hinausragt */
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 16px;         /* gleiche Seitenluft wie Header */
 
-  overflow: hidden; /* falls irgendwas breiter wird, kein horizontaler Scroll */
   background: transparent;
-  display: block;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;    /* klickt nicht in den Content */
 }
 
 /* der eigentliche Balken */
 .tickerInner {
+  pointer-events: auto;
+  width: min(1200px, calc(100% - 32px));
   position: relative;
   margin: 0 auto;
   max-width: 1200px;
