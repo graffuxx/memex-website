@@ -444,7 +444,7 @@
 /* SUCCESS OVERLAY */
 
 .successOverlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 30;
   background: radial-gradient(circle at top, rgba(171, 129, 255, 0.3), transparent 55%),
