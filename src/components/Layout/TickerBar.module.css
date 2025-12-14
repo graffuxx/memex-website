@@ -1,6 +1,6 @@
 .tickerWrapper {
   position: fixed;         /* FIX: overlay, drückt nichts nach unten */
-  top: 72px;               /* unter der Navbar (ggf. 68–84 feinjustieren) */
+  top: 64px;               /* direkt unter der Navbar (kein sichtbarer Gap) */
   left: 0;
   right: 0;
   z-index: 55;
@@ -116,6 +116,10 @@
     height: 32px;
     font-size: 11px;
     letter-spacing: 0.06em;
+    padding: 0 12px;
+  }
+  .tickerWrapper {
+    top: 56px;
     padding: 0 12px;
   }
 }
