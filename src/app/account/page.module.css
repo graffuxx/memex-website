@@ -29,22 +29,12 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
+
+  /* weniger "milchig" */
   background:
-    radial-gradient(
-      circle at top,
-      rgba(122, 77, 255, 0.35),
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at bottom,
-      rgba(18, 213, 255, 0.25),
-      transparent 55%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(8, 6, 16, 0.55),
-      rgba(8, 6, 16, 0.75)
-    );
+    radial-gradient(circle at top, rgba(122, 77, 255, 0.16), transparent 60%),
+    radial-gradient(circle at bottom, rgba(18, 213, 255, 0.10), transparent 60%),
+    linear-gradient(to bottom, rgba(6, 5, 12, 0.22), rgba(6, 5, 12, 0.40));
 }
 
 /* zentrierte Karte */
