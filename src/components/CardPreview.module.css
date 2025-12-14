@@ -1,41 +1,50 @@
 .cardPreviewSection {
   position: relative;
   width: 100%;
+  min-height: 100vh;
   overflow: hidden;
-  padding: 100px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  background: #050013;
+
+  /* space for fixed header + ticker */
+  padding: 140px 0 80px;
+
+  /* prevent background bleed into other sections */
+  isolation: isolate;
 }
 
 .videoWrapper {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+  inset: 0;
   z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .backgroundVideo {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
   filter: brightness(0.6);
+
+  /* kill 1px seams */
+  transform: scale(1.02);
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0) scale(1.02);
 }
 
 .fadeTopOverlay {
   position: absolute;
   top: 0;
   width: 100%;
-  height: 200px;
-  background: linear-gradient(to bottom, rgba(14, 13, 28, 1) 0%, rgba(14, 13, 28, 0.5) 50%, rgba(14, 13, 28, 0) 100%);
+  height: 160px;
+  background: linear-gradient(to bottom, #050013 0%, rgba(5,0,19,0.55) 60%, transparent 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -44,8 +53,8 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 200px;
-  background: linear-gradient(to top, rgba(14, 13, 28, 1) 0%, rgba(14, 13, 28, 0.5) 50%, rgba(14, 13, 28, 0) 100%);
+  height: 160px;
+  background: linear-gradient(to top, #050013 0%, rgba(5,0,19,0.65) 60%, transparent 100%);
   z-index: 1;
   pointer-events: none;
 }
