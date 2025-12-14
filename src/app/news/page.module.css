@@ -1,0 +1,136 @@
+/* src/app/news/page.module.css */
+
+.page {
+  min-height: 100vh;
+  padding: 120px 16px 64px;
+  display: flex;
+  justify-content: center;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 980px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 44px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(160, 110, 255, 0.35);
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
+}
+
+.card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(18, 16, 28, 0.72);
+  border: 1px solid rgba(160, 110, 255, 0.28);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+
+.glow {
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(
+      1200px 500px at 20% 0%,
+      rgba(160, 110, 255, 0.35),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 380px at 90% 20%,
+      rgba(255, 214, 120, 0.18),
+      transparent 55%
+    );
+  filter: blur(14px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  padding: 18px;
+}
+
+.feedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.badge {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(160, 110, 255, 0.14);
+  border: 1px solid rgba(160, 110, 255, 0.35);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.follow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #ffffff;
+  background: rgba(160, 110, 255, 0.22);
+  border: 1px solid rgba(160, 110, 255, 0.38);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  transition: transform 0.15s ease, background 0.15s ease, border 0.15s ease;
+}
+
+.follow:hover {
+  transform: translateY(-1px);
+  background: rgba(160, 110, 255, 0.28);
+  border: 1px solid rgba(160, 110, 255, 0.55);
+}
+
+.timeline {
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px;
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .page {
+    padding: 96px 12px 48px;
+  }
+
+  .title {
+    font-size: 34px;
+  }
+
+  .inner {
+    padding: 14px;
+  }
+
+  .feedHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .follow {
+    width: 100%;
+  }
+}

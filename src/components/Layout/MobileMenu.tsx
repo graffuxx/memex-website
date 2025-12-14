@@ -66,6 +66,9 @@ export default function MobileMenu() {
               <a href="/account" onClick={close}>
                 Account
               </a>
+              <a href="/news" onClick={close}>
+                News
+              </a>
             </nav>
 
             {/* Login Optionen */}

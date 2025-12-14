@@ -71,6 +71,9 @@ export default function ModernHeader() {
           <a href="/account" className={styles.navItem}>
             ACCOUNT
           </a>
+          <a href="/news" className={styles.navItem}>
+            NEWS
+          </a>
         </nav>
 
         {/* Rechts: Login-Text + Wallet */}
