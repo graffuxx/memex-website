@@ -10,12 +10,16 @@
 
   /* verhindert Bleed durch stacking contexts */
   isolation: isolate;
+  transform: translateZ(0);
 }
 
 /* Layer für Section-Video */
 .videoLayer {
-  position: absolute;
-  inset: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -33,6 +37,7 @@
   transform: scale(1.02);
   backface-visibility: hidden;
   -webkit-transform: translateZ(0) scale(1.02);
+  z-index: 0;
 }
 
 /* Content startet unter Header+Ticker */
