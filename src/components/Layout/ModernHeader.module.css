@@ -16,59 +16,133 @@
   position: relative;
   overflow: hidden;
 
-  background: linear-gradient(to bottom, rgba(8, 4, 24, 0.92), rgba(8, 4, 24, 0.76));
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 4, 24, 0.92),
+    rgba(8, 4, 24, 0.76)
+  );
   border: 1px solid rgba(160, 110, 255, 0.22);
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55), 0 0 26px rgba(160, 110, 255, 0.18);
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.55),
+    0 0 26px rgba(160, 110, 255, 0.18);
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
 .barScrolled {
-  background: linear-gradient(to bottom, rgba(8, 4, 24, 0.96), rgba(8, 4, 24, 0.88));
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 4, 24, 0.96),
+    rgba(8, 4, 24, 0.88)
+  );
   border-color: rgba(160, 110, 255, 0.32);
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.62),
+    0 0 34px rgba(160, 110, 255, 0.22);
 }
 
-/* Fades inside bar */
+/* Bar fades (inside) */
 .bar::before,
 .bar::after {
   content: '';
   position: absolute;
-  top: 0; bottom: 0;
+  top: 0;
+  bottom: 0;
   width: 58px;
   pointer-events: none;
   z-index: 2;
 }
+
 .bar::before {
   left: 0;
-  background: linear-gradient(to right, rgba(8, 4, 24, 0.95), rgba(8, 4, 24, 0));
-}
-.bar::after {
-  right: 0;
-  background: linear-gradient(to left, rgba(8, 4, 24, 0.95), rgba(8, 4, 24, 0));
+  background: linear-gradient(
+    to right,
+    rgba(8, 4, 24, 0.95),
+    rgba(8, 4, 24, 0)
+  );
 }
 
+.bar::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(8, 4, 24, 0.95),
+    rgba(8, 4, 24, 0)
+  );
+}
+
+/* === 3-column layout: left | center | right (wallet NEVER gets clipped) === */
 .container {
   position: relative;
   z-index: 3;
   width: 100%;
   padding: 10px 14px;
-  display: flex;
+
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   gap: 14px;
 }
 
-.leftGroup { display: flex; align-items: center; gap: 10px; }
-.logoLink { display: inline-flex; align-items: center; justify-content: center; }
+/* LINKS – Logo */
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .logoImage {
-  width: 38px; height: 38px;
+  width: 38px;
+  height: 38px;
   border-radius: 999px;
   object-fit: cover;
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
 }
 
-.navbar { display: flex; align-items: center; gap: 16px; }
+/* MITTE – Nav: darf NICHT den Wallet wegdrücken -> scrollt innen */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 0 10px;
+
+  /* weiches Fade nur im Nav-Bereich */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+
+  scrollbar-width: none; /* Firefox */
+}
+
+.navbar::-webkit-scrollbar {
+  height: 0px; /* Chrome/Safari */
+}
 
 .navItem {
   position: relative;
@@ -77,19 +151,23 @@
   justify-content: center;
   padding: 4px 6px;
   border-radius: 999px;
-  font-size: 13px;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #f5e9ff;
   white-space: nowrap;
   transition: color 0.16s ease;
 }
-.navItem:hover { color: #fff; }
+
+.navItem:hover {
+  color: #ffffff;
+}
 
 .navItem::after {
   content: '';
   position: absolute;
-  left: 10%; right: 10%;
+  left: 10%;
+  right: 10%;
   bottom: -4px;
   height: 2px;
   border-radius: 999px;
@@ -98,20 +176,43 @@
   transform: scaleX(0.6);
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
-.navItem:hover::after { opacity: 1; transform: scaleX(1); }
 
+.navItem:hover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* PRESALE – bleibt shiny */
 .navItemPresale {
-  padding: 8px 20px;
+  padding: 8px 18px;
   background: linear-gradient(135deg, #ffd876, #ffb347);
   box-shadow: 0 0 24px rgba(255, 215, 130, 0.95);
   color: #3b2100;
   border: 1px solid rgba(255, 248, 210, 0.9);
 }
-.navItemPresale::after { display: none; }
 
-.rightGroup { display: flex; align-items: center; gap: 14px; }
+.navItemPresale::after {
+  display: none;
+}
 
-.loginWrapper { position: relative; }
+.navItemPresale:hover {
+  background: linear-gradient(135deg, #ffe699, #ffc75c);
+  box-shadow: 0 0 30px rgba(255, 225, 140, 1);
+}
+
+/* RECHTS – Login + Wallet (fix sichtbar) */
+.rightGroup {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  flex: 0 0 auto;
+}
+
+.loginWrapper {
+  position: relative;
+}
+
 .loginButton {
   background: transparent;
   border: none;
@@ -125,9 +226,17 @@
   align-items: center;
   gap: 4px;
 }
-.loginButton:hover { color: #fff; }
-.loginCaret { font-size: 10px; opacity: 0.9; }
 
+.loginButton:hover {
+  color: #ffffff;
+}
+
+.loginCaret {
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+/* Dropdown */
 .loginDropdown {
   position: absolute;
   top: 130%;
@@ -153,35 +262,71 @@
   border: 1px solid transparent;
   transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
 }
+
 .loginDropdownItem:hover {
   background: radial-gradient(circle at top, #3b1c6f, #0f172a);
   border-color: rgba(244, 114, 182, 0.9);
   transform: translateY(-1px);
 }
 
-.wallet { display: flex; align-items: center; justify-content: flex-end; min-width: 150px; }
-
-/* Wallet button style (header only) */
-.wallet :global(.wallet-adapter-button) {
-  background: linear-gradient(135deg, #7a4dff, #b973ff);
-  color: #ffffff;
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  border: 1px solid rgba(200, 170, 255, 0.45);
-  box-shadow: 0 0 22px rgba(160, 110, 255, 0.55), inset 0 0 10px rgba(255, 255, 255, 0.12);
-  cursor: pointer;
+/* Wallet wrapper */
+.wallet {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 160px;
 }
+
+/* === WALLET BUTTON: purple boxed button (header only) === */
+.wallet :global(.wallet-adapter-button) {
+  background: linear-gradient(135deg, #7a4dff, #b973ff) !important;
+  color: #ffffff !important;
+  border-radius: 999px !important;
+  padding: 10px 18px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+
+  border: 1px solid rgba(200, 170, 255, 0.45) !important;
+  box-shadow:
+    0 0 22px rgba(160, 110, 255, 0.55),
+    inset 0 0 10px rgba(255, 255, 255, 0.12) !important;
+
+  cursor: pointer !important;
+  transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease !important;
+}
+
 .wallet :global(.wallet-adapter-button:hover) {
   transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 30px rgba(180, 140, 255, 0.75),
+    inset 0 0 12px rgba(255, 255, 255, 0.18) !important;
 }
 
 /* Mobile: Desktop-Bar ausblenden – MobileMenu übernimmt */
 @media (max-width: 768px) {
-  .header { top: 0; padding: 0; }
-  .bar { width: 100%; border-radius: 0; border-left: none; border-right: none; }
-  .container { justify-content: flex-end; padding: 10px 12px; }
-  .leftGroup, .navbar, .rightGroup { display: none; }
+  .header {
+    top: 0;
+    padding: 0;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+    justify-content: flex-end;
+    padding: 10px 12px;
+  }
+
+  .leftGroup,
+  .navbar,
+  .rightGroup {
+    display: none;
+  }
 }
