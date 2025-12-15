@@ -1,9 +1,18 @@
 .hero {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;          /* wichtig: exakt viewport, nicht mehr “zu lang” */
   overflow: hidden;
   background: #050013;
+
+  /* Content unter Header+Ticker */
+  padding-top: 140px;
+  padding-bottom: 60px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Background nur innerhalb der Hero */
@@ -17,7 +26,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02); /* kill seams */
+  transform: scale(1.02);
   pointer-events: none;
 }
 
@@ -42,7 +51,7 @@
   z-index: 2;
   display: flex;
   justify-content: center;
-  margin-top: 140px; /* Platz für Header + Ticker */
+  margin: 0;              /* kein margin-top mehr -> kein “extra page” */
 }
 
 .logoOverlay img {
@@ -53,7 +62,7 @@
 .heroContent {
   position: relative;
   z-index: 2;
-  margin-top: 40px;
+  margin-top: 24px;
   text-align: center;
   color: white;
 }
