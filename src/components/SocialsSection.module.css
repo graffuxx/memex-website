@@ -1,44 +1,44 @@
 .socialSection {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100vh;              /* keine Scroll-Seite */
   overflow: hidden;
   background: #050013;
 
-  /* LayoutWrapper hat paddingTop: 80px -> wir ziehen die Section wieder bis ganz oben */
-  margin-top: -80px;
+  /* Platz für Header + Ticker, aber innerhalb 100vh */
+  padding: 140px 0 80px;
+  box-sizing: border-box;
 
-  /* Content soll optisch unter Header + Ticker starten */
-  padding-top: 140px;
-
-  /* verhindert bleed/stacking-bugs */
+  /* verhindert Stack/Blend-Bleed */
   isolation: isolate;
+
+  /* Content immer mittig */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Layer für Section-Background (NICHT sticky, NICHT fixed) */
+/* FIXED Fullscreen Background – NICHT scrollen */
 .videoLayer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
 }
 
-/* Background nur innerhalb dieser Section */
 .backgroundVideo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-
-  /* seams kill */
-  transform: scale(1.02);
+  transform: scale(1.02); /* kill seams */
   backface-visibility: hidden;
   -webkit-transform: translateZ(0) scale(1.02);
 }
 
-/* CONTENT: zentriert im sichtbaren Bereich unter Header+Ticker */
+/* CONTENT */
 .content {
   position: relative;
   z-index: 2;
@@ -46,13 +46,6 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
-
-  height: calc(100vh - 140px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
   text-align: center;
   color: #fff;
 }
@@ -67,6 +60,7 @@
 .iconRow {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 18px;
   flex-wrap: wrap;
 }
@@ -109,11 +103,7 @@
 /* Mobile */
 @media (max-width: 768px) {
   .socialSection {
-    padding-top: 130px;
-  }
-
-  .content {
-    height: calc(100vh - 130px);
+    padding: 130px 0 60px;
   }
 
   .title {
