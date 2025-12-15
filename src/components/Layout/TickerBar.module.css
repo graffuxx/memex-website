@@ -1,6 +1,6 @@
 .tickerWrapper {
   position: fixed;         /* FIX: overlay, drückt nichts nach unten */
-  top: 64px;               /* direkt unter der Navbar (kein sichtbarer Gap) */
+  top: 80px;               /* direkt unter der Navbar (kein sichtbarer Gap) */
   left: 0;
   right: 0;
   z-index: 55;
@@ -39,8 +39,11 @@
     rgba(120, 50, 255, 0.7),
     rgba(255, 80, 200, 0.7)
   );
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.55),
+    0 0 26px rgba(160, 110, 255, 0.20);
 
   color: #ffffff;
   font-size: 13px;
@@ -50,6 +53,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  background-size: 220% 100%;
+  animation: tickerGlow 7.5s linear infinite;
 }
 
 /* leichte Fades links/rechts, aber innerhalb der max-width */
@@ -91,11 +96,13 @@
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0.92;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.10);
 }
 
 /* Fade-Animation beim Wechsel */
 .fade {
-  animation: tickerFade 0.25s ease-in-out;
+  animation: tickerFade 0.35s ease-in-out;
 }
 
 @keyframes tickerFade {
@@ -121,5 +128,19 @@
   .tickerWrapper {
     top: 56px;
     padding: 0 12px;
+  }
+}
+@keyframes tickerGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tickerInner {
+    animation: none;
   }
 }
