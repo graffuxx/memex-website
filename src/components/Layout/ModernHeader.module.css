@@ -95,7 +95,7 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 /* LINKS – Logo */
@@ -126,13 +126,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
 
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 0 10px;
+  padding: 0 6px;
 
   /* weiches Fade nur im Nav-Bereich */
   -webkit-mask-image: linear-gradient(
@@ -164,8 +164,8 @@
   justify-content: center;
   padding: 4px 6px;
   border-radius: 999px;
-  font-size: 12px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #f5e9ff;
   white-space: nowrap;
@@ -197,9 +197,9 @@
 
 /* PRESALE – bleibt shiny */
 .navItemPresale {
-  padding: 8px 18px;
+  padding: 7px 14px;
   background: linear-gradient(135deg, #ffd876, #ffb347);
-  box-shadow: 0 0 24px rgba(255, 215, 130, 0.95);
+  box-shadow: 0 0 18px rgba(255, 215, 130, 0.85);
   color: #3b2100;
   border: 1px solid rgba(255, 248, 210, 0.9);
 }
