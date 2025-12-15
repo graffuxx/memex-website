@@ -48,6 +48,9 @@ export default function MobileMenu() {
               <a href="/" onClick={close}>
                 Home
               </a>
+              <a href="/how-to-buy" className={styles.navItem}>
+                HOW TO BUY
+              </a>
               <a href="/presale" onClick={close} className={styles.presaleLink}>
                 Presale
               </a>
