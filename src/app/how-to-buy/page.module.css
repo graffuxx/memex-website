@@ -1,0 +1,283 @@
+.page {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #050013;
+  isolation: isolate;
+
+  /* content under fixed header + ticker */
+  padding: 140px 0 80px;
+}
+
+.bgVideo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bgOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  background:
+    radial-gradient(circle at 50% 12%, rgba(140, 79, 255, 0.22), transparent 58%),
+    radial-gradient(circle at 20% 80%, rgba(18, 213, 255, 0.12), transparent 55%),
+    linear-gradient(to bottom, rgba(5, 0, 19, 0.45), rgba(5, 0, 19, 0.75));
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  color: #fff;
+  text-align: center;
+}
+
+.headerBlock {
+  margin-bottom: 26px;
+}
+
+.title {
+  font-size: 44px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+}
+
+.subtitle {
+  margin: 0 auto;
+  max-width: 720px;
+  opacity: 0.88;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.quest {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stepRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stepCard {
+  width: 100%;
+  max-width: 860px;
+  text-align: left;
+
+  background: rgba(17, 17, 34, 0.82);
+  border: 1px solid rgba(200, 170, 255, 0.22);
+  border-radius: 18px;
+
+  padding: 18px 18px 16px;
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(160, 110, 255, 0.18);
+
+  backdrop-filter: blur(10px);
+}
+
+.stepTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  height: 32px;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, rgba(122, 77, 255, 0.9), rgba(185, 115, 255, 0.9));
+  border: 1px solid rgba(200, 170, 255, 0.5);
+  box-shadow: 0 0 18px rgba(160, 110, 255, 0.35);
+
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.stepBadge {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.stepTitle {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.stepText {
+  margin: 0 0 12px 0;
+  opacity: 0.9;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: rgba(5, 0, 19, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tipLabel {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+.tipText {
+  font-size: 13px;
+  opacity: 0.9;
+  line-height: 1.55;
+}
+
+/* Quest arrows */
+.arrowWrap {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  margin: 10px 0 2px;
+  position: relative;
+  opacity: 0.9;
+}
+
+.arrowLine {
+  width: 64%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(185, 115, 255, 0), rgba(185, 115, 255, 0.9), rgba(255, 117, 255, 0));
+  filter: blur(0.2px);
+}
+
+.arrowHead {
+  position: absolute;
+  right: 18%;
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border-right: 2px solid rgba(255, 255, 255, 0.75);
+  border-top: 2px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 14px rgba(185, 115, 255, 0.35);
+}
+
+.ctaRow {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 12px 20px;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #ffd876, #ffb347);
+  border: 1px solid rgba(255, 248, 210, 0.9);
+  color: #3b2100;
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 13px;
+
+  box-shadow: 0 0 26px rgba(255, 215, 130, 0.55);
+  transition: transform 0.16s ease, filter 0.16s ease;
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 12px 20px;
+  border-radius: 999px;
+
+  background: rgba(17, 17, 34, 0.65);
+  border: 1px solid rgba(200, 170, 255, 0.28);
+  color: rgba(255, 255, 255, 0.92);
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 13px;
+
+  box-shadow: 0 0 22px rgba(160, 110, 255, 0.18);
+  transition: transform 0.16s ease, filter 0.16s ease;
+}
+
+.ctaGhost:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.disclaimer {
+  margin-top: 18px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 130px 0 70px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .stepCard {
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .arrowLine {
+    width: 78%;
+  }
+
+  .arrowHead {
+    right: 10%;
+  }
+}
