@@ -31,18 +31,39 @@ export default function ModernHeader() {
           </div>
 
           <nav className={styles.navbar}>
-            <a href="/" className={styles.navItem}>HOME</a>
-            <a href="/presale" className={`${styles.navItem} ${styles.navItemPresale}`}>PRESALE</a>
-            <a href="/how-to-play" className={styles.navItem}>HOW TO PLAY</a>
-            <a href="/whitepaper" className={styles.navItem}>WHITEPAPER</a>
-            <a href="/socials" className={styles.navItem}>SOCIALS</a>
-            <a href="/nft-shop" className={styles.navItem}>NFT SHOP</a>
-            <a href="/account" className={styles.navItem}>ACCOUNT</a>
-            <a href="/news" className={styles.navItem}>NEWS</a>
+            <a href="/" className={styles.navItem}>
+              HOME
+            </a>
+            <a href="/how-to-buy" className={styles.navItem}>
+              HOW TO BUY
+            </a>
+            <a
+              href="/presale"
+              className={`${styles.navItem} ${styles.navItemPresale}`}
+            >
+              PRESALE
+            </a>
+            <a href="/how-to-play" className={styles.navItem}>
+              HOW TO PLAY
+            </a>
+            <a href="/whitepaper" className={styles.navItem}>
+              WHITEPAPER
+            </a>
+            <a href="/socials" className={styles.navItem}>
+              SOCIALS
+            </a>
+            <a href="/nft-shop" className={styles.navItem}>
+              NFT SHOP
+            </a>
+            <a href="/account" className={styles.navItem}>
+              ACCOUNT
+            </a>
+            <a href="/news" className={styles.navItem}>
+              NEWS
+            </a>
           </nav>
 
           <div className={styles.rightGroup}>
-            {/* ✅ LOGIN ist jetzt ein normaler Link (kein Dropdown / kein z-index Drama) */}
             <a href="/account" className={styles.loginButton}>
               LOGIN
             </a>
