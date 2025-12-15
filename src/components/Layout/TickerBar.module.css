@@ -39,7 +39,7 @@
     rgba(120, 50, 255, 0.7),
     rgba(255, 80, 200, 0.7)
   );
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 10px 26px rgba(0, 0, 0, 0.55),
@@ -57,23 +57,26 @@
   animation: tickerGlow 7.5s linear infinite;
 }
 
-/* leichte Fades links/rechts, aber innerhalb der max-width */
+/* long soft fades left/right (no hard rounded ends) */
 .tickerInner::before,
 .tickerInner::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 48px;
+  width: 120px;
   pointer-events: none;
+  z-index: 2;
 }
 
 .tickerInner::before {
   left: 0;
   background: linear-gradient(
     to right,
-    rgba(8, 4, 24, 0.9),
-    transparent
+    rgba(5, 0, 19, 0.95) 0%,
+    rgba(5, 0, 19, 0.75) 35%,
+    rgba(5, 0, 19, 0.35) 65%,
+    rgba(5, 0, 19, 0) 100%
   );
 }
 
@@ -81,8 +84,10 @@
   right: 0;
   background: linear-gradient(
     to left,
-    rgba(8, 4, 24, 0.9),
-    transparent
+    rgba(5, 0, 19, 0.95) 0%,
+    rgba(5, 0, 19, 0.75) 35%,
+    rgba(5, 0, 19, 0.35) 65%,
+    rgba(5, 0, 19, 0) 100%
   );
 }
 
