@@ -18,7 +18,7 @@ export default function SocialsSection({ mode = 'section' }: Props) {
       {/* Video Layer */}
       <div className={styles.videoLayer}>
         <video autoPlay muted loop playsInline className={styles.backgroundVideo}>
-          <source src="/memex-socials.mp4" type="video/mp4" />
+          <source src="/socialmedia-background.mp4" type="video/mp4" />
         </video>
       </div>
 
