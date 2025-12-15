@@ -223,7 +223,7 @@
 }
 
 .loginWrapper {
-  position: relative;
+  display: none;
 }
 
 .loginButton {
@@ -235,9 +235,12 @@
   text-transform: uppercase;
   cursor: pointer;
   color: #e5d9ff;
+
   display: inline-flex;
   align-items: center;
   gap: 4px;
+
+  text-decoration: none;
 }
 
 .loginButton:hover {

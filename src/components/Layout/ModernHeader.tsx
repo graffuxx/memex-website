@@ -7,14 +7,9 @@ import MobileMenu from './MobileMenu';
 
 export default function ModernHeader() {
   const [scrolled, setScrolled] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-      setLoginOpen(false);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -47,26 +42,10 @@ export default function ModernHeader() {
           </nav>
 
           <div className={styles.rightGroup}>
-            <div className={styles.loginWrapper} onMouseLeave={() => setLoginOpen(false)}>
-              <button
-                type="button"
-                className={styles.loginButton}
-                onClick={() => setLoginOpen((p) => !p)}
-              >
-                LOGIN <span className={styles.loginCaret}>▾</span>
-              </button>
-
-              {loginOpen && (
-                <div className={styles.loginDropdown}>
-                  <a href="/account" className={styles.loginDropdownItem} onClick={() => setLoginOpen(false)}>
-                    Wallet Login
-                  </a>
-                  <a href="/account" className={styles.loginDropdownItem} onClick={() => setLoginOpen(false)}>
-                    Email Login
-                  </a>
-                </div>
-              )}
-            </div>
+            {/* ✅ LOGIN ist jetzt ein normaler Link (kein Dropdown / kein z-index Drama) */}
+            <a href="/account" className={styles.loginButton}>
+              LOGIN
+            </a>
 
             <div className={styles.wallet}>
               <WalletButton />
