@@ -139,3 +139,35 @@
     height: 26px;
   }
 }
+
+/* ===== HOME ONLY: soft fades top & bottom ===== */
+.socialSection:not(.pageMode)::before,
+.socialSection:not(.pageMode)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 160px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.socialSection:not(.pageMode)::before {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    #050013 0%,
+    rgba(5, 0, 19, 0.6) 60%,
+    transparent 100%
+  );
+}
+
+.socialSection:not(.pageMode)::after {
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    #050013 0%,
+    rgba(5, 0, 19, 0.6) 60%,
+    transparent 100%
+  );
+}
