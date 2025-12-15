@@ -1,30 +1,36 @@
 .socialSection {
   position: relative;
   width: 100%;
-  height: 100vh;              /* keine Scroll-Seite */
+  min-height: 100vh;
   overflow: hidden;
   background: #050013;
 
-  /* Platz für Header + Ticker, aber innerhalb 100vh */
+  /* Content unter Header+Ticker */
   padding: 140px 0 80px;
-  box-sizing: border-box;
 
-  /* verhindert Stack/Blend-Bleed */
   isolation: isolate;
-
-  /* Content immer mittig */
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* FIXED Fullscreen Background – NICHT scrollen */
+/* ===== VIDEO LAYER ===== */
+/* Default: NICHT fixed -> damit Home oben nicht überdeckt wird */
 .videoLayer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+}
+
+/* Nur wenn Socials als eigene Seite läuft */
+.pageMode {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* PageMode: fixed fullscreen background */
+.pageMode .videoLayer {
+  position: fixed;
+  inset: 0;
 }
 
 .backgroundVideo {
@@ -33,12 +39,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02); /* kill seams */
+
+  transform: scale(1.02);
   backface-visibility: hidden;
   -webkit-transform: translateZ(0) scale(1.02);
 }
 
-/* CONTENT */
+/* ===== CONTENT ===== */
 .content {
   position: relative;
   z-index: 2;
@@ -48,6 +55,15 @@
   padding: 0 24px;
   text-align: center;
   color: #fff;
+
+  /* sauber mittig */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  /* damit es in pageMode wirklich mittig sitzt */
+  min-height: calc(100vh - 220px); /* 140 top + 80 bottom */
 }
 
 .title {
@@ -60,7 +76,6 @@
 .iconRow {
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 18px;
   flex-wrap: wrap;
 }
@@ -100,10 +115,13 @@
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.18));
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .socialSection {
     padding: 130px 0 60px;
+  }
+
+  .content {
+    min-height: calc(100vh - 190px);
   }
 
   .title {
