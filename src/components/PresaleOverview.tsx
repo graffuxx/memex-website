@@ -12,6 +12,7 @@ import {
 } from '@solana/web3.js';
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
+import PayPalSupportCheckout from '@/components/PayPalSupportCheckout';
 
 // Presale-Startzeit (20.12. 20:00 US-Time ~ 21.12. 01:00 UTC)
 const presaleStart = new Date('2025-12-21T01:00:00Z');
@@ -21,8 +22,8 @@ const treasuryWallet = new PublicKey(
   '42MZFG1imQ9eE6z3YNgC8LgeFVH3u8csppbnRNDAdtYw'
 );
 
-// Kreditkartenaufschlag (z.B. 2 % Gebühr)
-const CARD_FEE_MULTIPLIER = 1.02;
+// PayPal processing fee (2%)
+const PAYPAL_FEE_MULTIPLIER = 1.02;
 
 const levels = [
   { level: 1, rate: 1800000, durationDays: 14 },
@@ -44,20 +45,15 @@ export default function PresaleOverview() {
 
   const [solAmount, setSolAmount] = useState('1');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isCardProcessing, setIsCardProcessing] = useState(false);
 
   const [isSuccess, setIsSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
-
-  const [email, setEmail] = useState('');
-  const [cardError, setCardError] = useState<string | null>(null);
 
   const [solPrice, setSolPrice] = useState<number | null>(null); // Live SOL/EUR Preis
 
   const { publicKey, sendTransaction, connected } = useWallet();
   const connection = new Connection(
-    process.env.NEXT_PUBLIC_HELIUS_RPC_URL ||
-      'https://api.mainnet-beta.solana.com'
+    process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
   );
 
   const currentLevel = levels[activeLevelIndex];
@@ -69,13 +65,13 @@ export default function PresaleOverview() {
   const solAmountNumber = Number(solAmount) || 0;
   const memexAmount = solAmountNumber * currentLevel.rate;
 
-  // Basis-EUR-Wert (ohne Gebühr), wenn Preis noch nicht da: 0
+  // Basis-EUR-Wert (ohne Fee), wenn Preis noch nicht da: 0
   const eurAmount = solPrice ? solAmountNumber * solPrice : 0;
 
-  // EUR-Betrag inkl. 2 % Kreditkartenaufschlag
-  const cardEurAmount = eurAmount * CARD_FEE_MULTIPLIER;
+  // EUR total for PayPal (incl. 2% fee)
+  const paypalEurAmount = eurAmount * PAYPAL_FEE_MULTIPLIER;
 
-  // --- SOL-PREIS von CoinGecko laden ---
+  // --- SOL-PREIS laden ---
   useEffect(() => {
     async function loadPrice() {
       try {
@@ -100,7 +96,6 @@ export default function PresaleOverview() {
       const now = new Date();
 
       if (now >= presaleStart) {
-        // Presale ist gestartet → Level anhand Zeit berechnen
         setIsPresaleStarted(true);
 
         const diffTime = Math.floor(
@@ -113,7 +108,6 @@ export default function PresaleOverview() {
         );
         setActiveLevelIndex(currentIndex);
       } else {
-        // Presale noch nicht gestartet → Countdown anzeigen
         setIsPresaleStarted(false);
 
         const diff = presaleStart.getTime() - now.getTime();
@@ -181,68 +175,6 @@ export default function PresaleOverview() {
     }
   };
 
-  const handleCreditCardBuy = async () => {
-    setCardError(null);
-
-    if (!connected || !publicKey) {
-      setCardError(
-        'Please connect your wallet first so we can assign your MEMEX.'
-      );
-      return;
-    }
-
-    if (!solAmountNumber || solAmountNumber <= 0) {
-      setCardError('Please enter a valid SOL amount.');
-      return;
-    }
-
-    if (!solPrice) {
-      setCardError('Price is still loading. Please wait a moment and try again.');
-      return;
-    }
-
-    try {
-      setIsCardProcessing(true);
-
-      const res = await fetch('/api/nowpayments/create-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          wallet: publicKey.toBase58(),
-          level: currentLevel.level,
-          memexAmount,
-          solAmount: solAmountNumber,
-          // Für Kreditkarte benutzen wir den Betrag MIT 2 % Gebühr
-          eurAmount: cardEurAmount,
-          baseEurAmount: eurAmount,
-          email: email || null,
-          paymentMethod: 'credit_card',
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        console.error('NOWPayments create-invoice error:', data);
-        setCardError('Payment initialization failed. Please try again.');
-        return;
-      }
-
-      const data = await res.json();
-      if (!data.invoiceUrl) {
-        setCardError('No payment link returned from payment gateway.');
-        return;
-      }
-
-      // Weiterleitung zu NOWPayments
-      window.location.href = data.invoiceUrl as string;
-    } catch (err) {
-      console.error(err);
-      setCardError('Unexpected error. Please try again.');
-    } finally {
-      setIsCardProcessing(false);
-    }
-  };
-
   const shortWallet =
     publicKey && `${publicKey.toBase58().slice(0, 4)}...${publicKey
       .toBase58()
@@ -261,19 +193,16 @@ export default function PresaleOverview() {
       <div className={styles.box}>
         <h2 className={styles.title}>Presale Overview</h2>
 
-        {/* Wenn Presale noch nicht gestartet ist → nur Countdown */}
         {!isPresaleStarted ? (
           <div className={styles.countdownBox}>
             <p>Presale starts in:</p>
             <p className={styles.timer}>{countdown}</p>
             <p className={styles.helperText}>
-              Level 1 opens automatically at launch. Best MEMEX rate for early
-              supporters.
+              Level 1 opens automatically at launch. Best MEMEX rate for early supporters.
             </p>
           </div>
         ) : (
           <>
-            {/* LEVEL STACK */}
             <div className={styles.levelStack}>
               <div className={styles.levelCardCurrent}>
                 <div className={styles.levelHeaderRow}>
@@ -327,7 +256,6 @@ export default function PresaleOverview() {
               )}
             </div>
 
-            {/* BUY AREA */}
             <div className={styles.buyBox}>
               <div className={styles.amountRow}>
                 <div className={styles.amountLeft}>
@@ -346,9 +274,7 @@ export default function PresaleOverview() {
                 <div className={styles.amountRight}>
                   <p>
                     ≈ EUR{' '}
-                    <span>
-                      {solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}
-                    </span>
+                    <span>{solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}</span>
                   </p>
                   <p>
                     You get&nbsp;
@@ -367,8 +293,7 @@ export default function PresaleOverview() {
                         <WalletButton />
                       </div>
                       <p className={styles.helperText}>
-                        Connect your wallet first, then confirm the transaction to
-                        lock your MEMEX.
+                        Connect your wallet first, then confirm the transaction to lock your MEMEX.
                       </p>
                     </>
                   ) : (
@@ -387,35 +312,29 @@ export default function PresaleOverview() {
                   )}
                 </div>
 
-                {/* CREDIT CARD */}
+                {/* PAYPAL */}
                 <div className={styles.cardBox}>
-                  <p className={styles.blockTitle}>Or pay easily by credit card</p>
-                  <input
-                    type="email"
-                    placeholder="Email (optional, for confirmations)"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={styles.emailInput}
+                  <p className={styles.blockTitle}>Or support easily via PayPal</p>
+
+                  <p className={styles.helperText}>
+                    PayPal total:{' '}
+                    <strong>
+                      {solPrice ? `${paypalEurAmount.toFixed(2)} €` : 'Loading…'}
+                    </strong>{' '}
+                    (incl. 2% PayPal processing fee)
+                  </p>
+
+                  <PayPalSupportCheckout
+                    wallet={publicKey ? publicKey.toBase58() : null}
+                    level={currentLevel.level}
+                    solAmount={solAmountNumber}
+                    memexAmount={memexAmount}
+                    baseEurAmount={eurAmount}
+                    totalEurAmount={paypalEurAmount}
+                    feeMultiplier={PAYPAL_FEE_MULTIPLIER}
                   />
 
                   <p className={styles.helperText}>
-                    Credit card total:{' '}
-                    <strong>
-                      {solPrice ? `${cardEurAmount.toFixed(2)} €` : 'Loading…'}
-                    </strong>{' '}
-                    (incl. 2% fee)
-                  </p>
-
-                  <button
-                    className={styles.cardButton}
-                    onClick={handleCreditCardBuy}
-                    disabled={isCardProcessing || !solPrice}
-                  >
-                    {isCardProcessing ? 'Redirecting…' : 'Continue with Credit Card'}
-                  </button>
-                  {cardError && <p className={styles.errorText}>{cardError}</p>}
-                  <p className={styles.helperText}>
-                    Payments are processed securely via NOWPayments.
                     Your MEMEX allocation will always be linked to your wallet.
                   </p>
                 </div>
@@ -430,9 +349,7 @@ export default function PresaleOverview() {
           <div className={styles.successBox}>
             <h3 className={styles.successTitle}>🎉 Purchase Successful!</h3>
             <p>You’ve secured your MEMEX tokens for this presale level.</p>
-            <p className={styles.txInfo}>
-              Your tokens are locked until the end of the presale.
-            </p>
+            <p className={styles.txInfo}>Your tokens are locked until the end of the presale.</p>
             {txHash && (
               <p className={styles.txHash}>
                 TX:{' '}
@@ -445,10 +362,7 @@ export default function PresaleOverview() {
                 </a>
               </p>
             )}
-            <button
-              className={styles.closeSuccess}
-              onClick={() => setIsSuccess(false)}
-            >
+            <button className={styles.closeSuccess} onClick={() => setIsSuccess(false)}>
               Close
             </button>
           </div>
