@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 
 type PayPalSupportCheckoutProps = {
   wallet: string | null;
@@ -12,6 +12,18 @@ type PayPalSupportCheckoutProps = {
   feeMultiplier?: number; // defaults to 1.02
 };
 
+type SupportPack = {
+  label: string;
+  baseEur: number;
+};
+
+const PACKS: SupportPack[] = [
+  { label: '€100 — Rookie Support', baseEur: 100 },
+  { label: '€250 — Veteran Support', baseEur: 250 },
+  { label: '€500 — Pro Support', baseEur: 500 },
+  { label: '€1000 — Over 9000! Support', baseEur: 1000 },
+];
+
 export default function PayPalSupportCheckout({
   wallet,
   level,
@@ -21,20 +33,34 @@ export default function PayPalSupportCheckout({
   totalEurAmount,
   feeMultiplier = 1.02,
 }: PayPalSupportCheckoutProps) {
-  if (!wallet) {
-    return (
-      <p style={{ opacity: 0.85 }}>
-        Please connect your wallet first so we can assign your MEMEX.
-      </p>
-    );
-  }
+  // Default to the closest pack to the currently calculated EUR (if any)
+  const defaultPackIndex = useMemo(() => {
+    const current = Number.isFinite(baseEurAmount) && baseEurAmount > 0 ? baseEurAmount : 100;
+    let bestIdx = 0;
+    let bestDiff = Infinity;
+    for (let i = 0; i < PACKS.length; i++) {
+      const d = Math.abs(PACKS[i].baseEur - current);
+      if (d < bestDiff) {
+        bestDiff = d;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
+  }, [baseEurAmount]);
 
-  // NOTE:
-  // This component assumes you already created the backend routes for:
-  // - POST /api/paypal/create-order
-  // - POST /api/paypal/capture-order
-  //
-  // If your endpoints have different paths, change them below.
+  const [packIndex, setPackIndex] = useState<number>(defaultPackIndex);
+
+  const selectedBaseEur = PACKS[packIndex]?.baseEur ?? 100;
+  const selectedTotalEur = Number((selectedBaseEur * feeMultiplier).toFixed(2));
+
+  // Derive a stable conversion from the parent values (keeps your “fair” pricing logic)
+  const memexPerEur = baseEurAmount > 0 ? memexAmount / baseEurAmount : 0;
+  const solPerEur = baseEurAmount > 0 ? solAmount / baseEurAmount : 0;
+
+  const derivedMemex = Math.floor(selectedBaseEur * memexPerEur);
+  const derivedSol = Number((selectedBaseEur * solPerEur).toFixed(6));
+
+  const canPay = Boolean(wallet);
 
   const createOrder = async (): Promise<string> => {
     const res = await fetch('/api/paypal/create-order', {
@@ -43,13 +69,14 @@ export default function PayPalSupportCheckout({
       body: JSON.stringify({
         wallet,
         level,
-        solAmount,
-        memexAmount,
-        baseEurAmount,
-        totalEurAmount,
+        // Use the selected pack-derived values
+        solAmount: derivedSol,
+        memexAmount: derivedMemex,
+        baseEurAmount: selectedBaseEur,
+        totalEurAmount: selectedTotalEur,
         feeMultiplier,
         // PayPal expects a string amount in many integrations
-        amount: totalEurAmount.toFixed(2),
+        amount: selectedTotalEur.toFixed(2),
         currency: 'EUR',
       }),
     });
@@ -73,10 +100,10 @@ export default function PayPalSupportCheckout({
         orderID,
         wallet,
         level,
-        solAmount,
-        memexAmount,
-        baseEurAmount,
-        totalEurAmount,
+        solAmount: derivedSol,
+        memexAmount: derivedMemex,
+        baseEurAmount: selectedBaseEur,
+        totalEurAmount: selectedTotalEur,
         feeMultiplier,
       }),
     });
@@ -90,18 +117,14 @@ export default function PayPalSupportCheckout({
     return res.json();
   };
 
-  // Minimal “button” that redirects/opens your PayPal flow (depends on how you implemented it).
-  // If you use PayPal JS SDK Buttons, replace this block with your Buttons component.
   const handlePayPal = async () => {
     try {
       const orderID = await createOrder();
 
-      // If your backend returns an approveUrl instead, then redirect to it.
-      // Here we assume your integration uses the PayPal JS SDK on client OR you handle approval elsewhere.
-      // If you have an approval link, do: window.location.href = data.approveUrl
-      //
-      // For now, we trigger capture directly only if your flow supports it (many flows require approval first).
-      // So: adjust to your actual integration response shape.
+      // NOTE:
+      // Many PayPal flows require user approval before capture.
+      // If your create-order route returns an approval/redirect URL,
+      // redirect there instead of capturing immediately.
       await captureOrder(orderID);
 
       alert('PayPal payment successful! Your MEMEX is reserved.');
@@ -112,18 +135,74 @@ export default function PayPalSupportCheckout({
   };
 
   return (
-    <button
-      type="button"
-      onClick={handlePayPal}
-      style={{
-        width: '100%',
-        padding: '12px 14px',
-        borderRadius: 12,
-        fontWeight: 700,
-        letterSpacing: '0.06em',
-      }}
-    >
-      Continue with PayPal
-    </button>
+    <div style={{ width: '100%', display: 'grid', gap: 10 }}>
+      <div style={{ display: 'grid', gap: 8 }}>
+        <label style={{ fontSize: 12, opacity: 0.9, letterSpacing: '0.06em' }}>
+          Select your Support Pack
+        </label>
+
+        <select
+          value={packIndex}
+          onChange={(e) => setPackIndex(Number(e.target.value))}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            borderRadius: 12,
+            border: '1px solid rgba(200,170,255,0.28)',
+            background: 'rgba(17, 17, 34, 0.55)',
+            color: '#fff',
+            outline: 'none',
+          }}
+        >
+          {PACKS.map((p, idx) => (
+            <option key={p.baseEur} value={idx} style={{ color: '#000' }}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+
+        <div style={{ fontSize: 12, opacity: 0.85, lineHeight: 1.35 }}>
+          <div>
+            Base: <strong>€{selectedBaseEur}</strong> · Processing fee included:{' '}
+            <strong>{Math.round((feeMultiplier - 1) * 100)}%</strong>
+          </div>
+          <div>
+            Total (charged): <strong>€{selectedTotalEur.toFixed(2)}</strong>
+          </div>
+          {derivedMemex > 0 && (
+            <div>
+              Estimated allocation: <strong>{derivedMemex.toLocaleString()} MEMEX</strong>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {!canPay && (
+        <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+          Please connect your wallet first so we can assign your MEMEX.
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={handlePayPal}
+        disabled={!canPay}
+        style={{
+          width: '100%',
+          padding: '12px 14px',
+          borderRadius: 12,
+          fontWeight: 800,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          cursor: canPay ? 'pointer' : 'not-allowed',
+          opacity: canPay ? 1 : 0.55,
+          border: '1px solid rgba(255, 248, 210, 0.9)',
+          background: 'linear-gradient(135deg, #ffd876, #ffb347)',
+          boxShadow: '0 0 24px rgba(255, 215, 130, 0.55)',
+        }}
+      >
+        Continue with PayPal
+      </button>
+    </div>
   );
 }
