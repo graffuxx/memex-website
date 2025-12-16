@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 // Ensure Node.js runtime (Buffer, etc.)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const PACK_MAP: Record<string, number> = {
   rookie: 100,
@@ -22,11 +23,26 @@ function getPaypalEnv() {
 async function getAccessToken() {
   const { base } = getPaypalEnv();
 
-  const clientId = process.env.PAYPAL_CLIENT_ID;
+  // Server-side env vars (preferred)
+  // NOTE: `NEXT_PUBLIC_PAYPAL_CLIENT_ID` is sometimes used by the client SDK; allow fallback here to avoid misconfiguration.
+  const clientId =
+    process.env.PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
+  // Helpful diagnostics (shows only OK/MISSING, never prints secrets)
+  console.log('[paypal] env check', {
+    PAYPAL_ENV: process.env.PAYPAL_ENV,
+    PAYPAL_CLIENT_ID: clientId ? 'OK' : 'MISSING',
+    PAYPAL_CLIENT_SECRET: clientSecret ? 'OK' : 'MISSING',
+  });
+
   if (!clientId || !clientSecret) {
-    throw new Error('Missing PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET');
+    throw new Error(
+      `Missing PayPal env: ${!clientId ? 'PAYPAL_CLIENT_ID' : ''}${
+        !clientId && !clientSecret ? ' & ' : ''
+      }${!clientSecret ? 'PAYPAL_CLIENT_SECRET' : ''}. ` +
+        `Check .env.local (root) for PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET and restart dev server.`
+    );
   }
 
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');

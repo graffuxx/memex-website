@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Ensure Node.js runtime (Buffer, etc.)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 function getPaypalEnv() {
   const env = process.env.PAYPAL_ENV === 'live' ? 'live' : 'sandbox';
