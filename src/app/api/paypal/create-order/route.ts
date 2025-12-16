@@ -92,15 +92,13 @@ export async function POST(req: Request) {
 
     const { base, token } = await getAccessToken();
 
-    // IMPORTANT: PayPal custom_id has a hard length limit (keep it small)
-    // We store only what we truly need; the actual charged amount is taken from PayPal capture.
-    const custom_id = JSON.stringify({
-      packKey,
-      eur: eurBase,
-      solEur: Number(solEur.toFixed(2)),
-      solEquivalent: Number(solEquivalent.toFixed(8)),
-      memexAmount: Number(memexAmount.toFixed(2)),
-    });
+    const solEurFixed = Number(solEur.toFixed(2));
+    const solEqFixed = Number(solEquivalent.toFixed(8));
+    const memexFixed = Math.round(memexAmount);
+
+    // PayPal `custom_id` is length-limited; keep it compact.
+    // Format: p=<pack>|e=<eur>|s=<solEur>|q=<solEq>|m=<memex>
+    const custom_id = `p=${packKey}|e=${eurBase}|s=${solEurFixed}|q=${solEqFixed}|m=${memexFixed}`;
 
     const orderRes = await fetch(`${base}/v2/checkout/orders`, {
       method: 'POST',
@@ -126,13 +124,21 @@ export async function POST(req: Request) {
 
     const orderJson = await orderRes.json().catch(() => null);
     if (!orderRes.ok) {
+      const detailsDesc = Array.isArray(orderJson?.details)
+        ? orderJson.details.map((d: any) => d?.description).filter(Boolean).join(' | ')
+        : '';
+
       const message =
+        detailsDesc ||
         orderJson?.message ||
         orderJson?.name ||
-        (Array.isArray(orderJson?.details) && orderJson.details[0]?.description) ||
+        orderJson?.error_description ||
         'PayPal create order failed';
 
-      return NextResponse.json({ error: message, raw: orderJson }, { status: 500 });
+      return NextResponse.json(
+        { error: message, raw: orderJson },
+        { status: orderRes.status || 500 }
+      );
     }
 
     return NextResponse.json({ id: orderJson.id });
