@@ -594,3 +594,69 @@
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
 }
+
+/* ===== Presale Locked Countdown ===== */
+.presaleLockedBox{
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 22px;
+  border-radius: 18px;
+  background: rgba(17,17,34,0.88);
+  border: 1px solid rgba(200,170,255,0.22);
+  box-shadow: 0 0 26px rgba(150,50,255,0.22);
+  text-align: center;
+}
+
+.presaleLockedTitle{
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-size: 16px;
+  margin: 0;
+}
+
+.presaleLockedText{
+  opacity: .85;
+  margin: 10px 0 0;
+}
+
+.countdownRow{
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.countdownItem{
+  min-width: 78px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(9,8,22,0.65);
+  border: 1px solid rgba(200,170,255,0.18);
+  box-shadow: 0 0 18px rgba(150,50,255,0.18);
+}
+
+.countdownItem span{
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.countdownItem small{
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: .75;
+  letter-spacing: .12em;
+}
+
+.presaleLockedSub{
+  margin-top: 14px;
+  font-size: 12px;
+  opacity: .75;
+  line-height: 1.4;
+}

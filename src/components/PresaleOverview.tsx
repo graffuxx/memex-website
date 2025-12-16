@@ -14,8 +14,8 @@ import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
 import PayPalSupportCheckout from '@/components/PayPalSupportCheckout';
 
-// Presale-Startzeit (20.12. 20:00 US-Time ~ 21.12. 01:00 UTC)
-const presaleStart = new Date('2025-12-21T01:00:00Z');
+// Presale LOCK until 27.12.2025, 18:00 New York (EST) => 23:00 UTC
+const PRESALE_START_UTC = new Date('2025-12-27T23:00:00.000Z');
 
 // Treasury-Wallet für eingehende SOL
 const treasuryWallet = new PublicKey(
@@ -38,8 +38,19 @@ const levels = [
 export default function PresaleOverview() {
   const [activeLevelIndex, setActiveLevelIndex] = useState(0);
 
-  // TEMP: force presale UI open for PayPal testing (re-enable countdown later)
-  const [isPresaleStarted] = useState(true);
+  // Presale lock countdown
+  const [now, setNow] = useState<Date>(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const isPresaleStarted = now.getTime() >= PRESALE_START_UTC.getTime();
+  const diff = Math.max(0, PRESALE_START_UTC.getTime() - now.getTime());
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
 
   const [solAmount, setSolAmount] = useState('1');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,7 +62,8 @@ export default function PresaleOverview() {
 
   const { publicKey, sendTransaction, connected } = useWallet();
   const connection = new Connection(
-    process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
+    process.env.NEXT_PUBLIC_HELIUS_RPC_URL ||
+      'https://api.mainnet-beta.solana.com'
   );
 
   const currentLevel = levels[activeLevelIndex];
@@ -66,7 +78,7 @@ export default function PresaleOverview() {
   // Basis-EUR-Wert (ohne Gebühr), wenn Preis noch nicht da: 0
   const eurAmount = solPrice ? solAmountNumber * solPrice : 0;
 
-  // --- SOL-PREIS von CoinGecko laden ---
+  // --- SOL-PREIS laden (Serverroute /api/price/sol) ---
   useEffect(() => {
     async function loadPrice() {
       try {
@@ -140,13 +152,21 @@ export default function PresaleOverview() {
 
   const shortWallet =
     publicKey &&
-    `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}`;
+    `${publicKey.toBase58().slice(0, 4)}...${publicKey
+      .toBase58()
+      .slice(-4)}`;
 
   return (
     <section className={styles.presaleSection}>
       <div className={styles.fadeTopOverlay}></div>
       <div className={styles.videoWrapper}>
-        <video autoPlay muted loop playsInline className={styles.videoBackground}>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className={styles.videoBackground}
+        >
           <source src="/memex-presale.mp4" type="video/mp4" />
         </video>
         <div className={styles.fadeBottom}></div>
@@ -155,8 +175,36 @@ export default function PresaleOverview() {
       <div className={styles.box}>
         <h2 className={styles.title}>Presale Overview</h2>
 
-        {/* Countdown intentionally disabled for PayPal testing */}
-        {isPresaleStarted && (
+        {!isPresaleStarted ? (
+          <div className={styles.presaleLockedBox}>
+            <h3 className={styles.presaleLockedTitle}>PRESALE LOCKED</h3>
+            <p className={styles.presaleLockedText}>Starts in</p>
+
+            <div className={styles.countdownRow}>
+              <div className={styles.countdownItem}>
+                <span>{days}</span>
+                <small>D</small>
+              </div>
+              <div className={styles.countdownItem}>
+                <span>{hours}</span>
+                <small>H</small>
+              </div>
+              <div className={styles.countdownItem}>
+                <span>{minutes}</span>
+                <small>M</small>
+              </div>
+              <div className={styles.countdownItem}>
+                <span>{seconds}</span>
+                <small>S</small>
+              </div>
+            </div>
+
+            <p className={styles.presaleLockedSub}>
+              Unlock: Dec 27, 2025 — 6:00 PM New York / 11:00 PM UTC / 12:00 AM
+              Berlin
+            </p>
+          </div>
+        ) : (
           <>
             {/* LEVEL STACK */}
             <div className={styles.levelStack}>
@@ -190,7 +238,9 @@ export default function PresaleOverview() {
                     Max. {currentLevel.durationDays} days or until sold out
                   </p>
                 </div>
-                <p className={styles.nftTeaser}>🔥 Random NFT drops in this level!</p>
+                <p className={styles.nftTeaser}>
+                  🔥 Random NFT drops in this level!
+                </p>
               </div>
 
               {nextLevel && (
@@ -227,7 +277,10 @@ export default function PresaleOverview() {
                 </div>
                 <div className={styles.amountRight}>
                   <p>
-                    ≈ EUR <span>{solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}</span>
+                    ≈ EUR{' '}
+                    <span>
+                      {solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}
+                    </span>
                   </p>
                   <p>
                     You get&nbsp;<span>{memexAmount.toLocaleString()} MEMEX</span>
@@ -245,7 +298,8 @@ export default function PresaleOverview() {
                         <WalletButton />
                       </div>
                       <p className={styles.helperText}>
-                        Connect your wallet first, then confirm the transaction to lock your MEMEX.
+                        Connect your wallet first, then confirm the transaction to
+                        lock your MEMEX.
                       </p>
                     </>
                   ) : (
@@ -261,7 +315,9 @@ export default function PresaleOverview() {
                         Connected: <span>{shortWallet}</span>
                       </p>
                       <p className={styles.helperText}>
-                        Your SOL is sent securely to the MemeX treasury. MEMEX tokens are <strong>locked</strong> during the presale and will be <strong>claimable after the presale ends</strong>.
+                        Your SOL is sent securely to the MemeX treasury. MEMEX
+                        tokens are <strong>locked</strong> during the presale and
+                        will be <strong>claimable after the presale ends</strong>.
                       </p>
                     </>
                   )}
@@ -269,9 +325,9 @@ export default function PresaleOverview() {
 
                 {/* PAYPAL */}
                 <div className={styles.cardBox}>
-                  <PayPalSupportCheckout walletAddress={publicKey?.toBase58() || null} />
-
-
+                  <PayPalSupportCheckout
+                    walletAddress={publicKey?.toBase58() || null}
+                  />
                 </div>
               </div>
             </div>
@@ -284,7 +340,9 @@ export default function PresaleOverview() {
           <div className={styles.successBox}>
             <h3 className={styles.successTitle}>🎉 Purchase Successful!</h3>
             <p>You’ve secured your MEMEX tokens for this presale level.</p>
-            <p className={styles.txInfo}>Your tokens are locked until the end of the presale.</p>
+            <p className={styles.txInfo}>
+              Your tokens are locked until the end of the presale.
+            </p>
             {txHash && (
               <p className={styles.txHash}>
                 TX:{' '}
@@ -297,7 +355,10 @@ export default function PresaleOverview() {
                 </a>
               </p>
             )}
-            <button className={styles.closeSuccess} onClick={() => setIsSuccess(false)}>
+            <button
+              className={styles.closeSuccess}
+              onClick={() => setIsSuccess(false)}
+            >
               Close
             </button>
           </div>
