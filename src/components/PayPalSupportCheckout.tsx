@@ -67,7 +67,7 @@ export default function PayPalSupportCheckout({ walletAddress = null }: Props) {
 
       <div className={styles.panel}>
         {/* Dropdown sits ABOVE totals and never gets clipped */}
-        <div className={styles.packRow}>
+        <div className={styles.packColumn}>
           <select
             className={styles.select}
             value={pack}
