@@ -13,15 +13,16 @@ type PayPalSupportCheckoutProps = {
 };
 
 type SupportPack = {
+  key: 'rookie' | 'veteran' | 'pro' | 'over9000';
   label: string;
   baseEur: number;
 };
 
 const PACKS: SupportPack[] = [
-  { label: '€100 — Rookie Support', baseEur: 100 },
-  { label: '€250 — Veteran Support', baseEur: 250 },
-  { label: '€500 — Pro Support', baseEur: 500 },
-  { label: '€1000 — Over 9000! Support', baseEur: 1000 },
+  { key: 'rookie', label: '€100 — Rookie Support', baseEur: 100 },
+  { key: 'veteran', label: '€250 — Veteran Support', baseEur: 250 },
+  { key: 'pro', label: '€500 — Pro Support', baseEur: 500 },
+  { key: 'over9000', label: '€1000 — Over 9000! Support', baseEur: 1000 },
 ];
 
 export default function PayPalSupportCheckout({
@@ -67,6 +68,7 @@ export default function PayPalSupportCheckout({
 
   const selectedBaseEur = PACKS[packIndex]?.baseEur ?? 100;
   const selectedTotalEur = Number((selectedBaseEur * feeMultiplier).toFixed(2));
+  const selectedPackKey = PACKS[packIndex]?.key ?? 'rookie';
 
   // Derive a stable conversion from the parent values (keeps your “fair” pricing logic)
   const memexPerEur = baseEurAmount > 0 ? memexAmount / baseEurAmount : 0;
@@ -82,14 +84,19 @@ export default function PayPalSupportCheckout({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        // IMPORTANT: backend expects this key to map to a predefined pack
+        packKey: selectedPackKey,
+
         wallet: effectiveWallet,
         level,
-        // Use the selected pack-derived values
+
+        // Pack-derived values (kept for logging + fairness)
         solAmount: derivedSol,
         memexAmount: derivedMemex,
         baseEurAmount: selectedBaseEur,
         totalEurAmount: selectedTotalEur,
         feeMultiplier,
+
         // PayPal expects a string amount in many integrations
         amount: selectedTotalEur.toFixed(2),
         currency: 'EUR',
@@ -97,9 +104,15 @@ export default function PayPalSupportCheckout({
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
+      const raw = await res.text().catch(() => '');
+      let data: any = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = { raw };
+      }
       console.error('PayPal create-order error:', data);
-      throw new Error('PayPal order creation failed');
+      throw new Error(data?.error || data?.message || 'PayPal order creation failed');
     }
 
     const data = await res.json();
@@ -143,9 +156,9 @@ export default function PayPalSupportCheckout({
       await captureOrder(orderID);
 
       alert('PayPal payment successful! Your MEMEX is reserved.');
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('PayPal payment failed. Please try again.');
+      alert(`PayPal payment failed: ${e?.message || 'Please try again.'}`);
     }
   };
 
