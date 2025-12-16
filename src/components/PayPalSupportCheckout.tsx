@@ -8,6 +8,10 @@ type Pack = {
   eur: number;
 };
 
+type Props = {
+  walletAddress?: string | null;
+};
+
 const PACKS: Pack[] = [
   { label: '€100 — Rookie Support', eur: 100 },
   { label: '€250 — Veteran Support', eur: 250 },
@@ -40,7 +44,7 @@ function loadPayPalSdk(clientId: string, currency = 'EUR') {
   });
 }
 
-export default function PayPalSupportCheckout() {
+export default function PayPalSupportCheckout({ walletAddress }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [sdkReady, setSdkReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,7 +78,7 @@ export default function PayPalSupportCheckout() {
   }, []);
 
   useEffect(() => {
-    if (!sdkReady) return;
+    if (!sdkReady || !walletAddress) return;
 
     // @ts-ignore
     const paypal = window.paypal;
@@ -110,6 +114,7 @@ export default function PayPalSupportCheckout() {
             body: JSON.stringify({
               eur: totalEur,
               packLabel: selectedPack.label,
+              walletAddress: walletAddress || null,
             }),
           });
 
@@ -149,6 +154,7 @@ export default function PayPalSupportCheckout() {
                 orderId,
                 eur: totalEur,
                 packLabel: selectedPack.label,
+                walletAddress: walletAddress || null,
               }),
             });
 
@@ -176,7 +182,7 @@ export default function PayPalSupportCheckout() {
         },
       })
       .render('#paypal-buttons-container');
-  }, [sdkReady, totalEur, selectedPack.label]);
+  }, [sdkReady, totalEur, selectedPack.label, walletAddress]);
 
   return (
     <div className={styles.paypalBox}>
@@ -201,11 +207,19 @@ export default function PayPalSupportCheckout() {
         ))}
       </select>
 
+      {!walletAddress && (
+        <div className={styles.error}>
+          Please connect your wallet first — your MEMEX allocation must be linked to a wallet address.
+        </div>
+      )}
+
       {err && <div className={styles.error}>{err}</div>}
 
       <div className={styles.paypalButtonsWrap}>
         {!sdkReady ? (
           <div className={styles.loading}>Loading PayPal…</div>
+        ) : !walletAddress ? (
+          <div className={styles.loading}>Connect wallet to continue…</div>
         ) : (
           <div id="paypal-buttons-container" />
         )}
