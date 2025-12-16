@@ -1,129 +1,227 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import styles from './PayPalSupportCheckout.module.css';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
-type PayPalSupportCheckoutProps = {
-  wallet: string | null;
-  level: number;
-  solAmount: number;
-  memexAmount: number;
-  baseEurAmount: number;
-  totalEurAmount: number;
-  feeMultiplier?: number; // defaults to 1.02
+type Props = {
+  walletAddress?: string | null;
 };
 
-export default function PayPalSupportCheckout({
-  wallet,
-  level,
-  solAmount,
-  memexAmount,
-  baseEurAmount,
-  totalEurAmount,
-  feeMultiplier = 1.02,
-}: PayPalSupportCheckoutProps) {
-  if (!wallet) {
-    return (
-      <p style={{ opacity: 0.85 }}>
-        Please connect your wallet first so we can assign your MEMEX.
-      </p>
-    );
-  }
+type PackKey = 'rookie' | 'veteran' | 'pro' | 'over9000';
 
-  // NOTE:
-  // This component assumes you already created the backend routes for:
-  // - POST /api/paypal/create-order
-  // - POST /api/paypal/capture-order
-  //
-  // If your endpoints have different paths, change them below.
+const PACKS: Record<
+  PackKey,
+  { label: string; eur: number; subtitle: string }
+> = {
+  rookie: { label: '€100 — Rookie Support', eur: 100, subtitle: 'Get started & support the Duelverse' },
+  veteran: { label: '€250 — Veteran Support', eur: 250, subtitle: 'Serious supporter energy' },
+  pro: { label: '€500 — Pro Support', eur: 500, subtitle: 'Pro-tier boost for development' },
+  over9000: { label: '€1000 — Over 9000! Support', eur: 1000, subtitle: 'Legendary backer status' },
+};
 
-  const createOrder = async (): Promise<string> => {
-    const res = await fetch('/api/paypal/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        wallet,
-        level,
-        solAmount,
-        memexAmount,
-        baseEurAmount,
-        totalEurAmount,
-        feeMultiplier,
-        // PayPal expects a string amount in many integrations
-        amount: totalEurAmount.toFixed(2),
-        currency: 'EUR',
-      }),
-    });
+const FEE_RATE = 0.02;
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      console.error('PayPal create-order error:', data);
-      throw new Error('PayPal order creation failed');
-    }
+function formatEUR(amount: number) {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
 
-    const data = await res.json();
-    if (!data?.orderID) throw new Error('No orderID returned');
-    return data.orderID as string;
-  };
+export default function PayPalSupportCheckout({ walletAddress = null }: Props) {
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
-  const captureOrder = async (orderID: string) => {
-    const res = await fetch('/api/paypal/capture-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderID,
-        wallet,
-        level,
-        solAmount,
-        memexAmount,
-        baseEurAmount,
-        totalEurAmount,
-        feeMultiplier,
-      }),
-    });
+  const [pack, setPack] = useState<PackKey>('rookie');
+  const [status, setStatus] = useState<
+    { type: 'idle' | 'success' | 'error'; message?: string }
+  >({ type: 'idle' });
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      console.error('PayPal capture-order error:', data);
-      throw new Error('PayPal capture failed');
-    }
+  const baseEur = PACKS[pack].eur;
+  const feeEur = useMemo(() => Math.round(baseEur * FEE_RATE * 100) / 100, [baseEur]);
+  const totalEur = useMemo(() => Math.round((baseEur + feeEur) * 100) / 100, [baseEur, feeEur]);
 
-    return res.json();
-  };
+  const paypalOptions = useMemo(
+    () => ({
+      clientId: clientId || 'test', // verhindert Crash im Dev-UI, echte Buttons brauchen echten clientId
+      currency: 'EUR',
+      intent: 'CAPTURE' as const,
+      components: 'buttons',
+    }),
+    [clientId]
+  );
 
-  // Minimal “button” that redirects/opens your PayPal flow (depends on how you implemented it).
-  // If you use PayPal JS SDK Buttons, replace this block with your Buttons component.
-  const handlePayPal = async () => {
-    try {
-      const orderID = await createOrder();
-
-      // If your backend returns an approveUrl instead, then redirect to it.
-      // Here we assume your integration uses the PayPal JS SDK on client OR you handle approval elsewhere.
-      // If you have an approval link, do: window.location.href = data.approveUrl
-      //
-      // For now, we trigger capture directly only if your flow supports it (many flows require approval first).
-      // So: adjust to your actual integration response shape.
-      await captureOrder(orderID);
-
-      alert('PayPal payment successful! Your MEMEX is reserved.');
-    } catch (e) {
-      console.error(e);
-      alert('PayPal payment failed. Please try again.');
-    }
-  };
+  // Wenn Client-ID fehlt: UI zeigen, aber keine PayPal Buttons laden
+  const paypalReady = Boolean(clientId && clientId.trim().length > 10);
 
   return (
-    <button
-      type="button"
-      onClick={handlePayPal}
-      style={{
-        width: '100%',
-        padding: '12px 14px',
-        borderRadius: 12,
-        fontWeight: 700,
-        letterSpacing: '0.06em',
-      }}
-    >
-      Continue with PayPal
-    </button>
+    <div className={styles.wrap}>
+      <div className={styles.header}>
+        <div className={styles.title}>Or support via PayPal</div>
+        <div className={styles.subtitle}>
+          Choose a support package and complete checkout with PayPal. Your MEMEX allocation will be linked to your connected wallet.
+        </div>
+      </div>
+
+      <div className={styles.panel}>
+        <div className={styles.rowTop}>
+          <div className={styles.selectWrap}>
+            <label className={styles.label}>Select your support pack</label>
+            <select
+              className={styles.select}
+              value={pack}
+              onChange={(e) => {
+                setPack(e.target.value as PackKey);
+                setStatus({ type: 'idle' });
+              }}
+            >
+              {Object.entries(PACKS).map(([key, v]) => (
+                <option key={key} value={key}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+            <div className={styles.hint}>{PACKS[pack].subtitle}</div>
+          </div>
+
+          <div className={styles.totalBox}>
+            <div className={styles.totalLine}>
+              <span>Pack</span>
+              <span>{formatEUR(baseEur)}</span>
+            </div>
+            <div className={styles.totalLine}>
+              <span>Processing (2%)</span>
+              <span>{formatEUR(feeEur)}</span>
+            </div>
+            <div className={styles.totalDivider} />
+            <div className={styles.totalLineStrong}>
+              <span>Total</span>
+              <span>{formatEUR(totalEur)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.walletInfo}>
+          <div className={styles.walletPill}>
+            <span className={styles.walletDot} />
+            <span className={styles.walletLabel}>Wallet:</span>
+            <span className={styles.walletValue}>
+              {walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : 'Not connected'}
+            </span>
+          </div>
+          <div className={styles.smallNote}>
+            MEMEX will be <strong>claimable after the presale</strong>. Payments are processed securely via PayPal.
+          </div>
+        </div>
+
+        {!paypalReady ? (
+          <div className={styles.missing}>
+            Missing <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. Set it in <strong>Vercel</strong> and your local <strong>.env.local</strong>, then redeploy/restart.
+          </div>
+        ) : (
+          <div className={styles.paypalArea}>
+            <PayPalScriptProvider options={paypalOptions}>
+              <PayPalButtons
+                style={{
+                  layout: 'vertical',
+                  shape: 'pill',
+                  label: 'pay',
+                  height: 44,
+                }}
+                forceReRender={[pack, totalEur, walletAddress]}
+                disabled={false}
+                createOrder={async () => {
+                  setStatus({ type: 'idle' });
+
+                  const res = await fetch('/api/paypal/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      pack,
+                      baseEur,
+                      feeRate: FEE_RATE,
+                      currency: 'EUR',
+                      walletAddress,
+                    }),
+                  });
+
+                  const data = await res.json().catch(() => ({}));
+
+                  if (!res.ok) {
+                    const msg =
+                      data?.error ||
+                      data?.message ||
+                      `PayPal create-order failed (${res.status})`;
+                    throw new Error(msg);
+                  }
+
+                  // akzeptiere mehrere Shapes: {id} oder {orderId} oder string
+                  const orderId =
+                    data?.id || data?.orderId || (typeof data === 'string' ? data : null);
+
+                  if (!orderId) throw new Error('No order id returned from server.');
+                  return orderId;
+                }}
+                onApprove={async (data) => {
+                  const orderId = (data as any)?.orderID;
+                  if (!orderId) {
+                    setStatus({ type: 'error', message: 'No order id found on approval.' });
+                    return;
+                  }
+
+                  const res = await fetch('/api/paypal/capture-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      orderId,
+                      walletAddress,
+                      pack,
+                      baseEur,
+                      feeRate: FEE_RATE,
+                      currency: 'EUR',
+                    }),
+                  });
+
+                  const out = await res.json().catch(() => ({}));
+
+                  if (!res.ok) {
+                    const msg =
+                      out?.error ||
+                      out?.message ||
+                      `PayPal capture failed (${res.status})`;
+                    setStatus({ type: 'error', message: msg });
+                    return;
+                  }
+
+                  setStatus({
+                    type: 'success',
+                    message: 'Payment successful! Your support has been recorded.',
+                  });
+                }}
+                onCancel={() => {
+                  setStatus({ type: 'error', message: 'Payment cancelled.' });
+                }}
+                onError={(err) => {
+                  setStatus({
+                    type: 'error',
+                    message:
+                      (err as any)?.message ||
+                      'PayPal payment failed. Please try again.',
+                  });
+                }}
+              />
+            </PayPalScriptProvider>
+
+            {status.type === 'success' && (
+              <div className={styles.success}>{status.message}</div>
+            )}
+            {status.type === 'error' && (
+              <div className={styles.error}>{status.message}</div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

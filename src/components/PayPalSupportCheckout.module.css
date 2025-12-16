@@ -1,11 +1,7 @@
 .wrap {
-  position: relative;
-  z-index: 2;
   width: 100%;
-  max-width: 980px;
-  margin: 24px auto 0;
-  padding: 0 24px;
-  color: #fff;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .header {
@@ -15,117 +11,188 @@
 
 .title {
   font-size: 18px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin: 0 0 6px;
+  color: #ffffff;
 }
 
-.sub {
-  margin: 0;
-  opacity: 0.82;
+.subtitle {
+  margin-top: 6px;
   font-size: 13px;
-  line-height: 1.55;
+  opacity: 0.85;
+  line-height: 1.45;
 }
 
 .panel {
-  background: rgba(17, 17, 34, 0.76);
-  border: 1px solid rgba(200, 170, 255, 0.22);
-  box-shadow: 0 0 28px rgba(150, 50, 255, 0.22);
-  border-radius: 18px;
+  position: relative;
   padding: 18px;
+  border-radius: 18px;
+  background: rgba(17, 17, 34, 0.88);
+  border: 1px solid rgba(200, 170, 255, 0.22);
+  box-shadow: 0 0 26px rgba(150, 50, 255, 0.22);
 }
 
-.row {
+.rowTop {
   display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .rowTop {
+    grid-template-columns: 1fr;
+  }
+}
+
+.selectWrap {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  margin-bottom: 14px;
 }
 
 .label {
   font-size: 12px;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
   opacity: 0.85;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .select {
-  appearance: none;
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(5, 0, 19, 0.55);
+  padding: 12px 12px;
+  border-radius: 12px;
   border: 1px solid rgba(200, 170, 255, 0.25);
+  background: rgba(9, 8, 22, 0.75);
   color: #fff;
   outline: none;
-}
-
-.packInfo {
-  border-radius: 16px;
-  padding: 14px;
-  background: rgba(5, 0, 19, 0.40);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.packName {
-  font-size: 16px;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-}
-
-.packSub {
-  margin-top: 6px;
-  opacity: 0.8;
-  font-size: 13px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.stat {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(17, 17, 34, 0.55);
-  border: 1px solid rgba(200, 170, 255, 0.16);
-}
-
-.statLabel {
-  font-size: 11px;
-  opacity: 0.78;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-}
-
-.statValue {
-  margin-top: 6px;
   font-size: 14px;
+}
+
+.select:focus {
+  border-color: rgba(185, 115, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(160, 110, 255, 0.18);
+}
+
+.hint {
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.totalBox {
+  border-radius: 16px;
+  padding: 12px 12px;
+  background: radial-gradient(circle at top, rgba(122, 77, 255, 0.18), rgba(5, 0, 19, 0.55));
+  border: 1px solid rgba(200, 170, 255, 0.18);
+}
+
+.totalLine,
+.totalLineStrong {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.totalLine {
+  opacity: 0.9;
+}
+
+.totalDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 8px 0;
+}
+
+.totalLineStrong {
   font-weight: 700;
 }
 
-.error {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #ffb4b4;
+.walletInfo {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.checkout {
+.walletPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(9, 8, 22, 0.55);
+  border: 1px solid rgba(200, 170, 255, 0.18);
+  width: fit-content;
+}
+
+.walletDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(185, 115, 255, 1);
+  box-shadow: 0 0 10px rgba(185, 115, 255, 0.6);
+}
+
+.walletLabel {
+  font-size: 12px;
+  opacity: 0.85;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.walletValue {
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.smallNote {
+  font-size: 12px;
+  opacity: 0.82;
+  line-height: 1.45;
+}
+
+.missing {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 80, 120, 0.08);
+  border: 1px solid rgba(255, 120, 160, 0.25);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.missing code {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.paypalArea {
   margin-top: 14px;
 }
 
-.note {
+.success,
+.error {
   margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.75;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-@media (max-width: 768px) {
-  .wrap {
-    padding: 0 16px;
-  }
-  .stats {
-    grid-template-columns: 1fr;
-  }
+.success {
+  background: rgba(60, 255, 160, 0.08);
+  border: 1px solid rgba(60, 255, 160, 0.22);
+}
+
+.error {
+  background: rgba(255, 80, 120, 0.08);
+  border: 1px solid rgba(255, 120, 160, 0.22);
+}
+
+/* Optional: “gold vibe” für PayPal-Buttons Container (PayPal selbst rendert iFrame/Buttons) */
+.paypalArea :global(.paypal-buttons) {
+  filter: drop-shadow(0 0 18px rgba(255, 215, 130, 0.35));
 }
