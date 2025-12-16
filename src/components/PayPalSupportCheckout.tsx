@@ -43,7 +43,7 @@ export default function PayPalSupportCheckout({ walletAddress = null }: Props) {
     () => ({
       clientId: clientId || 'test',
       currency: 'EUR',
-      intent: 'CAPTURE' as const,
+      intent: 'capture',
       components: 'buttons',
     }),
     [clientId]
