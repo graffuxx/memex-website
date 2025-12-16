@@ -143,7 +143,12 @@ export default function PayPalSupportCheckout({ walletAddress = null }: Props) {
                   return orderId;
                 }}
                 onApprove={async (data) => {
-                  const orderId = (data as any)?.orderID;
+                  const orderId =
+                    (data as any)?.orderID ||
+                    (data as any)?.orderId ||
+                    (data as any)?.id ||
+                    (data as any)?.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+
                   if (!orderId) {
                     setStatus({ type: 'error', message: 'No order id found on approval.' });
                     return;

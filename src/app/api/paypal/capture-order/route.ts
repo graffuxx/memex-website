@@ -56,15 +56,24 @@ function parseMeta(customId: unknown) {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const orderID = body?.orderID;
 
-    if (typeof orderID !== 'string' || !orderID.trim()) {
-      return NextResponse.json({ error: 'Missing orderID' }, { status: 400 });
+    // Accept multiple client payload shapes
+    const orderId =
+      (typeof body?.orderId === 'string' && body.orderId) ||
+      (typeof body?.orderID === 'string' && body.orderID) ||
+      (typeof body?.id === 'string' && body.id) ||
+      '';
+
+    if (!orderId.trim()) {
+      return NextResponse.json(
+        { error: 'Missing orderId (expected orderId/orderID/id)' },
+        { status: 400 }
+      );
     }
 
     const { base, token } = await getAccessToken();
 
-    const capRes = await fetch(`${base}/v2/checkout/orders/${orderID}/capture`, {
+    const capRes = await fetch(`${base}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -102,6 +111,27 @@ export async function POST(req: Request) {
     const purchaseUnit = capJson?.purchase_units?.[0];
     const meta = parseMeta(purchaseUnit?.custom_id);
 
+    const walletAddress =
+      typeof body?.walletAddress === 'string' ? body.walletAddress : null;
+    const packKeyFromBody =
+      typeof body?.packKey === 'string'
+        ? body.packKey
+        : typeof body?.pack === 'string'
+          ? body.pack
+          : null;
+    const baseEurFromBody =
+      typeof body?.baseEur === 'number'
+        ? body.baseEur
+        : typeof body?.baseEur === 'string'
+          ? Number(body.baseEur)
+          : null;
+    const feeRateFromBody =
+      typeof body?.feeRate === 'number'
+        ? body.feeRate
+        : typeof body?.feeRate === 'string'
+          ? Number(body.feeRate)
+          : null;
+
     const capture = purchaseUnit?.payments?.captures?.[0];
     const amountEur = capture?.amount?.value;
     const captureId = capture?.id;
@@ -123,10 +153,13 @@ export async function POST(req: Request) {
     // NOTE: Ensure `paypal_orders.paypal_order_id` is UNIQUE in Supabase.
     // Upsert makes the capture idempotent (refresh / double-click safe).
     const payload = {
-      paypal_order_id: orderID,
+      paypal_order_id: orderId,
       paypal_capture_id: captureId || null,
-      amount_eur: amountEur ? Number(amountEur) : meta?.eur || null,
-      pack_key: meta?.packKey || null,
+      amount_eur:
+        amountEur ? Number(amountEur) : meta?.eur ?? baseEurFromBody ?? null,
+      pack_key: meta?.packKey ?? packKeyFromBody ?? null,
+      wallet_address: meta?.walletAddress ?? walletAddress ?? null,
+      processing_fee_rate: meta?.feeRate ?? feeRateFromBody ?? null,
       sol_price_eur_used: meta?.solEur || null,
       sol_equivalent: meta?.solEquivalent || null,
       memex_amount: meta?.memexAmount || null,
@@ -147,7 +180,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      orderID,
+      orderId,
+      orderID: orderId,
       captureId: captureId || null,
       amountEur: amountEur ? Number(amountEur) : null,
     });

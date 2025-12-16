@@ -83,18 +83,28 @@ async function getSolEur() {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const packKey = body?.packKey;
 
-    if (typeof packKey !== 'string' || !packKey.trim()) {
-      return NextResponse.json({ error: 'Missing packKey' }, { status: 400 });
+    // Frontend historically sent either `packKey` or `pack`
+    const packKeyRaw = body?.packKey ?? body?.pack;
+    const packKey = typeof packKeyRaw === 'string' ? packKeyRaw.trim() : '';
+
+    if (!packKey) {
+      return NextResponse.json(
+        { error: 'Missing packKey (send packKey or pack)' },
+        { status: 400 }
+      );
     }
 
     const eurBase = PACK_MAP[packKey];
     if (!eurBase) {
-      return NextResponse.json({ error: 'Invalid packKey' }, { status: 400 });
+      return NextResponse.json(
+        { error: `Invalid packKey: ${packKey}` },
+        { status: 400 }
+      );
     }
 
     // +2% fee on top (buyer pays it)
+    // Keep fee server-side as source of truth (ignore any client-provided totals)
     const eurCharged = Number((eurBase * PAYPAL_FEE_MULTIPLIER).toFixed(2));
 
     const solEur = await getSolEur();
