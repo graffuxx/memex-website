@@ -168,9 +168,6 @@ export default function PresaleOverview() {
                       Level {currentLevel.level}
                       <span className={styles.levelTotal}> / 10</span>
                     </p>
-                    <p className={styles.levelSubLabel}>
-                      Phase {currentLevel.level} of 10
-                    </p>
                   </div>
 
                   <div className={styles.levelRateBlock}>
@@ -262,6 +259,9 @@ export default function PresaleOverview() {
                       </button>
                       <p className={styles.walletInfo}>
                         Connected: <span>{shortWallet}</span>
+                      </p>
+                      <p className={styles.helperText}>
+                        Your SOL is sent securely to the MemeX treasury. MEMEX tokens are <strong>locked</strong> during the presale and will be <strong>claimable after the presale ends</strong>.
                       </p>
                     </>
                   )}
