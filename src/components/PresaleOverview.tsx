@@ -37,6 +37,7 @@ const levels = [
 
 export default function PresaleOverview() {
   const [activeLevelIndex, setActiveLevelIndex] = useState(0);
+
   // TEMP: force presale UI open for PayPal testing (re-enable countdown later)
   const [isPresaleStarted] = useState(true);
 
@@ -50,8 +51,7 @@ export default function PresaleOverview() {
 
   const { publicKey, sendTransaction, connected } = useWallet();
   const connection = new Connection(
-    process.env.NEXT_PUBLIC_HELIUS_RPC_URL ||
-      'https://api.mainnet-beta.solana.com'
+    process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
   );
 
   const currentLevel = levels[activeLevelIndex];
@@ -84,7 +84,6 @@ export default function PresaleOverview() {
     }
     loadPrice();
   }, []);
-
 
   const handleWalletBuy = async () => {
     if (!connected || !publicKey) {
@@ -140,9 +139,8 @@ export default function PresaleOverview() {
   };
 
   const shortWallet =
-    publicKey && `${publicKey.toBase58().slice(0, 4)}...${publicKey
-      .toBase58()
-      .slice(-4)}`;
+    publicKey &&
+    `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}`;
 
   return (
     <section className={styles.presaleSection}>
@@ -156,139 +154,136 @@ export default function PresaleOverview() {
 
       <div className={styles.box}>
         <h2 className={styles.title}>Presale Overview</h2>
-        <>
-          {/* LEVEL STACK */}
-          <div className={styles.levelStack}>
-            <div className={styles.levelCardCurrent}>
-              <div className={styles.levelHeaderRow}>
-                <div>
-                  <p className={styles.levelLabel}>Current Level</p>
-                  <p className={styles.levelNumber}>
-                    Level {currentLevel.level}
-                    <span className={styles.levelTotal}> / 10</span>
-                  </p>
-                  <p className={styles.levelSubLabel}>
-                    Phase {currentLevel.level} of 10
-                  </p>
+
+        {/* Countdown intentionally disabled for PayPal testing */}
+        {isPresaleStarted && (
+          <>
+            {/* LEVEL STACK */}
+            <div className={styles.levelStack}>
+              <div className={styles.levelCardCurrent}>
+                <div className={styles.levelHeaderRow}>
+                  <div>
+                    <p className={styles.levelLabel}>Current Level</p>
+                    <p className={styles.levelNumber}>
+                      Level {currentLevel.level}
+                      <span className={styles.levelTotal}> / 10</span>
+                    </p>
+                    <p className={styles.levelSubLabel}>
+                      Phase {currentLevel.level} of 10
+                    </p>
+                  </div>
+
+                  <div className={styles.levelRateBlock}>
+                    <p className={styles.levelRateLabel}>Rate</p>
+                    <p className={styles.levelRateValue}>
+                      1 SOL = {currentLevel.rate.toLocaleString()} MEMEX
+                    </p>
+                  </div>
                 </div>
 
-                <div className={styles.levelRateBlock}>
-                  <p className={styles.levelRateLabel}>Rate</p>
-                  <p className={styles.levelRateValue}>
-                    1 SOL = {currentLevel.rate.toLocaleString()} MEMEX
+                <div className={styles.progressBar}>
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${currentProgress}%` }}
+                  ></div>
+                </div>
+                <div className={styles.levelMetaRow}>
+                  <p className={styles.percent}>{currentProgress}% Sold</p>
+                  <p className={styles.levelDuration}>
+                    Max. {currentLevel.durationDays} days or until sold out
+                  </p>
+                </div>
+                <p className={styles.nftTeaser}>🔥 Random NFT drops in this level!</p>
+              </div>
+
+              {nextLevel && (
+                <div className={styles.levelCardNext}>
+                  <p className={styles.levelLabel}>Next Level</p>
+                  <p className={styles.levelNumberNext}>
+                    Level {nextLevel.level} / 10
+                  </p>
+                  <p className={styles.levelRateNext}>
+                    1 SOL = {nextLevel.rate.toLocaleString()} MEMEX
+                  </p>
+                  <p className={styles.levelHint}>
+                    Starts after full sell-out or in {nextLevel.durationDays} days.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* BUY AREA */}
+            <div className={styles.buyBox}>
+              <div className={styles.amountRow}>
+                <div className={styles.amountLeft}>
+                  <label className={styles.amountLabel}>
+                    SOL Amount
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={solAmount}
+                      onChange={(e) => setSolAmount(e.target.value)}
+                      className={styles.solInput}
+                    />
+                  </label>
+                </div>
+                <div className={styles.amountRight}>
+                  <p>
+                    ≈ EUR <span>{solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}</span>
+                  </p>
+                  <p>
+                    You get&nbsp;<span>{memexAmount.toLocaleString()} MEMEX</span>
                   </p>
                 </div>
               </div>
 
-              <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{ width: `${currentProgress}%` }}
-                ></div>
-              </div>
-              <div className={styles.levelMetaRow}>
-                <p className={styles.percent}>{currentProgress}% Sold</p>
-                <p className={styles.levelDuration}>
-                  Max. {currentLevel.durationDays} days or until sold out
-                </p>
-              </div>
-              <p className={styles.nftTeaser}>🔥 Random NFT drops in this level!</p>
-            </div>
+              <div className={styles.paymentGrid}>
+                {/* WALLET */}
+                <div className={styles.walletBox}>
+                  <p className={styles.blockTitle}>Pay with your Solana wallet</p>
+                  {!connected ? (
+                    <>
+                      <div className={styles.walletConnectWrapper}>
+                        <WalletButton />
+                      </div>
+                      <p className={styles.helperText}>
+                        Connect your wallet first, then confirm the transaction to lock your MEMEX.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className={styles.buyButton}
+                        onClick={handleWalletBuy}
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? 'Processing…' : 'Buy MEMEX with Wallet'}
+                      </button>
+                      <p className={styles.walletInfo}>
+                        Connected: <span>{shortWallet}</span>
+                      </p>
+                    </>
+                  )}
+                </div>
 
-            {nextLevel && (
-              <div className={styles.levelCardNext}>
-                <p className={styles.levelLabel}>Next Level</p>
-                <p className={styles.levelNumberNext}>
-                  Level {nextLevel.level} / 10
-                </p>
-                <p className={styles.levelRateNext}>
-                  1 SOL = {nextLevel.rate.toLocaleString()} MEMEX
-                </p>
-                <p className={styles.levelHint}>
-                  Starts after full sell-out or in {nextLevel.durationDays} days.
-                </p>
-              </div>
-            )}
-          </div>
+                {/* PAYPAL */}
+                <div className={styles.cardBox}>
+                  <p className={styles.blockTitle}>Or support via PayPal</p>
+                  <p className={styles.helperText}>
+                    Choose a support package and complete checkout with PayPal. Your MEMEX allocation will be linked to your connected wallet.
+                  </p>
 
-          {/* BUY AREA */}
-          <div className={styles.buyBox}>
-            <div className={styles.amountRow}>
-              <div className={styles.amountLeft}>
-                <label className={styles.amountLabel}>
-                  SOL Amount
-                  <input
-                    type="number"
-                    min="0.1"
-                    step="0.1"
-                    value={solAmount}
-                    onChange={(e) => setSolAmount(e.target.value)}
-                    className={styles.solInput}
-                  />
-                </label>
-              </div>
-              <div className={styles.amountRight}>
-                <p>
-                  ≈ EUR{' '}
-                  <span>
-                    {solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}
-                  </span>
-                </p>
-                <p>
-                  You get&nbsp;
-                  <span>{memexAmount.toLocaleString()} MEMEX</span>
-                </p>
+                  <PayPalSupportCheckout walletAddress={publicKey?.toBase58() || null} />
+
+                  <p className={styles.helperText}>
+                    Payments are processed securely via PayPal. MEMEX will be claimable after the presale.
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className={styles.paymentGrid}>
-              {/* WALLET */}
-              <div className={styles.walletBox}>
-                <p className={styles.blockTitle}>Pay with your Solana wallet</p>
-                {!connected ? (
-                  <>
-                    <div className={styles.walletConnectWrapper}>
-                      <WalletButton />
-                    </div>
-                    <p className={styles.helperText}>
-                      Connect your wallet first, then confirm the transaction to
-                      lock your MEMEX.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className={styles.buyButton}
-                      onClick={handleWalletBuy}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? 'Processing…' : 'Buy MEMEX with Wallet'}
-                    </button>
-                    <p className={styles.walletInfo}>
-                      Connected: <span>{shortWallet}</span>
-                    </p>
-                  </>
-                )}
-              </div>
-
-              {/* PAYPAL */}
-              <div className={styles.cardBox}>
-                <p className={styles.blockTitle}>Or support via PayPal</p>
-                <p className={styles.helperText}>
-                  Choose a support package and complete checkout with PayPal.
-                  Your MEMEX allocation will be linked to your connected wallet.
-                </p>
-
-                <PayPalSupportCheckout />
-
-                <p className={styles.helperText}>
-                  Payments are processed securely via PayPal. MEMEX will be claimable
-                  after the presale.
-                </p>
-              </div>
-            </div>
-          </div>
-        </>
+          </>
+        )}
       </div>
 
       {isSuccess && (
@@ -296,9 +291,7 @@ export default function PresaleOverview() {
           <div className={styles.successBox}>
             <h3 className={styles.successTitle}>🎉 Purchase Successful!</h3>
             <p>You’ve secured your MEMEX tokens for this presale level.</p>
-            <p className={styles.txInfo}>
-              Your tokens are locked until the end of the presale.
-            </p>
+            <p className={styles.txInfo}>Your tokens are locked until the end of the presale.</p>
             {txHash && (
               <p className={styles.txHash}>
                 TX:{' '}
@@ -311,10 +304,7 @@ export default function PresaleOverview() {
                 </a>
               </p>
             )}
-            <button
-              className={styles.closeSuccess}
-              onClick={() => setIsSuccess(false)}
-            >
+            <button className={styles.closeSuccess} onClick={() => setIsSuccess(false)}>
               Close
             </button>
           </div>
