@@ -271,9 +271,7 @@ export default function PresaleOverview() {
                 <div className={styles.cardBox}>
                   <PayPalSupportCheckout walletAddress={publicKey?.toBase58() || null} />
 
-                  <p className={styles.helperText} style={{ marginTop: 14 }}>
-                    MEMEX will be claimable after the presale. Your support is linked to your connected wallet.
-                  </p>
+
                 </div>
               </div>
             </div>
