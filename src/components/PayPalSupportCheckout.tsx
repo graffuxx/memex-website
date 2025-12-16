@@ -1,264 +1,219 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import styles from './PayPalSupportCheckout.module.css';
 
-type PayPalSupportCheckoutProps = {
-  wallet: string | null;
-  level: number;
-  solAmount: number;
-  memexAmount: number;
-  baseEurAmount: number;
-  totalEurAmount: number;
-  feeMultiplier?: number; // defaults to 1.02
-};
-
-type SupportPack = {
-  key: 'rookie' | 'veteran' | 'pro' | 'over9000';
+type Pack = {
   label: string;
-  baseEur: number;
+  eur: number;
 };
 
-const PACKS: SupportPack[] = [
-  { key: 'rookie', label: '€100 — Rookie Support', baseEur: 100 },
-  { key: 'veteran', label: '€250 — Veteran Support', baseEur: 250 },
-  { key: 'pro', label: '€500 — Pro Support', baseEur: 500 },
-  { key: 'over9000', label: '€1000 — Over 9000! Support', baseEur: 1000 },
+const PACKS: Pack[] = [
+  { label: '€100 — Rookie Support', eur: 100 },
+  { label: '€250 — Veteran Support', eur: 250 },
+  { label: '€500 — Pro Support', eur: 500 },
+  { label: '€1000 — Over 9000! Support', eur: 1000 },
 ];
 
-export default function PayPalSupportCheckout({
-  wallet,
-  level,
-  solAmount,
-  memexAmount,
-  baseEurAmount,
-  totalEurAmount,
-  feeMultiplier = 1.02,
-}: PayPalSupportCheckoutProps) {
-  // Default to the closest pack to the currently calculated EUR (if any)
-  const defaultPackIndex = useMemo(() => {
-    const current = Number.isFinite(baseEurAmount) && baseEurAmount > 0 ? baseEurAmount : 100;
-    let bestIdx = 0;
-    let bestDiff = Infinity;
-    for (let i = 0; i < PACKS.length; i++) {
-      const d = Math.abs(PACKS[i].baseEur - current);
-      if (d < bestDiff) {
-        bestDiff = d;
-        bestIdx = i;
-      }
+function loadPayPalSdk(clientId: string, currency = 'EUR') {
+  return new Promise<void>((resolve, reject) => {
+    // already loaded?
+    // @ts-ignore
+    if (typeof window !== 'undefined' && window.paypal) return resolve();
+
+    const existing = document.getElementById('paypal-sdk');
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('PayPal SDK load failed')));
+      return;
     }
-    return bestIdx;
-  }, [baseEurAmount]);
 
-  const [packIndex, setPackIndex] = useState<number>(defaultPackIndex);
+    const script = document.createElement('script');
+    script.id = 'paypal-sdk';
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
+      clientId
+    )}&currency=${encodeURIComponent(currency)}&intent=capture`;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('PayPal SDK load failed'));
+    document.body.appendChild(script);
+  });
+}
 
-  const [manualWallet, setManualWallet] = useState<string>('');
+export default function PayPalSupportCheckout() {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [sdkReady, setSdkReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  // keep manual input in sync if wallet becomes available
+  const selectedPack = useMemo(() => PACKS[selectedIndex], [selectedIndex]);
+
+  // Fee: +2%
+  const totalEur = useMemo(() => {
+    const base = selectedPack.eur;
+    const withFee = base * 1.02;
+    return Math.round(withFee * 100) / 100;
+  }, [selectedPack]);
+
   useEffect(() => {
-    if (wallet && wallet.length > 0) setManualWallet('');
-  }, [wallet]);
+    let mounted = true;
 
-  const effectiveWallet = (wallet && wallet.length > 0) ? wallet : (manualWallet.trim() || null);
-
-  const isLikelySolanaAddress = (addr: string) => {
-    // very lightweight check (base58-ish + expected length range)
-    const a = addr.trim();
-    return a.length >= 32 && a.length <= 44 && /^[1-9A-HJ-NP-Za-km-z]+$/.test(a);
-  };
-
-  const selectedBaseEur = PACKS[packIndex]?.baseEur ?? 100;
-  const selectedTotalEur = Number((selectedBaseEur * feeMultiplier).toFixed(2));
-  const selectedPackKey = PACKS[packIndex]?.key ?? 'rookie';
-
-  // Derive a stable conversion from the parent values (keeps your “fair” pricing logic)
-  const memexPerEur = baseEurAmount > 0 ? memexAmount / baseEurAmount : 0;
-  const solPerEur = baseEurAmount > 0 ? solAmount / baseEurAmount : 0;
-
-  const derivedMemex = Math.floor(selectedBaseEur * memexPerEur);
-  const derivedSol = Number((selectedBaseEur * solPerEur).toFixed(6));
-
-  const canPay = Boolean(effectiveWallet) && isLikelySolanaAddress(effectiveWallet as string);
-
-  const createOrder = async (): Promise<string> => {
-    const res = await fetch('/api/paypal/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        // IMPORTANT: backend expects this key to map to a predefined pack
-        packKey: selectedPackKey,
-
-        wallet: effectiveWallet,
-        level,
-
-        // Pack-derived values (kept for logging + fairness)
-        solAmount: derivedSol,
-        memexAmount: derivedMemex,
-        baseEurAmount: selectedBaseEur,
-        totalEurAmount: selectedTotalEur,
-        feeMultiplier,
-
-        // PayPal expects a string amount in many integrations
-        amount: selectedTotalEur.toFixed(2),
-        currency: 'EUR',
-      }),
-    });
-
-    if (!res.ok) {
-      const raw = await res.text().catch(() => '');
-      let data: any = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch {
-        data = { raw };
-      }
-      console.error('PayPal create-order error:', data);
-      throw new Error(data?.error || data?.message || 'PayPal order creation failed');
+    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+    if (!clientId) {
+      setErr('Missing NEXT_PUBLIC_PAYPAL_CLIENT_ID (set it in Vercel + local .env.local).');
+      return;
     }
 
-    const data = await res.json();
-    if (!data?.orderID) throw new Error('No orderID returned');
-    return data.orderID as string;
-  };
+    loadPayPalSdk(clientId, 'EUR')
+      .then(() => mounted && setSdkReady(true))
+      .catch((e) => mounted && setErr(e?.message || 'PayPal SDK failed to load'));
 
-  const captureOrder = async (orderID: string) => {
-    const res = await fetch('/api/paypal/capture-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderID,
-        wallet: effectiveWallet,
-        level,
-        solAmount: derivedSol,
-        memexAmount: derivedMemex,
-        baseEurAmount: selectedBaseEur,
-        totalEurAmount: selectedTotalEur,
-        feeMultiplier,
-      }),
-    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      console.error('PayPal capture-order error:', data);
-      throw new Error('PayPal capture failed');
+  useEffect(() => {
+    if (!sdkReady) return;
+
+    // @ts-ignore
+    const paypal = window.paypal;
+    if (!paypal?.Buttons) {
+      setErr('PayPal Buttons not available (SDK not loaded correctly).');
+      return;
     }
 
-    return res.json();
-  };
+    const container = document.getElementById('paypal-buttons-container');
+    if (!container) return;
 
-  const handlePayPal = async () => {
-    try {
-      const orderID = await createOrder();
+    // clear old buttons (when pack changes)
+    container.innerHTML = '';
 
-      // NOTE:
-      // Many PayPal flows require user approval before capture.
-      // If your create-order route returns an approval/redirect URL,
-      // redirect there instead of capturing immediately.
-      await captureOrder(orderID);
+    setErr(null);
 
-      alert('PayPal payment successful! Your MEMEX is reserved.');
-    } catch (e: any) {
-      console.error(e);
-      alert(`PayPal payment failed: ${e?.message || 'Please try again.'}`);
-    }
-  };
+    paypal
+      .Buttons({
+        style: {
+          layout: 'vertical',
+          shape: 'pill',
+          label: 'paypal',
+        },
+
+        // ✅ THIS is the critical part: MUST return the STRING id from your API
+        createOrder: async () => {
+          setLoading(true);
+          setErr(null);
+
+          const res = await fetch('/api/paypal/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eur: totalEur,
+              packLabel: selectedPack.label,
+            }),
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            setLoading(false);
+            const msg =
+              data?.error ||
+              data?.message ||
+              `Create order failed (${res.status})`;
+            throw new Error(msg);
+          }
+
+          const orderId = data?.id; // ✅ your API returns { "id": "4XE..." }
+          if (!orderId || typeof orderId !== 'string') {
+            setLoading(false);
+            throw new Error('Create order response missing id');
+          }
+
+          setLoading(false);
+          return orderId; // ✅ MUST be returned
+        },
+
+        onApprove: async (data: any) => {
+          try {
+            setLoading(true);
+            setErr(null);
+
+            const orderId = data?.orderID;
+            if (!orderId) throw new Error('Missing orderID from PayPal approval');
+
+            const res = await fetch('/api/paypal/capture-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId,
+                eur: totalEur,
+                packLabel: selectedPack.label,
+              }),
+            });
+
+            const out = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+              const msg =
+                out?.error ||
+                out?.message ||
+                `Capture failed (${res.status})`;
+              throw new Error(msg);
+            }
+
+            alert('✅ PayPal payment successful (Sandbox).');
+          } catch (e: any) {
+            alert(`PayPal payment failed: ${e?.message || 'Please try again.'}`);
+          } finally {
+            setLoading(false);
+          }
+        },
+
+        onError: (e: any) => {
+          setLoading(false);
+          setErr(e?.message || 'PayPal error');
+        },
+      })
+      .render('#paypal-buttons-container');
+  }, [sdkReady, totalEur, selectedPack.label]);
 
   return (
-    <div style={{ width: '100%', display: 'grid', gap: 10 }}>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <label style={{ fontSize: 12, opacity: 0.9, letterSpacing: '0.06em' }}>
-          Select your Support Pack
-        </label>
-
-        <select
-          value={packIndex}
-          onChange={(e) => setPackIndex(Number(e.target.value))}
-          style={{
-            width: '100%',
-            padding: '10px 12px',
-            borderRadius: 12,
-            border: '1px solid rgba(200,170,255,0.28)',
-            background: 'rgba(17, 17, 34, 0.55)',
-            color: '#fff',
-            outline: 'none',
-          }}
-        >
-          {PACKS.map((p, idx) => (
-            <option key={p.baseEur} value={idx} style={{ color: '#000' }}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-
-        <div style={{ fontSize: 12, opacity: 0.85, lineHeight: 1.35 }}>
-          <div>
-            Base: <strong>€{selectedBaseEur}</strong> · Processing fee included:{' '}
-            <strong>{Math.round((feeMultiplier - 1) * 100)}%</strong>
-          </div>
-          <div>
-            Total (charged): <strong>€{selectedTotalEur.toFixed(2)}</strong>
-          </div>
-          {derivedMemex > 0 && (
-            <div>
-              Estimated allocation: <strong>{derivedMemex.toLocaleString()} MEMEX</strong>
-            </div>
-          )}
+    <div className={styles.paypalBox}>
+      <div className={styles.headerRow}>
+        <h3 className={styles.title}>Or support easily via PayPal</h3>
+        <div className={styles.sub}>
+          PayPal total: <strong>€{totalEur.toFixed(2)}</strong> (incl. 2% processing fee)
         </div>
       </div>
 
-      {!wallet && (
-        <div style={{ display: 'grid', gap: 8 }}>
-          <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
-            No wallet connected. Paste your Solana wallet address so we can assign your MEMEX.
-          </p>
-          <input
-            value={manualWallet}
-            onChange={(e) => setManualWallet(e.target.value)}
-            placeholder="Your Solana wallet address (e.g. Phantom)"
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              borderRadius: 12,
-              border: '1px solid rgba(200,170,255,0.28)',
-              background: 'rgba(17, 17, 34, 0.55)',
-              color: '#fff',
-              outline: 'none',
-            }}
-          />
-          {manualWallet.trim().length > 0 && !isLikelySolanaAddress(manualWallet) && (
-            <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
-              Please enter a valid Solana address (32–44 chars).
-            </p>
-          )}
-        </div>
-      )}
-
-      {wallet && !canPay && (
-        <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
-          Please connect your wallet first so we can assign your MEMEX.
-        </p>
-      )}
-
-      <button
-        type="button"
-        onClick={handlePayPal}
-        disabled={!canPay}
-        style={{
-          width: '100%',
-          padding: '12px 14px',
-          borderRadius: 12,
-          fontWeight: 800,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: '#3b2100',
-          cursor: canPay ? 'pointer' : 'not-allowed',
-          opacity: canPay ? 1 : 0.55,
-          border: '1px solid rgba(255, 248, 210, 0.9)',
-          background: 'linear-gradient(135deg, #ffd876, #ffb347)',
-          boxShadow: '0 0 24px rgba(255, 215, 130, 0.55)',
-        }}
+      <label className={styles.label}>Select your support pack</label>
+      <select
+        className={styles.select}
+        value={selectedIndex}
+        onChange={(e) => setSelectedIndex(Number(e.target.value))}
+        disabled={!sdkReady || loading}
       >
-        Continue with PayPal
-      </button>
+        {PACKS.map((p, idx) => (
+          <option key={p.label} value={idx}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+
+      {err && <div className={styles.error}>{err}</div>}
+
+      <div className={styles.paypalButtonsWrap}>
+        {!sdkReady ? (
+          <div className={styles.loading}>Loading PayPal…</div>
+        ) : (
+          <div id="paypal-buttons-container" />
+        )}
+      </div>
+
+      <div className={styles.note}>
+        Your MEMEX allocation will be linked to your wallet (claim later).
+      </div>
     </div>
   );
 }
