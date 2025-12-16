@@ -38,9 +38,9 @@ const levels = [
 ];
 
 export default function PresaleOverview() {
-  const [countdown, setCountdown] = useState('');
   const [activeLevelIndex, setActiveLevelIndex] = useState(0);
-  const [isPresaleStarted, setIsPresaleStarted] = useState(false);
+  // TEMP: force presale UI open for PayPal testing (re-enable countdown later)
+  const [isPresaleStarted] = useState(true);
 
   const [solAmount, setSolAmount] = useState('1');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -94,39 +94,6 @@ export default function PresaleOverview() {
     loadPrice();
   }, []);
 
-  // --- PRESALE TIMER / LEVEL LOGIK ---
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-
-      if (now >= presaleStart) {
-        // Presale ist gestartet → Level anhand Zeit berechnen
-        setIsPresaleStarted(true);
-
-        const diffTime = Math.floor(
-          (now.getTime() - presaleStart.getTime()) / 1000
-        );
-        const levelDuration = 60 * 60 * 24 * 14; // 14 Tage in Sekunden
-        const currentIndex = Math.min(
-          Math.floor(diffTime / levelDuration),
-          levels.length - 1
-        );
-        setActiveLevelIndex(currentIndex);
-      } else {
-        // Presale noch nicht gestartet → Countdown anzeigen
-        setIsPresaleStarted(false);
-
-        const diff = presaleStart.getTime() - now.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-        setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleWalletBuy = async () => {
     if (!connected || !publicKey) {
@@ -260,169 +227,156 @@ export default function PresaleOverview() {
 
       <div className={styles.box}>
         <h2 className={styles.title}>Presale Overview</h2>
+        <>
+          {/* LEVEL STACK */}
+          <div className={styles.levelStack}>
+            <div className={styles.levelCardCurrent}>
+              <div className={styles.levelHeaderRow}>
+                <div>
+                  <p className={styles.levelLabel}>Current Level</p>
+                  <p className={styles.levelNumber}>
+                    Level {currentLevel.level}
+                    <span className={styles.levelTotal}> / 10</span>
+                  </p>
+                  <p className={styles.levelSubLabel}>
+                    Phase {currentLevel.level} of 10
+                  </p>
+                </div>
 
-        {/* Wenn Presale noch nicht gestartet ist → nur Countdown */}
-        {!isPresaleStarted ? (
-          <div className={styles.countdownBox}>
-            <p>Presale starts in:</p>
-            <p className={styles.timer}>{countdown}</p>
-            <p className={styles.helperText}>
-              Level 1 opens automatically at launch. Best MEMEX rate for early
-              supporters.
-            </p>
+                <div className={styles.levelRateBlock}>
+                  <p className={styles.levelRateLabel}>Rate</p>
+                  <p className={styles.levelRateValue}>
+                    1 SOL = {currentLevel.rate.toLocaleString()} MEMEX
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${currentProgress}%` }}
+                ></div>
+              </div>
+              <div className={styles.levelMetaRow}>
+                <p className={styles.percent}>{currentProgress}% Sold</p>
+                <p className={styles.levelDuration}>
+                  Max. {currentLevel.durationDays} days or until sold out
+                </p>
+              </div>
+              <p className={styles.nftTeaser}>🔥 Random NFT drops in this level!</p>
+            </div>
+
+            {nextLevel && (
+              <div className={styles.levelCardNext}>
+                <p className={styles.levelLabel}>Next Level</p>
+                <p className={styles.levelNumberNext}>
+                  Level {nextLevel.level} / 10
+                </p>
+                <p className={styles.levelRateNext}>
+                  1 SOL = {nextLevel.rate.toLocaleString()} MEMEX
+                </p>
+                <p className={styles.levelHint}>
+                  Starts after full sell-out or in {nextLevel.durationDays} days.
+                </p>
+              </div>
+            )}
           </div>
-        ) : (
-          <>
-            {/* LEVEL STACK */}
-            <div className={styles.levelStack}>
-              <div className={styles.levelCardCurrent}>
-                <div className={styles.levelHeaderRow}>
-                  <div>
-                    <p className={styles.levelLabel}>Current Level</p>
-                    <p className={styles.levelNumber}>
-                      Level {currentLevel.level}
-                      <span className={styles.levelTotal}> / 10</span>
-                    </p>
-                    <p className={styles.levelSubLabel}>
-                      Phase {currentLevel.level} of 10
-                    </p>
-                  </div>
 
-                  <div className={styles.levelRateBlock}>
-                    <p className={styles.levelRateLabel}>Rate</p>
-                    <p className={styles.levelRateValue}>
-                      1 SOL = {currentLevel.rate.toLocaleString()} MEMEX
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${currentProgress}%` }}
-                  ></div>
-                </div>
-                <div className={styles.levelMetaRow}>
-                  <p className={styles.percent}>{currentProgress}% Sold</p>
-                  <p className={styles.levelDuration}>
-                    Max. {currentLevel.durationDays} days or until sold out
-                  </p>
-                </div>
-                <p className={styles.nftTeaser}>🔥 Random NFT drops in this level!</p>
-              </div>
-
-              {nextLevel && (
-                <div className={styles.levelCardNext}>
-                  <p className={styles.levelLabel}>Next Level</p>
-                  <p className={styles.levelNumberNext}>
-                    Level {nextLevel.level} / 10
-                  </p>
-                  <p className={styles.levelRateNext}>
-                    1 SOL = {nextLevel.rate.toLocaleString()} MEMEX
-                  </p>
-                  <p className={styles.levelHint}>
-                    Starts after full sell-out or in {nextLevel.durationDays} days.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* BUY AREA */}
-            <div className={styles.buyBox}>
-              <div className={styles.amountRow}>
-                <div className={styles.amountLeft}>
-                  <label className={styles.amountLabel}>
-                    SOL Amount
-                    <input
-                      type="number"
-                      min="0.1"
-                      step="0.1"
-                      value={solAmount}
-                      onChange={(e) => setSolAmount(e.target.value)}
-                      className={styles.solInput}
-                    />
-                  </label>
-                </div>
-                <div className={styles.amountRight}>
-                  <p>
-                    ≈ EUR{' '}
-                    <span>
-                      {solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}
-                    </span>
-                  </p>
-                  <p>
-                    You get&nbsp;
-                    <span>{memexAmount.toLocaleString()} MEMEX</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.paymentGrid}>
-                {/* WALLET */}
-                <div className={styles.walletBox}>
-                  <p className={styles.blockTitle}>Pay with your Solana wallet</p>
-                  {!connected ? (
-                    <>
-                      <div className={styles.walletConnectWrapper}>
-                        <WalletButton />
-                      </div>
-                      <p className={styles.helperText}>
-                        Connect your wallet first, then confirm the transaction to
-                        lock your MEMEX.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className={styles.buyButton}
-                        onClick={handleWalletBuy}
-                        disabled={isProcessing}
-                      >
-                        {isProcessing ? 'Processing…' : 'Buy MEMEX with Wallet'}
-                      </button>
-                      <p className={styles.walletInfo}>
-                        Connected: <span>{shortWallet}</span>
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* CREDIT CARD */}
-                <div className={styles.cardBox}>
-                  <p className={styles.blockTitle}>Or pay easily by credit card</p>
+          {/* BUY AREA */}
+          <div className={styles.buyBox}>
+            <div className={styles.amountRow}>
+              <div className={styles.amountLeft}>
+                <label className={styles.amountLabel}>
+                  SOL Amount
                   <input
-                    type="email"
-                    placeholder="Email (optional, for confirmations)"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={styles.emailInput}
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={solAmount}
+                    onChange={(e) => setSolAmount(e.target.value)}
+                    className={styles.solInput}
                   />
-
-                  <p className={styles.helperText}>
-                    Credit card total:{' '}
-                    <strong>
-                      {solPrice ? `${cardEurAmount.toFixed(2)} €` : 'Loading…'}
-                    </strong>{' '}
-                    (incl. 2% fee)
-                  </p>
-
-                  <button
-                    className={styles.cardButton}
-                    onClick={handleCreditCardBuy}
-                    disabled={isCardProcessing || !solPrice}
-                  >
-                    {isCardProcessing ? 'Redirecting…' : 'Continue with Credit Card'}
-                  </button>
-                  {cardError && <p className={styles.errorText}>{cardError}</p>}
-                  <p className={styles.helperText}>
-                    Payments are processed securely via NOWPayments.
-                    Your MEMEX allocation will always be linked to your wallet.
-                  </p>
-                </div>
+                </label>
+              </div>
+              <div className={styles.amountRight}>
+                <p>
+                  ≈ EUR{' '}
+                  <span>
+                    {solPrice ? `${eurAmount.toFixed(2)} €` : 'Loading…'}
+                  </span>
+                </p>
+                <p>
+                  You get&nbsp;
+                  <span>{memexAmount.toLocaleString()} MEMEX</span>
+                </p>
               </div>
             </div>
-          </>
-        )}
+
+            <div className={styles.paymentGrid}>
+              {/* WALLET */}
+              <div className={styles.walletBox}>
+                <p className={styles.blockTitle}>Pay with your Solana wallet</p>
+                {!connected ? (
+                  <>
+                    <div className={styles.walletConnectWrapper}>
+                      <WalletButton />
+                    </div>
+                    <p className={styles.helperText}>
+                      Connect your wallet first, then confirm the transaction to
+                      lock your MEMEX.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className={styles.buyButton}
+                      onClick={handleWalletBuy}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? 'Processing…' : 'Buy MEMEX with Wallet'}
+                    </button>
+                    <p className={styles.walletInfo}>
+                      Connected: <span>{shortWallet}</span>
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* CREDIT CARD */}
+              <div className={styles.cardBox}>
+                <p className={styles.blockTitle}>Or pay easily by credit card</p>
+                <input
+                  type="email"
+                  placeholder="Email (optional, for confirmations)"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={styles.emailInput}
+                />
+
+                <p className={styles.helperText}>
+                  Credit card total:{' '}
+                  <strong>
+                    {solPrice ? `${cardEurAmount.toFixed(2)} €` : 'Loading…'}
+                  </strong>{' '}
+                  (incl. 2% fee)
+                </p>
+
+                <button
+                  className={styles.cardButton}
+                  onClick={handleCreditCardBuy}
+                  disabled={isCardProcessing || !solPrice}
+                >
+                  {isCardProcessing ? 'Redirecting…' : 'Continue with Credit Card'}
+                </button>
+                {cardError && <p className={styles.errorText}>{cardError}</p>}
+                <p className={styles.helperText}>
+                  Payments are processed securely via NOWPayments.
+                  Your MEMEX allocation will always be linked to your wallet.
+                </p>
+              </div>
+            </div>
+          </div>
+        </>
       </div>
 
       {isSuccess && (
