@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type PayPalSupportCheckoutProps = {
   wallet: string | null;
@@ -50,6 +50,21 @@ export default function PayPalSupportCheckout({
 
   const [packIndex, setPackIndex] = useState<number>(defaultPackIndex);
 
+  const [manualWallet, setManualWallet] = useState<string>('');
+
+  // keep manual input in sync if wallet becomes available
+  useEffect(() => {
+    if (wallet && wallet.length > 0) setManualWallet('');
+  }, [wallet]);
+
+  const effectiveWallet = (wallet && wallet.length > 0) ? wallet : (manualWallet.trim() || null);
+
+  const isLikelySolanaAddress = (addr: string) => {
+    // very lightweight check (base58-ish + expected length range)
+    const a = addr.trim();
+    return a.length >= 32 && a.length <= 44 && /^[1-9A-HJ-NP-Za-km-z]+$/.test(a);
+  };
+
   const selectedBaseEur = PACKS[packIndex]?.baseEur ?? 100;
   const selectedTotalEur = Number((selectedBaseEur * feeMultiplier).toFixed(2));
 
@@ -60,14 +75,14 @@ export default function PayPalSupportCheckout({
   const derivedMemex = Math.floor(selectedBaseEur * memexPerEur);
   const derivedSol = Number((selectedBaseEur * solPerEur).toFixed(6));
 
-  const canPay = Boolean(wallet);
+  const canPay = Boolean(effectiveWallet) && isLikelySolanaAddress(effectiveWallet as string);
 
   const createOrder = async (): Promise<string> => {
     const res = await fetch('/api/paypal/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        wallet,
+        wallet: effectiveWallet,
         level,
         // Use the selected pack-derived values
         solAmount: derivedSol,
@@ -98,7 +113,7 @@ export default function PayPalSupportCheckout({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         orderID,
-        wallet,
+        wallet: effectiveWallet,
         level,
         solAmount: derivedSol,
         memexAmount: derivedMemex,
@@ -177,7 +192,34 @@ export default function PayPalSupportCheckout({
         </div>
       </div>
 
-      {!canPay && (
+      {!wallet && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+            No wallet connected. Paste your Solana wallet address so we can assign your MEMEX.
+          </p>
+          <input
+            value={manualWallet}
+            onChange={(e) => setManualWallet(e.target.value)}
+            placeholder="Your Solana wallet address (e.g. Phantom)"
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: 12,
+              border: '1px solid rgba(200,170,255,0.28)',
+              background: 'rgba(17, 17, 34, 0.55)',
+              color: '#fff',
+              outline: 'none',
+            }}
+          />
+          {manualWallet.trim().length > 0 && !isLikelySolanaAddress(manualWallet) && (
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+              Please enter a valid Solana address (32–44 chars).
+            </p>
+          )}
+        </div>
+      )}
+
+      {wallet && !canPay && (
         <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
           Please connect your wallet first so we can assign your MEMEX.
         </p>
@@ -194,6 +236,7 @@ export default function PayPalSupportCheckout({
           fontWeight: 800,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
+          color: '#3b2100',
           cursor: canPay ? 'pointer' : 'not-allowed',
           opacity: canPay ? 1 : 0.55,
           border: '1px solid rgba(255, 248, 210, 0.9)',
