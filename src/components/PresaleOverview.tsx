@@ -269,15 +269,10 @@ export default function PresaleOverview() {
 
                 {/* PAYPAL */}
                 <div className={styles.cardBox}>
-                  <p className={styles.blockTitle}>Or support via PayPal</p>
-                  <p className={styles.helperText}>
-                    Choose a support package and complete checkout with PayPal. Your MEMEX allocation will be linked to your connected wallet.
-                  </p>
-
                   <PayPalSupportCheckout walletAddress={publicKey?.toBase58() || null} />
 
-                  <p className={styles.helperText}>
-                    Payments are processed securely via PayPal. MEMEX will be claimable after the presale.
+                  <p className={styles.helperText} style={{ marginTop: 14 }}>
+                    MEMEX will be claimable after the presale. Your support is linked to your connected wallet.
                   </p>
                 </div>
               </div>
