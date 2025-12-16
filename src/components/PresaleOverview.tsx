@@ -12,6 +12,7 @@ import {
 } from '@solana/web3.js';
 import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
+import PayPalSupportCheckout from '@/components/PayPalSupportCheckout';
 
 // Presale-Startzeit (20.12. 20:00 US-Time ~ 21.12. 01:00 UTC)
 const presaleStart = new Date('2025-12-21T01:00:00Z');
@@ -20,9 +21,6 @@ const presaleStart = new Date('2025-12-21T01:00:00Z');
 const treasuryWallet = new PublicKey(
   '42MZFG1imQ9eE6z3YNgC8LgeFVH3u8csppbnRNDAdtYw'
 );
-
-// Kreditkartenaufschlag (z.B. 2 % Gebühr)
-const CARD_FEE_MULTIPLIER = 1.02;
 
 const levels = [
   { level: 1, rate: 1800000, durationDays: 14 },
@@ -44,13 +42,9 @@ export default function PresaleOverview() {
 
   const [solAmount, setSolAmount] = useState('1');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isCardProcessing, setIsCardProcessing] = useState(false);
 
   const [isSuccess, setIsSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
-
-  const [email, setEmail] = useState('');
-  const [cardError, setCardError] = useState<string | null>(null);
 
   const [solPrice, setSolPrice] = useState<number | null>(null); // Live SOL/EUR Preis
 
@@ -71,9 +65,6 @@ export default function PresaleOverview() {
 
   // Basis-EUR-Wert (ohne Gebühr), wenn Preis noch nicht da: 0
   const eurAmount = solPrice ? solAmountNumber * solPrice : 0;
-
-  // EUR-Betrag inkl. 2 % Kreditkartenaufschlag
-  const cardEurAmount = eurAmount * CARD_FEE_MULTIPLIER;
 
   // --- SOL-PREIS von CoinGecko laden ---
   useEffect(() => {
@@ -145,68 +136,6 @@ export default function PresaleOverview() {
       alert('Transaction failed. Please try again.');
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const handleCreditCardBuy = async () => {
-    setCardError(null);
-
-    if (!connected || !publicKey) {
-      setCardError(
-        'Please connect your wallet first so we can assign your MEMEX.'
-      );
-      return;
-    }
-
-    if (!solAmountNumber || solAmountNumber <= 0) {
-      setCardError('Please enter a valid SOL amount.');
-      return;
-    }
-
-    if (!solPrice) {
-      setCardError('Price is still loading. Please wait a moment and try again.');
-      return;
-    }
-
-    try {
-      setIsCardProcessing(true);
-
-      const res = await fetch('/api/nowpayments/create-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          wallet: publicKey.toBase58(),
-          level: currentLevel.level,
-          memexAmount,
-          solAmount: solAmountNumber,
-          // Für Kreditkarte benutzen wir den Betrag MIT 2 % Gebühr
-          eurAmount: cardEurAmount,
-          baseEurAmount: eurAmount,
-          email: email || null,
-          paymentMethod: 'credit_card',
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        console.error('NOWPayments create-invoice error:', data);
-        setCardError('Payment initialization failed. Please try again.');
-        return;
-      }
-
-      const data = await res.json();
-      if (!data.invoiceUrl) {
-        setCardError('No payment link returned from payment gateway.');
-        return;
-      }
-
-      // Weiterleitung zu NOWPayments
-      window.location.href = data.invoiceUrl as string;
-    } catch (err) {
-      console.error(err);
-      setCardError('Unexpected error. Please try again.');
-    } finally {
-      setIsCardProcessing(false);
     }
   };
 
@@ -342,36 +271,19 @@ export default function PresaleOverview() {
                 )}
               </div>
 
-              {/* CREDIT CARD */}
+              {/* PAYPAL */}
               <div className={styles.cardBox}>
-                <p className={styles.blockTitle}>Or pay easily by credit card</p>
-                <input
-                  type="email"
-                  placeholder="Email (optional, for confirmations)"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={styles.emailInput}
-                />
-
+                <p className={styles.blockTitle}>Or support via PayPal</p>
                 <p className={styles.helperText}>
-                  Credit card total:{' '}
-                  <strong>
-                    {solPrice ? `${cardEurAmount.toFixed(2)} €` : 'Loading…'}
-                  </strong>{' '}
-                  (incl. 2% fee)
+                  Choose a support package and complete checkout with PayPal.
+                  Your MEMEX allocation will be linked to your connected wallet.
                 </p>
 
-                <button
-                  className={styles.cardButton}
-                  onClick={handleCreditCardBuy}
-                  disabled={isCardProcessing || !solPrice}
-                >
-                  {isCardProcessing ? 'Redirecting…' : 'Continue with Credit Card'}
-                </button>
-                {cardError && <p className={styles.errorText}>{cardError}</p>}
+                <PayPalSupportCheckout />
+
                 <p className={styles.helperText}>
-                  Payments are processed securely via NOWPayments.
-                  Your MEMEX allocation will always be linked to your wallet.
+                  Payments are processed securely via PayPal. MEMEX will be claimable
+                  after the presale.
                 </p>
               </div>
             </div>
