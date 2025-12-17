@@ -63,7 +63,7 @@
 .heroContent {
   position: relative;
   z-index: 2;
-  margin-top: 44px;
+  margin-top: 78px;
   text-align: center;
   color: white;
 }
@@ -130,8 +130,8 @@
 
 .steamTeaser {
   display: inline-block;
-  margin-top: 10px;
-  margin-bottom: 14px;
+  margin-top: 0;
+  margin-bottom: 22px;
 
   padding: 14px 28px;
   border-radius: 999px;
@@ -154,7 +154,7 @@
 
   animation: steamPulse 2.4s ease-in-out infinite;
 }
-
+∂
 .steamTeaser::after {
   content: '';
   position: absolute;
