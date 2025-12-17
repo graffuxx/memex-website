@@ -18,13 +18,13 @@ export default function HeroSection() {
 
   <div className={styles.heroContent}>
     
-<div className={styles.steamTeaser}>
+<div className={styles.steamTeaser} aria-label="Coming soon on Steam">
+  <span className={styles.steamTeaserText}>COMING SOON ON STEAM!</span>
   <img
     src="/steam-logo.png"
     alt="Steam"
     className={styles.steamLogo}
   />
-  <span>COMING SOON ON STEAM!</span>
 </div>
 
     <a href="/presale" className={styles.cta}>Join Presale</a>
