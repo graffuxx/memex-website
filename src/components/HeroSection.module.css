@@ -190,3 +190,16 @@
   55%  { transform: translateX(280%) skewX(-18deg); opacity: 0.95; }
   100% { transform: translateX(280%) skewX(-18deg); opacity: 0; }
 }
+
+/* ===== Mobile fixes: logo + CTA sizing ===== */
+@media (max-width: 768px) {
+  .logoOverlay img {
+    max-width: 456px; /* 20% smaller than 570px */
+  }
+
+  .cta {
+    padding: 12px 28px; /* ~35% smaller overall */
+    font-size: 13px;
+    letter-spacing: 0.16em;
+  }
+}
