@@ -18,9 +18,6 @@ export default function HeroSection() {
 
   <div className={styles.heroContent}>
     
-    <p className={styles.subtitle}>
-      A meme-fueled Web3 card game powered by strategy and community.
-    </p>
 <div className={styles.steamTeaser}>COMING SOON ON STEAM!</div>
 
     <a href="/presale" className={styles.cta}>Join Presale</a>
