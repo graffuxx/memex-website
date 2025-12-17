@@ -52,7 +52,7 @@
   justify-content: center;
 
   /* Offset nur am Content (nicht am ganzen Section-Container) */
-  margin-top: 170px; /* Platz für Header + Ticker */
+  margin-top: 190px; /* Platz für Header + Ticker */
 }
 
 .logoOverlay img {
@@ -63,9 +63,14 @@
 .heroContent {
   position: relative;
   z-index: 2;
-  margin-top: 78px;
+  margin-top: 34px;
   text-align: center;
   color: white;
+
+  /* align Steam teaser + Join Presale perfectly centered in a vertical stack */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .subtitle {
@@ -80,7 +85,7 @@
   align-items: center;
   justify-content: center;
 
-  margin-top: 28px;
+  margin-top: 10px;
   padding: 16px 40px;
 
   font-size: 15px;
@@ -131,12 +136,12 @@
 .steamTeaser {
   display: inline-block;
   margin-top: 0;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 
-  padding: 14px 28px;
+  padding: 18px 36px;
   border-radius: 999px;
 
-  font-size: 20px;
+  font-size: 34px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
 
@@ -154,7 +159,7 @@
 
   animation: steamPulse 2.4s ease-in-out infinite;
 }
-∂
+
 .steamTeaser::after {
   content: '';
   position: absolute;
