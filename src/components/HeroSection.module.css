@@ -52,7 +52,7 @@
   justify-content: center;
 
   /* Offset nur am Content (nicht am ganzen Section-Container) */
-  margin-top: 140px; /* Platz für Header + Ticker */
+  margin-top: 170px; /* Platz für Header + Ticker */
 }
 
 .logoOverlay img {
@@ -70,7 +70,8 @@
 
 .subtitle {
   margin-top: 16px;
-  font-size: 16px;
+  font-size: 19px;
+  letter-spacing: 0.06em;
   opacity: 0.85;
 }
 
