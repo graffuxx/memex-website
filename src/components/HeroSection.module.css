@@ -134,11 +134,16 @@
 }
 
 .steamTeaser {
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
   margin-top: 0;
   margin-bottom: 18px;
 
-  padding: 18px 36px;
+  padding: 20px 38px;
   border-radius: 999px;
 
   font-size: 34px;
@@ -158,6 +163,19 @@
   overflow: hidden;
 
   animation: steamPulse 2.4s ease-in-out infinite;
+}
+
+.steamLogo {
+  width: 92px;
+  height: auto;
+  display: block;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 14px rgba(255, 215, 130, 0.35));
+}
+
+.steamTeaserText {
+  display: block;
+  line-height: 1.05;
 }
 
 .steamTeaser::after {
@@ -201,5 +219,14 @@
     padding: 12px 28px; /* ~35% smaller overall */
     font-size: 13px;
     letter-spacing: 0.16em;
+  }
+
+  .steamTeaser {
+    font-size: 28px;
+    padding: 18px 28px;
+  }
+
+  .steamLogo {
+    width: 72px;
   }
 }
