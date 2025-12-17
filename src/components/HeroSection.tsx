@@ -18,7 +18,14 @@ export default function HeroSection() {
 
   <div className={styles.heroContent}>
     
-<div className={styles.steamTeaser}>COMING SOON ON STEAM!</div>
+<div className={styles.steamTeaser}>
+  <img
+    src="/steam-logo.png"
+    alt="Steam"
+    className={styles.steamLogo}
+  />
+  <span>COMING SOON ON STEAM!</span>
+</div>
 
     <a href="/presale" className={styles.cta}>Join Presale</a>
   </div>
