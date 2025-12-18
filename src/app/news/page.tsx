@@ -2,7 +2,7 @@ import Script from "next/script";
 import styles from "./page.module.css";
 
 export default function NewsPage() {
-  const X_HANDLE = "memex_duelverse"; // ohne @
+  const X_HANDLE = "MemeX_Duelverse"; // ohne @
 
   return (
     <main className={styles.page}>
