@@ -27,7 +27,7 @@ export default function SocialsSection({ mode = 'section' }: Props) {
         <h2 className={styles.title}>FOLLOW THE DUELVERSE</h2>
 
         <div className={styles.iconRow}>
-          <a className={styles.iconBtn} href="#" aria-label="X">
+          <a className={styles.iconBtn} href="https://x.com/memex_duelverse?s=21&t=vAokJAlXotJ1cazmgwO3Bw" aria-label="X">
             <span className={styles.icon}>
               {/* X */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -36,7 +36,7 @@ export default function SocialsSection({ mode = 'section' }: Props) {
             </span>
           </a>
 
-          <a className={styles.iconBtn} href="#" aria-label="Discord">
+          <a className={styles.iconBtn} href="https://www.facebook.com/share/17qZxiYcVV/?mibextid=wwXIfr" aria-label="Discord">
             <span className={styles.icon}>
               {/* Discord */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -45,7 +45,7 @@ export default function SocialsSection({ mode = 'section' }: Props) {
             </span>
           </a>
 
-          <a className={styles.iconBtn} href="#" aria-label="Instagram">
+          <a className={styles.iconBtn} href="https://www.instagram.com/memex.duelverse?igsh=eTZ3ZW44ZzdxZTJx&utm_source=qr" aria-label="Instagram">
             <span className={styles.icon}>
               {/* Instagram */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -54,7 +54,7 @@ export default function SocialsSection({ mode = 'section' }: Props) {
             </span>
           </a>
 
-          <a className={styles.iconBtn} href="#" aria-label="Telegram">
+          <a className={styles.iconBtn} href="https://t.me/memexduelverse" aria-label="Telegram">
             <span className={styles.icon}>
               {/* Telegram */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -63,7 +63,7 @@ export default function SocialsSection({ mode = 'section' }: Props) {
             </span>
           </a>
 
-          <a className={styles.iconBtn} href="#" aria-label="YouTube">
+          <a className={styles.iconBtn} href="https://www.youtube.com/channel/UCEy846nxUnQmugRWLRMjFNQ" aria-label="YouTube">
             <span className={styles.icon}>
               {/* YouTube */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
