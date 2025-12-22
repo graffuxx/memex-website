@@ -22,7 +22,7 @@ export default function HeroSection() {
   <span className={styles.steamTeaserText}>COMING SOON ON STEAM!</span>
   <img
     src="/steam-logo.png"
-    alt="Steam"
+    alt="Coming soon on Steam"
     className={styles.steamLogo}
   />
 </div>
