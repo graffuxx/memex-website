@@ -14,8 +14,8 @@ import { supabase } from '@/lib/supabaseClient';
 import WalletButton from '@/components/Wallet/WalletButton';
 import PayPalSupportCheckout from '@/components/PayPalSupportCheckout';
 
-// Presale LOCK until 27.12.2025, 18:00 New York (EST) => 23:00 UTC
-const PRESALE_START_UTC = new Date('2025-12-27T23:00:00.000Z');
+// Presale LOCK until 03.01.2026, 18:00 New York (EST) => 23:00 UTC
+const PRESALE_START_UTC = new Date('2026-01-03T23:00:00.000Z');
 
 // Treasury-Wallet für eingehende SOL
 const treasuryWallet = new PublicKey(
