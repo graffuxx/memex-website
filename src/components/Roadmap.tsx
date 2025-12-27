@@ -25,32 +25,33 @@ export default function Roadmap() {
 
         <div className={styles.grid}>
           <div className={styles.card}>
-            <h3>Q4 2025</h3>
-            <p>Presale Launch – Support the Duelverse and secure your tokens.</p>
-          </div>
-          <div className={styles.card}>
             <h3>Early 2026</h3>
-            <p>Staking Live – Earn rewards by staking your MEMEX tokens.</p>
+            <p>Presale Launch – Support the Duelverse and secure your MEMEX tokens.</p>
           </div>
-          <div className={styles.card}>
-            <h3>Spring 2026</h3>
-            <p>NFT Card Shop – Limited early access with collectible MemeX NFTs.</p>
-          </div>
+
           <div className={styles.card}>
             <h3>Spring 2026</h3>
             <p>Exchange Listings – MEMEX hits the markets.</p>
           </div>
+
           <div className={styles.card}>
             <h3>Summer 2026</h3>
-            <p>Alpha Launch on STEAM – Early playable version for supporters.</p>
+            <p>NFT Card Shop – Limited early access with collectible MemeX NFTs.</p>
           </div>
+
+          <div className={styles.card}>
+            <h3>Fall 2026</h3>
+            <p>Alpha Launch on STEAM – First playable version for early supporters.</p>
+          </div>
+
           <div className={styles.card}>
             <h3>Winter 2026</h3>
-            <p>Final Game Release – Available on PC, Android & Apple.</p>
+            <p>Beta Release on STEAM – Expanded access and gameplay testing.</p>
           </div>
+
           <div className={styles.card}>
-            <h3>2027+</h3>
-            <p>Marketplace 2.0 – In-game economy powered by SOL, MEMEX & NFTs.</p>
+            <h3>2027</h3>
+            <p>Full Game Launch on STEAM – Official release of MemeX Duelverse.</p>
           </div>
         </div>
 
