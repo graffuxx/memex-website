@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import ModernHeader from '@/components/Layout/ModernHeader';
 import WalletConnectionProvider from '@/components/Wallet/WalletConnectionProvider';
 import LayoutWrapper from '@/components/Layout/LayoutWrapper';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'MemeX Duelverse – MEMEX Presale',
@@ -48,6 +49,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Google Ads Tag */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17916340454"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17916340454');
+          `}
+        </Script>
+      </head>
       <body style={{ margin: 0, padding: 0 }}>
         <WalletConnectionProvider>
           <ModernHeader />
