@@ -200,8 +200,7 @@ export default function PresaleOverview() {
             </div>
 
             <p className={styles.presaleLockedSub}>
-              Unlock: Jan 31, 2026 — 6:00 PM New York / 11:00 PM UTC / 12:00 AM
-              Berlin
+              Unlock: Jan 31, 2026 — 6:00 PM New York
             </p>
           </div>
         ) : (
