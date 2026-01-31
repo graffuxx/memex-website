@@ -1,8 +1,31 @@
-import Script from "next/script";
+"use client";
+import { useEffect } from "react";
 import styles from "./page.module.css";
 
 export default function NewsPage() {
   const X_HANDLE = "MemeX_Duelverse"; // ohne @
+
+  useEffect(() => {
+    // Re-load X/Twitter widgets on client-side route transitions
+    const w = window as any;
+    if (w.twttr?.widgets?.load) {
+      w.twttr.widgets.load();
+      return;
+    }
+
+    // If the script isn't present yet, inject it once
+    const existing = document.querySelector('script[src="https://platform.twitter.com/widgets.js"]');
+    if (existing) return;
+
+    const s = document.createElement("script");
+    s.src = "https://platform.twitter.com/widgets.js";
+    s.async = true;
+    s.onload = () => {
+      const ww = window as any;
+      ww.twttr?.widgets?.load?.();
+    };
+    document.body.appendChild(s);
+  }, []);
 
   return (
     <main className={styles.page}>
@@ -46,7 +69,7 @@ export default function NewsPage() {
             <div className={styles.timeline}>
               <a
                 className="twitter-timeline"
-                href={`https://twitter.com/${X_HANDLE}`}
+                href={`https://x.com/${X_HANDLE}`}
                 data-theme="dark"
                 data-height="820"
                 data-chrome="noheader nofooter transparent"
@@ -54,11 +77,6 @@ export default function NewsPage() {
               >
                 Posts by @{X_HANDLE}
               </a>
-
-              <Script
-                src="https://platform.twitter.com/widgets.js"
-                strategy="afterInteractive"
-              />
             </div>
           </div>
         </div>
