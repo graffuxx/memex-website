@@ -70,7 +70,7 @@ export default function PresaleOverview() {
   const nextLevel = levels[activeLevelIndex + 1];
 
   // TODO: später dynamisch aus DB
-  const currentProgress = 0;
+  const currentProgress = 13;
 
   const solAmountNumber = Number(solAmount) || 0;
   const memexAmount = solAmountNumber * currentLevel.rate;
