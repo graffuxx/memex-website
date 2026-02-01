@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import styles from './TickerBar.module.css';
 
 const messages = [
-  '⏳ MEMEX Presale starts Jan 31 – Level 1 is coming!',
+  '🚀 MEMEX Presale is live now – join us!',
   '💎 Level 1 = Best MEMEX rates – early supporters win!',
   '🎁 Random NFT drops for early presale buyers!',
   '⚔️ Help us fund the Duelverse – MEMEX is community-powered!',
