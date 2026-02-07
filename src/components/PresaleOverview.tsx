@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styles from './PresaleOverview.module.css';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
@@ -61,10 +61,15 @@ export default function PresaleOverview() {
   const [solPrice, setSolPrice] = useState<number | null>(null); // Live SOL/EUR Preis
 
   const { publicKey, sendTransaction, connected } = useWallet();
-  const connection = new Connection(
-    process.env.NEXT_PUBLIC_HELIUS_RPC_URL ||
-      'https://api.mainnet-beta.solana.com'
-  );
+
+  const rpcUrl =
+    process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
+
+  const connection = useMemo(() => {
+    return new Connection(rpcUrl, {
+      commitment: 'confirmed',
+    });
+  }, [rpcUrl]);
 
   const currentLevel = levels[activeLevelIndex];
   const nextLevel = levels[activeLevelIndex + 1];
@@ -106,10 +111,21 @@ export default function PresaleOverview() {
     try {
       setIsProcessing(true);
 
-      const lamports = solAmountNumber * LAMPORTS_PER_SOL;
-      if (!lamports || lamports <= 0) return;
+      const solAmountNumber = Number(solAmount);
+      if (!Number.isFinite(solAmountNumber) || solAmountNumber <= 0) {
+        alert('Please enter a valid SOL amount.');
+        return;
+      }
 
-      const transaction = new Transaction().add(
+      // IMPORTANT: lamports must be an integer
+      const lamports = Math.round(solAmountNumber * LAMPORTS_PER_SOL);
+      if (!Number.isSafeInteger(lamports) || lamports <= 0) {
+        alert('Invalid amount.');
+        return;
+      }
+
+      // Build transfer transaction
+      const tx = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: treasuryWallet,
@@ -117,8 +133,24 @@ export default function PresaleOverview() {
         })
       );
 
-      const signature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(signature, 'confirmed');
+      // Stronger, less flaky confirmation (blockhash + lastValidBlockHeight)
+      const latest = await connection.getLatestBlockhash('confirmed');
+      tx.feePayer = publicKey;
+      tx.recentBlockhash = latest.blockhash;
+
+      const signature = await sendTransaction(tx, connection, {
+        skipPreflight: false,
+        preflightCommitment: 'processed',
+      });
+
+      await connection.confirmTransaction(
+        {
+          signature,
+          blockhash: latest.blockhash,
+          lastValidBlockHeight: latest.lastValidBlockHeight,
+        },
+        'confirmed'
+      );
 
       const { error } = await supabase.from('presale_orders').insert([
         {
@@ -135,16 +167,31 @@ export default function PresaleOverview() {
       if (error) {
         console.error('Supabase insert error:', error);
         alert(
-          'Purchase succeeded on-chain, but database entry failed. Please contact support with your TX hash.'
+          'On-chain transaction succeeded, but database entry failed. Please contact support with your TX hash.'
         );
       } else {
         setTxHash(signature);
         setIsSuccess(true);
         setSolAmount('1');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Transaction failed:', err);
-      alert('Transaction failed. Please try again.');
+
+      const msg =
+        typeof err?.message === 'string'
+          ? err.message
+          : 'Transaction failed. Please try again.';
+
+      if (msg.toLowerCase().includes('user rejected')) {
+        alert('Transaction cancelled in wallet.');
+        return;
+      }
+      if (msg.toLowerCase().includes('insufficient')) {
+        alert('Insufficient SOL balance (including network fee).');
+        return;
+      }
+
+      alert(msg);
     } finally {
       setIsProcessing(false);
     }
