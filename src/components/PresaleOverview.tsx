@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './PresaleOverview.module.css';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import {
-  Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
   Transaction,
@@ -61,15 +60,7 @@ export default function PresaleOverview() {
   const [solPrice, setSolPrice] = useState<number | null>(null); // Live SOL/EUR Preis
 
   const { publicKey, sendTransaction, connected } = useWallet();
-
-  const rpcUrl =
-    process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
-
-  const connection = useMemo(() => {
-    return new Connection(rpcUrl, {
-      commitment: 'confirmed',
-    });
-  }, [rpcUrl]);
+  const { connection } = useConnection();
 
   const currentLevel = levels[activeLevelIndex];
   const nextLevel = levels[activeLevelIndex + 1];
@@ -177,10 +168,14 @@ export default function PresaleOverview() {
     } catch (err: any) {
       console.error('Transaction failed:', err);
 
+      // Try to extract the most useful details (wallet adapter / web3 errors)
       const msg =
         typeof err?.message === 'string'
           ? err.message
           : 'Transaction failed. Please try again.';
+
+      const logs: string[] | undefined =
+        Array.isArray(err?.logs) ? err.logs : Array.isArray(err?.data?.logs) ? err.data.logs : undefined;
 
       if (msg.toLowerCase().includes('user rejected')) {
         alert('Transaction cancelled in wallet.');
@@ -191,7 +186,20 @@ export default function PresaleOverview() {
         return;
       }
 
-      alert(msg);
+      // Common mismatch: app uses mainnet but wallet/provider uses devnet (or vice versa)
+      if (msg.toLowerCase().includes('blockhash not found')) {
+        alert(
+          'Transaction failed: Blockhash not found. This usually means your app RPC/cluster did not match the wallet cluster. Please refresh and ensure you are on the correct network.'
+        );
+        return;
+      }
+
+      // Show logs if available (helps pinpoint the exact reason)
+      if (logs && logs.length) {
+        alert(`${msg}\n\nLogs:\n${logs.slice(-12).join('\n')}`);
+      } else {
+        alert(msg);
+      }
     } finally {
       setIsProcessing(false);
     }
