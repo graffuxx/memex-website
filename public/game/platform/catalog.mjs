@@ -9,7 +9,7 @@ export const RARITIES = Object.freeze([
 ]);
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},
- {id:'doge',name:'Doge',ruleId:'brain',element:'fire',values:[5,2,5,2,5,5],ability:'hype',quote:'Such strategy. Much wow.',image:'/game/assets/cards/v04/doge.webp'},
+ {id:'doge',name:'Doge',ruleId:'brain',element:'fire',values:[5,2,5,2,5,5],ability:'hype',quote:'Such strategy. Much wow.',image:'/game/assets/cards/frame-v21/swollen-doge.webp'},
  {id:'roll-safe',name:'Roll Safe',ruleId:'trust',element:'stone',values:[5,5,5,3,3,3],ability:'twist',quote:'Can’t lose if you think ahead.',image:'/game/assets/cards/v04/roll-safe.webp'}
 ]);
 export const VARIANTS = Object.freeze(DEFINITIONS.flatMap(card=>RARITIES.map(rarity=>Object.freeze({

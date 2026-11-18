@@ -11,7 +11,7 @@ import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets} from './rules.mjs';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=classics-v04';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=hand-depth-17';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=homepage-frame-21';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=balance-2';
@@ -102,7 +102,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}
  async function flip(uid,owner){const token=generation,c=cardMap.get(uid);moving.add(uid);let changed=false;const ok=await animate(380,t=>{c.group.rotation.set(-Math.PI/2,Math.sin(t*Math.PI)*Math.PI,0);if(t>=.5&&!changed){c.setOwner(owner);changed=true;}});if(!ok||token!==generation)return false;moving.delete(uid);if(ok){c.group.rotation.set(-Math.PI/2,0,0);c.setOwner(owner);}dirty=true;return ok;}
  function initGame(g){cancel();if(arenaId==='painted'){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;if(!cardMap.size){for(const p of g.players)for(const c of [...p.hand,...p.deck])cardMap.set(c.uid,runtime.spawn(c.uid,DEMO_PROFILES[c.id],c.origin,0,rarityOf(c).key));for(const c of Object.values(g.board))cardMap.set(c.uid,runtime.spawn(c.uid,DEMO_PROFILES[c.id],c.controller,c.rotation,rarityOf(c).key));}
   for(const c of [...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)])cardMap.get(c.uid)?.setRarity(rarityOf(c).key);
-  eventPulse=0;for(const c of cardMap.values()){c.setRotation(0);c.setOwner(c.uid.startsWith('demo-0-')?0:1);}
+  eventPulse=0;const cardStates=new Map([...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)].map(c=>[c.uid,c]));for(const c of cardMap.values()){const state=cardStates.get(c.uid);c.setRotation(state?.rotation??0);c.setOwner(state?.controller??state?.origin??0);}
   for(const c of Object.values(g.board)){cardMap.get(c.uid).setOwner(c.controller);cardMap.get(c.uid).setRotation(c.rotation);}
   update(g,{});resize();layout(true);renderer.shadowMap.needsUpdate=true;dirty=true;
  }

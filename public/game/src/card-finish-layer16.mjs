@@ -1,4 +1,4 @@
-import {createCardFoil} from './card-foil.mjs?v=art-owner-16';
+import {createCardFoil} from './card-foil.mjs?v=homepage-frame-21';
 import * as T from '../vendor/three.module.min.js';
 import {cardShape,cardPoints} from './card-prototype.mjs?v=classics-v04';
 import {OWNER_COLORS,rarityOf} from './card-rarities15.mjs';
@@ -6,7 +6,7 @@ import {OWNER_COLORS,rarityOf} from './card-rarities15.mjs';
 function bezel(outer,inner){const shape=cardShape(outer),hole=new T.Path();cardPoints(inner).reverse().forEach(([x,y],i)=>i?hole.lineTo(x,y):hole.moveTo(x,y));hole.closePath();shape.holes.push(hole);return shape;}
 export function createCardFinishLayer(initialRarity='common',owner=0){
  const root=new T.Group();root.name='Rarity finish';const front=new T.Group();front.name='Face-only collector finish';root.add(front);
- const bandGeometry=new T.ExtrudeGeometry(bezel(1.006,.944),{depth:.008,bevelEnabled:true,bevelSegments:2,bevelSize:.003,bevelThickness:.002,steps:1});
+ const bandGeometry=new T.ExtrudeGeometry(bezel(.989,.977),{depth:.008,bevelEnabled:true,bevelSegments:2,bevelSize:.003,bevelThickness:.002,steps:1});
  const surface=document.createElement('canvas');surface.width=surface.height=512;const ctx=surface.getContext('2d');
  const point=([x,y])=>[256+x*250,256-y*250],outer=cardPoints(1.008).map(point),inner=cardPoints(.942).map(point);
  ctx.fillStyle='#8792a7';ctx.fillRect(0,0,512,512);
@@ -18,10 +18,10 @@ export function createCardFinishLayer(initialRarity='common',owner=0){
  const positions=bandGeometry.attributes.position,uv=bandGeometry.attributes.uv;for(let i=0;i<positions.count;i++)uv.setXY(i,positions.getX(i)/2.048+.5,positions.getY(i)/2.048+.5);
  const bandMaterial=new T.MeshStandardMaterial({map:metalTexture,metalness:.5,roughness:.32,emissiveIntensity:.08});
  const band=new T.Mesh(bandGeometry,bandMaterial);band.position.z=.044;front.add(band);
- const ownerGeometry=new T.ShapeGeometry(bezel(1.046,1.008)),ownerMaterial=new T.MeshBasicMaterial({color:OWNER_COLORS[owner],toneMapped:false});
+ const ownerGeometry=new T.ShapeGeometry(bezel(1.021,1.008)),ownerMaterial=new T.MeshBasicMaterial({color:OWNER_COLORS[owner],toneMapped:false});
  // A separate outer hairline conveys controller; a capture never changes the finish.
  for(const sign of [-1,1]){const edge=new T.Mesh(ownerGeometry,ownerMaterial);edge.position.z=sign*.057;if(sign<0)edge.rotation.y=Math.PI;root.add(edge);}
- const glintGeometry=new T.ShapeGeometry(bezel(1.009,.942));
+ const glintGeometry=new T.ShapeGeometry(bezel(.991,.976));
  const glintMaterial=new T.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending,
   uniforms:{uTime:{value:0},uRank:{value:1},uMotion:{value:1},uColor:{value:new T.Color('#ffffff')}},
   vertexShader:'varying vec2 p; void main(){p=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
