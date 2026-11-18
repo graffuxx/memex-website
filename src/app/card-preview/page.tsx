@@ -1,11 +1,2 @@
-'use client';
-
-import CardPreview from '@/components/CardPreview';
-
-export default function CardPreviewPage() {
-  return (
-    <main>
-      <CardPreview />
-    </main>
-  );
-}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/collection');}

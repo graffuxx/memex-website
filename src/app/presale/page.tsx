@@ -1,12 +1,2 @@
-// src/app/presale/page.tsx
-'use client';
-
-import PresaleOverview from '@/components/PresaleOverview';
-
-export default function PresalePage() {
-  return (
-    <main>
-      <PresaleOverview />
-    </main>
-  );
-}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/play');}

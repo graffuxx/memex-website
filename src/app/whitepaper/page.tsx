@@ -1,11 +1,2 @@
-'use client';
-
-import Roadmap from '@/components/Roadmap';
-
-export default function WhitepaperPage() {
-  return (
-    <main>
-      <Roadmap />
-    </main>
-  );
-}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/how-to-play');}

@@ -1,0 +1,3 @@
+import Link from 'next/link';
+export const metadata={title:'Play'};
+export default function Play(){return <div className="play-page"><div className="play-intro"><div><span className="eyebrow">PLAYABLE ALPHA</span><h1>The board is yours.</h1><p>Play against the demo AI. Your selected 15-card deck loads when you enter the arena. No rewards or ranked results in this alpha.</p></div><div className="actions"><Link className="button gold" href="/game/table-demo.html">Enter full-screen arena</Link><Link className="button glass" href="/decks">Change deck</Link></div></div><iframe className="arena-frame" title="MemeX Duelverse playable alpha against demo AI" src="/game/table-demo.html" allow="fullscreen" allowFullScreen loading="lazy"/></div>}

@@ -1,11 +1,2 @@
-'use client';
-
-import FAQ from '@/components/FAQ';
-
-export default function FAQPage() {
-  return (
-    <main>
-      <FAQ />
-    </main>
-  );
-}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/how-to-play');}

@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MemeX Duelverse · Browser game portal
 
-## Getting Started
+Next.js website for memexduelverse.com. The original branding, video and email
+account provider are retained. Presale, coin, wallet and NFT navigation is hidden;
+old purchase pages redirect to the game/shop. Creation of new presale PayPal orders
+is disabled; existing capture handling and purchase history remain untouched.
 
-First, run the development server:
+## Run and verify
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+`npm ci`, `npm test`, `npm run build`, `npm run start`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `/play`: same-origin embedded game plus full-screen entry.
+- `/collection`: common/rare/epic/legendary/mythic variants, owned quantities.
+- `/decks`: exactly 15 owned copies, saved guest draft or authenticated cloud deck.
+- `/account`: existing Supabase email authentication without wallet dependency.
+- `/shop`: truthful development preview; no checkout, prices or rewards enabled.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`public/game/platform/catalog.mjs` is the shared identity, variant and deck contract.
+The SQL seed, React collection and game adapter use the same identifiers. Starter
+allocation is provisional: six common copies per identity; default deck five each.
+Rarity is cosmetic. Only three distinct gameplay identities currently have artwork.
+The alpha deals five cards from 15 and allows nine placements per side, leaving six
+cards unused. The paired round reuses draw order and reverses initiative.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database
 
-## Learn More
+Apply `supabase/migrations/202611180001_duelverse_foundation.sql` once to the existing
+project `vnwvwwukqlbwzqroaqeu`. It adds only `dv_` tables and narrow authenticated RPCs.
+No change to existing accounts or presale tables. Starter allocation is transactional
+and idempotent. Player tables have row security; clients cannot mint cards, currencies,
+cosmetics or match rewards. Deck save validates ownership and exact size in PostgreSQL,
+locks the player row and activates one deck atomically. Tests execute the migration in
+local PostgreSQL-compatible PGlite, including cross-account attacks and invalid saves.
 
-To learn more about Next.js, take a look at the following resources:
+Earned and premium balances, a unique-event reward ledger and cosmetic ownership are
+prepared. No public reward/credit RPC exists. Do not connect rewards to local alpha
+results: an authoritative match service is required first. Boosters, paid currency and
+a later battle pass remain future features; no payout rates or prices are approved.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Game integration and privacy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`public/game` is a separate copy of the approved private prototype. The original
+owner-private Sites project and audience remain unchanged. This copy runs publicly
+under the website's origin, without a ChatGPT gate. Game images are optimized WebP;
+source artwork remains in the original project. The original Three.js license is kept.
 
-## Deploy on Vercel
+The guest draft and selected alpha deck use namespaced browser storage, never as
+proof of account ownership. Logged-in collection and decks use the existing Supabase
+session and protected RPCs. The alpha opponent is local AI; online PvP, verified match
+results, rewards, booster purchases and ranked progression are not implemented.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Publish through the repository's existing Vercel deployment, preserving the domain.
+Do not move the public site to Sites or change the private prototype's permissions.
