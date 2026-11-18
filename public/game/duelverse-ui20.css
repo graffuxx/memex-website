@@ -56,3 +56,9 @@ body.game-table{--dv-purple:#aa58ff;--dv-blue:#397bff;--dv-gold:#ffd787;--dv-lin
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.start-duel{background:#1c122bf2}.start-duel::backdrop{background:#080315cc}}
 /* Keep the header margin inside the game document, avoiding a stray outer scroll edge. */
 body.game-table{display:flow-root}
+
+/* Native modal dialogs make the outer header inert; keep exits inside the top layer. */
+.start-duel .start-navigation{display:flex;justify-content:space-between;gap:12px;margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid #eee0ff26}
+.start-duel .start-navigation a{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border:1px solid #d9b6fa55;border-radius:22px;background:#170c2529;color:#f5e6ff;font:400 14px 'Duelverse Display',Barlow,sans-serif;text-decoration:none}
+.start-duel .start-navigation a:hover{border-color:#ffe2a6;background:#bc87ed20;color:#ffe2a6}
+.start-duel .start-navigation a:focus-visible{outline:2px solid #ffe2a6;outline-offset:3px}
