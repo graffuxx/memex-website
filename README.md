@@ -11,8 +11,9 @@ is disabled; existing capture handling and purchase history remain untouched.
 
 Runtime patch baseline: Next.js 16.0.11, React/React DOM 19.1.10.
 
-- `/play`: loads the active cloud deck or saved guest draft before mounting the
-  same-origin embedded game; full-screen entry uses the same selected deck.
+- `/play`: prepares the active cloud deck or saved guest draft, then navigates
+  directly to the full-window arena. No iframe, outer page chrome or nested page
+  scrolling. The arena header links back to the website and deck builder.
 - `/collection`: common/rare/epic/legendary/mythic variants, owned quantities.
 - `/decks`: exactly 15 owned copies, saved guest draft or authenticated cloud deck.
 - `/account`: existing Supabase email authentication without wallet dependency.

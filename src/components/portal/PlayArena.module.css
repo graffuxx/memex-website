@@ -1,0 +1,21 @@
+.launch {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  overflow: auto;
+  padding: 28px;
+  color: #f8efff;
+  background: #050013;
+  text-align: center;
+}
+.launch img {width: 220px; max-width: 70vw;}
+.launch h1 {font-size: 24px; margin: 0;}
+.launch p {max-width: 540px; font: 16px/1.6 Arial, sans-serif; margin: 0; color: #d1bfdf;}
+.launch nav {display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;}
+.launch a {padding: 12px 22px; border: 1px solid #bb87ec77; border-radius: 999px; background: #31134c; color: #f6e7ff;}
+.launch a:focus-visible {outline: 2px solid #ffd787; outline-offset: 4px;}

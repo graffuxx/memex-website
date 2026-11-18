@@ -54,3 +54,5 @@ body.game-table{--dv-purple:#aa58ff;--dv-blue:#397bff;--dv-gold:#ffd787;--dv-lin
 .start-duel .start-fairness{border-top-color:#e5d7ff21;color:#d9cce6}.start-versus .versus-label{color:#e0c1ff}
 @media(max-width:550px){.start-duel{border-radius:22px;background:linear-gradient(140deg,#6d518e70,#1b102dde)}.start-choices .gesture-art{width:57px;height:57px}.start-choices .gesture-art svg{width:43px;height:43px}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.start-duel{background:#1c122bf2}.start-duel::backdrop{background:#080315cc}}
+/* Keep the header margin inside the game document, avoiding a stray outer scroll edge. */
+body.game-table{display:flow-root}
