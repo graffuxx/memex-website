@@ -31,6 +31,7 @@ export default function PlayerPortal({mode}:Props){
  async function save(){if(!validation.valid||saving)return;setSaving(true);setStatus('');try{
   if(userId){const id=await saveDeck(deckId,name,cards);setDeckId(id);setStatus('Deck saved to your account.');}
   else{localStorage.setItem(DRAFT_KEY,JSON.stringify({version:1,cards,name}));setStatus('Guest draft saved on this browser.');}
+  try{localStorage.setItem(PLAY_KEY,JSON.stringify({version:1,cards,name,inventory,source:userId?'account':'guest'}));}catch{}
   setDirty(false);
  }catch(e){setStatus(e instanceof Error?e.message:'Could not save.');}finally{setSaving(false);}}
  function play(){if(!validation.valid)return;try{localStorage.setItem(PLAY_KEY,JSON.stringify({version:1,cards,name,inventory,source:userId?'account':'guest'}));window.location.assign('/game/table-demo.html');}catch{setStatus('Browser storage is unavailable. Allow site storage, or enter the arena with the default starter deck.');}}

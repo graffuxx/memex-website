@@ -9,7 +9,10 @@ is disabled; existing capture handling and purchase history remain untouched.
 
 `npm ci`, `npm test`, `npm run build`, `npm run start`.
 
-- `/play`: same-origin embedded game plus full-screen entry.
+Runtime patch baseline: Next.js 16.0.11, React/React DOM 19.1.10.
+
+- `/play`: loads the active cloud deck or saved guest draft before mounting the
+  same-origin embedded game; full-screen entry uses the same selected deck.
 - `/collection`: common/rare/epic/legendary/mythic variants, owned quantities.
 - `/decks`: exactly 15 owned copies, saved guest draft or authenticated cloud deck.
 - `/account`: existing Supabase email authentication without wallet dependency.
@@ -25,7 +28,9 @@ cards unused. The paired round reuses draw order and reverses initiative.
 ## Database
 
 Apply `supabase/migrations/202611180001_duelverse_foundation.sql` once to the existing
-project `vnwvwwukqlbwzqroaqeu`. It adds only `dv_` tables and narrow authenticated RPCs.
+project `vnwvwwukqlbwzqroaqeu`. Applied on 18 November 2026; live checks confirm
+three card identities, 15 cosmetic variants, eight row-protected tables and no
+anonymous starter function access. It adds only `dv_` tables and narrow authenticated RPCs.
 No change to existing accounts or presale tables. Starter allocation is transactional
 and idempotent. Player tables have row security; clients cannot mint cards, currencies,
 cosmetics or match rewards. Deck save validates ownership and exact size in PostgreSQL,
