@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import styles from './TickerBar.module.css';
 
 const messages = [
-  '🚀 MEMEX Presale is live now – join us!',
-  '💎 Level 1 = Best MEMEX rates – early supporters win!',
-  '🎁 Random NFT drops for early presale buyers!',
-  '⚔️ Help us fund the Duelverse – MEMEX is community-powered!',
+  'MemeX browser alpha — play the Duelverse!',
+  'Build your own 15-card deck.',
+  'Explore the cards and their artwork variants.',
+  'Play the alpha against the demo opponent.',
 ];
 
 export default function TickerBar() {

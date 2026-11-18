@@ -27,7 +27,7 @@ export default function HeroSection() {
   />
 </div>
 
-    <a href="/presale" className={styles.cta}>Join Presale</a>
+    <a href="/play" className={styles.cta}>Play Alpha</a>
   </div>
 </section>
   );

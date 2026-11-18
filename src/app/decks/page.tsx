@@ -1,3 +1,3 @@
+import BrandPage from '@/components/portal/BrandPage';
 import PlayerPortal from '@/components/portal/PlayerPortal';
-export const metadata={title:'Deck builder'};
-export default function Decks(){return <PlayerPortal mode="decks"/>}
+export default function Page(){return <BrandPage><PlayerPortal mode="decks"/></BrandPage>}

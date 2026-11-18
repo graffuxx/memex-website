@@ -23,7 +23,7 @@ export default function MissionSection() {
         <h2>OUR MISSION</h2>
         <p>
           MemeX empowers players with meme-powered strategy, community-driven gameplay
-          and real ownership through NFTs and Solana integration. This is not just a
+          and personal card collections. This is not just a
           card game – it’s a Memevolution.
         </p>
       </div>

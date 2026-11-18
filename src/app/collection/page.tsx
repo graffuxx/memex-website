@@ -1,3 +1,3 @@
+import BrandPage from '@/components/portal/BrandPage';
 import PlayerPortal from '@/components/portal/PlayerPortal';
-export const metadata={title:'Card collection'};
-export default function Collection(){return <PlayerPortal mode="collection"/>}
+export default function Page(){return <BrandPage><PlayerPortal mode="collection"/></BrandPage>}

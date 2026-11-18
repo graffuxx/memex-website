@@ -17,28 +17,28 @@ export default function ComingSoon() {
         <h2 className={styles.title}>BIG THINGS ARE COMING TO THE DUELVERSE</h2>
         <div className={styles.cardGrid}>
           <div className={styles.card}>
-            <h3>NFT CARD SHOP</h3>
-            <p>Collect, trade and flex MemeX cards. Launching soon!</p>
+            <h3>CARD COLLECTION</h3>
+            <p>Collect and explore MemeX cards and their artwork variants.</p>
           </div>
           <div className={styles.card}>
-            <h3>STAKING</h3>
-            <p>Stake your MemeX tokens and earn juicy rewards. Coming soon!</p>
+            <h3>PLAY REWARDS</h3>
+            <p>Earned game currency for free boosters is planned. Rewards are not active yet.</p>
           </div>
           <div className={styles.card}>
-            <h3>EXCHANGE LISTING</h3>
-            <p>After the presale ends, MemeX will hit the markets. Stay tuned!</p>
+            <h3>ARENA SKINS</h3>
+            <p>More looks for the Duelverse are planned, with the same game rules.</p>
           </div>
           <div className={styles.card}>
             <h3>RELEASE: ALPHA / BETA</h3>
-            <p>Playable test versions will launch on Steam in 2026. All presale participants will receive early access keys.</p>
+            <p>The browser alpha is playable now against a demo opponent.</p>
           </div>
           <div className={styles.card}>
             <h3>FINAL RELEASE</h3>
-            <p>The full game will be released cross-platform: PC – Android – Apple</p>
+            <p>Online duels and further game content are in development.</p>
           </div>
           <div className={styles.card}>
-            <h3>MARKETPLACE 2.0</h3>
-            <p>Trade NFTs, earn crypto rewards, and use SOL, MEMEX and other tokens for in-game purchases. The future of web3 commerce is here.</p>
+            <h3>BOOSTER SHOP</h3>
+            <p>Boosters and cosmetic items are planned. Purchases are not enabled yet.</p>
           </div>
         </div>
       </div>

@@ -1,2 +1,3 @@
+import BrandPage from '@/components/portal/BrandPage';
 import PlayerPortal from '@/components/portal/PlayerPortal';
-export default function Page(){return <PlayerPortal mode="account"/>}
+export default function Page(){return <BrandPage><PlayerPortal mode="account"/></BrandPage>}

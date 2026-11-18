@@ -56,3 +56,12 @@ results, rewards, booster purchases and ranked progression are not implemented.
 
 Publish through the repository's existing Vercel deployment, preserving the domain.
 Do not move the public site to Sites or change the private prototype's permissions.
+
+## Visual integration contract
+
+Preserve the original homepage composition, large centered logo, existing videos,
+floating navigation, animated card showcase, section styles and social/news pages.
+Coin/presale UI stays hidden; only copy and navigation needed for the game changes.
+All added portal CSS must stay inside `.dv-portal`; it must never restyle the
+existing homepage or shared website elements. Use existing branded video backdrops
+for new game/account pages. A site redesign requires an explicit request.
