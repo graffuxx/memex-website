@@ -34,7 +34,8 @@ export function createCardFoil(initialRarity){
     vec3 tint=mix(uColor,spectrum,prismatic);
     tint=mix(tint,vec3(.95,.98,1.),sweep*(uRank < 4. ? .45 : .2));
     float alpha=min(.5,(.018+.009*level+sweep*(.16+.07*level)))*mask*foilEnabled;
-    gl_FragColor=vec4(tint,alpha);
+    float strength=uRank<2.5?.55:uRank<3.5?.35:uRank<4.5?.30:.23;
+    gl_FragColor=vec4(tint,alpha*strength);
    }`
  });
  const mesh=new T.Mesh(geometry,material);mesh.name='Portrait foil / masked UI';mesh.position.z=.042;

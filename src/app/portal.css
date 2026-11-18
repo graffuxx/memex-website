@@ -40,5 +40,8 @@
 .dv-portal .duelverse-card--mini{width:54px;min-width:54px;margin:0;filter:none}
 .dv-portal .duelverse-card--mini .duelverse-card__foil{animation:none}
 .dv-portal .deck-entry-title{display:flex;align-items:center;gap:8px;min-width:0}
-@keyframes collection-card-foil{0%,15%{transform:translateX(-120%);opacity:0}30%,65%{opacity:1}85%,100%{transform:translateX(120%);opacity:0}}
+@keyframes collection-card-foil{0%,15%{transform:translateX(-120%);opacity:0}30%,65%{opacity:var(--foil-strength,1)}85%,100%{transform:translateX(120%);opacity:0}}
 @media(prefers-reduced-motion:reduce){.dv-portal .duelverse-card__foil{animation:none;opacity:.35}}
+
+.dv-portal .card-fx{pointer-events:none;isolation:isolate}
+@media(prefers-reduced-motion:reduce){.dv-portal .card-fx{display:none}}

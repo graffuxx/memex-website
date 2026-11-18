@@ -1,9 +1,9 @@
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
-import {createCardFinishLayer} from './card-finish-layer16.mjs?v=material-frames-22';
+import {createCardFinishLayer} from './card-finish-layer16.mjs?v=particle-fx-23';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 import * as T from '../vendor/three.module.min.js';
-import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=material-frames-22';
+import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=particle-fx-23';
 
 // Render the approved sculpted face once, then reuse it on thin 3D bodies.
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.
@@ -54,7 +54,7 @@ export async function createCardRuntime(renderer){
   const side=new T.Mesh(body,metal);side.castShadow=true;group.add(side);
   const frontMaterial=new T.MeshBasicMaterial({map:bake(profile,rotation,false,rarity),transparent:true,alphaTest:.025,toneMapped:false}),front=new T.Mesh(face,frontMaterial);front.position.z=.035;group.add(front);
   const back=new T.Mesh(face,backMaterial);back.rotation.y=Math.PI;back.position.z=-.035;group.add(back);
-  const finish=createCardFinishLayer(rarity,owner);group.add(finish.root);
+  const finish=createCardFinishLayer(rarity,owner,uid);group.add(finish.root);
   const ownerTitleMaterial=new T.MeshBasicMaterial({map:ownerTitleTexture(profile,owner),transparent:true,depthWrite:false,toneMapped:false}),ownerTitle=new T.Mesh(ownerTitleGeometry,ownerTitleMaterial);ownerTitle.position.set(-.43,FRAME_LAYOUT.titleY,.069);group.add(ownerTitle);
   const badgeMaterial=new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}),badge=new T.Mesh(badgeGeometry,badgeMaterial);badge.position.set(0,CARD_SPEC.socketY,.07);badge.visible=false;group.add(badge);const boost=new T.Mesh(boostGeometry,boostMaterial);boost.visible=false;group.add(boost);
   let currentRotation=rotation;const card={uid,profile,group,finish,setRarity(key){if(key===finish.rarity.key)return;finish.setRarity(key);frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},setBoost(direction){boost.visible=Number.isInteger(direction);if(boost.visible){const [x,y]=valuePosition(direction);boost.position.set(x*.79,y*.79,.072);boost.rotation.z=Math.atan2(y,x);}},setAbility(ability,suppressed=false){badge.visible=Boolean(ability);if(ability){badgeMaterial.map=abilityTexture(ability);badgeMaterial.color.set(suppressed?'#646b78':'#ffffff');badgeMaterial.opacity=suppressed?.7:1;badgeMaterial.needsUpdate=true;}},setOwner(side){finish.setOwner(side);ownerTitleMaterial.map=ownerTitleTexture(profile,side);},setRotation(r){currentRotation=((r%6)+6)%6;frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},dispose(){frontMaterial.dispose();ownerTitleMaterial.dispose();finish.dispose();badgeMaterial.dispose();group.removeFromParent();instances.delete(card);}};instances.add(card);return card;

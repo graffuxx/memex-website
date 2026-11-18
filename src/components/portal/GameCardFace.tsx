@@ -1,5 +1,6 @@
 'use client';
 import {useId,useEffect,useState,type CSSProperties} from 'react';
+import CardParticleEffects from './CardParticleEffects';
 import {materialFrameUrl,materialOf} from '../../../public/game/src/card-materials22.mjs';
 import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 
@@ -26,7 +27,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
  const [frame,setFrame]=useState('/game/assets/cards/frame-v21/navy-gold-frame.webp');
  useEffect(()=>{let active=true;materialFrameUrl(variant.rarity).then(url=>{if(active)setFrame(url);}).catch(()=>{});return()=>{active=false;};},[variant.rarity]);
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
- return <div className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color} as CSSProperties}>
+ return <div className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
   <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${card.element} · Edge values: ${card.values.join(', ')}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
@@ -48,6 +49,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    <svg x="-.1225" y={-FRAME_LAYOUT.elementY-.1225} width=".245" height=".245" viewBox="0 0 256 256" aria-hidden="true">
     <path d={element.path} fill={`url(#${elementId})`} stroke="#ffd876" strokeWidth="5" strokeLinejoin="round"/>
    </svg>
+   {!compact&&<CardParticleEffects rarity={variant.rarity} id={id}/>}
   </svg>
  </div>;
 }

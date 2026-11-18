@@ -11,7 +11,7 @@ import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets} from './rules.mjs';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=classics-v04';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=material-frames-22';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=particle-fx-23';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=balance-2';
