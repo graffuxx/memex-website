@@ -18,16 +18,9 @@ export default function HeroSection() {
 
   <div className={styles.heroContent}>
     
-<div className={styles.steamTeaser} aria-label="Coming soon on Steam">
-  <span className={styles.steamTeaserText}>COMING SOON ON STEAM!</span>
-  <img
-    src="/steam-logo.png"
-    alt="Coming soon on Steam"
-    className={styles.steamLogo}
-  />
-</div>
-
-    <a href="/play" className={styles.cta}>Play Alpha</a>
+<a href="/play" className={styles.steamTeaser} aria-label="Play Alpha">
+  <span className={styles.steamTeaserText}>PLAY ALPHA</span>
+</a>
   </div>
 </section>
   );
