@@ -19,20 +19,22 @@ function canvasTexture(draw,width=256,height=width){
  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;draw(canvas.getContext('2d'),width,height);
  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return texture;
 }
-export async function createCardPrototype({owner=null,rotation=0,profile='pepe'}={}){
+export async function createCardPrototype({owner=null,rotation=0,profile='pepe',frames=null}={}){
  if(!Object.hasOwn(CARD_PROFILES,profile))throw Error('Unbekanntes Kartenmuster.');
  const p=CARD_PROFILES[profile],group=new T.Group(),geometries=new Set(),materials=new Set(),textures=new Set();
  group.name='Duelverse / '+p.name+' / homepage frame';
  const geo=g=>(geometries.add(g),g),mat=m=>(materials.add(m),m),tex=t=>(textures.add(t),t);
  const add=(geometry,material,z=0)=>{const mesh=new T.Mesh(geometry,material);mesh.position.z=z;group.add(mesh);return mesh;};
  const load=async path=>{const texture=await new T.TextureLoader().loadAsync(new URL(path,import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return tex(texture);};
- const [image,frame,back]=await Promise.all([load(p.asset),load('../assets/cards/frame-v21/navy-gold-frame.webp'),load('../assets/cards/frame-v21/memex-back.webp')]);
+ const [image,back]=await Promise.all([load(p.asset),load('../assets/cards/frame-v21/memex-back.webp')]);
+ const frame=frames?.get('common')??await load('../assets/cards/frame-v21/navy-gold-frame.webp');
  const metal=mat(new T.MeshStandardMaterial({color:'#142a43',metalness:.65,roughness:.3}));
  const body=geo(new T.ExtrudeGeometry(cardShape(),{depth:CARD_SPEC.bodyDepth,bevelEnabled:true,bevelSegments:3,bevelSize:.009,bevelThickness:.006,steps:1}));body.translate(0,0,-CARD_SPEC.bodyDepth/2);
  add(body,metal).castShadow=true;
  // Portrait, cutout frame and live values remain separate layers.
  const portraitMaterial=mat(new T.MeshBasicMaterial({map:image,toneMapped:false}));add(geo(artGeometry()),portraitMaterial,.034);
- add(geo(new T.PlaneGeometry(FRAME_LAYOUT.width,FRAME_LAYOUT.height)),mat(new T.MeshBasicMaterial({map:frame,transparent:true,alphaTest:.025,toneMapped:false})),.045);
+ const frameMaterial=mat(new T.MeshBasicMaterial({map:frame,transparent:true,alphaTest:.025,toneMapped:false}));
+ add(geo(new T.PlaneGeometry(FRAME_LAYOUT.width,FRAME_LAYOUT.height)),frameMaterial,.045);
  const rear=add(geo(new T.PlaneGeometry(2.048,2.048)),mat(new T.MeshBasicMaterial({map:back,transparent:true,alphaTest:.025,toneMapped:false})),-.036);rear.rotation.y=Math.PI;
  const numberTextures=new Map(),badges=[];
  const numberTexture=n=>{
@@ -61,5 +63,5 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe'}
  }));
  const element=add(geo(new T.PlaneGeometry(.245,.245)),mat(new T.MeshBasicMaterial({map:elementTexture,transparent:true,depthWrite:false,toneMapped:false})),.065);element.position.y=FRAME_LAYOUT.elementY;
  const accent=new T.LineLoop(geo(new T.BufferGeometry().setFromPoints(cardShape(1.007).getPoints().map(v=>new T.Vector3(v.x,v.y,.048)))),mat(new T.LineBasicMaterial({color:owner===1?'#ff5d72':'#55ed94',toneMapped:false})));accent.visible=owner!==null;group.add(accent);
- return {group,profile:p,artworkTexture:image,setArtwork(texture){portraitMaterial.map=texture;},setOwner(side){accent.visible=side!==null;accent.material.color.set(side===1?'#ff5d72':'#55ed94');},setRotation(value){rotation=((value%6)+6)%6;badges.forEach((badge,dir)=>{badge.material.map=numberTexture(sideValue({id:p.ruleId,rotation},dir));});},get values(){return CATALOG.find(c=>c.id===p.ruleId).values.map((_,dir)=>sideValue({id:p.ruleId,rotation},dir));},dispose(){for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();}};
+ return {group,profile:p,artworkTexture:image,setFinish(key){frameMaterial.map=frames?.get(key)??frame;},setArtwork(texture){portraitMaterial.map=texture;},setOwner(side){accent.visible=side!==null;accent.material.color.set(side===1?'#ff5d72':'#55ed94');},setRotation(value){rotation=((value%6)+6)%6;badges.forEach((badge,dir)=>{badge.material.map=numberTexture(sideValue({id:p.ruleId,rotation},dir));});},get values(){return CATALOG.find(c=>c.id===p.ruleId).values.map((_,dir)=>sideValue({id:p.ruleId,rotation},dir));},dispose(){for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();}};
 }

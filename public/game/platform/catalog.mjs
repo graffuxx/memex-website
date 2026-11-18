@@ -1,12 +1,9 @@
+import {CARD_MATERIALS} from '../src/card-materials22.mjs';
 // Shared by the website, deck validator, database seed and playable alpha.
 export const DECK_SIZE = 15;
 export const STARTER_COPIES = 6;
 export const CATALOG_VERSION = 1;
-export const RARITIES = Object.freeze([
- {id:'common',name:'Common',color:'#b9c7d9'}, {id:'rare',name:'Rare',color:'#5dcaff'},
- {id:'epic',name:'Epic',color:'#c091ff'}, {id:'legendary',name:'Legendary',color:'#ffcf75'},
- {id:'mythic',name:'Mythic',color:'#f1b6ff'}
-]);
+export const RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id,m])=>Object.freeze({id,name:m.name,color:m.color})));
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},
  {id:'doge',name:'Doge',ruleId:'brain',element:'fire',values:[5,2,5,2,5,5],ability:'hype',quote:'Such strategy. Much wow.',image:'/game/assets/cards/frame-v21/swollen-doge.webp'},

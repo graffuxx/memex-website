@@ -1,5 +1,6 @@
 'use client';
-import {useId,type CSSProperties} from 'react';
+import {useId,useEffect,useState,type CSSProperties} from 'react';
+import {materialFrameUrl,materialOf} from '../../../public/game/src/card-materials22.mjs';
 import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 
 type Props={
@@ -22,9 +23,11 @@ const elements:Record<string,{path:string;from:string;to:string}>={
 // SVG keeps a full collection light without starting a WebGL renderer per card.
 export default function GameCardFace({card,variant,color,owned=false,compact=false}:Props){
  const id=useId().replace(/:/g,''),element=elements[card.element]??elements.stone;
+ const [frame,setFrame]=useState('/game/assets/cards/frame-v21/navy-gold-frame.webp');
+ useEffect(()=>{let active=true;materialFrameUrl(variant.rarity).then(url=>{if(active)setFrame(url);}).catch(()=>{});return()=>{active=false;};},[variant.rarity]);
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
  return <div className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color} as CSSProperties}>
-  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${variant.rarity} · ${card.element} · Edge values: ${card.values.join(', ')}`}>
+  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${card.element} · Edge values: ${card.values.join(', ')}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
     <linearGradient id={foilId} x1="0" y1="1" x2="1" y2="0"><stop offset="20%" stopColor={color} stopOpacity="0"/><stop offset="48%" stopColor={color} stopOpacity=".12"/><stop offset="52%" stopColor="#fff" stopOpacity=".22"/><stop offset="75%" stopColor={color} stopOpacity="0"/></linearGradient>
@@ -34,7 +37,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
     <image href={variant.image} x="-.96" y="-.96" width="1.92" height="1.92" preserveAspectRatio="xMidYMid slice"/>
     {variant.rarity!=='common'&&<rect className="duelverse-card__foil" x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
    </g>
-   <image href="/game/assets/cards/frame-v21/navy-gold-frame.webp" x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
+   <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
    <polygon className="duelverse-card__rarity" points={hex(.983)} fill="none" stroke={color} strokeWidth=".009"/>
    {owned&&<polygon points={hex(1.014)} fill="none" stroke="#55ed94" strokeWidth=".012"/>}
    <g fill="#17150d" fontFamily="Arial,sans-serif" fontWeight="800" textAnchor="middle" dominantBaseline="central">

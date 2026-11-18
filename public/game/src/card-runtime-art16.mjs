@@ -1,13 +1,15 @@
+import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
-import {createCardFinishLayer} from './card-finish-layer16.mjs?v=homepage-frame-21';
+import {createCardFinishLayer} from './card-finish-layer16.mjs?v=material-frames-22';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 import * as T from '../vendor/three.module.min.js';
-import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=homepage-frame-21';
+import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=material-frames-22';
 
 // Render the approved sculpted face once, then reuse it on thin 3D bodies.
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.
 export async function createCardRuntime(renderer){
- const templates=await Promise.all(Object.keys(CARD_PROFILES).map(profile=>createCardPrototype({profile}))),scene=new T.Scene();
+ const frames=new Map(await Promise.all(Object.keys(CARD_MATERIALS).map(async key=>{const texture=await new T.TextureLoader().loadAsync(await materialFrameUrl(key));texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return [key,texture];})));
+ const templates=await Promise.all(Object.keys(CARD_PROFILES).map(profile=>createCardPrototype({profile,frames}))),scene=new T.Scene();
  scene.add(new T.HemisphereLight('#e6e1ff','#241d31',2.6));const key=new T.DirectionalLight('#fff0cd',3.5);key.position.set(-3,4,5);scene.add(key);const rim=new T.DirectionalLight('#a58aff',2.6);rim.position.set(3,1,-2);scene.add(rim);
  for(const m of templates)scene.add(m.group);
  const artworkTextures=new Map(templates.map(m=>[artworkFor(m.profile.id),m.artworkTexture]));
@@ -17,7 +19,7 @@ export async function createCardRuntime(renderer){
  const camera=new T.OrthographicCamera(-1.048,1.048,1.048,-1.048,.1,10),faces=new Map(),instances=new Set();
  function bake(profile,rotation=0,back=false,rarity='common'){
   const cacheKey=back?'back':profile+'/'+rarity+'/'+rotation;if(faces.has(cacheKey))return faces.get(cacheKey).texture;
-  const model=templates.find(m=>m.profile.id===profile);for(const m of templates)m.group.visible=m===model;model.setRotation(rotation);model.setArtwork(artworkTextures.get(artworkFor(profile,rarity)));
+  const model=templates.find(m=>m.profile.id===profile);for(const m of templates)m.group.visible=m===model;model.setRotation(rotation);model.setFinish(rarity);model.setArtwork(artworkTextures.get(artworkFor(profile,rarity)));
   camera.position.set(0,0,back?-6:6);camera.lookAt(0,0,0);camera.updateMatrixWorld();
   const previous=renderer.getRenderTarget(),viewport=renderer.getViewport(new T.Vector4()),scissor=renderer.getScissor(new T.Vector4()),scissorTest=renderer.getScissorTest(),oldClear=renderer.getClearColor(new T.Color()),oldAlpha=renderer.getClearAlpha(),oldExposure=renderer.toneMappingExposure;
   const target=new T.WebGLRenderTarget(1024,1024,{depthBuffer:true,samples:2});target.texture.colorSpace=T.SRGBColorSpace;target.texture.generateMipmaps=true;target.texture.minFilter=T.LinearMipmapLinearFilter;target.texture.anisotropy=4;
@@ -58,5 +60,5 @@ export async function createCardRuntime(renderer){
   let currentRotation=rotation;const card={uid,profile,group,finish,setRarity(key){if(key===finish.rarity.key)return;finish.setRarity(key);frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},setBoost(direction){boost.visible=Number.isInteger(direction);if(boost.visible){const [x,y]=valuePosition(direction);boost.position.set(x*.79,y*.79,.072);boost.rotation.z=Math.atan2(y,x);}},setAbility(ability,suppressed=false){badge.visible=Boolean(ability);if(ability){badgeMaterial.map=abilityTexture(ability);badgeMaterial.color.set(suppressed?'#646b78':'#ffffff');badgeMaterial.opacity=suppressed?.7:1;badgeMaterial.needsUpdate=true;}},setOwner(side){finish.setOwner(side);ownerTitleMaterial.map=ownerTitleTexture(profile,side);},setRotation(r){currentRotation=((r%6)+6)%6;frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},dispose(){frontMaterial.dispose();ownerTitleMaterial.dispose();finish.dispose();badgeMaterial.dispose();group.removeFromParent();instances.delete(card);}};instances.add(card);return card;
  }
  const normal=new T.Vector3(),viewDirection=new T.Vector3(),quaternion=new T.Quaternion();
- return {spawn,frame(dt,motion,cameraForCard=null){for(const c of instances)if(c.group.visible){c.finish.frame(dt,motion);const camera=cameraForCard?.(c);if(camera){c.group.updateWorldMatrix(true,false);normal.set(0,0,1).applyQuaternion(c.group.getWorldQuaternion(quaternion));camera.getWorldDirection(viewDirection);c.finish.setFrontVisible(normal.dot(viewDirection)<-.005);}}},dispose(){for(const c of [...instances])c.dispose();for(const t of faces.values())t.dispose();for(const [path,t] of artworkTextures)if(!templates.some(m=>m.artworkTexture===t))t.dispose();for(const t of templates)t.dispose();for(const t of badgeTextures.values())t.dispose();for(const t of ownerTitleTextures.values())t.dispose();ownerTitleGeometry.dispose();boostGeometry.dispose();boostMaterial.dispose();badgeGeometry.dispose();face.dispose();body.dispose();metal.dispose();backMaterial.dispose();}};
+ return {spawn,frame(dt,motion,cameraForCard=null){for(const c of instances)if(c.group.visible){c.finish.frame(dt,motion);const camera=cameraForCard?.(c);if(camera){c.group.updateWorldMatrix(true,false);normal.set(0,0,1).applyQuaternion(c.group.getWorldQuaternion(quaternion));camera.getWorldDirection(viewDirection);c.finish.setFrontVisible(normal.dot(viewDirection)<-.005);}}},dispose(){for(const c of [...instances])c.dispose();for(const t of faces.values())t.dispose();for(const [path,t] of artworkTextures)if(!templates.some(m=>m.artworkTexture===t))t.dispose();for(const t of templates)t.dispose();for(const t of frames.values())t.dispose();for(const t of badgeTextures.values())t.dispose();for(const t of ownerTitleTextures.values())t.dispose();ownerTitleGeometry.dispose();boostGeometry.dispose();boostMaterial.dispose();badgeGeometry.dispose();face.dispose();body.dispose();metal.dispose();backMaterial.dispose();}};
 }

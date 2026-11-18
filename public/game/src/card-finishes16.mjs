@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.min.js';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=homepage-frame-21';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=material-frames-22';
 import {CARD_RARITIES,RARITY_KEYS} from './card-rarities15.mjs';
 const stage=document.getElementById('finishStage'),owner=document.getElementById('studioOwner'),motion=document.getElementById('studioMotion'),profile=document.getElementById('studioProfile'),side=document.getElementById('studioSide');
 const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.setClearColor(0,0);stage.prepend(renderer.domElement);
