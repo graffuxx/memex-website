@@ -98,3 +98,10 @@
 @keyframes alpha-void-title{0%{opacity:0;transform:translateY(6px);letter-spacing:.8em}20%,62%{opacity:1;transform:translateY(0);letter-spacing:.5em}100%{opacity:0;transform:translateY(-8px);letter-spacing:.7em}}
 @media(max-width:700px){.dv-portal .alpha-void-singularity{width:clamp(235px,65vw,330px)}.dv-portal .alpha-void-title{font-size:15px}.dv-portal [data-finish="mythic"] .alpha-rarity-burst>i:nth-of-type(n+41){display:none}}
 @media(prefers-reduced-motion:reduce){.dv-portal .alpha-reveal-slot[data-finish="mythic"].is-celebrating .alpha-reveal-art{animation:none;filter:none}.dv-portal .alpha-reveal-slot[data-finish="mythic"].is-celebrating .alpha-card-flipper{transition:none}.dv-portal .alpha-reveal-slot[data-finish="mythic"].is-celebrating .alpha-card-number{opacity:1}}
+
+.dv-portal .alpha-shop-controls{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px}
+.dv-portal .alpha-sound-toggle{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:10px 14px;border:1px solid #ba90e055;border-radius:999px;background:#1a102bc9;color:#d9c5ed;font:14px Arial,sans-serif;white-space:nowrap}
+.dv-portal .alpha-sound-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dv-portal .alpha-sound-toggle[aria-pressed="true"]{border-color:#c295f08c;color:#efd8ff;background:#41205680}
+.dv-portal .alpha-sound-toggle:focus-visible{outline:2px solid #e6bcff;outline-offset:4px}
+@media(max-width:700px){.dv-portal .alpha-shop-controls{width:100%;justify-content:flex-start;gap:10px}.dv-portal .alpha-sound-toggle{padding:9px 12px;font-size:13px}}
