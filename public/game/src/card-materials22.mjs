@@ -5,7 +5,7 @@ export const CARD_MATERIALS=Object.freeze({
  rare:Object.freeze({name:'Silver',de:'Silber',color:'#dce7f4',metal:'#a5b3c5',finish:'Gebürstetes Silber',motion:'Silberreflexe und kühler Schimmer',palette:['#283748','#a7b7c9','#f7fcff']}),
  epic:Object.freeze({name:'Gold',de:'Gold',color:'#ffd16a',metal:'#c99336',finish:'Poliertes Gold',motion:'Sanfter Goldschimmer und feiner Lichtstaub',palette:['#41240b','#c59435','#fff1b0']}),
  legendary:Object.freeze({name:'Diamond',de:'Diamant',color:'#b8efff',metal:'#b4d7ee',finish:'Facettierter Diamant',motion:'Kristallines Funkeln auf den Facetten',palette:['#243e5a','#aecfe8','#fffaff']}),
- mythic:Object.freeze({name:'Void',de:'Void',color:'#cd8aff',metal:'#4b2470',finish:'Void-Obsidian',motion:'Partikelspirale mit kleinem Schwarzem Loch',palette:['#080612','#371747','#be7ef5']}),
+ mythic:Object.freeze({name:'Void',de:'Void',color:'#cd8aff',metal:'#4b2470',finish:'Void-Obsidian',motion:'Wandernder Void-Nebel mit Energieadern und Schattenfunken',palette:['#080612','#371747','#be7ef5']}),
 });
 export const materialOf=key=>CARD_MATERIALS[Object.hasOwn(CARD_MATERIALS,key)?key:'common'];
 const source='/game/assets/cards/frame-v21/navy-gold-frame.webp';

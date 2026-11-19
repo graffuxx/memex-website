@@ -1,7 +1,7 @@
 import {FRAME_LAYOUT} from './card-layout21.mjs';
+import {voidSparkState} from './card-void40.mjs';
 export const PARTICLE_COUNTS=Object.freeze({epic:8,legendary:12,mythic:18});
-export const PARTICLE_PERIODS=Object.freeze({epic:18,legendary:5.6,mythic:5.5});
-export const VORTEX=Object.freeze({x:.37,y:.84});
+export const PARTICLE_PERIODS=Object.freeze({epic:18,legendary:5.6,mythic:8.5});
 const TAU=Math.PI*2,fract=v=>v-Math.floor(v);
 export function effectOffset(seed=''){let h=2166136261;for(const c of String(seed)){h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;}return (h%1000)/100;}
 export function effectCoverage(x,y,margin=0){
@@ -12,7 +12,6 @@ export function effectCoverage(x,y,margin=0){
  return 1;
 }
 function edgePoint(t,radius=1.025){const p=fract(t)*6,i=Math.floor(p),f=p-i;const a=(i*60-30)*Math.PI/180,b=((i+1)*60-30)*Math.PI/180;return {x:(Math.cos(a)*(1-f)+Math.cos(b)*f)*radius,y:(Math.sin(a)*(1-f)+Math.sin(b)*f)*radius};}
-function spiral(i,u){const radius=.22*Math.pow(1-u,1.35)+.012,angle=i*2.399963+u*TAU*1.4;return {x:VORTEX.x+Math.cos(angle)*radius,y:VORTEX.y+Math.sin(angle)*radius*.42};}
 export function particleState(key,index,time){
  let x=0,y=0,size=0,opacity=0,angle=0;
  const period=PARTICLE_PERIODS[key];if(!period)return {x,y,size,opacity,angle};
@@ -24,8 +23,7 @@ export function particleState(key,index,time){
   const phase=fract(time/period+index*.381966),wave=phase<.42?Math.pow(Math.sin(phase/.42*Math.PI),3):0;
   size=.035+.030*wave;opacity=.88*wave;angle=(index%3)*Math.PI/8;
  }else{
-  const phase=fract(time/period+index/18),point=spiral(index,phase),next=spiral(index,Math.min(.99999,phase+.002));x=point.x;y=point.y;
-  size=.012+.006*(1-phase);opacity=.88*Math.pow(Math.sin(Math.PI*phase),.6);angle=Math.atan2(next.y-y,next.x-x);
+  ({x,y,size,opacity,angle}=voidSparkState(index,time));
  }
  opacity*=effectCoverage(x,y,key==='mythic'?.018:size*.35);
  return {x,y,size,opacity,angle};
