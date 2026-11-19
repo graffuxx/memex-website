@@ -18,3 +18,10 @@ export async function saveDeck(id:string|null,name:string,cards:string[]){
  if(error)throw new Error('Deck could not be saved. Check your connection and owned copies, then try again.');
  return data as string;
 }
+export async function tradeCard(requestId:string,kind:'craft'|'dismantle',variantId:string){
+ const {error}=await supabase.rpc('dv_trade_card',{p_request:requestId,p_kind:kind,p_variant:variantId});
+ if(error){
+  const known=['Not enough Tokens','No spare copy: starter cards and saved decks are protected','Diamond and Void are booster exclusive','Collection limit reached'];
+  throw new Error(known.includes(error.message)?error.message:'Card action could not be confirmed. Retry the same action to check it safely.');
+ }
+}

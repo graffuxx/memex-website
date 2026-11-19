@@ -19,5 +19,6 @@ export default function usePlayerCollection(){
   const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>{if(alive)void restore(session?.user.id??null);},0);});
   return()=>{alive=false;generation.current++;subscription.unsubscribe();};
  },[]);
- return {ready,userId,player,error,testMode,inventory:testMode?testItems:userId?(player?.inventory??{}):starterInventory()};
+ async function refresh(){const ticket=generation.current;const data=await loadPlayer();if(ticket===generation.current)setPlayer(data);return data;}
+ return {ready,userId,player,error,testMode,refresh,inventory:testMode?testItems:userId?(player?.inventory??{}):starterInventory()};
 }
