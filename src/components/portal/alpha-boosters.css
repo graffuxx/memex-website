@@ -5,3 +5,34 @@
 @media(prefers-reduced-motion:reduce){.dv-portal .alpha-card-reveal,.dv-portal .alpha-reveal-slot.is-revealed .alpha-card-reveal{animation:none;transition:none}}
 
 .dv-portal .alpha-opening{scroll-margin-top:128px}@media(max-width:700px){.dv-portal .alpha-opening{scroll-margin-top:105px}}
+
+/* Product-first shop and account balances. */
+.dv-portal .alpha-shop-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px;margin-bottom:18px}
+.dv-portal .alpha-shop-heading h1{font:500 38px/1.1 Georgia,serif;margin:0;color:#f5eaff}
+.dv-portal .alpha-back-link{font-size:14px;color:#dec3f7;text-decoration:underline}
+.dv-portal .alpha-wallet{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:10px;font-size:14px;color:#cbb6dc}
+.dv-portal .alpha-wallet-balance{display:flex;align-items:center;gap:12px;min-width:126px;background:linear-gradient(135deg,#18122de8,#100b21ed);border:1px solid #b08bdf40;border-radius:14px;padding:11px 16px}
+.dv-portal .alpha-wallet-balance span{display:flex;flex-direction:column;gap:3px}
+.dv-portal .alpha-wallet-balance strong{font:600 22px/1 Arial,sans-serif;color:#f8f0ff;font-variant-numeric:tabular-nums}
+.dv-portal .alpha-wallet-balance small{font:14px/1.2 Arial,sans-serif;color:#c7b6d7}
+.dv-portal .alpha-wallet-balance i{display:block;width:20px;height:20px;flex-shrink:0;box-shadow:inset 0 0 0 3px #ffffff25}
+.dv-portal .alpha-wallet-pixels i{background:linear-gradient(135deg,#baf1ff,#548eff);border:1px solid #c5efff;border-radius:3px}
+.dv-portal .alpha-wallet-shards i{background:linear-gradient(135deg,#ffe69a,#b97930);border:1px solid #ffe3a2;transform:rotate(45deg);border-radius:3px}
+.dv-portal .alpha-wallet-echoes i{border:3px solid #c991ff;border-radius:50%;background:#633c8955;box-shadow:0 0 10px #b875dd33}
+.dv-portal .alpha-booster-showcase{grid-template-columns:44% 56%;min-height:420px;margin-top:0;padding:20px 32px}
+.dv-portal .alpha-booster-art-stage{min-height:390px}
+.dv-portal .alpha-booster-art-stage .alpha-pack-art{width:250px}
+.dv-portal .alpha-booster-product h2,.dv-portal .alpha-opening-heading h2{font:500 clamp(30px,3.6vw,46px)/1.1 Georgia,serif;letter-spacing:0;text-transform:none;margin:10px 0 18px;color:#f6eaff}
+.dv-portal .alpha-booster-product{padding:16px 24px}
+.dv-portal .alpha-booster-flags{margin:18px 0}
+.dv-portal .alpha-booster-product>.muted{font-size:14px;line-height:1.4;margin:12px 0}
+.dv-portal .alpha-preview-button{padding:8px 0}
+.dv-portal .alpha-crafting-link{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 20px;padding:19px 24px;border:1px solid #ad8ad43b;border-radius:16px;background:linear-gradient(120deg,#251437cb,#0f0b20e8);text-decoration:none;color:#ddc3ef}
+.dv-portal .alpha-crafting-link strong{display:block;font:500 22px/1.2 Georgia,serif;color:#f3e7ff;margin-bottom:5px}
+.dv-portal .alpha-crafting-link small{font:14px Arial,sans-serif;color:#bfa7d1}
+.dv-portal .alpha-crafting-link>span:last-child{font:14px Arial,sans-serif;border:1px solid #bc92e956;border-radius:999px;padding:10px 16px;color:#e8c7ff}
+.dv-portal .alpha-crafting-link:hover{border-color:#ca9cff88;background:#26143be8}
+.dv-portal .alpha-wallet a:focus-visible,.dv-portal .alpha-crafting-link:focus-visible,.dv-portal .alpha-preview-button:focus-visible{outline:2px solid #e6bcff;outline-offset:4px}
+@media(max-width:700px){.dv-portal .alpha-shop-heading{align-items:flex-start;flex-direction:column;gap:16px}.dv-portal .alpha-shop-heading h1{font-size:32px}.dv-portal .alpha-wallet{width:100%;justify-content:flex-start;gap:7px}.dv-portal .alpha-wallet-balance{flex:1;min-width:0;gap:8px;padding:11px 10px}.dv-portal .alpha-wallet-balance strong{font-size:20px}.dv-portal .alpha-wallet-balance small{font-size:13px}.dv-portal .alpha-wallet-balance i{width:15px;height:15px}.dv-portal .alpha-booster-showcase{padding:18px;min-height:0}.dv-portal .alpha-booster-art-stage{min-height:300px}.dv-portal .alpha-booster-art-stage .alpha-pack-art{width:195px}.dv-portal .alpha-booster-product{padding:12px 0 0;width:100%}.dv-portal .alpha-crafting-link{padding:16px}.dv-portal .alpha-crafting-link>span:last-child{padding:8px 10px}}
+
+.dv-portal .alpha-shop-heading{scroll-margin-top:128px}.dv-portal .alpha-shop-heading .alpha-back-link{display:inline-block;margin-top:9px}@media(max-width:700px){.dv-portal .alpha-shop-heading{scroll-margin-top:105px}}

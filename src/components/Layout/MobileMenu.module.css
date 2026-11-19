@@ -59,7 +59,8 @@
 .menuPanel {
   width: 100%;
   max-width: 320px;
-  padding: 18px 18px 22px;
+  padding: 66px 18px 22px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -209,3 +210,5 @@
     display: none;
   }
 }
+.menuNav a[aria-current="page"]{background:linear-gradient(135deg,#ffd876,#ffb347);border-color:#fff1c2;color:#341c00;box-shadow:0 0 18px #ffd78244}
+.menuButton:focus-visible,.menuNav a:focus-visible{outline:2px solid #e6bcff;outline-offset:3px}

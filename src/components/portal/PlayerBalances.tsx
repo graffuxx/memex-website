@@ -1,0 +1,3 @@
+import type {PlayerState} from '@/lib/duelverse/account';
+type Props={ready:boolean;userId:string|null;player:PlayerState|null};
+export default function PlayerBalances({ready,userId,player}:Props){return <div className="alpha-wallet" aria-label="Your currencies" aria-live="polite">{!ready?<span role="status">Loading balances…</span>:player?<>{(['pixels','shards','echoes'] as const).map(currency=><div className={'alpha-wallet-balance alpha-wallet-'+currency} key={currency}><i aria-hidden="true"/><span><strong>{player[currency].toLocaleString('en-US')}</strong><small>{currency[0].toUpperCase()+currency.slice(1)}</small></span></div>)}</>:userId?<span role="status">Balances unavailable</span>:<a className="button glass" href="/account">Sign in</a>}</div>}

@@ -3,9 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ModernHeader.module.css';
 import MobileMenu from './MobileMenu';
+import {usePathname} from 'next/navigation';
+import {NAV_LINKS,activeNav} from './navigation';
+import {supabase} from '@/lib/supabaseClient';
 
 export default function ModernHeader() {
   const [scrolled, setScrolled] = useState(false);
+  const path=usePathname(),[signedIn,setSignedIn]=useState(false);
+  const current=NAV_LINKS.find(([url])=>activeNav(path,url));
+  useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>setSignedIn(Boolean(session)));return()=>subscription.unsubscribe();},[]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -16,6 +22,7 @@ export default function ModernHeader() {
   return (
     <header className={styles.header}>
       <MobileMenu />
+      <a className={styles.mobileLocation} href={current?.[0]??'/'}><img src="/background-card.png" alt=""/>{current?.[1]??'MEMEX'}</a>
 
       <div className={`${styles.bar} ${scrolled ? styles.barScrolled : ''}`}>
         <div className={styles.container}>
@@ -29,39 +36,13 @@ export default function ModernHeader() {
             </a>
           </div>
 
-          <nav className={styles.navbar}>
-            <a href="/" className={styles.navItem}>
-              HOME
-            </a>
-            <a href="/play" className={`${styles.navItem} ${styles.navItemPresale}`}>
-              PLAY
-            </a>
-            <a href="/how-to-play" className={styles.navItem}>
-              HOW TO PLAY
-            </a>
-            <a href="/collection" className={styles.navItem}>
-              COLLECTION
-            </a>
-            <a href="/decks" className={styles.navItem}>
-              DECKS
-            </a>
-            <a href="/socials" className={styles.navItem}>
-              SOCIALS
-            </a>
-            <a href="/shop" className={styles.navItem}>
-              SHOP
-            </a>
-            <a href="/account/private" className={styles.navItem}>
-              ACCOUNT
-            </a>
-            <a href="/news" className={styles.navItem}>
-              NEWS
-            </a>
+          <nav className={styles.navbar} aria-label="Main navigation">
+            {NAV_LINKS.map(([url,label])=><a key={url} href={url} className={`${styles.navItem} ${activeNav(path,url)?styles.navItemActive:''}`} aria-current={activeNav(path,url)?'page':undefined}>{label}</a>)}
           </nav>
 
           <div className={styles.rightGroup}>
-            <a href="/account" className={styles.loginButton}>
-              LOGIN
+            <a href={signedIn?'/account/private':'/account'} className={styles.loginButton}>
+              {signedIn?'MY ACCOUNT':'LOGIN'}
             </a>
 
           </div>

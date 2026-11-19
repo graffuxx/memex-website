@@ -2,9 +2,12 @@
 
 import React, { useState } from 'react';
 import styles from './MobileMenu.module.css';
+import {usePathname} from 'next/navigation';
+import {NAV_LINKS,activeNav} from './navigation';
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
+  const path=usePathname();
 
   const toggle = () => setOpen((prev) => !prev);
   const close = () => setOpen(false);
@@ -15,7 +18,9 @@ export default function MobileMenu() {
       <button
         className={styles.menuButton}
         onClick={toggle}
-        aria-label="Open menu"
+        aria-label={open?"Close menu":"Open menu"}
+        aria-expanded={open}
+        aria-controls="mobile-main-navigation"
       >
         <span className={styles.menuIcon} />
       </button>
@@ -44,6 +49,9 @@ export default function MobileMenu() {
               </button>
             </div>
 
+            <nav id="mobile-main-navigation" className={styles.menuNav} aria-label="Mobile navigation">
+              {NAV_LINKS.map(([url,label])=><a key={url} href={url} onClick={close} aria-current={activeNav(path,url)?'page':undefined}>{label}</a>)}
+          </nav>
           </div>
         </div>
       )}
