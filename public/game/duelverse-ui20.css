@@ -62,3 +62,21 @@ body.game-table{display:flow-root}
 .start-duel .start-navigation a{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border:1px solid #d9b6fa55;border-radius:22px;background:#170c2529;color:#f5e6ff;font:400 14px 'Duelverse Display',Barlow,sans-serif;text-decoration:none}
 .start-duel .start-navigation a:hover{border-color:#ffe2a6;background:#bc87ed20;color:#ffe2a6}
 .start-duel .start-navigation a:focus-visible{outline:2px solid #ffe2a6;outline-offset:3px}
+
+/* Home artwork: cobalt stone, crystal light and a restrained warm metal edge. */
+body.game-table{background:#030819;--dv-panel:#080e24;--dv-line:#719de04a}
+.game-table .void-atmosphere{background:radial-gradient(ellipse at 22% 20%,#12134a88,transparent 55%),#030819}
+.game-table .void-painted-matte{background-image:url('./assets/arenas/home-rift-v25/void-backdrop.webp');opacity:1;animation:none;inset:0}
+.game-table .void-painted-mist{opacity:.18;animation:none}
+.game-table .void-painted-rocks-left,.game-table .void-painted-rocks-right{display:none}
+.game-table>.duelverse-header{border-color:#d0a45c60;background:linear-gradient(105deg,#050b1bf5,#0c1028ed);box-shadow:inset 0 1px 0 #ffe1a51a,0 5px 22px #00071355}
+.game-table .game-sidebar>.scorebar,.game-table .field-panel,.game-table .game-sidebar #controls.controls,.game-table .game-sidebar .table-settings,.game-table .game-sidebar .rules-notes{border-color:#cba16255;background:linear-gradient(145deg,#0a1229ed,#060b1dee);box-shadow:inset 0 1px 0 #eac58b0d,0 5px 22px #00071344}
+.game-table .panel-heading h2{color:#ffe0a7}.game-table .turn-timer{background:#030918b8;border-color:#6da8eb70;--clock-color:#b3d6ff}
+.game-table .turn-timer[data-state=warning]{--clock-color:#ffd081}.game-table .turn-timer[data-state=critical]{--clock-color:#ff7186}
+.game-table .game-sidebar .turn>.initiative-note{color:#a2b5d5}
+.game-table .game-sidebar .table-settings select{background-color:#09132b;border-color:#7299ce55}
+.game-table #stage[data-arena=painted]{border-color:transparent!important;box-shadow:none!important;background:transparent}
+.game-table .arena-message{background:#091126e8;border-color:#b99b6255}
+.game-table .deck-label small,.game-table .enemy-caption{color:#a7b7d3;text-shadow:0 1px 4px #010615}
+.game-table .game-sidebar #controls .play-controls>.arena-zoom{background:#050c2088}
+.game-table .hand-caption{background:linear-gradient(120deg,#061024db,#08112777);border:1px solid #c5a36066;border-radius:18px;padding:8px 12px}
