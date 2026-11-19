@@ -1,5 +1,5 @@
-import {createCardParticles} from './card-particle-layer23.mjs';
-import {createCardFoil} from './card-foil.mjs?v=particle-fx-23';
+import {createCardParticles} from './card-particle-layer23.mjs?v=visible-particles-24';
+import {createCardFoil} from './card-foil.mjs?v=visible-particles-24';
 import * as T from '../vendor/three.module.min.js';
 import {cardShape,cardPoints} from './card-prototype.mjs?v=classics-v04';
 import {FRAME_LAYOUT} from './card-layout21.mjs';

@@ -8,7 +8,7 @@ export default function CardParticleEffects({rarity,id}:Props){
  const period=PARTICLE_PERIODS[rarity as keyof typeof PARTICLE_PERIODS],offset=effectOffset(id),mask=`${id}-fx-mask`,dust=`${id}-fx-dust`;
  return <g className="card-fx" data-effect={rarity} aria-hidden="true" pointerEvents="none">
   <defs>
-   <mask id={mask} maskUnits="userSpaceOnUse" x="-1.1" y="-1.1" width="2.2" height="2.2"><polygon points={hex} fill="#fff"/>{FRAME_LAYOUT.values.map(([x,y],i)=><circle key={i} cx={x} cy={-y} r=".205" fill="#000"/>)}<circle cy={-FRAME_LAYOUT.abilityY} r=".205" fill="#000"/><circle cy={-FRAME_LAYOUT.elementY} r=".205" fill="#000"/><rect x="-.57" y={-FRAME_LAYOUT.titleY-.115} width="1.14" height=".23" fill="#000"/></mask>
+   <mask id={mask} maskUnits="userSpaceOnUse" x="-1.12" y="-1.12" width="2.24" height="2.24"><rect x="-1.11" y="-1.11" width="2.22" height="2.22" fill="#fff"/>{FRAME_LAYOUT.values.map(([x,y],i)=><circle key={i} cx={x} cy={-y} r=".205" fill="#000"/>)}<circle cy={-FRAME_LAYOUT.abilityY} r=".205" fill="#000"/><circle cy={-FRAME_LAYOUT.elementY} r=".205" fill="#000"/><rect x="-.57" y={-FRAME_LAYOUT.titleY-.115} width="1.14" height=".23" fill="#000"/></mask>
    <radialGradient id={dust}>{rarity==='mythic'?<><stop stopColor="#06020d" stopOpacity=".95"/><stop offset=".5" stopColor="#49206a" stopOpacity=".7"/><stop offset="1" stopColor="#7e47ac" stopOpacity="0"/></>:<><stop stopColor="#fff7c5"/><stop offset=".3" stopColor="#ffdf8b" stopOpacity=".7"/><stop offset="1" stopColor="#ffc363" stopOpacity="0"/></>}</radialGradient>
   </defs>
   <g mask={`url(#${mask})`}>
@@ -24,7 +24,7 @@ export default function CardParticleEffects({rarity,id}:Props){
      </g>
     </g>;
    })}
-   {rarity==='mythic'&&<g transform={`translate(${VORTEX.x} ${-VORTEX.y})`}><circle r=".045" fill="#030109"/><g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite"/><ellipse rx=".071" ry=".041" fill="none" stroke="#ad6be4" strokeWidth=".008" opacity=".78"/><ellipse rx=".09" ry=".048" fill="none" stroke="#7133a0" strokeWidth=".01" opacity=".24"/></g></g>}
+   {rarity==='mythic'&&<g transform={`translate(${VORTEX.x} ${-VORTEX.y})`}><circle r=".055" fill="#030109"/><g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite"/><ellipse rx=".10" ry=".060" fill="none" stroke="#ad6be4" strokeWidth=".008" opacity=".78"/><ellipse rx=".12" ry=".072" fill="none" stroke="#7133a0" strokeWidth=".01" opacity=".24"/></g></g>}
   </g>
  </g>;
 }
