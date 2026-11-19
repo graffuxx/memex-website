@@ -1,0 +1,6 @@
+MemeX Duelverse announcer — English, synthetic voice, generated locally.
+Phrases: Let the memes begin! / Round two. Make it count! / Victory! / Defeat! / Draw!
+Model: Kokoro-82M v1.0, Apache License 2.0, https://huggingface.co/hexgrad/Kokoro-82M
+Voice: am_michael (generic synthetic voice; no impersonation).
+Runtime used for offline generation: kokoro-onnx (MIT), https://github.com/thewh1teagle/kokoro-onnx
+The model and runtime are not included in this game. No speech service or microphone is used during play.

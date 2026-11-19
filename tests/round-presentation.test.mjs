@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {roundIntro,roundOutcome,createRoundGate} from '../public/game/src/round-presentation42.mjs';
+import {bindRoundCeremony} from '../public/game/src/round-ceremony42.mjs';
+import {createTurnClock} from '../public/game/src/turn-clock.mjs';
+
+test('outcomes are player-relative, ties draw, and the last round uses the whole duel',()=>{
+ assert.equal(roundOutcome({score:[12,6]}).kind,'victory');
+ assert.equal(roundOutcome({score:[12,6],viewer:1}).kind,'defeat');
+ assert.equal(roundOutcome({score:[9,9]}).kind,'draw');
+ const final=roundOutcome({round:2,score:[11,7],results:[[4,14],[11,7]]});
+ assert.equal(final.kind,'defeat');assert.deepEqual([final.own,final.enemy],[15,21]);assert.match(final.detail,/11 : 7/);
+ assert.equal(roundOutcome({round:2,score:[11,7],results:[[7,11],[11,7]]}).kind,'draw');
+ assert.equal(roundIntro({round:2,starter:1}).voice,'rematch');
+ assert.match(roundIntro({starter:0}).detail,/Du beginnst/);
+});
+test('round events cannot double-fire or accept a stale end after reset',()=>{
+ const gate=createRoundGate();assert.equal(gate.finish(1),false);assert.equal(gate.begin(1),true);assert.equal(gate.begin(1),false);assert.equal(gate.finish(1),true);assert.equal(gate.finish(1),false);gate.begin(2);assert.equal(gate.finish(1),false);gate.cancel();assert.equal(gate.finish(2),false);
+});
+function fixture(){
+ const nodes=new Map(),root={hidden:true,dataset:{},querySelector(selector){if(!nodes.has(selector))nodes.set(selector,{hidden:false,textContent:'',focus(){}});return nodes.get(selector);}};
+ const node=id=>root.querySelector(`[data-round="${id}"]`),voices=[],audio={cancelAnnouncements(){},say:k=>voices.push(k),play(){}};
+ let callback=null,continueAllowed=false;globalThis.document={activeElement:null};
+ const controller=bindRoundCeremony(root,{audio,onContinue:()=>continueAllowed,setTimer:fn=>(callback=fn,1),clearTimer:()=>callback=null});
+ return {controller,node,voices,root,fire:()=>callback?.(),allow:()=>continueAllowed=true};
+}
+test('intro pauses the turn clock; skip/cancel resolve safely and replay starts a new intro',async()=>{
+ const f=fixture();let now=0;const clock=createTurnClock({now:()=>now});clock.enter('round1');
+ const intro=f.controller.intro(1,{round:1,starter:0});now=3000;assert.equal(clock.snapshot().seconds,90);assert.equal(f.root.hidden,false);assert.deepEqual(f.voices,['intro']);
+ f.node('skip').onclick();assert.equal(await intro,true);clock.resume();now+=1000;assert.equal(clock.snapshot().seconds,89);
+ assert.equal(await f.controller.intro(1,{round:1}),false);const next=f.controller.intro(2,{round:2,starter:1});f.controller.cancel();assert.equal(await next,false);assert.equal(f.root.hidden,true);assert.equal(f.controller.finish(2,{score:[10,8]}),false);
+});
+test('result waits for an allowed continuation and dismissed results never replay',async()=>{
+ const f=fixture(),intro=f.controller.intro(1,{round:1});f.fire();await intro;
+ assert.equal(f.controller.finish(1,{score:[10,8]}),true);assert.equal(f.node('title').textContent,'VICTORY');assert.equal(f.node('continue').textContent,'Rückspiel starten');
+ f.node('continue').onclick();assert.equal(f.root.hidden,false);f.allow();f.node('continue').onclick();assert.equal(f.root.hidden,true);assert.equal(f.controller.finish(1,{score:[10,8]}),false);assert.deepEqual(f.voices,['intro','victory']);
+});

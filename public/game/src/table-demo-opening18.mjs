@@ -5,7 +5,8 @@ import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-1
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=memes-27';
+import {createTableAudio} from './table-audio.mjs?v=rounds-42';
+import {bindRoundCeremony} from './round-ceremony42.mjs';
 import {createTableView} from './table-demo-view-hand17.mjs?v=memes-27';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=random-layout-1';
 import {scores,ELEMENTS,shiftBlock,moveTargets,sideValue} from './rules.mjs';
@@ -17,12 +18,19 @@ if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[
 let game=createTableDemo(),view,selected=null,target=null,rotation=0,abilityDirection=0,twistCell=null,hover=null,inspect=null,mode='card',busy=true,phase='loading',epoch=0,drag=null,notice='',round=1,roundResults=[],matchSeed=null,firstStarter=null;
 const startDialog=bindStartDuelDialog($('startDuel'));
 const atmosphere=createVoidAtmosphere();
-const audio=createTableAudio({onState:({enabled,available,running})=>{$('soundEnabled').checked=enabled;$('soundStatus').textContent=!available?'Ton hier nicht verfügbar':enabled&&running?'Sounds aktiv':'Stumm';}});
+let soundWanted=true;try{soundWanted=localStorage.getItem('duelverse.arena-sound.v42')!=='off';}catch{}
+function renderSound(){const button=$('arenaSound');button.textContent=soundWanted?'♪ Ton an':'♪ Ton aus';button.setAttribute('aria-pressed',String(soundWanted));button.setAttribute('aria-label',soundWanted?'Spielton ausschalten':'Spielton einschalten');$('soundEnabled').checked=soundWanted;}
+const audio=createTableAudio({onState:({available,running})=>{renderSound();$('soundStatus').textContent=!available?'Ton hier nicht verfügbar':soundWanted&&running?'Sounds & Ansagen aktiv':soundWanted?'Ton startet mit deiner ersten Eingabe':'Stumm';}});
+const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:advanceRound});
+void audio.preloadAnnouncements();renderSound();
+function unlockSound(e){if(e.isTrusted&&soundWanted&&!audio.running)void audio.setEnabled(true);}
+document.addEventListener('pointerdown',unlockSound,{capture:true});
+document.addEventListener('keydown',unlockSound,{capture:true});
 let messageTimer;
 const turnClock=createTurnClock();let clockInterval;
 function renderClock(){
  const state=turnClock.snapshot(),timer=$('turnTimer');
- timer.hidden=!view||phase==='opening';timer.dataset.state=game.finished?'ended':game.turn===1?'opponent':state.seconds<=5?'critical':state.seconds<=15?'warning':'normal';
+ timer.hidden=!view||phase==='opening'||phase==='intro';timer.dataset.state=game.finished?'ended':game.turn===1?'opponent':state.seconds<=5?'critical':state.seconds<=15?'warning':'normal';
  $('timerLabel').textContent=game.finished?'RUNDE BEENDET':game.turn===1?'GEGNERZUG':busy&&state.seconds>0?'ZUGZEIT · PAUSE':state.expired?'ZEIT ABGELAUFEN':'ZUGZEIT';
  $('timerValue').textContent=game.finished||game.turn===1?'—':Math.floor(state.seconds/60)+':'+String(state.seconds%60).padStart(2,'0');
  $('timerFill').style.transform='scaleX('+state.fraction+')';
@@ -49,7 +57,7 @@ function render(){
  const s=scores(game),p=plan(),card=selectedCard(),shiftValid=mode==='shift'&&moveTargets(game).includes(target);
  for(const side of [0,1]){$('score'+side).textContent=s[side];$('stock'+side).textContent=game.players[side].hand.length+' Hand · '+game.players[side].deck.length+' Deck';}
  $('handCount').textContent=game.players[0].hand.length+' / 5';$('enemyHandCount').textContent=game.players[1].hand.length;$('ownDeckCount').textContent=game.players[0].deck.length+(game.players[0].deck.length===1?' Karte':' Karten');$('enemyDeckCount').textContent=game.players[1].deck.length+' Karten';
- $('turnCount').textContent=game.placements+' / 18 Karten gelegt';$('turnLabel').textContent=game.finished?'Demo beendet':busy?phase==='opponent'?'Gegner ist am Zug':phase==='dealing'?'Karten werden ausgeteilt':phase==='opening'?'Startduell läuft':'Karten in Bewegung':'Du bist am Zug';
+ $('turnCount').textContent=game.placements+' / 18 Karten gelegt';$('turnLabel').textContent=game.finished?'Runde beendet':busy?phase==='opponent'?'Gegner ist am Zug':phase==='dealing'?'Karten werden ausgeteilt':phase==='opening'?'Startduell läuft':phase==='intro'?'Die Runde beginnt':'Karten in Bewegung':'Du bist am Zug';
  $('confirm').disabled=busy||!(p||shiftValid)||game.finished;$('confirm').textContent=mode==='shift'?'Verschieben':'Ausspielen';$('cancel').disabled=busy||(!selected&&mode!=='shift'&&!inspect);$('autoDemo').disabled=busy||game.finished;$('resetDemo').disabled=!view||phase==='opening';$('newDuel').disabled=busy;$('openingBadge').textContent=(phase==='opening'?'Startduell':isMatch()?'Runde '+round+' / 2':'Training')+(portalDeck.source==='sandbox'?' · Testdeck':'');$('firstMove').textContent=phase==='opening'?'Startrecht wird ausgespielt':isMatch()?'Erster Zug: '+(game.starter===0?'Du':'Gegner'):'';$('shiftBlock').disabled=busy||!moveTargets(game).length||game.finished;$('shiftBlock').classList.toggle('active',mode==='shift');$('shiftBlock').textContent='◆ Blockade · '+game.players[0].shifts+'/1';$('loadout').disabled=busy;$('opponentLoadout').disabled=busy||!isMatch();$('sceneMode').disabled=busy;
  $('seriesStatus').hidden=!isMatch();const aggregate=roundResults.reduce((s,r)=>[s[0]+r[0],s[1]+r[1]],[0,0]);$('seriesStatus').textContent=`Doppelduell · Runde ${round}/2 · Gesamt ${aggregate[0]} : ${aggregate[1]}`;
  $('nextRound').hidden=!isMatch()||!game.finished;$('nextRound').textContent=round===1?'Rückspiel · '+(roundStarter(firstStarter??0,2)===0?'Du beginnst':'Gegner beginnt'):'Neues Doppelduell';$('resetDemo').textContent=isMatch()?'Neues Doppelduell':'Neu austeilen';
@@ -90,7 +98,7 @@ async function playAction(a,token){
  if(next.last.flips.length){audio.play('capture',{side,count:next.last.flips.length});announce((side===0?'Deine Übernahme':'Gegner übernimmt')+' · '+next.last.flips.length);notice=next.last.flips.length+(next.last.flips.length===1?' Karte wechselt':' Karten wechseln')+' die Seite.';render();await Promise.all(next.last.flips.map(cell=>view.flip(next.board[cell].uid,side)));if(token!==epoch)return false;}
  if(draw){audio.play('draw');notice=(side===0?'Du ziehst':'Der Gegner zieht')+' eine Karte nach.';phase=side===1?'opponent':'drawing';render();if(!await view.draw(draw.uid,side)||token!==epoch)return false;}
  if(next.last.event!==null){view.eventChange();announce('Feldwechsel · neue Resonanz');audio.play('event');}
- if(game.finished){const s=isMatch()&&round===2?roundResults.reduce((a,b)=>[a[0]+b[0],a[1]+b[1]],[0,0]):scores(game);audio.play(s[0]===s[1]?'event':s[0]>s[1]?'win':'loss');announce((isMatch()&&round===2?'Doppelduell':'Runde')+' beendet · '+s[0]+' : '+s[1]);}
+ if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked});}
  return true;
 }
 async function cycle(a,showPreview=false,fromTimeout=false){if(!fromTimeout&&expireTurn())return;if(busy||game.finished||!a)return;const token=epoch;busy=true;
@@ -103,7 +111,7 @@ async function cycle(a,showPreview=false,fromTimeout=false){if(!fromTimeout&&exp
 async function confirm(){if(expireTurn()||busy)return;if(mode!=='shift'){if(plan())cycle(action());return;}if(!moveTargets(game).includes(target))return;
  const token=epoch,next=shiftBlock(game,target);busy=true;notice='Blockade wird verschoben.';audio.play('shift');render();const ok=await view.shift(target);if(ok&&token===epoch){game=next;busy=false;notice='';clear();render();}}
 async function reset({preserveSeries=false}={}){
- if(!view)return;const token=++epoch;startDialog.cancel();
+ if(!view)return;const token=++epoch;startDialog.cancel();ceremony.cancel();
  if(drag){drag.node.classList.remove('dragging');try{drag.node.releasePointerCapture(drag.id);}catch{}drag=null;}
  view.cancel();audio.cancel();clearTimeout(messageTimer);$('arenaMessage').classList.remove('active');
  if(!preserveSeries){round=1;roundResults=[];matchSeed=freshMatchSeed(matchSeed);firstStarter=null;}
@@ -117,6 +125,8 @@ async function reset({preserveSeries=false}={}){
   firstStarter=starter;game.starter=game.turn=roundStarter(firstStarter,round);
  }
  phase='dealing';notice='Neue Karten werden ausgeteilt.';render();const ok=await view.deal();if(!ok||token!==epoch)return;
+ phase='intro';notice='Die Runde beginnt.';render();
+ if(!await ceremony.intro(token,{round,starter:game.turn,motion:$('motion').checked})||token!==epoch)return;
  if(game.turn===1){phase='opponent';notice=round===1?'Der Gegner hat den ersten Zug gewählt.':'Rückspiel: Der Gegner beginnt.';render();const response=demoAction(game);if(!await playAction(response,token)||token!==epoch)return;}
  busy=false;phase='idle';notice='';render();
 }
@@ -140,19 +150,21 @@ function stopDrag(e,cancelled=false){
 svg.addEventListener('pointerup',e=>stopDrag(e));svg.addEventListener('pointercancel',e=>stopDrag(e,true));svg.addEventListener('pointerleave',()=>{if(!drag&&!busy&&hover){hover=null;render();}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)chooseField(c.dataset.cell);});
 svg.addEventListener('keydown',e=>{if(e.code!=='Enter'&&e.code!=='Space')return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();e.stopPropagation();h?choose(h.dataset.hand):chooseField(c.dataset.cell);}});
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();cancelSelection();return;}if(['SELECT','INPUT'].includes(e.target.tagName))return;if(e.code==='Enter'&&e.target.tagName!=='BUTTON'&&(plan()||mode==='shift')&&!busy){e.preventDefault();confirm();}});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();if(!ceremony.dismiss())cancelSelection();return;}if(['SELECT','INPUT'].includes(e.target.tagName))return;if(e.code==='Enter'&&e.target.tagName!=='BUTTON'&&(plan()||mode==='shift')&&!busy){e.preventDefault();confirm();}});
 $('newDuel').onclick=()=>reset();$('showRules').onclick=()=>{const panel=$('rulesPanel');panel.open=!panel.open;if(panel.open)panel.scrollIntoView({block:'nearest',behavior:'smooth'});};
 $('confirm').onclick=confirm;$('cancel').onclick=cancelSelection;$('autoDemo').onclick=()=>cycle(demoAction(game),true);$('resetDemo').onclick=reset;
 $('shiftBlock').onclick=()=>{if(expireTurn()||busy)return;if(mode==='shift')cancelSelection();else{cancelSelection();mode='shift';render();}};
 $('abilityDirection').onchange=()=>{abilityDirection=Number($('abilityDirection').value);render();};$('twistTarget').onchange=()=>{twistCell=$('twistTarget').value||null;render();};$('loadout').onchange=reset;$('opponentLoadout').onchange=reset;$('sceneMode').onchange=reset;
-$('nextRound').onclick=()=>{if(busy||!game.finished)return;if(round===1){round=2;reset({preserveSeries:true});}else reset();};
+function advanceRound(){if(busy||!game.finished)return false;if(isMatch()&&round===1){round=2;void reset({preserveSeries:true});}else void reset();return true;}
+$('nextRound').onclick=advanceRound;
 for(const selector of ['loadout','opponentLoadout'])$(selector).replaceChildren(...Object.entries(LOADOUTS).map(([key,value])=>{const o=document.createElement('option');o.value=key;o.textContent=value.name;return o;}));
 $('opponentLoadout').value='hype-twist';
 $('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=['→','↘','↙','←','↖','↗'][i]+' '+n;return o;}));
 $('motion').checked=!matchMedia('(prefers-reduced-motion:reduce)').matches;atmosphere.setMotion($('motion').checked);$('motion').onchange=()=>{atmosphere.setMotion($('motion').checked);view?.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';};
 $('arenaTheme').onchange=()=>{view?.setArena($('arenaTheme').value);audio.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];};
-$('soundEnabled').onchange=async()=>{const ok=await audio.setEnabled($('soundEnabled').checked);if(ok)audio.play('select');};$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('soundTest').onclick=async()=>{if(await audio.setEnabled(true))audio.test();};
+async function setSound(value){soundWanted=Boolean(value);try{localStorage.setItem('duelverse.arena-sound.v42',soundWanted?'on':'off');}catch{}renderSound();const ok=await audio.setEnabled(soundWanted);if(ok)audio.play('select');}
+$('arenaSound').onclick=()=>setSound(!soundWanted);$('soundEnabled').onchange=()=>setSound($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('soundTest').onclick=async()=>{await setSound(true);if(audio.running){audio.test();}};
 try{view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [id,p,y] of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(id).style.left=p.x+'px';$(id).style.top=(p.labelY??y)+'px';}}});view.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';view.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];$('loadStatus').hidden=true;await reset();}catch(error){$('loadStatus').querySelector('strong').textContent='Der Spieltisch konnte nicht geladen werden.';$('loadStatus').querySelector('span').textContent='Bitte die Seite neu laden.';console.error(error);}
 clockInterval=setInterval(()=>{renderClock();expireTurn();},250);
 document.addEventListener('visibilitychange',()=>{renderClock();expireTurn();});
-window.addEventListener('pagehide',e=>{if(!e.persisted){epoch++;startDialog.cancel();clearInterval(clockInterval);clearTimeout(messageTimer);audio.dispose();view?.dispose();}});
+window.addEventListener('pagehide',e=>{if(!e.persisted){epoch++;startDialog.cancel();ceremony.dispose();document.removeEventListener('pointerdown',unlockSound,true);document.removeEventListener('keydown',unlockSound,true);clearInterval(clockInterval);clearTimeout(messageTimer);audio.dispose();view?.dispose();}});
