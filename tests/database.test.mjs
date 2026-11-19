@@ -24,6 +24,18 @@ test('database: idempotent starter, RLS isolation, ownership and atomic deck val
  decks=await db.query('select * from public.dv_decks');assert.equal(decks.rows[0].name,'Saved deck');assert.equal(decks.rows[0].active,true);
  await assert.rejects(db.query('select public.dv_save_deck(null,$1,$2)',['Invalid after active deck',Array(15).fill('fake')]));
  assert.equal((await db.query('select count(*)::int as n from public.dv_decks where active')).rows[0].n,1);
+ const second=(await db.query('select public.dv_save_deck(null,$1,$2) as id',['Second strategy',deckA.cards])).rows[0].id;
+ assert.equal((await db.query('select count(*)::int as n from public.dv_decks')).rows[0].n,2);
+ assert.equal((await db.query('select id from public.dv_decks where active')).rows[0].id,second);
+ await db.query('select public.dv_save_deck($1,$2,$3)',[deckA.id,'  Renamed strategy  ',deckA.cards]);
+ assert.equal((await db.query('select name from public.dv_decks where id=$1',[deckA.id])).rows[0].name,'Renamed strategy');
+ assert.equal((await db.query('select name from public.dv_decks where id=$1',[second])).rows[0].name,'Second strategy');
+ for(let n=3;n<=10;n++)await db.query('select public.dv_save_deck(null,$1,$2)',['Deck '+n,deckA.cards]);
+ const activeBefore=(await db.query('select id from public.dv_decks where active')).rows[0].id;
+ await assert.rejects(db.query('select public.dv_save_deck(null,$1,$2)',['Eleventh',deckA.cards]));
+ assert.equal((await db.query('select id from public.dv_decks where active')).rows[0].id,activeBefore);
+ await db.query('select public.dv_save_deck($1,$2,$3)',[deckA.id,'Still editable at the limit',deckA.cards]);
+ assert.equal((await db.query('select count(*)::int as n from public.dv_decks')).rows[0].n,10);
  await db.exec('reset role;set role anon;');assert.equal((await db.query('select * from public.dv_card_variants')).rows.length,65);
  await assert.rejects(db.query('select public.dv_initialize_account()'));
  await assert.rejects(db.query('select * from public.dv_inventory'));
