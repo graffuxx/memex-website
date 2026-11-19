@@ -1,6 +1,6 @@
 import {NEW_ALPHA_CARDS} from './expansion45.mjs';
 import {EXPANSION_CARDS} from './expansion27.mjs';
-import {DEFINITIONS,getVariant,starterInventory,starterDeck,validateDeck} from './catalog.mjs';
+import {DEFINITIONS,VARIANTS,MAX_MOTIF_COPIES,getVariant,starterInventory,starterDeck,validateDeck} from './catalog.mjs';
 export const TEST_COLLECTION_KEY='duelverse.booster-test.v1';
 export const TEST_DECK_KEY='duelverse.booster-test-deck.v1';
 export const PACK_SIZE=5;
@@ -11,6 +11,8 @@ export const TEST_PACK_ODDS=Object.freeze({
  guaranteed:Object.freeze([['rare',7800],['epic',1800],['legendary',350],['mythic',50]])
 });
 export const blankTestCollection=()=>({version:1,openedPacks:0,inventory:{},lastPack:null,singleDrawsUsed:0,lastDraw:null});
+// Editor-only sandbox allowance. Never persist this as collection ownership.
+export function fullTestDeckInventory(){return Object.fromEntries(VARIANTS.map(v=>[v.id,MAX_MOTIF_COPIES]));}
 export function testInventory(collection){const inventory={...Object.fromEntries(EXPANSION_CARDS.map(c=>[`${c.id}:common`,1])),...starterInventory()};for(const [id,count]of Object.entries(collection.inventory))inventory[id]=(inventory[id]??0)+count;return inventory;}
 export function readTestCollection(storage){
  try{

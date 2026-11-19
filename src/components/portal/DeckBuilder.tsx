@@ -5,7 +5,7 @@ import {saveDeck} from '@/lib/duelverse/account';
 import usePlayerCollection from './usePlayerCollection';
 import GameCardFace from './GameCardFace';
 import {DECK_SIZE,MAX_MOTIF_COPIES,countMotifs,DEFINITIONS,VARIANTS,RARITIES,getVariant,countCards,validateDeck,starterDeck} from '../../../public/game/platform/catalog.mjs';
-import {TEST_DECK_KEY,expansionTestDeck} from '../../../public/game/platform/booster-test.mjs';
+import {TEST_DECK_KEY,expansionTestDeck,fullTestDeckInventory} from '../../../public/game/platform/booster-test.mjs';
 import {DECK_LIBRARY_LIMIT,LEGACY_GUEST_DECK_KEY,libraryKey,readDeckLibrary,persistDeckLibrary,addEditorDeck,updateEditorDeck,commitEditorDeck,deckIsDirty,addDeckCard,removeDeckCard,summarizeDeck,rebuildLegalDeck} from '../../../public/game/platform/deck-library28.mjs';
 import './deck-builder.css';
 type Source='account'|'guest'|'sandbox';
@@ -25,7 +25,7 @@ export default function DeckBuilder(){
  return <DeckEditor key={source+access.userId} access={access} source={source}/>;
 }
 function DeckEditor({access,source}:{access:Access;source:Source}){
- const {inventory,userId,player}=access,key=libraryKey(source,userId??''),legacyKey=source==='sandbox'?TEST_DECK_KEY:LEGACY_GUEST_DECK_KEY;
+ const {userId,player}=access,inventory=source==='sandbox'?fullTestDeckInventory():access.inventory,key=libraryKey(source,userId??''),legacyKey=source==='sandbox'?TEST_DECK_KEY:LEGACY_GUEST_DECK_KEY;
  const [library,setLibrary]=useState<Library>(()=>readDeckLibrary(localStorage,key,{serverDecks:source==='account'?player!.decks:null,legacyKey:source==='account'?null:legacyKey,fallbackName:source==='sandbox'?'My test deck':'My first deck'}) as Library);
  const [search,setSearch]=useState(''),[element,setElement]=useState('all'),[rarity,setRarity]=useState('all'),[showUncollected,setShowUncollected]=useState(false),[saving,setSaving]=useState(false),[status,setStatus]=useState(''),[dragging,setDragging]=useState(false),[preview,setPreview]=useState<string|null>(null);
  const alive=useRef(true),busy=useRef(false),dialog=useRef<HTMLDialogElement>(null),lastAdded=useRef<string|null>(null);
@@ -48,7 +48,7 @@ function DeckEditor({access,source}:{access:Access;source:Source}){
  }catch(e){if(alive.current)setStatus(e instanceof Error?e.message:'Could not save this deck.');return null;}finally{busy.current=false;if(alive.current)setSaving(false);}}
  async function play(){if(!canSave||busy.current)return;const next=await save();if(!next||!alive.current)return;try{localStorage.setItem(PLAY_KEY,JSON.stringify({version:1,cards:deck.cards,name:deck.name.trim(),inventory,source}));window.location.assign('/game/table-demo.html');}catch{setStatus('Allow browser storage to take this deck into the arena.');}}
  function drop(event:DragEvent){if(!event.dataTransfer.types.includes(DRAG_TYPE))return;event.preventDefault();setDragging(false);add(event.dataTransfer.getData(DRAG_TYPE));}
- const sourceNote=source==='account'?'Saved decks sync to your account.':source==='sandbox'?'Test collection · saved on this browser.':'Guest collection · saved on this browser.';
+ const sourceNote=source==='account'?'Saved decks sync to your account.':source==='sandbox'?'Sandbox · all cards and finishes unlocked. Decks stay on this browser.':'Guest collection · saved on this browser.';
  const previewData=preview?cardData(preview):null;
  return <section className="portal-section top-space deck-builder">
   <div className="deck-page-heading"><div><span className="eyebrow">YOUR COLLECTION. YOUR STRATEGY.</span><h1>Your decks.</h1><p>Exactly 15 cards. Up to 3 copies per meme across all finishes.</p></div><div className="deck-storage-note">{sourceNote}<small>Working drafts stay here when you switch decks.</small></div></div>
