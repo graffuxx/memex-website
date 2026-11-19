@@ -20,7 +20,7 @@ test('account drafts are isolated, new cloud IDs replace draft IDs, and newer se
 });
 test('copy limits apply within the current deck, all rarities count toward the right elements and copies stay reusable across decks',()=>{
  const inventory=testInventory(blankTestCollection());let cards=expansionTestDeck();const original=[...cards];cards=removeDeckCard(cards,'harold:common');cards=addDeckCard(cards,'harold:common',inventory);assert.ok(validateDeck(cards,inventory).valid);assert.deepEqual(original.sort(),cards.toSorted());
- assert.throws(()=>addDeckCard(cards,'confused:common',inventory),/full/);assert.throws(()=>addDeckCard([], 'fake',inventory),/Unknown/);assert.throws(()=>addDeckCard(['harold:common'],'harold:common',inventory),/available/);
+ assert.throws(()=>addDeckCard(cards,'confused:common',inventory),/full/);assert.throws(()=>addDeckCard([], 'fake',inventory),/Unknown/);assert.throws(()=>addDeckCard(['smudge:common'],'smudge:common',inventory),/available/);
  const summary=summarizeDeck(['harold:mythic','harold:legendary','success-kid:epic','confused:rare']);assert.deepEqual(summary.elements,{fire:1,stone:2,storm:1});assert.equal(summary.uniqueMotifs,3);assert.equal(summary.rarities.mythic,1);assert.equal(summary.remaining,11);assert.deepEqual(summarizeDeck([]).elements,{fire:0,stone:0,storm:0});
  const before={...inventory};assert.deepEqual(addDeckCard([],'harold:common',inventory),['harold:common']);assert.deepEqual(addDeckCard([],'harold:common',inventory),['harold:common']);assert.deepEqual(inventory,before);
 });
@@ -28,4 +28,9 @@ test('malformed libraries recover safely; duplicate IDs and unknown cards cannot
  const storage=memory(),key=libraryKey('guest');storage.setItem(key,'{bad');let library=readDeckLibrary(storage,key);assert.equal(library.decks.length,1);
  for(let n=1;n<10;n++)library=addEditorDeck(library,'Deck '+n,[],`local:${n}`);assert.throws(()=>addEditorDeck(library,'Too many'),/10 decks/);persistDeckLibrary(storage,key,library);assert.equal(readDeckLibrary(storage,key).decks.length,10);
  storage.setItem(key,JSON.stringify({version:1,selectedId:'bad',decks:[{id:'bad',name:'Broken',cards:['fake'],saved:null},{...library.decks[0]},{...library.decks[0]}]}));const recovered=readDeckLibrary(storage,key);assert.equal(recovered.decks.length,1);assert.equal(recovered.selectedId,recovered.decks[0].id);
+});
+test('three-copy ceiling is shared by finishes; explicit repair preserves ownership and does not force triples',async()=>{
+ const {rebuildLegalDeck}=await import('../public/game/platform/deck-library28.mjs');
+ const owned={'pepe:common':6,'pepe:rare':2,...starterInventory()};assert.throws(()=>addDeckCard(['pepe:common','pepe:common','pepe:rare'],'pepe:common',owned),/Maximum 3/);
+ const before={...owned},old=['pepe','doge','roll-safe'].flatMap(id=>Array(5).fill(id+':common'));const repaired=rebuildLegalDeck(old,owned);assert.equal(repaired.length,15);assert.equal(validateDeck(repaired,owned).valid,true);assert.deepEqual(owned,before);assert.equal(old.length,15);
 });

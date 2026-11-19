@@ -45,3 +45,9 @@ test('test copies persist separately, duplicates count, a retry cannot award the
  storage.data.set(TEST_COLLECTION_KEY,JSON.stringify({...first,inventory:{fake:100}}));assert.deepEqual(readTestCollection(storage),blankTestCollection());
  assert.equal(storage.data.has('duelverse.guest-deck.v1'),false);
 });
+test('single-card preview grants one copy per draw, preserves old collections, and cannot exceed three draws',async()=>{
+ const {drawSingleTestCard,addSingleTestDraw,TEST_SINGLE_DRAW_LIMIT}=await import('../public/game/platform/booster-test.mjs');let state=blankTestCollection();
+ for(let i=0;i<TEST_SINGLE_DRAW_LIMIT;i++){const card=drawSingleTestCard(()=>.5),before=Object.values(state.inventory).reduce((a,b)=>a+b,0);state=addSingleTestDraw(state,card,'single-'+i);assert.equal(Object.values(state.inventory).reduce((a,b)=>a+b,0),before+1);assert.equal(addSingleTestDraw(state,card,'single-'+i),state);}
+ assert.throws(()=>addSingleTestDraw(state,'pepe:common','fourth'),/used/);
+ const legacy={version:1,openedPacks:9,inventory:{'pepe:rare':2},lastPack:null};const storage={getItem:()=>JSON.stringify(legacy)};assert.equal(readTestCollection(storage).inventory['pepe:rare'],2);assert.equal(readTestCollection(storage).singleDrawsUsed,0);
+});

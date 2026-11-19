@@ -1,4 +1,4 @@
-import {DECK_SIZE,DEFINITIONS,RARITIES,getVariant,starterDeck,countCards} from './catalog.mjs';
+import {DECK_SIZE,MAX_MOTIF_COPIES,countMotifs,DEFINITIONS,RARITIES,getVariant,starterDeck,countCards} from './catalog.mjs';
 export const DECK_LIBRARY_LIMIT=10;
 export const LEGACY_GUEST_DECK_KEY='duelverse.guest-deck.v1';
 export const libraryKey=(source,userId='')=>`duelverse.deck-library.v1.${source==='account'?'account.'+userId:source}`;
@@ -50,6 +50,7 @@ export function commitEditorDeck(library,id,cloudId=null){
 export function addDeckCard(cards,id,inventory){
  if(!getVariant(id))throw Error('Unknown card.');
  if(cards.length>=DECK_SIZE)throw Error('Your deck is full. Remove a card first.');
+ if((countMotifs(cards)[getVariant(id).definitionId]??0)>=MAX_MOTIF_COPIES)throw Error('Maximum 3 copies of this meme per deck, including all finishes.');
  if((countCards(cards)[id]??0)>=(inventory[id]??0))throw Error('All available copies are already in this deck.');
  return [...cards,id];
 }
@@ -58,4 +59,12 @@ export function summarizeDeck(cards){
  const elements={fire:0,stone:0,storm:0},rarities=Object.fromEntries(RARITIES.map(r=>[r.id,0])),motifs=new Set();
  for(const id of cards){const variant=getVariant(id);if(!variant)continue;const card=DEFINITIONS.find(c=>c.id===variant.definitionId);elements[card.element]++;rarities[variant.rarity]++;motifs.add(card.id);}
  return {total:cards.length,remaining:Math.max(0,DECK_SIZE-cards.length),elements,rarities,uniqueMotifs:motifs.size};
+}
+
+// Explicit editor action only; saved decks and owned cards are never silently removed.
+export function rebuildLegalDeck(cards,inventory){
+ let result=[];
+ for(const id of cards)if(result.length<DECK_SIZE)try{result=addDeckCard(result,id,inventory);}catch{}
+ for(const id of Object.keys(inventory).sort((a,b)=>Number(!a.endsWith(':common'))-Number(!b.endsWith(':common'))))for(let i=0;i<Math.min(MAX_MOTIF_COPIES,inventory[id]??0)&&result.length<DECK_SIZE;i++)try{result=addDeckCard(result,id,inventory);}catch{}
+ return result;
 }

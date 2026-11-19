@@ -62,3 +62,6 @@
 @media(prefers-reduced-motion:reduce){.dv-portal .booster-card.is-revealed{animation:none}}
 
 .dv-portal .booster-results{scroll-margin-top:140px}.dv-portal .booster-result-heading{flex-wrap:wrap}
+.dv-portal .single-draw-workbench{grid-template-columns:150px minmax(0,1fr) 270px;gap:30px}.dv-portal .single-draw-workbench .booster-pack{min-height:230px}.dv-portal .single-draw-result{text-align:center;min-width:0}.dv-portal .single-draw-result .duelverse-card{max-width:245px}.dv-portal .single-draw-result h2{font-size:19px;margin:10px 0 6px}.dv-portal .single-draw-result p{font-size:13px;color:#c1b0d5}.dv-portal .single-draw-empty img{width:190px;margin:auto;opacity:.5}.dv-portal .single-draw-result .booster-hidden img{max-width:245px}
+@media(max-width:1000px){.dv-portal .single-draw-workbench{grid-template-columns:minmax(0,1fr) 230px}.dv-portal .single-draw-workbench>.booster-pack{display:none}}
+@media(max-width:600px){.dv-portal .single-draw-workbench{grid-template-columns:1fr}.dv-portal .single-draw-result{margin-top:10px}}
