@@ -1,3 +1,4 @@
+import {readPlayDeck} from '../platform/deck-bridge.mjs?v=memes-27';
 import {syncTableCards} from './table-card-pool25.mjs';
 import {handCardDepth,handHitOrder,HUD_DEPTH} from './hand-layers17.mjs';
 import {rarityOf} from './card-rarities15.mjs?v=hand-depth-17';
@@ -11,11 +12,11 @@ import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets} from './rules.mjs';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
-import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=classics-v04';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=visible-particles-24';
+import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=memes-27';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=memes-27';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
-import {DEMO_PROFILES} from './table-demo-state.mjs?v=balance-2';
+import {DEMO_PROFILES} from './table-demo-state.mjs?v=memes-27';
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
 export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}={}){
@@ -54,7 +55,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}
  const fieldNodes=new Map(),handNodes=new Map(),cardMap=new Map(),moving=new Set(),hidden=new Set(),tweens=[];
  const fieldLayer=svgNode('g',{'class':'board-hits'}),handLayer=svgNode('g',{'class':'hand-hits'});svg.append(fieldLayer,handLayer);
  for(const c of CELLS){const g=svgNode('g',{'data-cell':c.id,role:'button',tabindex:'0',class:'board-cell'});g.append(svgNode('title',{}),svgNode('polygon',{fill:'transparent',class:'field-hit'}),svgNode('text',{class:'field-label','text-anchor':'middle'}),svgNode('text',{class:'owner-label','text-anchor':'middle'}));fieldLayer.append(g);fieldNodes.set(c.id,g);}
- const runtime=await createCardRuntime(renderer);
+ const runtime=await createCardRuntime(renderer,{variants:showcase?null:readPlayDeck(localStorage)?.cards??[]});
  const blendCanvas=document.createElement('canvas');blendCanvas.width=2;blendCanvas.height=64;const blendCtx=blendCanvas.getContext('2d'),blendGradient=blendCtx.createLinearGradient(0,0,0,64);blendGradient.addColorStop(0,'#14242e00');blendGradient.addColorStop(1,'#14242e');blendCtx.fillStyle=blendGradient;blendCtx.fillRect(0,0,2,64);const blendTexture=new T.CanvasTexture(blendCanvas);blendTexture.colorSpace=T.SRGBColorSpace;const handShadeCanvas=document.createElement('canvas');handShadeCanvas.width=2;handShadeCanvas.height=64;const handShadeCtx=handShadeCanvas.getContext('2d'),handShadeGradient=handShadeCtx.createLinearGradient(0,0,0,64);handShadeGradient.addColorStop(0,'#04091800');handShadeGradient.addColorStop(.6,'#04091866');handShadeGradient.addColorStop(1,'#040918bb');handShadeCtx.fillStyle=handShadeGradient;handShadeCtx.fillRect(0,0,2,64);const paintedHandTexture=new T.CanvasTexture(handShadeCanvas);paintedHandTexture.colorSpace=T.SRGBColorSpace;const blend=new T.Mesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map:blendTexture,transparent:true,depthWrite:false,toneMapped:false}));blend.position.z=-500;hudScene.add(blend);
  let generation=0,game=null,ui={},width=800,height=600,boardTop=70,boardHeight=350,last=0,raf,dirty=true,motion=!matchMedia('(prefers-reduced-motion:reduce)').matches;
  function deckPose(side,index=0){if(arenaId==='painted'&&deckPlinth)return side===0?paintedDrawDeckPose(width,height,index):paintedOpponentDeckPose(width,height,index);const small=width<500,h=side===0?(small?85:112):(small?46:65),x=width-(small?44:91),y=side===0?height-89:36;return {x:x+index*1.3,y:y+index*1.3,z:45-index*.5,h,quaternion:new T.Quaternion().setFromEuler(new T.Euler(0,Math.PI,side===0?.07:-.06))};}

@@ -1,3 +1,4 @@
+import {EXPANSION_CARDS} from './expansion27.mjs';
 import {DEFINITIONS,getVariant,starterInventory,starterDeck,validateDeck} from './catalog.mjs';
 export const TEST_COLLECTION_KEY='duelverse.booster-test.v1';
 export const TEST_DECK_KEY='duelverse.booster-test-deck.v1';
@@ -8,7 +9,7 @@ export const TEST_PACK_ODDS=Object.freeze({
  guaranteed:Object.freeze([['rare',7800],['epic',1800],['legendary',350],['mythic',50]])
 });
 export const blankTestCollection=()=>({version:1,openedPacks:0,inventory:{},lastPack:null});
-export function testInventory(collection){const inventory=starterInventory();for(const [id,count]of Object.entries(collection.inventory))inventory[id]=(inventory[id]??0)+count;return inventory;}
+export function testInventory(collection){const inventory={...starterInventory(),...Object.fromEntries(EXPANSION_CARDS.map(c=>[`${c.id}:common`,1]))};for(const [id,count]of Object.entries(collection.inventory))inventory[id]=(inventory[id]??0)+count;return inventory;}
 export function readTestCollection(storage){
  try{
   const data=JSON.parse(storage.getItem(TEST_COLLECTION_KEY));
@@ -33,3 +34,6 @@ export function addTestPack(collection,cards,id){
  return {version:1,openedPacks:collection.openedPacks+1,inventory,lastPack:{id,cards:[...cards],newIds}};
 }
 export function readTestDeck(storage,inventory){try{const saved=JSON.parse(storage.getItem(TEST_DECK_KEY));if(saved?.version===1&&validateDeck(saved.cards,inventory).valid)return {cards:saved.cards,name:typeof saved.name==='string'?saved.name.slice(0,40):'Test deck'};}catch{}return {cards:starterDeck(),name:'My test deck'};}
+
+// Browser-only rehearsal: one of each new meme plus the five core ability candidates.
+export function expansionTestDeck(){return [...EXPANSION_CARDS.map(c=>`${c.id}:common`),'pepe:common','pepe:common','doge:common','doge:common','roll-safe:common'];}

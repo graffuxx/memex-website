@@ -1,11 +1,8 @@
 import * as T from '../vendor/three.module.min.js';
 import {CATALOG,ELEMENTS,sideValue} from './rules.mjs';
 
-export const CARD_PROFILES={
- pepe:{id:'pepe',name:'Pepe',ruleId:'oracle',element:'storm',asset:'../assets/cards/v03/overthinker-thinking-pepe.webp',caption:'Feels good, man.'},
- doge:{id:'doge',name:'Doge',ruleId:'brain',element:'fire',asset:'../assets/cards/v04/doge.webp',caption:'such strategy. much wow.'},
- 'roll-safe':{id:'roll-safe',name:'Roll Safe',ruleId:'trust',element:'stone',asset:'../assets/cards/v04/roll-safe.webp',caption:'Kann nicht verlieren, wenn du nicht mitspielst.'}
-};
+export {CARD_PROFILES} from './card-profiles27.mjs';
+import {CARD_PROFILES} from './card-profiles27.mjs';
 
 export const CARD_SPEC={id:'oracle',radius:1,bodyDepth:.045,bevel:.012,artRadius:.91,valueOrbit:.718,socketRadius:.145,socketY:.803,symbolSize:.225,asset:'../assets/cards/v03/overthinker-thinking-pepe.webp',logo:'../assets/brand/memex-duelverse-original.webp'};
 const valueInset=[[-.128,-.105],[-.155,0],[-.128,.105],[.125,.155],[.135,.12],[.135,-.12],[.125,-.155]];

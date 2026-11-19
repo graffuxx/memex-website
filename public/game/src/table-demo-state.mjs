@@ -2,7 +2,8 @@ import {createTacticsLayout} from './tactics-layout.mjs?v=random-layout-1';
 import {newGame,placeCard,freeCells} from './rules.mjs';
 import {LOADOUTS,ABILITY_FOR} from './table-demo-rules.mjs?v=random-layout-1';
 import {chooseTactic} from './tactics-ai.mjs?v=random-layout-1';
-export const DEMO_PROFILES={oracle:'pepe',brain:'doge',trust:'roll-safe'};
+import {DEFINITIONS} from '../platform/catalog.mjs';
+export const DEMO_PROFILES=Object.fromEntries(DEFINITIONS.map(c=>[c.ruleId,c.id]));
 export function createTableDemo(loadout='hype-guard'){
  if(!Object.hasOwn(LOADOUTS,loadout))throw Error('Unbekannte Deckvariante.');
  let game=newGame({seed:20261116,layout:'core',starter:0});

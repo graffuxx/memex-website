@@ -5,8 +5,8 @@ import {materialFrameUrl,materialOf} from '../../../public/game/src/card-materia
 import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 
 type Props={
- card:{name:string;element:string;values:readonly number[]};
- variant:{image:string;rarity:string};
+ card:{name:string;short?:string;element:string;values:readonly number[]};
+ variant:{image:string;rarity:string;artOffsetY?:number};
  color:string;
  owned?:boolean;
  compact?:boolean;
@@ -35,7 +35,8 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
     <linearGradient id={elementId} x1="0" y1="0" x2="0" y2="1"><stop stopColor={element.from}/><stop offset="1" stopColor={element.to}/></linearGradient>
    </defs>
    <g clipPath={`url(#${artId})`}>
-    <image href={variant.image} x="-.96" y="-.96" width="1.92" height="1.92" preserveAspectRatio="xMidYMid slice"/>
+    <polygon points={hex(.96)} fill="#0b1028"/>
+    <image href={variant.image} x="-.96" y={-.96+(variant.artOffsetY??0)} width="1.92" height="1.92" preserveAspectRatio="xMidYMid slice"/>
     {variant.rarity!=='common'&&<rect className="duelverse-card__foil" x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
@@ -43,7 +44,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    {owned&&<polygon points={hex(1.014)} fill="none" stroke="#55ed94" strokeWidth=".012"/>}
    <g fill="#17150d" fontFamily="Arial,sans-serif" fontWeight="800" textAnchor="middle" dominantBaseline="central">
     {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{card.values[i]}</text>)}
-    <text x="0" y={-FRAME_LAYOUT.titleY+.004} fontSize=".105">{card.name.toUpperCase()}</text>
+    <text x="0" y={-FRAME_LAYOUT.titleY+.004} fontSize=".105">{(card.short??card.name).toUpperCase()}</text>
    </g>
    {owned&&<g transform={`translate(-.43 ${-FRAME_LAYOUT.titleY})`}><circle r=".029" fill="#0b1524"/><circle r=".02" fill="#55ed94"/></g>}
    <svg x="-.1225" y={-FRAME_LAYOUT.elementY-.1225} width=".245" height=".245" viewBox="0 0 256 256" aria-hidden="true">

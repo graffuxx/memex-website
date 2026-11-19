@@ -1,6 +1,7 @@
 import {freeCells,neighbors,sideValue} from './rules.mjs';
 import * as currentRules from './table-demo-rules.mjs?v=random-layout-1';
-const ARCHETYPES=['oracle','brain','trust'];
+import {DEFINITIONS} from '../platform/catalog.mjs';
+const ARCHETYPES=DEFINITIONS.map(c=>c.ruleId);
 export function legalCandidates(game,rules=currentRules){
  const result=[];
  for(const card of game.players[game.turn].hand)for(const cell of freeCells(game))for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){

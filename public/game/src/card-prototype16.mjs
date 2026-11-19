@@ -1,18 +1,15 @@
 import * as T from '../vendor/three.module.min.js';
 import {CATALOG,sideValue} from './rules.mjs';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
-export {cardShape,cardPoints} from './card-prototype.mjs?v=classics-v04';
-import {cardShape} from './card-prototype.mjs?v=classics-v04';
+export {cardShape,cardPoints} from './card-prototype.mjs?v=memes-27';
+import {cardShape} from './card-prototype.mjs?v=memes-27';
 
-export const CARD_PROFILES={
- pepe:{id:'pepe',name:'Pepe',ruleId:'oracle',element:'storm',asset:'../assets/cards/v03/overthinker-thinking-pepe.webp'},
- doge:{id:'doge',name:'Doge',ruleId:'brain',element:'fire',asset:'../assets/cards/frame-v21/swollen-doge.webp'},
- 'roll-safe':{id:'roll-safe',name:'Roll Safe',ruleId:'trust',element:'stone',asset:'../assets/cards/v04/roll-safe.webp'}
-};
+export {CARD_PROFILES} from './card-profiles27.mjs';
+import {CARD_PROFILES} from './card-profiles27.mjs';
 export const CARD_SPEC={radius:1,bodyDepth:.045,bevel:.009,socketY:FRAME_LAYOUT.abilityY,symbolSize:.245};
-const artGeometry=()=>{
+const artGeometry=(offset=0)=>{
  const g=new T.ShapeGeometry(cardShape(.96)),p=g.attributes.position,uv=g.attributes.uv;
- for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/1.92+.5,p.getY(i)/1.92+.5);
+ for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/1.92+.5,(p.getY(i)+offset)/1.92+.5);
  return g;
 };
 function canvasTexture(draw,width=256,height=width){
@@ -32,7 +29,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
  const body=geo(new T.ExtrudeGeometry(cardShape(),{depth:CARD_SPEC.bodyDepth,bevelEnabled:true,bevelSegments:3,bevelSize:.009,bevelThickness:.006,steps:1}));body.translate(0,0,-CARD_SPEC.bodyDepth/2);
  add(body,metal).castShadow=true;
  // Portrait, cutout frame and live values remain separate layers.
- const portraitMaterial=mat(new T.MeshBasicMaterial({map:image,toneMapped:false}));add(geo(artGeometry()),portraitMaterial,.034);
+ const portraitMaterial=mat(new T.MeshBasicMaterial({map:image,toneMapped:false}));add(geo(artGeometry(p.artOffsetY)),portraitMaterial,.034);
  const frameMaterial=mat(new T.MeshBasicMaterial({map:frame,transparent:true,alphaTest:.025,toneMapped:false}));
  add(geo(new T.PlaneGeometry(FRAME_LAYOUT.width,FRAME_LAYOUT.height)),frameMaterial,.045);
  const rear=add(geo(new T.PlaneGeometry(2.048,2.048)),mat(new T.MeshBasicMaterial({map:back,transparent:true,alphaTest:.025,toneMapped:false})),-.036);rear.rotation.y=Math.PI;

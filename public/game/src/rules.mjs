@@ -1,3 +1,4 @@
+import {EXPANSION_CARDS} from '../platform/expansion27.mjs';
 export const VERSION=1;
 export const ELEMENTS={fire:{name:'Glut',symbol:'✦',color:'#fa8966',beats:'stone'},stone:{name:'Stein',symbol:'◆',color:'#d7bb7c',beats:'storm'},storm:{name:'Sturm',symbol:'ϟ',color:'#bb99ff',beats:'water'},water:{name:'Flut',symbol:'≈',color:'#72d8e6',beats:'fire'}};
 export const DIRECTIONS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
@@ -10,8 +11,10 @@ export const CATALOG=[
  {id:'reset',name:'Hard Reset',element:'stone',values:[6,5,4,4,3,2],face:'robot',quote:'Schon mal aus- und wieder angezweifelt?'},
  {id:'grass',name:'Touch Grass',element:'water',values:[2,5,6,5,2,4],face:'frog',quote:'Die Außenwelt ist auch nur ein anderer Server.'},
  {id:'fine',name:'Fine. Actually.',element:'fire',values:[3,6,3,6,3,3],face:'hood',quote:'Alles unter Kontrolle. Ignoriere das Feuer.'},
- {id:'brain',name:'Last Braincell',element:'fire',values:[5,2,5,2,5,5],face:'cat',quote:'Heute bin ich allein im Dienst.'}
+ {id:'brain',name:'Last Braincell',element:'fire',values:[5,2,5,2,5,5],face:'cat',quote:'Heute bin ich allein im Dienst.'},
+ ...EXPANSION_CARDS
 ];
+const LEGACY_IDS=new Set(['oracle','rage','mage','moon','trust','reset','grass','fine','brain']);
 export const CELLS=[];for(let r=-2;r<=2;r++)for(let q=-2;q<=2;q++)if(Math.abs(q+r)<=2)CELLS.push({id:q+','+r,q,r});
 export const LAYOUTS=[{id:'core',name:'Kernbruch',block:'0,0'},{id:'east',name:'Ostpass',block:'1,0'},{id:'west',name:'Westpass',block:'-1,0'}];
 export const cardOf=card=>CATALOG.find(c=>c.id===card.id);
@@ -20,7 +23,7 @@ function random(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 export function newGame({seed=12345,layout='core',starter=0}={}){
  if(![0,1].includes(starter)||!LAYOUTS.some(l=>l.id===layout))throw Error('Ungültige Partieauswahl.');
- const rng=random(seed),players=[0,1].map(p=>{const cards=shuffle(CATALOG.map(c=>({id:c.id,uid:p+':'+c.id,origin:p})),rng);return {hand:cards.slice(0,5),deck:cards.slice(5),shifts:1,flips:0};});
+ const rng=random(seed),players=[0,1].map(p=>{const cards=shuffle(CATALOG.filter(c=>LEGACY_IDS.has(c.id)).map(c=>({id:c.id,uid:p+':'+c.id,origin:p})),rng);return {hand:cards.slice(0,5),deck:cards.slice(5),shifts:1,flips:0};});
  return {version:VERSION,seed,layout,starter,turn:starter,placements:0,board:{},block:LAYOUTS.find(l=>l.id===layout).block,players,events:[{cell:'-1,1',element:'storm'},{cell:'1,-1',element:'water'}],history:[],last:null,winner:null,finished:false};
 }
 export function neighbors(id){const c=CELLS.find(c=>c.id===id);return c?DIRECTIONS.map(([q,r],dir)=>({id:(c.q+q)+','+(c.r+r),dir})).filter(n=>cellSet.has(n.id)):[];}
