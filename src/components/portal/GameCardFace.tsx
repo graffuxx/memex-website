@@ -1,5 +1,5 @@
 'use client';
-import {useId,useEffect,useState,type CSSProperties} from 'react';
+import {useId,useEffect,useState,useRef,type CSSProperties} from 'react';
 import CardParticleEffects from './CardParticleEffects';
 import {materialFrameUrl,materialOf} from '../../../public/game/src/card-materials22.mjs';
 import {alphaNameplateMarkup} from '../../../public/game/platform/edition36.mjs';
@@ -26,10 +26,19 @@ const elements:Record<string,{path:string;from:string;to:string}>={
 export default function GameCardFace({card,variant,color,owned=false,compact=false}:Props){
  const id=useId().replace(/:/g,''),element=elements[card.element]??elements.stone;
  const [frame,setFrame]=useState('/game/assets/cards/frame-v21/navy-gold-frame.webp');
+ const face=useRef<HTMLDivElement>(null),[effectsVisible,setEffectsVisible]=useState(false);
+ // Large collections keep every card selectable, but animate only visible faces.
+ useEffect(()=>{
+  if(compact)return;
+  if(typeof IntersectionObserver==='undefined'){setEffectsVisible(true);return;}
+  const observer=new IntersectionObserver(([entry])=>setEffectsVisible(entry.isIntersecting),{rootMargin:'60px'});
+  if(face.current)observer.observe(face.current);
+  return()=>observer.disconnect();
+ },[compact]);
  useEffect(()=>{let active=true;materialFrameUrl(variant.rarity).then(url=>{if(active)setFrame(url);}).catch(()=>{});return()=>{active=false;};},[variant.rarity]);
  const title=(card.short??card.name).toUpperCase();
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
- return <div className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
+ return <div ref={face} className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
   <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${card.element} · Edge values: ${card.values.join(', ')}${variant.edition==='alpha'?' · Alpha edition':''}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
@@ -39,7 +48,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    <g clipPath={`url(#${artId})`}>
     <polygon points={hex(.96)} fill="#0b1028"/>
     <image href={variant.image} x="-.96" y={-.96+(variant.artOffsetY??0)} width="1.92" height="1.92" preserveAspectRatio="xMidYMid slice"/>
-    {variant.rarity!=='common'&&<rect className="duelverse-card__foil" x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
+    {variant.rarity!=='common'&&<rect className="duelverse-card__foil" style={{animationPlayState:effectsVisible?'running':'paused'}} x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
    <polygon className="duelverse-card__rarity" points={hex(.983)} fill="none" stroke={color} strokeWidth=".009"/>
@@ -53,7 +62,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    <svg x="-.1225" y={-FRAME_LAYOUT.elementY-.1225} width=".245" height=".245" viewBox="0 0 256 256" aria-hidden="true">
     <path d={element.path} fill={`url(#${elementId})`} stroke="#ffd876" strokeWidth="5" strokeLinejoin="round"/>
    </svg>
-   {!compact&&<CardParticleEffects rarity={variant.rarity} id={id}/>}
+   {!compact&&effectsVisible&&<CardParticleEffects rarity={variant.rarity} id={id}/>}
   </svg>
  </div>;
 }

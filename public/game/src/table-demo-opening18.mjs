@@ -1,4 +1,4 @@
-import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-45';
+import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-48';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
@@ -7,11 +7,11 @@ import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=rounds-42';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=alpha-cards-45';
+import {createTableView} from './table-demo-view-hand17.mjs?v=alpha-cards-48';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=random-layout-1';
 import {scores,ELEMENTS,shiftBlock,moveTargets,sideValue} from './rules.mjs';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
-import {CARD_PROFILES} from './card-prototype.mjs?v=alpha-cards-45';
+import {CARD_PROFILES} from './card-prototype.mjs?v=alpha-cards-48';
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
 const $=id=>document.getElementById(id),stage=$('stage'),svg=$('interaction');
 if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[href="/decks"]'))link.href='/decks?test=1';

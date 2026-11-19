@@ -1,10 +1,10 @@
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
 import {getVariant} from '../platform/catalog.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
-import {createCardFinishLayer} from './card-finish-layer16.mjs?v=alpha-cards-45';
+import {createCardFinishLayer} from './card-finish-layer16.mjs?v=alpha-cards-48';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 import * as T from '../vendor/three.module.min.js';
-import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=alpha-cards-45';
+import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=alpha-cards-48';
 
 // Render the approved sculpted face once, then reuse it on thin 3D bodies.
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.

@@ -6,10 +6,10 @@ const A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222
 const request=n=>`99999999-9999-4999-8999-${String(n).padStart(12,'0')}`;
 test('Alpha pack rules: five cards, Silver minimum, three-copy lifetime protection and universal X back',()=>{
  assert.equal(ALPHA_BOOSTER.cards,5);assert.deepEqual(ALPHA_BOOSTER.prices,{pixels:100,shards:150});
- assert.equal(VARIANTS.length,125);assert.ok(VARIANTS.every(v=>v.edition==='alpha'));assert.ok(DEFINITIONS.every(c=>c.edition==='alpha'));
+ assert.equal(VARIANTS.length,175);assert.ok(VARIANTS.every(v=>v.edition==='alpha'));assert.ok(DEFINITIONS.every(c=>c.edition==='alpha'));
  for(const odds of Object.values(ALPHA_ODDS))assert.equal(odds.reduce((n,[,weight])=>n+weight,0),10000);
  const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));acquired['smudge:rare']=2;
- assert.deepEqual(protectedCandidates('rare',acquired).map(v=>v.id),['smudge:rare']);acquired['smudge:rare']=3;assert.equal(protectedCandidates('rare',acquired).length,25);
+ assert.deepEqual(protectedCandidates('rare',acquired).map(v=>v.id),['smudge:rare']);acquired['smudge:rare']=3;assert.equal(protectedCandidates('rare',acquired).length,35);
  assert.equal(validAlphaPack(['pepe:common','doge:common','smudge:common','confused:common','harold:rare']),true);
  assert.equal(validAlphaPack(Array(5).fill('pepe:common')),false);assert.equal(validAlphaPack(['fake']),false);
  assert.deepEqual(revealedSlots([4,2,2,0,9,-1,'1']),[0,2,4]);
@@ -26,6 +26,7 @@ test('account boosters: atomic price, persistent five-card results/reveals, owne
   await db.query('select public.dv_trade_card($1,$2,$3)',[request(500),'dismantle','smudge:mythic']);
   await db.exec('reset role');await db.exec(await readFile(new URL('../supabase/migrations/202611190005_alpha_boosters.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202611190006_alpha_expansion.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202611190007_alpha_additions.sql',import.meta.url),'utf8'));
   await asUser(C);assert.equal(Number((await db.query("select quantity from public.dv_card_acquired36 where variant_id='smudge:mythic'")).rows[0].quantity),1);
   for(const u of [A,B]){await asUser(u);await db.exec('select public.dv_initialize_account()');}
   const sum=async table=>Number((await db.query('select coalesce(sum(quantity),0) as n from public.'+table)).rows[0].n);

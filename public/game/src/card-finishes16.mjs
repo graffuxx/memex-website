@@ -1,6 +1,6 @@
 import {DEFINITIONS} from '../platform/catalog.mjs';
 import * as T from '../vendor/three.module.min.js';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-cards-45';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-cards-48';
 import {CARD_RARITIES,RARITY_KEYS} from './card-rarities15.mjs';
 const effects=document.getElementById('studioEffects'),status=document.getElementById('studioMotionStatus');effects.checked=new URLSearchParams(location.search).get('effects')==='1';
 const stage=document.getElementById('finishStage'),owner=document.getElementById('studioOwner'),motion=document.getElementById('studioMotion'),profile=document.getElementById('studioProfile'),side=document.getElementById('studioSide');

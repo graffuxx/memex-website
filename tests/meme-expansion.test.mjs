@@ -8,8 +8,8 @@ import {newGame} from '../public/game/src/rules.mjs';
 import {LOADOUTS,placeEffect} from '../public/game/src/table-demo-rules.mjs';
 import {applyPortalDecks} from '../public/game/platform/deck-bridge.mjs';
 import {testInventory,blankTestCollection,expansionTestDeck,drawTestPack} from '../public/game/platform/booster-test.mjs';
-test('25 identities and 125 cosmetic variants have matching rule, portrait, short title and owner-independent profiles',()=>{
- assert.equal(DEFINITIONS.length,25);assert.equal(VARIANTS.length,125);assert.equal(EXPANSION_CARDS.length,22);
+test('35 identities and 175 cosmetic variants have matching rule, portrait, short title and owner-independent profiles',()=>{
+ assert.equal(DEFINITIONS.length,35);assert.equal(VARIANTS.length,175);assert.equal(EXPANSION_CARDS.length,32);
  for(const c of DEFINITIONS){assert.equal(DEMO_PROFILES[c.ruleId],c.id);assert.equal(CARD_PROFILES[c.id].ruleId,c.ruleId);assert.ok(CARD_PROFILES[c.id].name.length<=14);const art=Object.values(CARD_ART[c.id]);assert.equal(art.length,5);assert.equal(new Set(art).size,5);for(const v of VARIANTS.filter(v=>v.definitionId===c.id)){assert.equal(v.image.replace('/game/','../'),CARD_ART[c.id][v.rarity]);assert.equal(v.artOffsetY,c.artOffsetY??0);assert.equal(expandGameDeck([v.id],0)[0].id,c.ruleId);}}
  assert.equal(starterDeck().length,15);assert.equal(Object.values(starterInventory()).reduce((a,b)=>a+b,0),18);
  assert.equal(newGame().players[0].hand.length+newGame().players[0].deck.length,9);
