@@ -6,7 +6,7 @@ import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=balance-2';
-import {createTableView} from './table-demo-view-hand17.mjs?v=home-rift-25';
+import {createTableView} from './table-demo-view-hand17.mjs?v=home-rift-25b';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=random-layout-1';
 import {scores,ELEMENTS,shiftBlock,moveTargets,sideValue} from './rules.mjs';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=random-layout-1';

@@ -1,3 +1,4 @@
+import {syncTableCards} from './table-card-pool25.mjs';
 import {handCardDepth,handHitOrder,HUD_DEPTH} from './hand-layers17.mjs';
 import {rarityOf} from './card-rarities15.mjs?v=hand-depth-17';
 import {createPaintedDeckPlinth,paintedDrawDeckPose,paintedOpponentDeckPose} from './painted-deck-plinth11.mjs?v=home-rift-25';
@@ -100,10 +101,9 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}
  async function draw(uid,side,duration=500){const token=generation,card=cardMap.get(uid);moving.add(uid);hidden.delete(uid);poseToRoot(card,deckPose(side),true);card.group.visible=true;const index=game.players[side].hand.findIndex(c=>c.uid===uid),ok=await fly(card,handPose(side,index,game.players[side].hand.length),duration,true);if(!ok||token!==generation)return false;moving.delete(uid);layout();return true;}
  async function deal(){const cards=game.players[0].hand.map(c=>c.uid);for(const uid of cards){hidden.add(uid);cardMap.get(uid).group.visible=false;}dirty=true;for(const uid of cards){if(!await draw(uid,0,190))return false;}return true;}
  async function flip(uid,owner){const token=generation,c=cardMap.get(uid);moving.add(uid);let changed=false;const ok=await animate(380,t=>{c.group.rotation.set(-Math.PI/2,Math.sin(t*Math.PI)*Math.PI,0);if(t>=.5&&!changed){c.setOwner(owner);changed=true;}});if(!ok||token!==generation)return false;moving.delete(uid);if(ok){c.group.rotation.set(-Math.PI/2,0,0);c.setOwner(owner);}dirty=true;return ok;}
- function initGame(g){cancel();if(arenaId==='painted'){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;if(!cardMap.size){for(const p of g.players)for(const c of [...p.hand,...p.deck])cardMap.set(c.uid,runtime.spawn(c.uid,DEMO_PROFILES[c.id],c.origin,0,rarityOf(c).key));for(const c of Object.values(g.board))cardMap.set(c.uid,runtime.spawn(c.uid,DEMO_PROFILES[c.id],c.controller,c.rotation,rarityOf(c).key));}
-  for(const c of [...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)])cardMap.get(c.uid)?.setRarity(rarityOf(c).key);
-  eventPulse=0;const cardStates=new Map([...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)].map(c=>[c.uid,c]));for(const c of cardMap.values()){const state=cardStates.get(c.uid);c.setRotation(state?.rotation??0);c.setOwner(state?.controller??state?.origin??0);}
-  for(const c of Object.values(g.board)){cardMap.get(c.uid).setOwner(c.controller);cardMap.get(c.uid).setRotation(c.rotation);}
+ function initGame(g){cancel();if(arenaId==='painted'){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;
+  syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key});
+  eventPulse=0;
   update(g,{});resize();layout(true);renderer.shadowMap.needsUpdate=true;dirty=true;
  }
  function frame(now){raf=requestAnimationFrame(frame);if(document.hidden)return;const dt=Math.min(.05,(now-(last||now))/1000);last=now;let active=false;
