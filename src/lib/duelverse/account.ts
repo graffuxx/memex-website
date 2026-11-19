@@ -1,4 +1,5 @@
 import {supabase} from '@/lib/supabaseClient';
+import {boosterHistoryFilter} from '../../../public/game/platform/player-area49.mjs';
 export type SavedDeck={id:string;name:string;cards:string[];active:boolean};
 export type PlayerState={displayName:string;inventory:Record<string,number>;decks:SavedDeck[];pixels:number;shards:number;echoes:number};
 export async function loadPlayer():Promise<PlayerState>{
@@ -29,8 +30,11 @@ export async function tradeCard(requestId:string,kind:'craft'|'dismantle',varian
 export type BoosterCurrency='pixels'|'shards';
 export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency;cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
 const boosterFields='id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots,created_at';
-export async function loadBoosterHistory():Promise<BoosterPurchase[]>{
- const {data,error}=await supabase.from('dv_booster_purchases36').select(boosterFields).order('created_at',{ascending:false}).limit(20);
+export async function loadBoosterHistory({limit=20,before=null}:{limit?:number;before?:{id:string;created_at:string}|null}={}):Promise<BoosterPurchase[]>{
+ if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('Invalid history page size.');
+ let query=supabase.from('dv_booster_purchases36').select(boosterFields).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(limit);
+ if(before)query=query.or(boosterHistoryFilter(before));
+ const {data,error}=await query;
  if(error)throw Error('Your booster history could not be loaded. Please try again.');return (data??[]) as BoosterPurchase[];
 }
 export async function loadBooster(id:string):Promise<BoosterPurchase>{

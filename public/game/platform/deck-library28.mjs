@@ -16,8 +16,8 @@ function cleanRecord(value){
  return {id:value.id,cloudId:typeof value.cloudId==='string'?value.cloudId:null,name:value.name,cards:[...value.cards],saved:snapshot(value.saved)};
 }
 // Working drafts are cached separately per account/test/guest; only Save writes to the account.
-/** @param {{getItem:(key:string)=>string|null}} storage @param {string} key @param {{serverDecks?:Array<{id:string,name:string,cards:string[],active?:boolean}>|null,legacyKey?:string|null,fallbackName?:string,fallbackCards?:string[]}} [options] */
-export function readDeckLibrary(storage,key,{serverDecks=null,legacyKey=null,fallbackName='My first deck',fallbackCards=starterDeck()}={}){
+/** @param {{getItem:(key:string)=>string|null}} storage @param {string} key @param {{serverDecks?:Array<{id:string,name:string,cards:string[],active?:boolean}>|null,legacyKey?:string|null,fallbackName?:string,fallbackCards?:string[],requestedId?:string|null}} [options] */
+export function readDeckLibrary(storage,key,{serverDecks=null,legacyKey=null,fallbackName='My first deck',fallbackCards=starterDeck(),requestedId=null}={}){
  let cached=null;try{cached=JSON.parse(storage.getItem(key));}catch{}
  let records=[];
  if(cached?.version===1&&Array.isArray(cached.decks)){const seen=new Set();for(const raw of cached.decks){const deck=cleanRecord(raw);if(deck&&!seen.has(deck.id)&&records.length<DECK_LIBRARY_LIMIT){records.push(deck);seen.add(deck.id);}}}
@@ -30,7 +30,8 @@ export function readDeckLibrary(storage,key,{serverDecks=null,legacyKey=null,fal
  if(!records.length){let legacy=null;try{legacy=JSON.parse(legacyKey?storage.getItem(legacyKey):null);}catch{}const validLegacy=legacy?.version===1&&snapshot(legacy)&&legacy.cards.length===DECK_SIZE;
   records=[makeEditorDeck(validLegacy?legacy.name:fallbackName,validLegacy?legacy.cards:fallbackCards,{saved:true})];
  }
- return {version:1,selectedId:records.some(d=>d.id===selected)?selected:records[0].id,decks:records};
+ const requested=records.find(d=>requestedId&&(d.id===requestedId||d.cloudId===requestedId));
+ return {version:1,selectedId:requested?.id??(records.some(d=>d.id===selected)?selected:records[0].id),decks:records};
 }
 export function persistDeckLibrary(storage,key,library){
  if(!library.decks.length||library.decks.length>DECK_LIBRARY_LIMIT||library.decks.some(d=>!cleanRecord(d)))throw Error('Invalid deck library.');

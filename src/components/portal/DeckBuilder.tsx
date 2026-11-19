@@ -26,7 +26,7 @@ export default function DeckBuilder(){
 }
 function DeckEditor({access,source}:{access:Access;source:Source}){
  const {userId,player}=access,inventory=source==='sandbox'?fullTestDeckInventory():access.inventory,key=libraryKey(source,userId??''),legacyKey=source==='sandbox'?TEST_DECK_KEY:LEGACY_GUEST_DECK_KEY;
- const [library,setLibrary]=useState<Library>(()=>readDeckLibrary(localStorage,key,{serverDecks:source==='account'?player!.decks:null,legacyKey:source==='account'?null:legacyKey,fallbackName:source==='sandbox'?'My test deck':'My first deck'}) as Library);
+ const [library,setLibrary]=useState<Library>(()=>readDeckLibrary(localStorage,key,{serverDecks:source==='account'?player!.decks:null,legacyKey:source==='account'?null:legacyKey,fallbackName:source==='sandbox'?'My test deck':'My first deck',requestedId:new URLSearchParams(window.location.search).get('deck')}) as Library);
  const [search,setSearch]=useState(''),[element,setElement]=useState('all'),[rarity,setRarity]=useState('all'),[showUncollected,setShowUncollected]=useState(false),[saving,setSaving]=useState(false),[status,setStatus]=useState(''),[dragging,setDragging]=useState(false),[preview,setPreview]=useState<string|null>(null);
  const alive=useRef(true),busy=useRef(false),dialog=useRef<HTMLDialogElement>(null),lastAdded=useRef<string|null>(null);
  const deck=library.decks.find(d=>d.id===library.selectedId)!,counts=countCards(deck.cards) as Record<string,number>,motifCounts=countMotifs(deck.cards) as Record<string,number>,summary=summarizeDeck(deck.cards),dirty=deckIsDirty(deck),validation=validateDeck(deck.cards,inventory),canSave=validation.valid&&Boolean(deck.name.trim());

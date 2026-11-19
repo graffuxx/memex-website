@@ -9,6 +9,7 @@ import usePlayerCollection from './usePlayerCollection';
 import {BoosterPurchaseError,buyAlphaBooster,loadBooster,loadBoosterHistory,findBoosterRequest,revealBoosterCard,type BoosterCurrency,type BoosterPurchase} from '@/lib/duelverse/account';
 import {ALPHA_BOOSTER,ALPHA_ODDS,previewAlphaPack,revealedSlots,validAlphaPack} from '../../../public/game/platform/alpha-booster36.mjs';
 import {RARITIES,getVariant} from '../../../public/game/platform/catalog.mjs';
+import {requestedBooster} from '../../../public/game/platform/player-area49.mjs';
 import './alpha-boosters.css';
 import './booster-opening.css';
 type Pending={id:string;currency:BoosterCurrency};
@@ -33,7 +34,11 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
    const saved=readPending(owner);if(live(ticket))setPending(saved);
    const rows=await loadBoosterHistory();if(!live(ticket))return;setHistory(rows);historyRef.current=rows;
    if(saved){const restored=rows.find(p=>p.request_id===saved.id)??await findBoosterRequest(saved.id);if(!live(ticket))return;if(restored){acceptPack(restored);localStorage.removeItem(pendingKey(owner));setPending(null);await refresh();}}
-   else if(rows[0]&&revealedSlots(rows[0].revealed_slots).length<5)acceptPack(rows[0]);
+   else {
+    const requested=requestedBooster(window.location.search);
+    if(requested){const restored=rows.find(p=>p.id===requested)??await loadBooster(requested);if(!live(ticket))return;acceptPack(restored);if(!rows.some(p=>p.id===restored.id)){const expanded=[...rows,restored];setHistory(expanded);historyRef.current=expanded;}}
+    else {const unfinished=rows.find(p=>revealedSlots(p.revealed_slots).length<5);if(unfinished)acceptPack(unfinished);}
+   }
   }catch(e){if(live(ticket))setError(e instanceof Error?e.message:'Your booster history could not be loaded.');}finally{if(live(ticket))setLoadingHistory(false);}})();
  // A wallet refresh keeps the current opening. Identity changes reset it.
  // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,7 +72,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
  }
  const selectedPrice=confirmation?ALPHA_BOOSTER.prices[confirmation]:0;
  return <section className="portal-section top-space alpha-booster-page">
- <div className="alpha-shop-heading" ref={openingRef}><div><h1>{shop?'Shop':'Boosters'}</h1>{!shop&&<a className="alpha-back-link" href="/shop">Back to shop</a>}</div><div className="alpha-shop-controls"><PlayerBalances ready={ready} userId={userId} player={player}/><button className="alpha-sound-toggle" type="button" aria-label="Booster sound" aria-pressed={sound.enabled} disabled={!sound.available} onClick={sound.toggle} data-audio-state={sound.running?'running':'idle'} data-last-sound={sound.lastCue} data-sound-count={sound.playCount} title={sound.available?'Enable or mute booster sounds':'Sound unavailable in this browser'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/>{sound.enabled?<><path d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14"/></>:<path d="m17 9 5 6m0-6-5 6"/>}</svg><span>{sound.available?`Sound ${sound.enabled?'on':'off'}`:'Sound unavailable'}</span></button></div></div>
+ <div className="alpha-shop-heading" ref={openingRef}><div><h1>{shop?'Shop':'Boosters'}</h1>{!shop&&<a className="alpha-back-link" href="/shop">Back to shop</a>}{userId&&<a className="alpha-history-link" href="/account/private/boosters">Your booster history</a>}</div><div className="alpha-shop-controls"><PlayerBalances ready={ready} userId={userId} player={player}/><button className="alpha-sound-toggle" type="button" aria-label="Booster sound" aria-pressed={sound.enabled} disabled={!sound.available} onClick={sound.toggle} data-audio-state={sound.running?'running':'idle'} data-last-sound={sound.lastCue} data-sound-count={sound.playCount} title={sound.available?'Enable or mute booster sounds':'Sound unavailable in this browser'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/>{sound.enabled?<><path d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14"/></>:<path d="m17 9 5 6m0-6-5 6"/>}</svg><span>{sound.available?`Sound ${sound.enabled?'on':'off'}`:'Sound unavailable'}</span></button></div></div>
  {(accountError||error)&&<p className="error alpha-booster-error" role="alert">{error||accountError}</p>}
  {pending&&<div className="player-note" role="status">A previous purchase still needs confirmation. Retrying restores the same booster and cannot charge it twice. <button className="button glass" disabled={busy||loadingHistory} onClick={()=>purchase(pending.currency)}>{busy?'Checking purchase…':'Restore pending purchase'}</button></div>}
  {opening?<div className="alpha-opening">
