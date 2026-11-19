@@ -1,7 +1,7 @@
 import {STARTER_IDS,STARTER_COPIES,getVariant,countCards} from './catalog.mjs';
 // Shards: purchased currency. Pixels: round rewards and boosters. Echoes: dismantling and crafting.
 export const RESOURCE_NAMES=Object.freeze({premium:'Shards',earned:'Pixels',crafting:'Echoes'});
-export const BOOSTER_OFFER=Object.freeze({cards:5,pixels:100,shards:150,minimumFinish:'rare',active:false});
+export const BOOSTER_OFFER=Object.freeze({cards:5,pixels:100,shards:150,minimumFinish:'rare',active:true});
 // First balancing pass. Finishes remain cosmetic; values and deck limits never change.
 export const CRAFT_COST=Object.freeze({common:100,rare:400,epic:1600});
 export const DISMANTLE_VALUE=Object.freeze({common:10,rare:25,epic:60,legendary:150,mythic:400});

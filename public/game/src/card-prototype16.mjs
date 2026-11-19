@@ -1,4 +1,5 @@
 import * as T from '../vendor/three.module.min.js';
+import {ALPHA_MARK,alphaSymbolSvg} from '../platform/edition36.mjs';
 import {CATALOG,sideValue} from './rules.mjs';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 export {cardShape,cardPoints} from './card-prototype.mjs?v=memes-27';
@@ -47,9 +48,15 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
   numeric.position.set(x,y,.063);badges.push(numeric);
  }
  const titleTexture=tex(canvasTexture((ctx,w,h)=>{
-  ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='800 78px Arial,sans-serif';ctx.fillStyle='#19170f';ctx.fillText(p.name.toUpperCase(),w/2,h*.53,w*.9);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='800 78px Arial,sans-serif';ctx.fillStyle='#19170f';ctx.fillText(p.name.toUpperCase(),w/2,h*.53,w*.62);
  },768,108));
  const title=add(geo(new T.PlaneGeometry(FRAME_LAYOUT.titleWidth,FRAME_LAYOUT.titleHeight)),mat(new T.MeshBasicMaterial({map:titleTexture,transparent:true,depthWrite:false,toneMapped:false})),.064);title.position.y=FRAME_LAYOUT.titleY;
+ if(p.edition==='alpha'){
+  const mark=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(alphaSymbolSvg()));
+  const edition=add(geo(new T.PlaneGeometry(.12,.12)),mat(new T.MeshBasicMaterial({map:mark,transparent:true,depthWrite:false,toneMapped:false})),.066);
+  edition.position.set(ALPHA_MARK.x,FRAME_LAYOUT.titleY-ALPHA_MARK.titleOffset,.066);
+ }
+
  const elementTexture=tex(canvasTexture((ctx,w)=>{
   const gradient=ctx.createLinearGradient(0,w*.1,0,w*.92);gradient.addColorStop(0,p.element==='storm'?'#fff3c2':p.element==='stone'?'#f7e7ae':'#fff07a');gradient.addColorStop(1,p.element==='storm'?'#a49aff':p.element==='stone'?'#b98a40':'#ff8d12');ctx.fillStyle=gradient;ctx.strokeStyle='#ffd876';ctx.lineWidth=5;ctx.shadowColor=p.element==='storm'?'#907aff':'#ff9a28';ctx.shadowBlur=15;
   ctx.beginPath();

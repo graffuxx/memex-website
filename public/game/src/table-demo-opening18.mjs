@@ -110,7 +110,7 @@ async function reset({preserveSeries=false}={}){
  busy=true;clear();phase=isMatch()&&!preserveSeries?'opening':'dealing';notice=phase==='opening'?'Spielt das Startrecht aus.':'Neue Karten werden ausgeteilt.';
  game=isMatch()?createTacticsMatch({loadouts:[$('loadout').value,$('opponentLoadout').value],seed:matchSeed,starter:roundStarter(firstStarter??0,round)}):createTableDemo($('loadout').value);
  if(isMatch())game=applyPortalDecks(game,portalDeck.cards,[$('loadout').value,$('opponentLoadout').value].map(id=>LOADOUTS[id]),{round});
- game=withDemoFinishes(game);game.rotationLocked=true;view.initGame(game);
+ game=withDemoFinishes(game);game.rotationLocked=true;await view.prepareGame(game);if(token!==epoch)return;view.initGame(game);
  if(phase==='opening'){
   for(const card of game.players[0].hand)view.hide(card.uid);render();
   $('startDuel').dataset.motion=$('motion').checked?'on':'off';const starter=await startDialog.open();if(token!==epoch||starter===null)return;

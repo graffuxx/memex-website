@@ -25,3 +25,29 @@ export async function tradeCard(requestId:string,kind:'craft'|'dismantle',varian
   throw new Error(known.includes(error.message)?error.message:'Card action could not be confirmed. Retry the same action to check it safely.');
  }
 }
+
+export type BoosterCurrency='pixels'|'shards';
+export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency;cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
+const boosterFields='id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots,created_at';
+export async function loadBoosterHistory():Promise<BoosterPurchase[]>{
+ const {data,error}=await supabase.from('dv_booster_purchases36').select(boosterFields).order('created_at',{ascending:false}).limit(20);
+ if(error)throw Error('Your booster history could not be loaded. Please try again.');return (data??[]) as BoosterPurchase[];
+}
+export async function loadBooster(id:string):Promise<BoosterPurchase>{
+ const {data,error}=await supabase.from('dv_booster_purchases36').select(boosterFields).eq('id',id).single();
+ if(error||!data)throw Error('Your booster could not be loaded. Retry to restore the same purchase.');return data as BoosterPurchase;
+}
+export async function findBoosterRequest(requestId:string):Promise<BoosterPurchase|null>{
+ const {data,error}=await supabase.from('dv_booster_purchases36').select(boosterFields).eq('request_id',requestId).maybeSingle();
+ if(error)throw Error('Your purchase status could not be checked. Please retry.');return data as BoosterPurchase|null;
+}
+export class BoosterPurchaseError extends Error{constructor(message:string,public definitive=false){super(message);}}
+export async function buyAlphaBooster(requestId:string,currency:BoosterCurrency):Promise<string>{
+ const {data,error}=await supabase.rpc('dv_buy_alpha_booster',{p_request:requestId,p_currency:currency});
+ if(error){const known=['Not enough Pixels','Not enough Shards','Collection limit reached','Invalid booster purchase','Booster catalog unavailable'];throw new BoosterPurchaseError(known.includes(error.message)?error.message:'The purchase could not be confirmed. Retry this same request to restore it safely.',known.includes(error.message));}
+ if(typeof data!=='string')throw new BoosterPurchaseError('The purchase response could not be read. Retry this same request.');return data;
+}
+export async function revealBoosterCard(boosterId:string,slot:number):Promise<void>{
+ const {error}=await supabase.rpc('dv_reveal_booster_card',{p_booster:boosterId,p_slot:slot});
+ if(error)throw Error('The card reveal could not be saved. Your purchased cards are safe; please retry.');
+}

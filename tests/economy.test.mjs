@@ -4,7 +4,7 @@ import {RESOURCE_NAMES,BOOSTER_OFFER,CRAFT_COST,DISMANTLE_VALUE,roundPixels,prot
 test('crafting stops at Gold, every craft-dismantle cycle costs Echoes, and 5/2 rewards apply per completed round',()=>{
  assert.deepEqual(CRAFT_COST,{common:100,rare:400,epic:1600});
  assert.deepEqual(RESOURCE_NAMES,{premium:'Shards',earned:'Pixels',crafting:'Echoes'});
- assert.deepEqual(BOOSTER_OFFER,{cards:5,pixels:100,shards:150,minimumFinish:'rare',active:false});
+ assert.deepEqual(BOOSTER_OFFER,{cards:5,pixels:100,shards:150,minimumFinish:'rare',active:true});
  assert.deepEqual([roundPixels('win'),roundPixels('loss'),roundPixels('draw')],[5,2,2]);assert.throws(()=>roundPixels('aborted'));
  assert.equal(tradeQuote('craft','doge:rare',{pixels:10000,shards:10000}).allowed,false); // Neither wallet substitutes for Echoes.
  for(const variant of VARIANTS){const quote=tradeQuote('craft',variant.id,{echoes:1600});assert.equal(quote.allowed,['common','rare','epic'].includes(variant.rarity));if(quote.allowed)assert.ok(quote.echoes>DISMANTLE_VALUE[variant.rarity]);}
