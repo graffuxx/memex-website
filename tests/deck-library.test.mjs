@@ -19,7 +19,7 @@ test('account drafts are isolated, new cloud IDs replace draft IDs, and newer se
  assert.notEqual(libraryKey('guest'),libraryKey('sandbox'));assert.notEqual(key,libraryKey('account','user-b'));
 });
 test('copy limits apply within the current deck, all rarities count toward the right elements and copies stay reusable across decks',()=>{
- const inventory=testInventory(blankTestCollection());let cards=expansionTestDeck();const original=[...cards];cards=removeDeckCard(cards,'harold:common');cards=addDeckCard(cards,'harold:common',inventory);assert.ok(validateDeck(cards,inventory).valid);assert.deepEqual(original.sort(),cards.toSorted());
+ const inventory=testInventory(blankTestCollection());let cards=expansionTestDeck();const original=[...cards],first=cards[0];cards=removeDeckCard(cards,first);cards=addDeckCard(cards,first,inventory);assert.ok(validateDeck(cards,inventory).valid);assert.deepEqual(original.sort(),cards.toSorted());
  assert.throws(()=>addDeckCard(cards,'confused:common',inventory),/full/);assert.throws(()=>addDeckCard([], 'fake',inventory),/Unknown/);assert.throws(()=>addDeckCard(['smudge:common'],'smudge:common',inventory),/available/);
  const summary=summarizeDeck(['harold:mythic','harold:legendary','success-kid:epic','confused:rare']);assert.deepEqual(summary.elements,{fire:1,stone:2,storm:1});assert.equal(summary.uniqueMotifs,3);assert.equal(summary.rarities.mythic,1);assert.equal(summary.remaining,11);assert.deepEqual(summarizeDeck([]).elements,{fire:0,stone:0,storm:0});
  const before={...inventory};assert.deepEqual(addDeckCard([],'harold:common',inventory),['harold:common']);assert.deepEqual(addDeckCard([],'harold:common',inventory),['harold:common']);assert.deepEqual(inventory,before);

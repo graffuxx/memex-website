@@ -2,8 +2,8 @@ import * as T from '../vendor/three.module.min.js';
 import {ALPHA_MARK,alphaSymbolSvg} from '../platform/edition36.mjs';
 import {CATALOG,sideValue} from './rules.mjs';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
-export {cardShape,cardPoints} from './card-prototype.mjs?v=memes-27';
-import {cardShape} from './card-prototype.mjs?v=memes-27';
+export {cardShape,cardPoints} from './card-prototype.mjs?v=alpha-cards-45';
+import {cardShape} from './card-prototype.mjs?v=alpha-cards-45';
 
 export {CARD_PROFILES} from './card-profiles27.mjs';
 import {CARD_PROFILES} from './card-profiles27.mjs';

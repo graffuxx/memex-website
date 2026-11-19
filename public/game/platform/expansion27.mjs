@@ -1,3 +1,4 @@
+import {NEW_ALPHA_CARDS} from './expansion45.mjs';
 // Approved previews; clockwise edge order: E, SE, SW, W, NW, NE.
 export const EXPANSION_CARDS=Object.freeze([
  {id:'harold',name:'Hide the Pain Harold',short:'Harold',element:'stone',values:[5,4,4,5,3,3],artOffsetY:-.045,quote:'Everything is fine. Probably.'},
@@ -9,5 +10,6 @@ export const EXPANSION_CARDS=Object.freeze([
  {id:'aliens-guy',name:'Ancient Aliens Guy',short:'Aliens Guy',element:'storm',values:[3,5,4,3,6,3],artOffsetY:-.09,quote:'The explanation is obvious.'},
  {id:'smudge',name:'Smudge the Cat',short:'Smudge',element:'fire',values:[3,3,6,2,4,4],quote:'I specifically ordered no salad.'},
  {id:'confused',name:'Confused Nick Young',short:'Confused',element:'storm',values:[5,3,4,4,5,3],artOffsetY:-.04,quote:'Wait. That was your move?'},
- {id:'bad-luck-brian',name:'Bad Luck Brian',short:'Bad Luck Brian',element:'storm',values:[4,4,4,4,4,4],artOffsetY:-.045,quote:'Finally gets a good hand. Wrong table.'}
-].map(c=>Object.freeze({...c,ruleId:c.id,ability:null,artOffsetY:c.artOffsetY??0,values:Object.freeze(c.values),image:`/game/assets/cards/memes-v27/${c.id}-common.webp`})));
+ {id:'bad-luck-brian',name:'Bad Luck Brian',short:'Bad Luck Brian',element:'storm',values:[4,4,4,4,4,4],artOffsetY:-.045,quote:'Finally gets a good hand. Wrong table.'},
+ ...NEW_ALPHA_CARDS
+].map(c=>Object.freeze({...c,ruleId:c.id,ability:null,artOffsetY:c.artOffsetY??0,values:Object.freeze(c.values),image:c.image??`/game/assets/cards/memes-v27/${c.id}-common.webp`})));

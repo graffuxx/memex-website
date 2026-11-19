@@ -11,6 +11,6 @@ test('15-card alpha can finish both rounds with either starter and deterministic
 test('exactly 15 cards; maximum three copies of a motif across finishes, not a minimum',()=>{
  const mixed=['pepe:common','pepe:rare','pepe:epic','pepe:mythic',...starterDeck().filter(id=>!id.startsWith('pepe:')).slice(0,11)];
  assert.equal(mixed.length,15);const inventory=Object.fromEntries(mixed.map(id=>[id,15]));assert.equal(validateDeck(mixed,inventory).valid,false);assert.match(validateDeck(mixed,inventory).errors.join(' '),/maximum 3/);
- const diverse=DEFINITIONS.map(c=>c.id+':common').concat(['pepe:common','doge:common']);const owned=Object.fromEntries(diverse.map(id=>[id,3]));assert.equal(validateDeck(diverse,owned).valid,true);assert.equal(new Set(diverse).size,13);
+ const diverse=DEFINITIONS.slice(-12).map(c=>c.id+':common').concat(['pepe:common','doge:common','roll-safe:common']);const owned=Object.fromEntries(diverse.map(id=>[id,3]));assert.equal(validateDeck(diverse,owned).valid,true);assert.equal(new Set(diverse).size,15);
  for(const size of [1,2,14,16])assert.equal(validateDeck(Array(size).fill('pepe:common'),{ 'pepe:common':20}).valid,false);
 });

@@ -1,5 +1,5 @@
 import {starterDeck} from '../platform/catalog.mjs';
-import {readPlayDeck} from '../platform/deck-bridge.mjs?v=memes-27';
+import {readPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-45';
 import {syncTableCards} from './table-card-pool25.mjs';
 import {handCardDepth,handHitOrder,HUD_DEPTH} from './hand-layers17.mjs';
 import {rarityOf} from './card-rarities15.mjs?v=hand-depth-17';
@@ -13,11 +13,11 @@ import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets} from './rules.mjs';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
-import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=memes-27';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=memes-27';
+import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=alpha-cards-45';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-cards-45';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
-import {DEMO_PROFILES} from './table-demo-state.mjs?v=memes-27';
+import {DEMO_PROFILES} from './table-demo-state.mjs?v=alpha-cards-45';
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
 export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}={}){

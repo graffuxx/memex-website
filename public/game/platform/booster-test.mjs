@@ -1,3 +1,4 @@
+import {NEW_ALPHA_CARDS} from './expansion45.mjs';
 import {EXPANSION_CARDS} from './expansion27.mjs';
 import {DEFINITIONS,getVariant,starterInventory,starterDeck,validateDeck} from './catalog.mjs';
 export const TEST_COLLECTION_KEY='duelverse.booster-test.v1';
@@ -39,8 +40,8 @@ export function addTestPack(collection,cards,id){
 }
 export function readTestDeck(storage,inventory){try{const saved=JSON.parse(storage.getItem(TEST_DECK_KEY));if(saved?.version===1&&validateDeck(saved.cards,inventory).valid)return {cards:saved.cards,name:typeof saved.name==='string'?saved.name.slice(0,40):'Test deck'};}catch{}return {cards:starterDeck(),name:'My test deck'};}
 
-// Browser-only rehearsal: one of each new meme plus the five core ability candidates.
-export function expansionTestDeck(){return [...EXPANSION_CARDS.map(c=>`${c.id}:common`),'pepe:common','pepe:common','doge:common','doge:common','roll-safe:common'];}
+// Browser-only rehearsal: all twelve newest motifs plus three core ability candidates.
+export function expansionTestDeck(){return [...NEW_ALPHA_CARDS.map(c=>`${c.id}:common`),'pepe:common','doge:common','roll-safe:common'];}
 
 export function drawSingleTestCard(random=()=>{const value=new Uint32Array(1);globalThis.crypto.getRandomValues(value);return value[0]/4294967296;}){
  const rarity=rarityForRoll(TEST_PACK_ODDS.standard,checkedRandom(random));

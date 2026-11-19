@@ -1,4 +1,4 @@
-import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=memes-27';
+import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-45';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
@@ -7,11 +7,11 @@ import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=rounds-42';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=memes-27';
+import {createTableView} from './table-demo-view-hand17.mjs?v=alpha-cards-45';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=random-layout-1';
 import {scores,ELEMENTS,shiftBlock,moveTargets,sideValue} from './rules.mjs';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
-import {CARD_PROFILES} from './card-prototype.mjs?v=memes-27';
+import {CARD_PROFILES} from './card-prototype.mjs?v=alpha-cards-45';
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
 const $=id=>document.getElementById(id),stage=$('stage'),svg=$('interaction');
 if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[href="/decks"]'))link.href='/decks?test=1';
@@ -164,7 +164,7 @@ $('motion').checked=!matchMedia('(prefers-reduced-motion:reduce)').matches;atmos
 $('arenaTheme').onchange=()=>{view?.setArena($('arenaTheme').value);audio.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];};
 async function setSound(value){soundWanted=Boolean(value);try{localStorage.setItem('duelverse.arena-sound.v42',soundWanted?'on':'off');}catch{}renderSound();const ok=await audio.setEnabled(soundWanted);if(ok)audio.play('select');}
 $('arenaSound').onclick=()=>setSound(!soundWanted);$('soundEnabled').onchange=()=>setSound($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('soundTest').onclick=async()=>{await setSound(true);if(audio.running){audio.test();}};
-try{view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [id,p,y] of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(id).style.left=p.x+'px';$(id).style.top=(p.labelY??y)+'px';}}});view.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';view.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];$('loadStatus').hidden=true;await reset();}catch(error){$('loadStatus').querySelector('strong').textContent='Der Spieltisch konnte nicht geladen werden.';$('loadStatus').querySelector('span').textContent='Bitte die Seite neu laden.';console.error(error);}
+try{view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [id,p,y] of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(id).style.left=p.x+'px';$(id).style.top=(p.labelY??y)+'px';}}});view.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';view.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];$('loadStatus').hidden=true;await reset();}catch(error){$('loadStatus').hidden=false;$('loadStatus').querySelector('strong').textContent='Der Spieltisch konnte nicht geladen werden.';$('loadStatus').querySelector('span').textContent='Bitte die Seite neu laden.';console.error(error);}
 clockInterval=setInterval(()=>{renderClock();expireTurn();},250);
 document.addEventListener('visibilitychange',()=>{renderClock();expireTurn();});
 window.addEventListener('pagehide',e=>{if(!e.persisted){epoch++;startDialog.cancel();ceremony.dispose();document.removeEventListener('pointerdown',unlockSound,true);document.removeEventListener('keydown',unlockSound,true);clearInterval(clockInterval);clearTimeout(messageTimer);audio.dispose();view?.dispose();}});
