@@ -35,3 +35,8 @@ test('result waits for an allowed continuation and dismissed results never repla
  assert.equal(f.controller.finish(1,{score:[10,8]}),true);assert.equal(f.node('title').textContent,'VICTORY');assert.equal(f.node('continue').textContent,'Rückspiel starten');
  f.node('continue').onclick();assert.equal(f.root.hidden,false);f.allow();f.node('continue').onclick();assert.equal(f.root.hidden,true);assert.equal(f.controller.finish(1,{score:[10,8]}),false);assert.deepEqual(f.voices,['intro','victory']);
 });
+test('the result callout leaves the arena automatically without replaying its voice',async()=>{
+ const f=fixture(),intro=f.controller.intro(1,{round:1});f.fire();await intro;
+ f.controller.finish(1,{score:[8,10]});assert.equal(f.root.hidden,false);assert.equal(f.node('title').textContent,'DEFEAT');
+ f.fire();assert.equal(f.root.hidden,true);assert.deepEqual(f.voices,['intro','defeat']);assert.equal(f.controller.finish(1,{score:[8,10]}),false);
+});
