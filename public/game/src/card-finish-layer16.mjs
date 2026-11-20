@@ -6,7 +6,7 @@ import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {OWNER_COLORS,rarityOf} from './card-rarities15.mjs';
 
 function bezel(outer,inner){const shape=cardShape(outer),hole=new T.Path();cardPoints(inner).reverse().forEach(([x,y],i)=>i?hole.lineTo(x,y):hole.moveTo(x,y));hole.closePath();shape.holes.push(hole);return shape;}
-export function createCardFinishLayer(initialRarity='common',owner=0,seed=''){
+export function createCardFinishLayer(initialRarity='common',owner=null,seed=''){
  const root=new T.Group();root.name='Rarity finish';const front=new T.Group();front.name='Face-only collector finish';root.add(front);
  const bandGeometry=new T.ExtrudeGeometry(bezel(.989,.977),{depth:.008,bevelEnabled:true,bevelSegments:2,bevelSize:.003,bevelThickness:.002,steps:1});
  const surface=document.createElement('canvas');surface.width=surface.height=512;const ctx=surface.getContext('2d');
@@ -20,9 +20,10 @@ export function createCardFinishLayer(initialRarity='common',owner=0,seed=''){
  const positions=bandGeometry.attributes.position,uv=bandGeometry.attributes.uv;for(let i=0;i<positions.count;i++)uv.setXY(i,positions.getX(i)/2.048+.5,positions.getY(i)/2.048+.5);
  const bandMaterial=new T.MeshStandardMaterial({map:metalTexture,metalness:.5,roughness:.32,emissiveIntensity:.08});
  const band=new T.Mesh(bandGeometry,bandMaterial);band.position.z=.044;front.add(band);
- const ownerGeometry=new T.ShapeGeometry(bezel(1.021,1.008)),ownerMaterial=new T.MeshBasicMaterial({color:OWNER_COLORS[owner],toneMapped:false});
- // A separate outer hairline conveys controller; a capture never changes the finish.
- for(const sign of [-1,1]){const edge=new T.Mesh(ownerGeometry,ownerMaterial);edge.position.z=sign*.057;if(sign<0)edge.rotation.y=Math.PI;root.add(edge);}
+ const ownerGeometry=new T.ShapeGeometry(bezel(1.021,1.008)),ownerMaterial=new T.MeshBasicMaterial({color:OWNER_COLORS[owner]??OWNER_COLORS[0],toneMapped:false});
+ // Controller outlines are shown only for cards on the board, never in hands or decks.
+ const ownership=new T.Group();ownership.name='Board ownership outline';ownership.visible=owner===0||owner===1;root.add(ownership);
+ for(const sign of [-1,1]){const edge=new T.Mesh(ownerGeometry,ownerMaterial);edge.position.z=sign*.057;if(sign<0)edge.rotation.y=Math.PI;ownership.add(edge);}
  const glintGeometry=new T.ShapeGeometry(bezel(.995,.84));
  const glintMaterial=new T.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending,
   uniforms:{uTime:{value:0},uRank:{value:1},uMotion:{value:1},uColor:{value:new T.Color('#ffffff')}},
@@ -61,5 +62,5 @@ export function createCardFinishLayer(initialRarity='common',owner=0,seed=''){
   particleEffects.frame(elapsed,motion);
  }
  setRarity(initialRarity);frame(0,false);
- return {root,setRarity,setFrontVisible(value){front.visible=value;},setOwner(side){ownerMaterial.color.set(OWNER_COLORS[side]??OWNER_COLORS[0]);},frame,get rarity(){return rarity;},dispose(){root.removeFromParent();for(const g of [bandGeometry,ownerGeometry,glintGeometry,gemGeometry])g.dispose();for(const m of [bandMaterial,ownerMaterial,glintMaterial,gemMaterial])m.dispose();foil.dispose();particleEffects.dispose();metalTexture.dispose();root.clear();}};
+ return {root,setRarity,setFrontVisible(value){front.visible=value;},setOwner(side){ownership.visible=side===0||side===1;if(ownership.visible)ownerMaterial.color.set(OWNER_COLORS[side]);},frame,get rarity(){return rarity;},dispose(){root.removeFromParent();for(const g of [bandGeometry,ownerGeometry,glintGeometry,gemGeometry])g.dispose();for(const m of [bandMaterial,ownerMaterial,glintMaterial,gemMaterial])m.dispose();foil.dispose();particleEffects.dispose();metalTexture.dispose();root.clear();}};
 }

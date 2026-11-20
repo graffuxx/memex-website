@@ -1,6 +1,6 @@
 import {starterDeck} from '../platform/catalog.mjs';
 import {readPlayDeck} from '../platform/deck-bridge.mjs?v=element-53';
-import {syncTableCards} from './table-card-pool25.mjs';
+import {syncTableCards} from './table-card-pool25.mjs?v=board-ownership-62';
 import {handCardDepth,handHitOrder,HUD_DEPTH} from './hand-layers17.mjs';
 import {rarityOf} from './card-rarities15.mjs?v=hand-depth-17';
 import {createPaintedDeckPlinth,paintedDrawDeckPose,paintedOpponentDeckPose} from './painted-deck-plinth11.mjs?v=home-rift-25';
@@ -14,7 +14,7 @@ import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf} from './rules.mjs';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=element-53';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=board-ownership-62';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -65,10 +65,10 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}
   return {x:center+d*space,y:side===0?height-76+d*d*3-(selected?15:hover?18:0):25+d*d*1.5,z:handCardDepth(side,index,selected,hover),h:selected?h*.82:hover?(small?119:144):h,quaternion:new T.Quaternion().setFromEuler(new T.Euler(0,side===0?-.04:Math.PI,-d*(side===0?.105:.085)))};
  }
  function poseToRoot(card,p,hard=false){const target={position:new T.Vector3(p.x-width/2,height/2-p.y,p.z),scale:p.h/2,quaternion:p.quaternion};card.target=target;card.group.position.z=target.position.z;if(card.group.parent!==hudScene){hudScene.add(card.group);hard=true;}if(hard){card.group.position.copy(target.position);card.group.scale.setScalar(target.scale);card.group.quaternion.copy(target.quaternion);}}
- function putOnBoard(card,cell,hard=false){if(moving.has(card.uid))return;const p=tileCenter(CELLS.find(c=>c.id===cell));worldScene.add(card.group);card.group.position.set(p.x,.30,p.z);card.group.rotation.set(-Math.PI/2,0,0);card.group.scale.setScalar(.92);card.target=null;card.group.visible=true;}
+ function putOnBoard(card,cell,hard=false){if(moving.has(card.uid))return;card.setOwner(game.board[cell]?.controller??null);const p=tileCenter(CELLS.find(c=>c.id===cell));worldScene.add(card.group);card.group.position.set(p.x,.30,p.z);card.group.rotation.set(-Math.PI/2,0,0);card.group.scale.setScalar(.92);card.target=null;card.group.visible=true;}
  function layout(hard=false){if(!game)return;deckPlinth?.setCount(game.players[0].deck.length);enemyDeckPlinth?.setCount(game.players[1].deck.length);const present=new Set();for(const [cell,c] of Object.entries(game.board)){present.add(c.uid);putOnBoard(cardMap.get(c.uid),cell,hard);}
-  for(const side of [0,1])for(const [index,c] of game.players[side].hand.entries()){present.add(c.uid);const card=cardMap.get(c.uid);card.group.visible=!hidden.has(c.uid);if(!moving.has(c.uid)){if(side===0&&ui.selected===c.uid&&ui.target&&ui.plan){const p=projectCell(ui.target);poseToRoot(card,{x:p.x,y:p.y-13,z:HUD_DEPTH.preview,h:p.scale*2.08,quaternion:new T.Quaternion().setFromEuler(new T.Euler(p.tilt,0,0))},hard);}else poseToRoot(card,handPose(side,index,game.players[side].hand.length),hard);}}
-  for(const side of [0,1])for(const [index,c] of game.players[side].deck.entries()){present.add(c.uid);const card=cardMap.get(c.uid);card.group.visible=true;if(!moving.has(c.uid))poseToRoot(card,deckPose(side,index),hard);}
+  for(const side of [0,1])for(const [index,c] of game.players[side].hand.entries()){present.add(c.uid);const card=cardMap.get(c.uid);card.setOwner(null);card.group.visible=!hidden.has(c.uid);if(!moving.has(c.uid)){if(side===0&&ui.selected===c.uid&&ui.target&&ui.plan){const p=projectCell(ui.target);poseToRoot(card,{x:p.x,y:p.y-13,z:HUD_DEPTH.preview,h:p.scale*2.08,quaternion:new T.Quaternion().setFromEuler(new T.Euler(p.tilt,0,0))},hard);}else poseToRoot(card,handPose(side,index,game.players[side].hand.length),hard);}}
+  for(const side of [0,1])for(const [index,c] of game.players[side].deck.entries()){present.add(c.uid);const card=cardMap.get(c.uid);card.setOwner(null);card.group.visible=true;if(!moving.has(c.uid))poseToRoot(card,deckPose(side,index),hard);}
   for(const c of cardMap.values())if(!present.has(c.uid)&&!moving.has(c.uid))c.group.visible=false;
   dirty=true;
  }
@@ -105,7 +105,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}
  async function flip(uid,owner){const token=generation,c=cardMap.get(uid);moving.add(uid);let changed=false;const ok=await animate(380,t=>{c.group.rotation.set(-Math.PI/2,Math.sin(t*Math.PI)*Math.PI,0);if(t>=.5&&!changed){c.setOwner(owner);changed=true;}});if(!ok||token!==generation)return false;moving.delete(uid);if(ok){c.group.rotation.set(-Math.PI/2,0,0);c.setOwner(owner);}dirty=true;return ok;}
  async function prepareGame(g){const profiles=new Set([...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)].map(c=>DEMO_PROFILES[c.id]));await Promise.all([...profiles].map(profile=>runtime.prepare(profile)));}
  function initGame(g){cancel();if(arenaId==='painted'){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;
-  syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key,elementFor:c=>cardOf(c).element});
+  syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key,elementFor:c=>cardOf(c).element,boardUids:new Set(Object.values(g.board).map(c=>c.uid))});
   eventPulse=0;
   update(g,{});resize();layout(true);renderer.shadowMap.needsUpdate=true;dirty=true;
  }

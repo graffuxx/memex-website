@@ -10,7 +10,6 @@ type Props={
  card:{name:string;short?:string;element:string;values:readonly number[]};
  variant:{element?:string;image:string;rarity:string;edition?:string|null;artOffsetY?:number;artRegion?:{x:number;y:number;w:number;h:number}|null};
  color:string;
- owned?:boolean;
  compact?:boolean;
 };
 const hex=(radius:number)=>Array.from({length:6},(_,i)=>{
@@ -18,7 +17,7 @@ const hex=(radius:number)=>Array.from({length:6},(_,i)=>{
 }).join(' ');
 // The website and 3D game use the same portrait, cutout frame and registration.
 // SVG keeps a full collection light without starting a WebGL renderer per card.
-export default function GameCardFace({card,variant,color,owned=false,compact=false}:Props){
+export default function GameCardFace({card,variant,color,compact=false}:Props){
  const id=useId().replace(/:/g,''),elementIdValue=variant.element??card.element,element=ELEMENTS[elementIdValue]??ELEMENTS.earth;
  const [frame,setFrame]=useState('/game/assets/cards/frame-v21/navy-gold-frame.webp');
  const face=useRef<HTMLDivElement>(null),[effectsVisible,setEffectsVisible]=useState(false);
@@ -48,13 +47,11 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
    <polygon className="duelverse-card__rarity" points={hex(.983)} fill="none" stroke={color} strokeWidth=".009"/>
-   {owned&&<polygon points={hex(1.014)} fill="none" stroke="#55ed94" strokeWidth=".012"/>}
    <g fill="#17150d" fontFamily="Arial,sans-serif" fontWeight="800" textAnchor="middle" dominantBaseline="central">
     {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{card.values[i]}</text>)}
     <text x="0" y={-FRAME_LAYOUT.titleY+.004} fontSize=".105" textLength={title.length>10?.66:undefined} lengthAdjust="spacingAndGlyphs">{title}</text>
    </g>
    {variant.edition==='alpha'&&<g dangerouslySetInnerHTML={{__html:alphaNameplateMarkup(FRAME_LAYOUT.titleY)}}/>}
-   {owned&&<g transform={`translate(-.43 ${-FRAME_LAYOUT.titleY})`}><circle r=".029" fill="#0b1524"/><circle r=".02" fill="#55ed94"/></g>}
    <svg x="-.1225" y={-FRAME_LAYOUT.elementY-.1225} width=".245" height=".245" viewBox="0 0 256 256" aria-hidden="true">
     <path d={element.path} fill={element.stroke?'none':`url(#${elementId})`} stroke={element.stroke?`url(#${elementId})`:'#ffd876'} strokeWidth={element.stroke?16:5} strokeLinecap="round" strokeLinejoin="round"/>
    </svg>

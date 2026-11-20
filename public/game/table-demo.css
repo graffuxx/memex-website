@@ -150,3 +150,7 @@ body.game-table{background:#0c0918;isolation:isolate;min-height:100dvh}
 
 .rarity-info{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border:1px solid color-mix(in srgb,var(--rarity-color) 38%,transparent);border-radius:5px;background:#0f0c1c;color:var(--rarity-color)}
 .rarity-info[hidden]{display:none}.rarity-info strong{font-size:11px}.rarity-info span{font-size:9px;opacity:.85}
+
+/* Controller colors belong only to occupied board cells; collector/hand cards stay neutral. */
+#interaction .board-cell[data-owner="0"]:not(.will-flip):not(.twist-target):not(.inspect-target)>.field-hit{stroke:#55ed94;stroke-width:2;stroke-opacity:.95;vector-effect:non-scaling-stroke}
+#interaction .board-cell[data-owner="1"]:not(.will-flip):not(.twist-target):not(.inspect-target)>.field-hit{stroke:#ff5d72;stroke-width:2;stroke-opacity:.95;vector-effect:non-scaling-stroke}
