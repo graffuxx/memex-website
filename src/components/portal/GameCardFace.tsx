@@ -1,4 +1,5 @@
 'use client';
+import {ELEMENTS} from '../../../public/game/platform/elements53.mjs';
 import {useId,useEffect,useState,useRef,type CSSProperties} from 'react';
 import CardParticleEffects from './CardParticleEffects';
 import {materialFrameUrl,materialOf} from '../../../public/game/src/card-materials22.mjs';
@@ -7,7 +8,7 @@ import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 
 type Props={
  card:{name:string;short?:string;element:string;values:readonly number[]};
- variant:{image:string;rarity:string;edition?:string|null;artOffsetY?:number};
+ variant:{element?:string;image:string;rarity:string;edition?:string|null;artOffsetY?:number;artRegion?:{x:number;y:number;w:number;h:number}|null};
  color:string;
  owned?:boolean;
  compact?:boolean;
@@ -15,16 +16,10 @@ type Props={
 const hex=(radius:number)=>Array.from({length:6},(_,i)=>{
  const angle=(i*60-30)*Math.PI/180;return `${Math.cos(angle)*radius},${Math.sin(angle)*radius}`;
 }).join(' ');
-const elements:Record<string,{path:string;from:string;to:string}>={
- fire:{path:'M138 20 C113 102 220 108 195 184 C156 248 56 251 54 166 C51 118 102 84 138 20 Z',from:'#fff07a',to:'#ff8d12'},
- stone:{path:'M128 26 L210 128 L128 230 L46 128 Z',from:'#f7e7ae',to:'#b98a40'},
- storm:{path:'M151 20 L59 138 L118 138 L92 236 L202 108 L136 108 Z',from:'#fff3c2',to:'#a49aff'},
-};
-
 // The website and 3D game use the same portrait, cutout frame and registration.
 // SVG keeps a full collection light without starting a WebGL renderer per card.
 export default function GameCardFace({card,variant,color,owned=false,compact=false}:Props){
- const id=useId().replace(/:/g,''),element=elements[card.element]??elements.stone;
+ const id=useId().replace(/:/g,''),elementIdValue=variant.element??card.element,element=ELEMENTS[elementIdValue]??ELEMENTS.earth;
  const [frame,setFrame]=useState('/game/assets/cards/frame-v21/navy-gold-frame.webp');
  const face=useRef<HTMLDivElement>(null),[effectsVisible,setEffectsVisible]=useState(false);
  // Large collections keep every card selectable, but animate only visible faces.
@@ -36,10 +31,11 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
   return()=>observer.disconnect();
  },[compact]);
  useEffect(()=>{let active=true;materialFrameUrl(variant.rarity).then(url=>{if(active)setFrame(url);}).catch(()=>{});return()=>{active=false;};},[variant.rarity]);
+ const region=variant.artRegion,artWidth=region?1.92/region.w:1.92,artHeight=region?1.92/region.h:1.92;
  const title=(card.short??card.name).toUpperCase();
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
  return <div ref={face} className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
-  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${card.element} · Edge values: ${card.values.join(', ')}${variant.edition==='alpha'?' · Alpha edition':''}`}>
+  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.join(', ')}${variant.edition==='alpha'?' · Alpha edition':''}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
     <linearGradient id={foilId} x1="0" y1="1" x2="1" y2="0"><stop offset="20%" stopColor={color} stopOpacity="0"/><stop offset="48%" stopColor={color} stopOpacity=".12"/><stop offset="52%" stopColor="#fff" stopOpacity=".22"/><stop offset="75%" stopColor={color} stopOpacity="0"/></linearGradient>
@@ -47,7 +43,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    </defs>
    <g clipPath={`url(#${artId})`}>
     <polygon points={hex(.96)} fill="#0b1028"/>
-    <image href={variant.image} x="-.96" y={-.96+(variant.artOffsetY??0)} width="1.92" height="1.92" preserveAspectRatio="xMidYMid slice"/>
+    <image href={variant.image} x={-.96-(region?.x??0)*artWidth} y={-.96-(region?.y??0)*artHeight+(variant.artOffsetY??0)} width={artWidth} height={artHeight} preserveAspectRatio={region?"none":"xMidYMid slice"}/>
     {variant.rarity!=='common'&&<rect className="duelverse-card__foil" style={{animationPlayState:effectsVisible?'running':'paused'}} x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
@@ -60,7 +56,7 @@ export default function GameCardFace({card,variant,color,owned=false,compact=fal
    {variant.edition==='alpha'&&<g dangerouslySetInnerHTML={{__html:alphaNameplateMarkup(FRAME_LAYOUT.titleY)}}/>}
    {owned&&<g transform={`translate(-.43 ${-FRAME_LAYOUT.titleY})`}><circle r=".029" fill="#0b1524"/><circle r=".02" fill="#55ed94"/></g>}
    <svg x="-.1225" y={-FRAME_LAYOUT.elementY-.1225} width=".245" height=".245" viewBox="0 0 256 256" aria-hidden="true">
-    <path d={element.path} fill={`url(#${elementId})`} stroke="#ffd876" strokeWidth="5" strokeLinejoin="round"/>
+    <path d={element.path} fill={element.stroke?'none':`url(#${elementId})`} stroke={element.stroke?`url(#${elementId})`:'#ffd876'} strokeWidth={element.stroke?16:5} strokeLinecap="round" strokeLinejoin="round"/>
    </svg>
    {!compact&&effectsVisible&&<CardParticleEffects rarity={variant.rarity} id={id}/>}
   </svg>

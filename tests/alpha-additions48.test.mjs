@@ -10,11 +10,11 @@ import {protectedCandidates,validAlphaPack} from '../public/game/platform/alpha-
 
 test('ten approved motifs have fifty unique rarity artworks, exact tested values and unlocked sandbox copies',async()=>{
  const approved=JSON.parse(await fs.readFile(new URL('./fixtures/alpha-values48.json',import.meta.url),'utf8'));
- assert.equal(ALPHA_ADDITIONS.length,10);assert.equal(DEFINITIONS.length,35);assert.equal(VARIANTS.length,175);
+ assert.equal(ALPHA_ADDITIONS.length,10);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.length,2125);
  const inventory=fullTestDeckInventory();
  for(const c of ALPHA_ADDITIONS){
   assert.deepEqual(c.values,approved.find(a=>a.id==='draft-'+c.id).values);assert.equal(c.ability,null);
-  const variants=VARIANTS.filter(v=>v.definitionId===c.id),hashes=[];assert.equal(variants.length,5);
+  const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.id===`${c.id}:${v.rarity}`),hashes=[];assert.equal(variants.length,5);
   for(const v of variants){assert.equal(v.edition,'alpha');assert.equal(inventory[v.id],3);assert.ok(protectedCandidates(v.rarity).some(p=>p.id===v.id));const image=await fs.readFile(new URL('../public'+v.image,import.meta.url));assert.ok(image.length>10000);hashes.push(createHash('sha256').update(image).digest('hex'));}
   assert.equal(new Set(hashes).size,5,c.id+' needs five distinct artworks');
  }
@@ -32,7 +32,7 @@ test('Alpha catalog migration preserves account data; server boosters and crafti
   const before=await snapshot(),migration=await fs.readFile(new URL('../supabase/migrations/202611190007_alpha_additions.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);assert.equal(await snapshot(),before);
   const server=(await db.query('select id,image,edition from public.dv_card_variants')).rows;assert.equal(server.length,175);
   const definitions=(await db.query('select id,edge_values from public.dv_card_definitions')).rows;assert.equal(definitions.length,35);
-  for(const c of ALPHA_ADDITIONS){assert.deepEqual(definitions.find(d=>d.id===c.id).edge_values,c.values);for(const v of VARIANTS.filter(v=>v.definitionId===c.id)){const row=server.find(r=>r.id===v.id);assert.equal(row.image,v.image);assert.equal(row.edition,'alpha');}}
+  for(const c of ALPHA_ADDITIONS){assert.deepEqual(definitions.find(d=>d.id===c.id).edge_values,c.values);for(const v of VARIANTS.filter(v=>v.definitionId===c.id&&v.id===`${c.id}:${v.rarity}`)){const row=server.find(r=>r.id===v.id);assert.equal(row.image,v.image);assert.equal(row.edition,'alpha');}}
   // Only this isolated test account saturates older variants, forcing the newly
   // added pool through the actual purchase RPC without changing its rarity odds.
   await db.exec(`insert into public.dv_card_acquired36(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants where definition_id not in (${ALPHA_ADDITIONS.map(c=>"'"+c.id+"'").join(',')}) on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);

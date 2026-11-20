@@ -9,10 +9,10 @@ import {protectedCandidates} from '../public/game/platform/alpha-booster36.mjs';
 
 test('all 12 approved value sets have five distinct artworks, cosmetic-only stats and Alpha membership',async()=>{
  const approved=JSON.parse(await fs.readFile(new URL('./fixtures/alpha-values45.json',import.meta.url),'utf8'));
- assert.equal(NEW_ALPHA_CARDS.length,12);assert.equal(DEFINITIONS.length,35);assert.equal(VARIANTS.length,175);
+ assert.equal(NEW_ALPHA_CARDS.length,12);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.length,2125);
  for(const c of NEW_ALPHA_CARDS){
   assert.deepEqual(c.values,approved.find(a=>a.id==='draft-'+c.id).values);assert.equal(c.ability,null);
-  const variants=VARIANTS.filter(v=>v.definitionId===c.id),hashes=[];assert.equal(variants.length,5);
+  const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.id===`${c.id}:${v.rarity}`),hashes=[];assert.equal(variants.length,5);
   for(const v of variants){assert.equal(v.edition,'alpha');assert.ok(protectedCandidates(v.rarity).some(p=>p.id===v.id));const image=await fs.readFile(new URL('../public'+v.image,import.meta.url));assert.ok(image.length>10000);hashes.push(createHash('sha256').update(image).digest('hex'));}
   assert.equal(new Set(hashes).size,5,c.id+' needs distinct artwork per rarity');
  }
@@ -32,7 +32,7 @@ test('catalog expansion preserves accounts and old decks; server boosters and cr
   const migration=await fs.readFile(new URL('../supabase/migrations/202611190006_alpha_expansion.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);
   assert.equal(JSON.stringify((await db.query('select cards from public.dv_decks')).rows),before);assert.equal(JSON.stringify((await db.query('select * from public.dv_inventory order by variant_id')).rows),inventory);assert.equal(JSON.stringify((await db.query('select earned,premium,echoes from public.dv_wallets')).rows),wallet);
   const server=(await db.query('select id,definition_id,rarity,image,edition from public.dv_card_variants')).rows;assert.equal(server.length,125);
-  for(const v of VARIANTS.filter(v=>NEW_ALPHA_CARDS.some(c=>c.id===v.definitionId))){const row=server.find(r=>r.id===v.id);assert.ok(row);assert.equal(row.image,v.image);assert.equal(row.edition,'alpha');}
+  for(const v of VARIANTS.filter(v=>NEW_ALPHA_CARDS.some(c=>c.id===v.definitionId)&&v.id===`${v.definitionId}:${v.rarity}`)){const row=server.find(r=>r.id===v.id);assert.ok(row);assert.equal(row.image,v.image);assert.equal(row.edition,'alpha');}
   const serverDefs=(await db.query('select id,edge_values from public.dv_card_definitions')).rows;for(const c of NEW_ALPHA_CARDS)assert.deepEqual(serverDefs.find(d=>d.id===c.id).edge_values,c.values);
   // Saturate only the old pool in this isolated database. Every real purchase must
   // now draw from the newly inserted set without changing the rarity rolls.

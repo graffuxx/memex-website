@@ -1,6 +1,7 @@
+import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage} from '../platform/elements53.mjs';
 import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs';
 
-export const TACTIC_BEATS={fire:'stone',stone:'storm',storm:'fire'};
+export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -29,7 +30,7 @@ export function eventFields(game){
  const phase=eventPhase(game);
  return FIELD_PHASES[phase].map((template,index)=>{
   const field={...template,cell:game.eventCells?.[index]??template.cell};
-  if(field.type==='resonance')field.element=['storm','fire','stone'][(phase+(game.resonanceOffset??0))%3];
+  if(field.type==='resonance')field.element=(game.elementRules===5?ELEMENT_IDS:['storm','fire','earth'])[(phase+(game.resonanceOffset??0))%(game.elementRules===5?5:3)];
   if(field.directions)field.directions=field.directions.map(d=>(d+(game.crossfireOffset??0))%6);
   return field;
  });
@@ -42,7 +43,7 @@ export function guardActive(game,card,cell){return abilityAt(game,card,cell)==='
 export function twistTargets(game,cell){return neighbors(cell).filter(n=>game.board[n.id]&&game.board[n.id].controller!==game.turn).map(n=>n.id);}
 export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abilityDirection=null}={}){
  const f=eventFieldAt(game,cell),base=sideValue(card,dir),field=f?.type==='resonance'&&f.element===cardOf(card).element?1:f?.type==='crossfire'&&f.directions.includes(dir)?1:0;
- const element=TACTIC_BEATS[cardOf(card).element]===cardOf(opponent).element?1:0;
+ const element=elementAdvantage(cardOf(card).element,cardOf(opponent).element,game.elementRules??3)?1:0;
  const ability=attacking?(abilityAt(game,card,cell)==='hype'&&dir===abilityDirection?1:0):(guardActive(game,card,cell)&&dir===card.guardDirection?GUARD_BONUS:0);
  return {base,field,element,ability,total:base+field+element+ability};
 }

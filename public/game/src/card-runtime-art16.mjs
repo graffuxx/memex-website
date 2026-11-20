@@ -1,14 +1,18 @@
+import {ELEMENT_IDS,ELEMENTS,elementSvg} from '../platform/elements53.mjs';
+import {CARD_PROFILES as PROFILES} from './card-profiles27.mjs';
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
 import {getVariant} from '../platform/catalog.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
-import {createCardFinishLayer} from './card-finish-layer16.mjs?v=alpha-cards-48';
+import {createCardFinishLayer} from './card-finish-layer16.mjs?v=element-53';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 import * as T from '../vendor/three.module.min.js';
-import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=alpha-cards-48';
+import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=element-53';
 
 // Render the approved sculpted face once, then reuse it on thin 3D bodies.
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.
 export async function createCardRuntime(renderer,{variants=null}={}){
+ const elementTextures=new Map(await Promise.all(ELEMENT_IDS.map(async id=>{const t=await new T.TextureLoader().loadAsync('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(id)));t.colorSpace=T.SRGBColorSpace;return [id,t];})));
+ const finishTexture=(t,profile,tier)=>{if(PROFILES[profile].artAtlas){const i=Object.keys(CARD_MATERIALS).indexOf(tier);const h=t.image.width/5/t.image.height;t.repeat.set(.2,h);t.offset.set(i/5,.6-h/2);}return t;};
  const frames=new Map(await Promise.all(Object.keys(CARD_MATERIALS).map(async key=>{const texture=await new T.TextureLoader().loadAsync(await materialFrameUrl(key));texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return [key,texture];})));
  const requested=variants===null?null:new Set(variants.map(id=>getVariant(id)?.definitionId).filter(Boolean));
  const profiles=Object.keys(CARD_PROFILES).filter(id=>requested===null||['pepe','doge','roll-safe'].includes(id)||requested.has(id));
@@ -16,16 +20,22 @@ export async function createCardRuntime(renderer,{variants=null}={}){
  scene.add(new T.HemisphereLight('#e6e1ff','#241d31',2.6));const key=new T.DirectionalLight('#fff0cd',3.5);key.position.set(-3,4,5);scene.add(key);const rim=new T.DirectionalLight('#a58aff',2.6);rim.position.set(3,1,-2);scene.add(rim);
  for(const m of templates)scene.add(m.group);
  const artworkTextures=new Map(templates.map(m=>[artworkFor(m.profile.id),m.artworkTexture]));
+ const atlasBases=new Map(templates.filter(m=>m.profile.artAtlas).map(m=>[m.profile.id,m.artworkTexture]));
+ async function loadArtwork(profile,tier){
+  if(PROFILES[profile].artAtlas){const base=atlasBases.get(profile);if(!base)throw Error('Portrait atlas not prepared.');const texture=base.clone();texture.needsUpdate=true;return finishTexture(texture,profile,tier);}
+  const texture=await new T.TextureLoader().loadAsync(new URL(artworkFor(profile,tier),import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;return texture;
+ }
+
  await Promise.all(Object.entries(CARD_ART).filter(([profile])=>profiles.includes(profile)).flatMap(([profile,tiers])=>Object.keys(tiers).filter(t=>t!=='common'&&(variants===null||['pepe','doge','roll-safe'].includes(profile)||variants.includes(`${profile}:${t}`))).map(async tier=>{
-  const path=artworkFor(profile,tier),texture=await new T.TextureLoader().loadAsync(new URL(path,import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;artworkTextures.set(path,texture);
+  const path=artworkFor(profile,tier),texture=await loadArtwork(profile,tier);artworkTextures.set(path,texture);
  })));
  const preparing=new Map();
  async function prepare(profile){
   if(!Object.hasOwn(CARD_PROFILES,profile))throw Error('Unknown card motif.');
   if(preparing.has(profile))return preparing.get(profile);
   const pending=(async()=>{
-   if(!templates.some(m=>m.profile.id===profile)){const model=await createCardPrototype({profile,frames});templates.push(model);scene.add(model.group);artworkTextures.set(artworkFor(profile),model.artworkTexture);}
-   await Promise.all(Object.keys(CARD_ART[profile]).filter(tier=>!artworkTextures.has(artworkFor(profile,tier))).map(async tier=>{const path=artworkFor(profile,tier),texture=await new T.TextureLoader().loadAsync(new URL(path,import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;artworkTextures.set(path,texture);}));
+   if(!templates.some(m=>m.profile.id===profile)){const model=await createCardPrototype({profile,frames});templates.push(model);scene.add(model.group);artworkTextures.set(artworkFor(profile),model.artworkTexture);if(model.profile.artAtlas)atlasBases.set(profile,model.artworkTexture);}
+   await Promise.all(Object.keys(CARD_ART[profile]).filter(tier=>!artworkTextures.has(artworkFor(profile,tier))).map(async tier=>{const path=artworkFor(profile,tier),texture=await loadArtwork(profile,tier);artworkTextures.set(path,texture);}));
   })();preparing.set(profile,pending);
   try{await pending;}catch(error){preparing.delete(profile);throw error;}
  }
@@ -62,7 +72,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;badgeTextures.set(key,t);return t;
  }
  const backMaterial=new T.MeshBasicMaterial({map:bake('pepe',0,true),transparent:true,alphaTest:.025,toneMapped:false});
- function spawn(uid,profile,owner,rotation=0,rarity='common'){
+ function spawn(uid,profile,owner,rotation=0,rarity='common',element=PROFILES[profile].element){
   const group=new T.Group();group.name=uid;
   const side=new T.Mesh(body,metal);side.castShadow=true;group.add(side);
   const frontMaterial=new T.MeshBasicMaterial({map:bake(profile,rotation,false,rarity),transparent:true,alphaTest:.025,toneMapped:false}),front=new T.Mesh(face,frontMaterial);front.position.z=.035;group.add(front);
@@ -70,8 +80,10 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   const finish=createCardFinishLayer(rarity,owner,uid);group.add(finish.root);
   const ownerTitleMaterial=new T.MeshBasicMaterial({map:ownerTitleTexture(profile,owner),transparent:true,depthWrite:false,toneMapped:false}),ownerTitle=new T.Mesh(ownerTitleGeometry,ownerTitleMaterial);ownerTitle.position.set(-.43,FRAME_LAYOUT.titleY,.069);group.add(ownerTitle);
   const badgeMaterial=new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}),badge=new T.Mesh(badgeGeometry,badgeMaterial);badge.position.set(0,CARD_SPEC.socketY,.07);badge.visible=false;group.add(badge);const boost=new T.Mesh(boostGeometry,boostMaterial);boost.visible=false;group.add(boost);
-  let currentRotation=rotation;const card={uid,profile,group,finish,setRarity(key){if(key===finish.rarity.key)return;finish.setRarity(key);frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},setBoost(direction){boost.visible=Number.isInteger(direction);if(boost.visible){const [x,y]=valuePosition(direction);boost.position.set(x*.79,y*.79,.072);boost.rotation.z=Math.atan2(y,x);}},setAbility(ability,suppressed=false){badge.visible=Boolean(ability);if(ability){badgeMaterial.map=abilityTexture(ability);badgeMaterial.color.set(suppressed?'#646b78':'#ffffff');badgeMaterial.opacity=suppressed?.7:1;badgeMaterial.needsUpdate=true;}},setOwner(side){finish.setOwner(side);ownerTitleMaterial.map=ownerTitleTexture(profile,side);},setRotation(r){currentRotation=((r%6)+6)%6;frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},dispose(){frontMaterial.dispose();ownerTitleMaterial.dispose();finish.dispose();badgeMaterial.dispose();group.removeFromParent();instances.delete(card);}};instances.add(card);return card;
+  const socket=new T.Mesh(new T.CircleGeometry(.127,32),new T.MeshBasicMaterial({color:'#101829',toneMapped:false}));socket.position.set(0,FRAME_LAYOUT.elementY,.073);group.add(socket);
+  const glyphMaterial=new T.MeshBasicMaterial({map:elementTextures.get(element),transparent:true,depthWrite:false,toneMapped:false}),glyph=new T.Mesh(new T.PlaneGeometry(.245,.245),glyphMaterial);glyph.position.set(0,FRAME_LAYOUT.elementY,.075);group.add(glyph);
+  let currentRotation=rotation;const card={uid,profile,group,finish,setElement(id){glyphMaterial.map=elementTextures.get(id);},setRarity(key){if(key===finish.rarity.key)return;finish.setRarity(key);frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},setBoost(direction){boost.visible=Number.isInteger(direction);if(boost.visible){const [x,y]=valuePosition(direction);boost.position.set(x*.79,y*.79,.072);boost.rotation.z=Math.atan2(y,x);}},setAbility(ability,suppressed=false){badge.visible=Boolean(ability);if(ability){badgeMaterial.map=abilityTexture(ability);badgeMaterial.color.set(suppressed?'#646b78':'#ffffff');badgeMaterial.opacity=suppressed?.7:1;badgeMaterial.needsUpdate=true;}},setOwner(side){finish.setOwner(side);ownerTitleMaterial.map=ownerTitleTexture(profile,side);},setRotation(r){currentRotation=((r%6)+6)%6;frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key);},dispose(){glyphMaterial.dispose();glyph.geometry.dispose();socket.geometry.dispose();socket.material.dispose();frontMaterial.dispose();ownerTitleMaterial.dispose();finish.dispose();badgeMaterial.dispose();group.removeFromParent();instances.delete(card);}};instances.add(card);return card;
  }
  const normal=new T.Vector3(),viewDirection=new T.Vector3(),quaternion=new T.Quaternion();
- return {spawn,prepare,frame(dt,motion,cameraForCard=null){for(const c of instances)if(c.group.visible){c.finish.frame(dt,motion);const camera=cameraForCard?.(c);if(camera){c.group.updateWorldMatrix(true,false);normal.set(0,0,1).applyQuaternion(c.group.getWorldQuaternion(quaternion));camera.getWorldDirection(viewDirection);c.finish.setFrontVisible(normal.dot(viewDirection)<-.005);}}},dispose(){for(const c of [...instances])c.dispose();for(const t of faces.values())t.dispose();for(const [path,t] of artworkTextures)if(!templates.some(m=>m.artworkTexture===t))t.dispose();for(const t of templates)t.dispose();for(const t of frames.values())t.dispose();for(const t of badgeTextures.values())t.dispose();for(const t of ownerTitleTextures.values())t.dispose();ownerTitleGeometry.dispose();boostGeometry.dispose();boostMaterial.dispose();badgeGeometry.dispose();face.dispose();body.dispose();metal.dispose();backMaterial.dispose();}};
+ return {spawn,prepare,frame(dt,motion,cameraForCard=null){for(const c of instances)if(c.group.visible){c.finish.frame(dt,motion);const camera=cameraForCard?.(c);if(camera){c.group.updateWorldMatrix(true,false);normal.set(0,0,1).applyQuaternion(c.group.getWorldQuaternion(quaternion));camera.getWorldDirection(viewDirection);c.finish.setFrontVisible(normal.dot(viewDirection)<-.005);}}},dispose(){for(const c of [...instances])c.dispose();for(const t of faces.values())t.dispose();for(const [path,t] of artworkTextures)if(!templates.some(m=>m.artworkTexture===t))t.dispose();for(const t of templates)t.dispose();for(const t of frames.values())t.dispose();for(const t of elementTextures.values())t.dispose();for(const t of badgeTextures.values())t.dispose();for(const t of ownerTitleTextures.values())t.dispose();ownerTitleGeometry.dispose();boostGeometry.dispose();boostMaterial.dispose();badgeGeometry.dispose();face.dispose();body.dispose();metal.dispose();backMaterial.dispose();}};
 }

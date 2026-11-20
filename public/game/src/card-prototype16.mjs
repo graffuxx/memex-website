@@ -1,9 +1,10 @@
+import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import * as T from '../vendor/three.module.min.js';
 import {ALPHA_MARK,alphaSymbolSvg} from '../platform/edition36.mjs';
 import {CATALOG,sideValue} from './rules.mjs';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
-export {cardShape,cardPoints} from './card-prototype.mjs?v=alpha-cards-48';
-import {cardShape} from './card-prototype.mjs?v=alpha-cards-48';
+export {cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
+import {cardShape} from './card-prototype.mjs?v=element-53';
 
 export {CARD_PROFILES} from './card-profiles27.mjs';
 import {CARD_PROFILES} from './card-profiles27.mjs';
@@ -25,6 +26,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
  const add=(geometry,material,z=0)=>{const mesh=new T.Mesh(geometry,material);mesh.position.z=z;group.add(mesh);return mesh;};
  const load=async path=>{const texture=await new T.TextureLoader().loadAsync(new URL(path,import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return tex(texture);};
  const [image,back]=await Promise.all([load(p.asset),load('../assets/cards/frame-v21/memex-back.webp')]);
+ if(p.artAtlas){const h=image.image.width/5/image.image.height;image.repeat.set(.2,h);image.offset.set(0,.6-h/2);}
  const frame=frames?.get('common')??await load('../assets/cards/frame-v21/navy-gold-frame.webp');
  const metal=mat(new T.MeshStandardMaterial({color:'#142a43',metalness:.65,roughness:.3}));
  const body=geo(new T.ExtrudeGeometry(cardShape(),{depth:CARD_SPEC.bodyDepth,bevelEnabled:true,bevelSegments:3,bevelSize:.009,bevelThickness:.006,steps:1}));body.translate(0,0,-CARD_SPEC.bodyDepth/2);
@@ -57,14 +59,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
   edition.position.set(ALPHA_MARK.x,FRAME_LAYOUT.titleY-ALPHA_MARK.titleOffset,.066);
  }
 
- const elementTexture=tex(canvasTexture((ctx,w)=>{
-  const gradient=ctx.createLinearGradient(0,w*.1,0,w*.92);gradient.addColorStop(0,p.element==='storm'?'#fff3c2':p.element==='stone'?'#f7e7ae':'#fff07a');gradient.addColorStop(1,p.element==='storm'?'#a49aff':p.element==='stone'?'#b98a40':'#ff8d12');ctx.fillStyle=gradient;ctx.strokeStyle='#ffd876';ctx.lineWidth=5;ctx.shadowColor=p.element==='storm'?'#907aff':'#ff9a28';ctx.shadowBlur=15;
-  ctx.beginPath();
-  if(p.element==='fire'){ctx.moveTo(w*.54,w*.08);ctx.bezierCurveTo(w*.44,w*.4,w*.86,w*.42,w*.76,w*.72);ctx.bezierCurveTo(w*.61,w*.97,w*.22,w*.98,w*.21,w*.65);ctx.bezierCurveTo(w*.20,w*.46,w*.40,w*.33,w*.54,w*.08);}
-  else if(p.element==='stone'){ctx.moveTo(w*.5,w*.1);ctx.lineTo(w*.82,w*.5);ctx.lineTo(w*.5,w*.9);ctx.lineTo(w*.18,w*.5);}
-  else {ctx.moveTo(w*.59,w*.08);ctx.lineTo(w*.23,w*.54);ctx.lineTo(w*.46,w*.54);ctx.lineTo(w*.36,w*.92);ctx.lineTo(w*.79,w*.42);ctx.lineTo(w*.53,w*.42);}
-  ctx.closePath();ctx.fill();ctx.stroke();
- }));
+ const elementTexture=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(p.element)));
  const element=add(geo(new T.PlaneGeometry(.245,.245)),mat(new T.MeshBasicMaterial({map:elementTexture,transparent:true,depthWrite:false,toneMapped:false})),.065);element.position.y=FRAME_LAYOUT.elementY;
  const accent=new T.LineLoop(geo(new T.BufferGeometry().setFromPoints(cardShape(1.007).getPoints().map(v=>new T.Vector3(v.x,v.y,.048)))),mat(new T.LineBasicMaterial({color:owner===1?'#ff5d72':'#55ed94',toneMapped:false})));accent.visible=owner!==null;group.add(accent);
  return {group,profile:p,artworkTexture:image,setFinish(key){frameMaterial.map=frames?.get(key)??frame;},setArtwork(texture){portraitMaterial.map=texture;},setOwner(side){accent.visible=side!==null;accent.material.color.set(side===1?'#ff5d72':'#55ed94');},setRotation(value){rotation=((value%6)+6)%6;badges.forEach((badge,dir)=>{badge.material.map=numberTexture(sideValue({id:p.ruleId,rotation},dir));});},get values(){return CATALOG.find(c=>c.id===p.ruleId).values.map((_,dir)=>sideValue({id:p.ruleId,rotation},dir));},dispose(){for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();}};

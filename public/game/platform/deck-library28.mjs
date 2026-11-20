@@ -1,3 +1,4 @@
+import {ELEMENT_IDS} from './elements53.mjs';
 import {DECK_SIZE,MAX_MOTIF_COPIES,countMotifs,DEFINITIONS,RARITIES,getVariant,starterDeck,countCards} from './catalog.mjs';
 export const DECK_LIBRARY_LIMIT=10;
 export const LEGACY_GUEST_DECK_KEY='duelverse.guest-deck.v1';
@@ -51,14 +52,14 @@ export function commitEditorDeck(library,id,cloudId=null){
 export function addDeckCard(cards,id,inventory){
  if(!getVariant(id))throw Error('Unknown card.');
  if(cards.length>=DECK_SIZE)throw Error('Your deck is full. Remove a card first.');
- if((countMotifs(cards)[getVariant(id).definitionId]??0)>=MAX_MOTIF_COPIES)throw Error('Maximum 3 copies of this meme per deck, including all finishes.');
+ if((countMotifs(cards)[getVariant(id).definitionId]??0)>=MAX_MOTIF_COPIES)throw Error('Maximum 3 copies of this meme per deck, including all elements and finishes.');
  if((countCards(cards)[id]??0)>=(inventory[id]??0))throw Error('All available copies are already in this deck.');
  return [...cards,id];
 }
 export function removeDeckCard(cards,id){const index=cards.indexOf(id);if(index<0)return cards;const next=[...cards];next.splice(index,1);return next;}
 export function summarizeDeck(cards){
- const elements={fire:0,stone:0,storm:0},rarities=Object.fromEntries(RARITIES.map(r=>[r.id,0])),motifs=new Set();
- for(const id of cards){const variant=getVariant(id);if(!variant)continue;const card=DEFINITIONS.find(c=>c.id===variant.definitionId);elements[card.element]++;rarities[variant.rarity]++;motifs.add(card.id);}
+ const elements=Object.fromEntries(ELEMENT_IDS.map(id=>[id,0])),rarities=Object.fromEntries(RARITIES.map(r=>[r.id,0])),motifs=new Set();
+ for(const id of cards){const variant=getVariant(id);if(!variant)continue;const card=DEFINITIONS.find(c=>c.id===variant.definitionId);elements[variant.element]++;rarities[variant.rarity]++;motifs.add(card.id);}
  return {total:cards.length,remaining:Math.max(0,DECK_SIZE-cards.length),elements,rarities,uniqueMotifs:motifs.size};
 }
 

@@ -1,5 +1,5 @@
 import {starterDeck} from '../platform/catalog.mjs';
-import {readPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-48';
+import {readPlayDeck} from '../platform/deck-bridge.mjs?v=element-53';
 import {syncTableCards} from './table-card-pool25.mjs';
 import {handCardDepth,handHitOrder,HUD_DEPTH} from './hand-layers17.mjs';
 import {rarityOf} from './card-rarities15.mjs?v=hand-depth-17';
@@ -11,13 +11,13 @@ import {createPaintedBackdrop} from './painted-backdrop-glow8.mjs?v=home-rift-25
 import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
-import {CELLS,ELEMENTS,moveTargets} from './rules.mjs';
+import {CELLS,ELEMENTS,moveTargets,cardOf} from './rules.mjs';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
-import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=alpha-cards-48';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-cards-48';
+import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=element-53';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
-import {DEMO_PROFILES} from './table-demo-state.mjs?v=alpha-cards-48';
+import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
 export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}={}){
@@ -105,7 +105,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false}
  async function flip(uid,owner){const token=generation,c=cardMap.get(uid);moving.add(uid);let changed=false;const ok=await animate(380,t=>{c.group.rotation.set(-Math.PI/2,Math.sin(t*Math.PI)*Math.PI,0);if(t>=.5&&!changed){c.setOwner(owner);changed=true;}});if(!ok||token!==generation)return false;moving.delete(uid);if(ok){c.group.rotation.set(-Math.PI/2,0,0);c.setOwner(owner);}dirty=true;return ok;}
  async function prepareGame(g){const profiles=new Set([...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)].map(c=>DEMO_PROFILES[c.id]));await Promise.all([...profiles].map(profile=>runtime.prepare(profile)));}
  function initGame(g){cancel();if(arenaId==='painted'){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;
-  syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key});
+  syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key,elementFor:c=>cardOf(c).element});
   eventPulse=0;
   update(g,{});resize();layout(true);renderer.shadowMap.needsUpdate=true;dirty=true;
  }

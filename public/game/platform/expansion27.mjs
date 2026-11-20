@@ -1,3 +1,4 @@
+import {ELEMENT_CARDS} from './expansion53.mjs';
 import {ALPHA_ADDITIONS} from './expansion48.mjs';
 import {NEW_ALPHA_CARDS} from './expansion45.mjs';
 // Approved previews; clockwise edge order: E, SE, SW, W, NW, NE.
@@ -13,5 +14,6 @@ export const EXPANSION_CARDS=Object.freeze([
  {id:'confused',name:'Confused Nick Young',short:'Confused',element:'storm',values:[5,3,4,4,5,3],artOffsetY:-.04,quote:'Wait. That was your move?'},
  {id:'bad-luck-brian',name:'Bad Luck Brian',short:'Bad Luck Brian',element:'storm',values:[4,4,4,4,4,4],artOffsetY:-.045,quote:'Finally gets a good hand. Wrong table.'},
  ...NEW_ALPHA_CARDS,
- ...ALPHA_ADDITIONS
+ ...ALPHA_ADDITIONS,
+ ...ELEMENT_CARDS
 ].map(c=>Object.freeze({...c,ruleId:c.id,ability:null,artOffsetY:c.artOffsetY??0,values:Object.freeze(c.values),image:c.image??`/game/assets/cards/memes-v27/${c.id}-common.webp`})));

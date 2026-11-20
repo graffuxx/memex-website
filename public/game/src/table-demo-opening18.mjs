@@ -1,5 +1,5 @@
-import {connectAccountGame} from '../platform/account-client50.mjs?v=account-50';
-import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-48';
+import {connectAccountGame} from '../platform/account-client50.mjs?v=element-53';
+import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=element-53';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
@@ -8,11 +8,11 @@ import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=rounds-42';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=alpha-cards-48';
+import {createTableView} from './table-demo-view-hand17.mjs?v=element-53';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=random-layout-1';
-import {scores,ELEMENTS,shiftBlock,moveTargets,sideValue} from './rules.mjs';
+import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
-import {CARD_PROFILES} from './card-prototype.mjs?v=alpha-cards-48';
+import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
 const $=id=>document.getElementById(id),stage=$('stage'),svg=$('interaction');
 if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[href="/decks"]'))link.href='/decks?test=1';
@@ -55,7 +55,7 @@ function expireTurn(){
 }
 function announce(text){clearTimeout(messageTimer);$('arenaMessage').textContent=text;$('arenaMessage').classList.remove('active');void $('arenaMessage').offsetWidth;$('arenaMessage').classList.add('active');messageTimer=setTimeout(()=>$('arenaMessage').classList.remove('active'),1700);}
 const isMatch=()=>$('sceneMode').value==='match';
-const profile=c=>CARD_PROFILES[DEMO_PROFILES[c.id]],name=c=>profile(c).name;
+const profile=c=>({...CARD_PROFILES[DEMO_PROFILES[c.id]],element:cardOf(c).element}),name=c=>profile(c).name;
 function selectedCard(){return game.players[0].hand.find(c=>c.uid===selected);}
 function action(){return {uid:selected,cell:target,rotation,abilityDirection,twistCell};}
 function plan(){if(mode!=='card'||!selected||!target||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}

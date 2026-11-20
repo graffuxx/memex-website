@@ -9,10 +9,10 @@ export const RULESET='account-50';
 export function createAccountDuel({deck,inventory,seed,starter,loadouts=['hype-guard','hype-twist']}){
  if(!deck||!validateDeck(deck.cards,inventory).valid)throw Error('Saved deck is not playable.');
  if(!Number.isInteger(seed)||seed<0||seed>0xffffffff||![0,1].includes(starter)||!Array.isArray(loadouts)||loadouts.length!==2||loadouts.some(l=>!Object.hasOwn(LOADOUTS,l)))throw Error('Invalid duel settings.');
- const state={ruleset:RULESET,deck:{id:deck.id,name:deck.name,cards:[...deck.cards]},seed,starter,loadouts:[...loadouts],round:1,results:[],awards:[],game:null};
+ const state={ruleset:RULESET,elementRules:5,deck:{id:deck.id,name:deck.name,cards:[...deck.cards]},seed,starter,loadouts:[...loadouts],round:1,results:[],awards:[],game:null};
  state.game=roundGame(state);return state;
 }
-function roundGame(state){const starter=state.round===1?state.starter:1-state.starter;let game=createTacticsMatch({seed:state.seed,starter,loadouts:state.loadouts});game=applyPortalDecks(game,state.deck.cards,state.loadouts.map(id=>LOADOUTS[id]),{round:state.round});game.rotationLocked=true;return game;}
+function roundGame(state){const starter=state.round===1?state.starter:1-state.starter;let game=createTacticsMatch({seed:state.seed,starter,loadouts:state.loadouts});game=applyPortalDecks(game,state.deck.cards,state.loadouts.map(id=>LOADOUTS[id]),{round:state.round});game.elementRules=state.elementRules??state.game?.elementRules??3;game.resonanceOffset=((state.seed%(game.elementRules===5?5:3))+(game.elementRules===5?5:3))%(game.elementRules===5?5:3);game.rotationLocked=true;return game;}
 function ai(game){let seed=(game.seed^Math.imul(game.placements+1,2654435761))>>>0;return chooseTactic(game,{random:()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}}).chosen?.action;}
 function place(state,action,steps){const before=state.game;state.game=placeEffect(before,action);steps.push({before:structuredClone(before),action,after:structuredClone(state.game)});if(state.game.finished){state.results[state.round-1]=scores(state.game);state.awards[state.round-1]=state.game.winner===0?5:2;}}
 export function beginAccountRound(state){const next=structuredClone(state),steps=[];if(next.game.turn===1&&!next.game.finished)place(next,ai(next.game),steps);return {state:next,steps,award:0};}

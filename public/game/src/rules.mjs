@@ -1,6 +1,8 @@
+import {ELEMENTS as FIVE_ELEMENTS,normalizeElement,elementAdvantage} from '../platform/elements53.mjs';
+import {getVariant} from '../platform/catalog.mjs';
 import {EXPANSION_CARDS} from '../platform/expansion27.mjs';
 export const VERSION=1;
-export const ELEMENTS={fire:{name:'Glut',symbol:'✦',color:'#fa8966',beats:'stone'},stone:{name:'Stein',symbol:'◆',color:'#d7bb7c',beats:'storm'},storm:{name:'Sturm',symbol:'ϟ',color:'#bb99ff',beats:'water'},water:{name:'Flut',symbol:'≈',color:'#72d8e6',beats:'fire'}};
+export const ELEMENTS={...FIVE_ELEMENTS,stone:FIVE_ELEMENTS.earth};
 export const DIRECTIONS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 export const CATALOG=[
  {id:'oracle',name:'Overthinker',element:'storm',values:[7,6,3,2,3,3],face:'hood',quote:'Ich habe 14 Züge vorausgedacht. Leider die falschen.'},
@@ -17,14 +19,24 @@ export const CATALOG=[
 const LEGACY_IDS=new Set(['oracle','rage','mage','moon','trust','reset','grass','fine','brain']);
 export const CELLS=[];for(let r=-2;r<=2;r++)for(let q=-2;q<=2;q++)if(Math.abs(q+r)<=2)CELLS.push({id:q+','+r,q,r});
 export const LAYOUTS=[{id:'core',name:'Kernbruch',block:'0,0'},{id:'east',name:'Ostpass',block:'1,0'},{id:'west',name:'Westpass',block:'-1,0'}];
-export const cardOf=card=>CATALOG.find(c=>c.id===card.id);
+const CARD_INDEX=new Map(CATALOG.map(c=>[c.id,Object.freeze({...c,element:normalizeElement(c.element)})]));
+const ELEMENT_CARD_INDEX=new Map();
+export function cardOf(card){
+ const base=CARD_INDEX.get(card.id);if(!base)return undefined;
+ const variant=card.variantId?getVariant(card.variantId):null;
+ const element=variant?.element??normalizeElement(card.element??base.element);
+ if(!Object.hasOwn(FIVE_ELEMENTS,element))return undefined;
+ if(element===base.element)return base;
+ const key=base.id+':'+element;if(!ELEMENT_CARD_INDEX.has(key))ELEMENT_CARD_INDEX.set(key,Object.freeze({...base,element}));
+ return ELEMENT_CARD_INDEX.get(key);
+}
 const cellSet=new Set(CELLS.map(c=>c.id));
 function random(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 export function newGame({seed=12345,layout='core',starter=0}={}){
  if(![0,1].includes(starter)||!LAYOUTS.some(l=>l.id===layout))throw Error('Ungültige Partieauswahl.');
  const rng=random(seed),players=[0,1].map(p=>{const cards=shuffle(CATALOG.filter(c=>LEGACY_IDS.has(c.id)).map(c=>({id:c.id,uid:p+':'+c.id,origin:p})),rng);return {hand:cards.slice(0,5),deck:cards.slice(5),shifts:1,flips:0};});
- return {version:VERSION,seed,layout,starter,turn:starter,placements:0,board:{},block:LAYOUTS.find(l=>l.id===layout).block,players,events:[{cell:'-1,1',element:'storm'},{cell:'1,-1',element:'water'}],history:[],last:null,winner:null,finished:false};
+ return {version:VERSION,elementRules:5,seed,layout,starter,turn:starter,placements:0,board:{},block:LAYOUTS.find(l=>l.id===layout).block,players,events:[{cell:'-1,1',element:'storm'},{cell:'1,-1',element:'water'}],history:[],last:null,winner:null,finished:false};
 }
 export function neighbors(id){const c=CELLS.find(c=>c.id===id);return c?DIRECTIONS.map(([q,r],dir)=>({id:(c.q+q)+','+(c.r+r),dir})).filter(n=>cellSet.has(n.id)):[];}
 export const freeCells=g=>CELLS.filter(c=>c.id!==g.block&&!g.board[c.id]).map(c=>c.id);
@@ -32,7 +44,7 @@ export const scores=g=>[0,1].map(p=>Object.values(g.board).filter(c=>c.controlle
 export const eventPhase=g=>g.placements>=12?2:g.placements>=6?1:0;
 export function fieldAt(g,cell){const f=g.events.find(f=>f.cell===cell);if(!f)return null;const phase=eventPhase(g);return {element:phase===2?({storm:'water',water:'storm'}[f.element]):f.element,bonus:phase===1?2:1};}
 export function sideValue(card,dir,rotation=card.rotation??0){return cardOf(card).values[((dir-rotation)%6+6)%6];}
-export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=ELEMENTS[cardOf(card).element].beats===cardOf(opponent).element?1:0;return {base,field:fieldBonus,element:advantage,total:base+fieldBonus+advantage};}
+export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,total:base+fieldBonus+advantage};}
 export function preview(g,{uid,cell,rotation=0}){
  if(g.finished)throw Error('Die Runde ist beendet.');
  const card=g.players[g.turn].hand.find(c=>c.uid===uid);
