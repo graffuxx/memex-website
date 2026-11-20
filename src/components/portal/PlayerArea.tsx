@@ -4,14 +4,17 @@ import {usePathname} from 'next/navigation';
 import {supabase} from '@/lib/supabaseClient';
 import usePlayerCollection from './usePlayerCollection';
 import PlayerBalances from './PlayerBalances';
+import {useFriendsCount92} from './FriendsNotice92';
+import './friends92.css';
 import {PLAYER_LINKS,playerAreaRoute} from '../../../public/game/platform/player-area49.mjs';
 import './player-area.css';
 
 export default function PlayerArea({children}:{children:ReactNode}){
  const {ready,userId,player,testMode}=usePlayerCollection(),path=usePathname();
+ const social=useFriendsCount92(userId,ready&&!testMode);
  const visible=ready&&userId&&!testMode&&playerAreaRoute(path);
  if(!visible)return <>{children}</>;
- return <div className="player-area"><header className="player-area-bar"><nav aria-label="Player area">{PLAYER_LINKS.map(([url,label])=><a key={url} href={url} aria-current={path===url?'page':undefined}>{label}</a>)}</nav><div className="player-area-tools"><PlayerBalances ready={ready} userId={userId} player={player}/><PlayerAccountActions/></div></header><div className="player-area-content">{children}</div></div>;
+ return <div className="player-area"><header className="player-area-bar"><nav aria-label="Player area">{PLAYER_LINKS.map(([url,label])=><a key={url} href={url} aria-current={path===url?'page':undefined}>{label}{url==='/account/private/friends'&&social.requests+social.invites>0&&<b className="friend-count92" aria-label={`${social.requests+social.invites} pending requests and invitations`}>{social.requests+social.invites}</b>}</a>)}</nav><div className="player-area-tools"><PlayerBalances ready={ready} userId={userId} player={player}/><PlayerAccountActions/></div></header><div className="player-area-content">{children}</div></div>;
 }
 export function PlayerAreaGate({children}:{children:ReactNode}){
  const {ready,userId,player,error,refresh}=usePlayerCollection(),[retrying,setRetrying]=useState(false);

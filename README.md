@@ -64,6 +64,13 @@ and reconnect restores the saved board. Only completed Random rounds grant title
 and 5/2 Pixels; private matches grant no currencies, XP or titles. Random has no AI
 fallback or skill rating yet. Run `node scripts/preview-matchmaking90.mjs` for isolated
 two-tab QA with disposable accounts (loopback only, no production credentials).
+Apply `202611210001_friends92.sql` for account-scoped friends, exact-name lookup,
+explicit friend requests and recipient-bound private duel invitations. Friends are
+under `/account/private/friends`, with notification counts in the account and play
+navigation. Blocks/removals cancel waiting invitations; ongoing duels keep their
+state. Private rooms expire after 15 inactive minutes (Random queue: 120 seconds).
+`node scripts/preview-friends92.mjs` runs isolated three-account browser QA on
+loopback with a disposable database; it never uses production credentials.
 Booster purchases and openings are saved atomically; paid currency is separately
 verified by the payment service. Return rounds reshuffle both decks.
 
