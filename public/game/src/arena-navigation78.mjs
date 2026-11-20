@@ -31,3 +31,10 @@ export function bindArenaNavigation78(stage,{enabled,canStart,getPose,onChange,o
  stage.addEventListener('pointerdown',down,true);stage.addEventListener('pointermove',move,true);stage.addEventListener('pointerup',up,true);stage.addEventListener('pointercancel',up,true);stage.addEventListener('lostpointercapture',lost);stage.addEventListener('contextmenu',context);
  return {setMode(v){mode=v==='pan'?'pan':'orbit';stage.dataset.cameraMode=mode;},dispose(){for(const [event,handler,capture]of [['pointerdown',down,true],['pointermove',move,true],['pointerup',up,true],['pointercancel',up,true],['lostpointercapture',lost,false],['contextmenu',context,false]])stage.removeEventListener(event,handler,capture);delete stage.dataset.cameraDragging;delete stage.dataset.cameraMode;}};
 }
+
+// Extend the render frustum into the HUD margins without changing a single board hit coordinate.
+export function expandedArenaCamera79(destination,logicalCamera,height,boardTop,boardHeight){
+ destination.copy(logicalCamera);const source=logicalCamera.projectionMatrix.elements,out=destination.projectionMatrix.elements,scale=boardHeight/height,offset=1-(2*boardTop+boardHeight)/height;
+ for(const column of [0,4,8,12])out[column+1]=scale*source[column+1]+offset*source[column+3];
+ destination.projectionMatrixInverse.copy(destination.projectionMatrix).invert();return destination;
+}

@@ -1,5 +1,5 @@
-import {arenaCameraPose78} from './arena-navigation78.mjs';
-import {createVoidNebula78} from './void-nebula78.mjs';
+import {arenaCameraPose78} from './arena-navigation78.mjs?v=void-storm-79';
+import {createVoidNebula78} from './void-nebula78.mjs?v=void-storm-79';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS} from './rules.mjs';
 import {tileCenter} from './arena-projection.mjs';
@@ -68,11 +68,12 @@ for(const cluster of crystalClusters)for(let j=0;j<3;j++){const points=[];for(le
  };
 }
 
+export const VOIDFORGE_ZOOM79=Object.freeze({min:.85,max:1.5});
 export function fitVoidforgeCamera77(camera,width,height,requested=1,orbit){
- const value=T.MathUtils.clamp(Number.isFinite(requested)?requested:1,.85,1.12),pitch=68*Math.PI/180,focus=new T.Vector3(0,-.30,0);
+ const value=T.MathUtils.clamp(Number.isFinite(requested)?requested:1,VOIDFORGE_ZOOM79.min,VOIDFORGE_ZOOM79.max),pitch=68*Math.PI/180,focus=new T.Vector3(0,-.30,0);
  camera.up.set(0,1,0);camera.fov=35;camera.aspect=width/height;camera.updateProjectionMatrix();
  const pose=d=>{camera.position.copy(focus).add(new T.Vector3(0,Math.sin(pitch),Math.cos(pitch)).multiplyScalar(d));camera.lookAt(focus);camera.updateMatrixWorld();};
  const bounds=CELLS.flatMap(c=>{const p=tileCenter(c);return cardPoints(1.1).map(([x,z])=>new T.Vector3(p.x+x,.42,p.z+z));});bounds.push(new T.Vector3(-6.8,2.8,-3.8),new T.Vector3(6.8,2.8,-3.8),new T.Vector3(0,-3.9,3.1));
  let lo=8,hi=60;for(let i=0;i<24;i++){const d=(lo+hi)/2;pose(d);if(bounds.every(p=>{const v=p.clone().project(camera);return Math.abs(v.x)<.91&&Math.abs(v.y)<.90;}))hi=d;else lo=d;}pose(hi/value);if(orbit)arenaCameraPose78(camera,hi/value,orbit);
- return {value,min:.85,max:1.12,pan:{x:0,y:0},canPan:false};
+ return {value,min:VOIDFORGE_ZOOM79.min,max:VOIDFORGE_ZOOM79.max,pan:{x:0,y:0},canPan:false};
 }
