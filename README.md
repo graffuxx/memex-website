@@ -52,6 +52,8 @@ comebacks, dominant wins and 2–0 double duels have separate milestones. Counte
 commit once per completed server round. Local training, deck tests and abandoned
 rounds never grant progress. Only retained complete older histories are recovered.
 Apply `202611200010_skill_titles88.sql` after the name migration.
+Then apply `202611200011_quad_luck89.sql`: Four of a Kind needs one quad flip;
+Your Final Boss needs 50 triple-flip turns and 50 double-duel sweeps, with no quad requirement.
 Booster purchases and openings are saved atomically; paid currency is separately
 verified by the payment service. Return rounds reshuffle both decks.
 

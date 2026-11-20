@@ -3,12 +3,12 @@ export const SKILL_RULES88=Object.freeze({double_flips:'Flip at least 2 enemy ca
 export const ACHIEVEMENT_TITLES88=Object.freeze([
  {id:'first-flip',name:'Double Trouble',requirements:{double_flips:50}},
  {id:'getting-gud',name:'Triple Threat',requirements:{triple_flips:10}},
- {id:'no-touch-grass',name:'Four of a Kind',requirements:{quad_flips:3}},
+ {id:'no-touch-grass',name:'Four of a Kind',requirements:{quad_flips:1}},
  {id:'certified-menace',name:'Flip Happens',requirements:{total_flips:1000}},
  {id:'pixel-veteran',name:'Uno Reverse',requirements:{comeback_wins:20}},
  {id:'big-brain',name:'Board Dominator',requirements:{dominant_wins:10}},
  {id:'void-witness',name:'Two for the Show',requirements:{duel_sweeps:20}},
- {id:'final-boss',name:'Your Final Boss',requirements:{quad_flips:10,duel_sweeps:50}}
+ {id:'final-boss',name:'Your Final Boss',requirements:{triple_flips:50,duel_sweeps:50}}
 ].map(t=>Object.freeze({...t,kind:'title',minWins:0,minLevel:1,requirements:Object.freeze(t.requirements)})));
 export function titleProgress88(title,identity){return Object.entries(title.requirements??{}).map(([metric,goal])=>{const current=Math.max(0,Math.floor(Number(identity?.skills?.[metric])||0));return {metric,label:SKILL_METRICS88[metric],goal,current,complete:current>=goal,percent:Math.min(100,current/goal*100)};});}
 export const earnedTitle88=(title,identity)=>titleProgress88(title,identity).every(r=>r.complete);
