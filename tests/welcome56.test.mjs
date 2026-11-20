@@ -1,0 +1,31 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
+import {ALPHA_ODDS,validAlphaPack,boosterCostLabel} from '../public/game/platform/alpha-booster36.mjs';
+import {TEST_PACK_ODDS} from '../public/game/platform/booster-test.mjs';
+import {validateDeck} from '../public/game/platform/catalog.mjs';
+const uid=n=>'56565656-5656-4565-8565-'+String(n).padStart(12,'0');
+test('welcome grant: verified accounts get ten saved packs exactly once, free and paid share protection, no caller can self-grant',async()=>{
+ const db=new PGlite();try{
+  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+  for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
+  await db.query('insert into auth.users values($1,now(),false),($2,null,false),($3,now(),true),($4,now(),false)',[uid(1),uid(2),uid(3),uid(4)]);
+  const asUser=async n=>db.exec(`reset role;set role authenticated;set request.jwt.claim.sub='${uid(n)}';`);
+  await asUser(1);await Promise.all(Array.from({length:8},()=>db.query('select public.dv_initialize_account()')));
+  const packs=(await db.query('select * from public.dv_booster_purchases36')).rows;assert.equal(packs.length,10);assert.equal(new Set(packs.map(p=>p.request_id)).size,10);
+  for(const p of packs){assert.equal(p.currency,'starter');assert.equal(p.cost,0);assert.equal(validAlphaPack(p.cards),true);assert.deepEqual(p.revealed_slots,[]);assert.equal(boosterCostLabel(p),'Welcome gift');}
+  let inventory=Object.fromEntries((await db.query('select variant_id,quantity from public.dv_inventory')).rows.map(x=>[x.variant_id,x.quantity]));assert.equal(Object.values(inventory).reduce((a,b)=>a+b,0),68);assert.ok(Object.values(inventory).every(n=>n<=3));
+  const deck=(await db.query('select cards from public.dv_decks')).rows[0];assert.equal(validateDeck(deck.cards,inventory).valid,true);
+  assert.deepEqual((await db.query('select earned,premium,echoes from public.dv_wallets')).rows[0],{earned:0,premium:0,echoes:0});assert.equal((await db.query('select * from public.dv_reward_ledger')).rows.length,0);
+  const snapshot=JSON.stringify(packs.map(p=>p.cards));await db.query('select public.dv_reveal_booster_card($1,0)',[packs[0].id]);await db.query('select public.dv_initialize_account()');assert.equal((await db.query('select count(*)::int n from public.dv_booster_purchases36')).rows[0].n,10);assert.equal(JSON.stringify((await db.query('select cards from public.dv_booster_purchases36 order by created_at,id')).rows.map(p=>p.cards).sort()),JSON.stringify(packs.map(p=>p.cards).sort()));assert.equal(snapshot.length>0,true);
+  await assert.rejects(db.query('insert into public.dv_welcome_grants56(user_id) values($1)',[uid(2)]),/permission denied/);await assert.rejects(db.query('select public.dv_allocate_alpha56($1,$2,$3,0)',[uid(1),uid(100),'starter']),/permission denied/);await assert.rejects(db.query('select public.dv_initialize_base56()'),/permission denied/);await assert.rejects(db.query('select public.dv_buy_alpha_booster($1,$2)',[uid(101),'starter']),/Invalid booster/);
+  for(const n of [2,3]){await asUser(n);await db.query('select public.dv_initialize_account()');assert.equal((await db.query('select * from public.dv_booster_purchases36')).rows.length,0);}
+  await db.exec('reset role');await db.query('update auth.users set email_confirmed_at=now() where id=$1',[uid(2)]);await asUser(2);await db.query('select public.dv_initialize_account()');assert.equal((await db.query('select * from public.dv_booster_purchases36')).rows.length,10);await assert.rejects(db.query('select public.dv_reveal_booster_card($1,1)',[packs[0].id]),/not found/);
+  // A failed allocation leaves no partial account/gift. Restore the catalog afterwards.
+  await db.exec("reset role;update public.dv_card_variants set edition='disabled';");await asUser(4);await assert.rejects(db.query('select public.dv_initialize_account()'),/catalog unavailable/);assert.equal((await db.query('select * from public.dv_welcome_grants56')).rows.length,0);assert.equal((await db.query('select * from public.dv_profiles')).rows.length,0);
+  await db.exec("reset role;update public.dv_card_variants set edition='alpha';");await asUser(4);await db.query('select public.dv_initialize_account()');await db.exec(`reset role;update public.dv_wallets set earned=100 where user_id='${uid(4)}'`);await asUser(4);const paid=(await db.query('select public.dv_buy_alpha_booster($1,$2) id',[uid(200),'pixels'])).rows[0].id;assert.equal((await db.query('select public.dv_buy_alpha_booster($1,$2) id',[uid(200),'pixels'])).rows[0].id,paid);assert.equal((await db.query('select earned from public.dv_wallets')).rows[0].earned,0);assert.equal((await db.query('select count(*)::int n from public.dv_booster_purchases36')).rows[0].n,11);
+ }finally{await db.close();}
+});
+test('published odds agree with SQL thresholds, guarantee and preview',async()=>{
+ assert.equal(TEST_PACK_ODDS,ALPHA_ODDS);assert.deepEqual(ALPHA_ODDS.standard.map(x=>x[1]),[7700,2000,250,45,5]);assert.deepEqual(ALPHA_ODDS.guaranteed.map(x=>x[1]),[9300,600,90,10]);
+ const sql=await fs.readFile(new URL('../supabase/migrations/202611200004_welcome_boosters.sql',import.meta.url),'utf8');for(const [key,weights]of Object.entries(ALPHA_ODDS)){assert.equal(weights.reduce((n,x)=>n+x[1],0),10000);let threshold=0;for(const [rarity,weight]of weights.slice(0,-1)){threshold+=weight;assert.ok(sql.includes(`roll<${threshold} then '${rarity}'`));}}
+ assert.equal(boosterCostLabel({currency:'pixels',cost:100}),'100 Pixels');assert.equal(boosterCostLabel({currency:'shards',cost:150}),'150 Shards');
+});

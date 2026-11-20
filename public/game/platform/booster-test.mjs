@@ -7,11 +7,9 @@ export const TEST_COLLECTION_KEY='duelverse.booster-test.v1';
 export const TEST_DECK_KEY='duelverse.booster-test-deck.v1';
 export const PACK_SIZE=5;
 export const TEST_SINGLE_DRAW_LIMIT=3;
-// Draft odds for the free browser-only test, not final shop prices or live odds.
-export const TEST_PACK_ODDS=Object.freeze({
- standard:Object.freeze([['common',7000],['rare',2200],['epic',650],['legendary',130],['mythic',20]]),
- guaranteed:Object.freeze([['rare',7800],['epic',1800],['legendary',350],['mythic',50]])
-});
+// The local preview uses the published live odds; it never grants account cards.
+export {ALPHA_ODDS as TEST_PACK_ODDS} from './alpha-booster36.mjs';
+import {ALPHA_ODDS as TEST_PACK_ODDS} from './alpha-booster36.mjs';
 export const blankTestCollection=()=>({version:1,openedPacks:0,inventory:{},lastPack:null,singleDrawsUsed:0,lastDraw:null});
 // Editor-only sandbox allowance. Never persist this as collection ownership.
 export function fullTestDeckInventory(){return Object.fromEntries(VARIANTS.map(v=>[v.id,MAX_MOTIF_COPIES]));}

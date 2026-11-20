@@ -24,7 +24,7 @@ test('dashboard deck links select only an owned saved deck and preserve other dr
 test('older booster openings survive pagination and reload without a charge; another account cannot read or reveal them',async()=>{
  const db=new PGlite(),a='49494949-4949-4949-8949-494949494949',b='50505050-5050-4050-8050-505050505050';
  try{
-  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users values('${a}'),('${b}');`);
+  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id) values('${a}'),('${b}');`);
   for(const file of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'));
   for(const id of [a,b])await db.exec(`set request.jwt.claim.sub='${id}';select public.dv_initialize_account();`);
   await db.exec(`update public.dv_wallets set earned=4000 where user_id='${a}';set role authenticated;set request.jwt.claim.sub='${a}';`);

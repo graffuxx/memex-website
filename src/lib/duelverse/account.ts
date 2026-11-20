@@ -29,7 +29,7 @@ export async function tradeCard(requestId:string,kind:'craft'|'dismantle',varian
 }
 
 export type BoosterCurrency='pixels'|'shards';
-export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency;cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
+export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency|'starter';cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
 const boosterFields='id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots,created_at';
 export async function loadBoosterHistory({limit=20,before=null}:{limit?:number;before?:{id:string;created_at:string}|null}={}):Promise<BoosterPurchase[]>{
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('Invalid history page size.');
@@ -37,6 +37,10 @@ export async function loadBoosterHistory({limit=20,before=null}:{limit?:number;b
  if(before)query=query.or(boosterHistoryFilter(before));
  const {data,error}=await query;
  if(error)throw Error('Your booster history could not be loaded. Please try again.');return (data??[]) as BoosterPurchase[];
+}
+export async function loadWelcomeBoosters():Promise<BoosterPurchase[]>{
+ const {data,error}=await supabase.from('dv_booster_purchases36').select(boosterFields).eq('currency','starter').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(10);
+ if(error)throw Error('Your welcome boosters could not be loaded. Please retry.');return (data??[]) as BoosterPurchase[];
 }
 export async function loadBooster(id:string):Promise<BoosterPurchase>{
  const {data,error}=await supabase.from('dv_booster_purchases36').select(boosterFields).eq('id',id).single();
