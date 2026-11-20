@@ -46,7 +46,7 @@ function DeckEditor({access,source}:{access:Access;source:Source}){
   else try{persistDeckLibrary(localStorage,key,next);}catch{}
   setLibrary(next);setStatus(source==='account'?'Deck saved to your account.':'Deck saved on this browser.');return next;
  }catch(e){if(alive.current)setStatus(e instanceof Error?e.message:'Could not save this deck.');return null;}finally{busy.current=false;if(alive.current)setSaving(false);}}
- async function play(){if(!canSave||busy.current)return;const next=await save();if(!next||!alive.current)return;try{localStorage.setItem(PLAY_KEY,JSON.stringify({version:1,cards:deck.cards,name:deck.name.trim(),inventory,source}));window.location.assign('/game/table-demo.html');}catch{setStatus('Allow browser storage to take this deck into the arena.');}}
+ async function play(){if(!canSave||busy.current)return;const next=await save();if(!next||!alive.current)return;try{localStorage.setItem(PLAY_KEY,JSON.stringify({version:1,cards:deck.cards,name:deck.name.trim(),inventory,source,deckId:source==='account'?next.selectedId:null}));window.location.assign('/game/table-demo.html');}catch{setStatus('Allow browser storage to take this deck into the arena.');}}
  function drop(event:DragEvent){if(!event.dataTransfer.types.includes(DRAG_TYPE))return;event.preventDefault();setDragging(false);add(event.dataTransfer.getData(DRAG_TYPE));}
  const sourceNote=source==='account'?'Saved decks sync to your account.':source==='sandbox'?'Sandbox · all cards and finishes unlocked. Decks stay on this browser.':'Guest collection · saved on this browser.';
  const previewData=preview?cardData(preview):null;

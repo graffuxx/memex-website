@@ -16,7 +16,7 @@ export default function PlayArena() {
     let alive = true;
     async function prepare() {
       let cards = starterDeck(), inventory = starterInventory(), name = 'Starter deck', source = 'guest';
-      let warning = '';
+      let warning = '', deckId: string | null = null;
       try {
         const {data: {session}, error} = await supabase.auth.getSession();
         if (error) throw error;
@@ -25,7 +25,7 @@ export default function PlayArena() {
           if (!alive) return;
           const deck = player.decks.find(d => d.active) ?? player.decks[0];
           if (!deck || !validateDeck(deck.cards, player.inventory).valid) throw Error('Saved deck unavailable');
-          cards = deck.cards; inventory = player.inventory; name = deck.name; source = 'account';
+          deckId = deck.id; cards = deck.cards; inventory = player.inventory; name = deck.name; source = 'account';
         } else {
           const draft = JSON.parse(localStorage.getItem('duelverse.guest-deck.v1') ?? 'null');
           if (draft?.version === 1 && validateDeck(draft.cards, inventory).valid) {
@@ -38,7 +38,7 @@ export default function PlayArena() {
       }
       if (!alive) return;
       try {
-        localStorage.setItem(PLAY_KEY, JSON.stringify({version: 1, cards, inventory, name, source}));
+        localStorage.setItem(PLAY_KEY, JSON.stringify({version: 1, cards, inventory, name, source, deckId}));
       } catch {
         // A full storage area must not leave an older selected deck in use.
         try { localStorage.removeItem(PLAY_KEY); } catch {}

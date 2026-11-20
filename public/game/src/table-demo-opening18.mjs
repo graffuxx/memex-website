@@ -1,3 +1,4 @@
+import {connectAccountGame} from '../platform/account-client50.mjs?v=account-50';
 import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-cards-48';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs';
 import {roundStarter} from './start-duel18.mjs';
@@ -26,6 +27,12 @@ void audio.preloadAnnouncements();renderSound();
 function unlockSound(e){if(e.isTrusted&&soundWanted&&!audio.running)void audio.setEnabled(true);}
 document.addEventListener('pointerdown',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
+let accountGame=null,accountSnapshot=null,accountResume=null,accountFailed=false;
+function accountWallet(wallet){if(!wallet)return;for(const c of ['pixels','shards','echoes'])$('game'+c).textContent=wallet[c].toLocaleString('en-US');}
+function acceptAccount(data){accountSnapshot=data;portalDeck={...data.state.deck,deckId:data.state.deck.id,source:'account'};round=data.state.round;roundResults=data.state.results;firstStarter=data.state.starter;matchSeed=data.state.seed;accountWallet(data.wallet);$('accountDeckName').textContent=data.state.deck.name;}
+function accountProblem(error){accountFailed=true;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=error.message;busy=true;phase='connection';render();}
+$('gameAccountRetry').onclick=()=>window.location.reload();
+$('gameAccountNew').onclick=()=>{if(accountGame?.pending)return;try{accountGame?.forget();}catch{}window.location.reload();};
 let messageTimer;
 const turnClock=createTurnClock();let clockInterval;
 function renderClock(){
@@ -58,7 +65,7 @@ function render(){
  for(const side of [0,1]){$('score'+side).textContent=s[side];$('stock'+side).textContent=game.players[side].hand.length+' Hand · '+game.players[side].deck.length+' Deck';}
  $('handCount').textContent=game.players[0].hand.length+' / 5';$('enemyHandCount').textContent=game.players[1].hand.length;$('ownDeckCount').textContent=game.players[0].deck.length+(game.players[0].deck.length===1?' Karte':' Karten');$('enemyDeckCount').textContent=game.players[1].deck.length+' Karten';
  $('turnCount').textContent=game.placements+' / 18 Karten gelegt';$('turnLabel').textContent=game.finished?'Runde beendet':busy?phase==='opponent'?'Gegner ist am Zug':phase==='dealing'?'Karten werden ausgeteilt':phase==='opening'?'Startduell läuft':phase==='intro'?'Die Runde beginnt':'Karten in Bewegung':'Du bist am Zug';
- $('confirm').disabled=busy||!(p||shiftValid)||game.finished;$('confirm').textContent=mode==='shift'?'Verschieben':'Ausspielen';$('cancel').disabled=busy||(!selected&&mode!=='shift'&&!inspect);$('autoDemo').disabled=busy||game.finished;$('resetDemo').disabled=!view||phase==='opening';$('newDuel').disabled=busy;$('openingBadge').textContent=(phase==='opening'?'Startduell':isMatch()?'Runde '+round+' / 2':'Training')+(portalDeck.source==='sandbox'?' · Testdeck':'');$('firstMove').textContent=phase==='opening'?'Startrecht wird ausgespielt':isMatch()?'Erster Zug: '+(game.starter===0?'Du':'Gegner'):'';$('shiftBlock').disabled=busy||!moveTargets(game).length||game.finished;$('shiftBlock').classList.toggle('active',mode==='shift');$('shiftBlock').textContent='◆ Blockade · '+game.players[0].shifts+'/1';$('loadout').disabled=busy;$('opponentLoadout').disabled=busy||!isMatch();$('sceneMode').disabled=busy;
+ $('confirm').disabled=busy||!(p||shiftValid)||game.finished;$('confirm').textContent=mode==='shift'?'Verschieben':'Ausspielen';$('cancel').disabled=busy||(!selected&&mode!=='shift'&&!inspect);$('autoDemo').disabled=busy||game.finished||Boolean(accountGame);$('resetDemo').disabled=!view||phase==='opening';$('newDuel').disabled=busy;$('openingBadge').textContent=(phase==='opening'?'Startduell':isMatch()?'Runde '+round+' / 2':'Training')+(portalDeck.source==='sandbox'?' · Testdeck':'');$('firstMove').textContent=phase==='opening'?'Startrecht wird ausgespielt':isMatch()?'Erster Zug: '+(game.starter===0?'Du':'Gegner'):'';$('shiftBlock').disabled=busy||!moveTargets(game).length||game.finished;$('shiftBlock').classList.toggle('active',mode==='shift');$('shiftBlock').textContent='◆ Blockade · '+game.players[0].shifts+'/1';$('loadout').disabled=busy;$('opponentLoadout').disabled=busy||!isMatch();$('sceneMode').disabled=busy||Boolean(accountGame);
  $('seriesStatus').hidden=!isMatch();const aggregate=roundResults.reduce((s,r)=>[s[0]+r[0],s[1]+r[1]],[0,0]);$('seriesStatus').textContent=`Doppelduell · Runde ${round}/2 · Gesamt ${aggregate[0]} : ${aggregate[1]}`;
  $('nextRound').hidden=!isMatch()||!game.finished;$('nextRound').textContent=round===1?'Rückspiel · '+(roundStarter(firstStarter??0,2)===0?'Du beginnst':'Gegner beginnt'):'Neues Doppelduell';$('resetDemo').textContent=isMatch()?'Neues Doppelduell':'Neu austeilen';
  const fields=eventFields(game);$('fieldLegend').replaceChildren(...fields.map(f=>{const el=document.createElement('span');el.style.setProperty('--field',({resonance:'#ba93ff',crossfire:'#ffbe62',silence:'#e1a6d5'})[f.type]);el.textContent=fieldText(f);return el;}));
@@ -86,8 +93,8 @@ function chooseField(cell){if(expireTurn()||busy||game.finished)return;if(mode==
  if(game.board[cell]){if(selectedCard()?.ability==='twist'&&target&&abilityAt(game,selectedCard(),target)==='twist'&&twistTargets(game,target).includes(cell)){twistCell=twistCell===cell?null:cell;}else if(!selected){inspect=cell;}else{target=null;twistCell=null;}render();return;}
  if(!selected)return;target=game.block===cell?null:cell;twistCell=null;inspect=null;render();}
 function cancelSelection(){if(busy)return;if(drag){const d=drag;drag=null;d.node.classList.remove('dragging');try{d.node.releasePointerCapture(d.id);}catch{}view.release(d.uid);}if(selected||mode==='shift')audio.play('cancel');if(selected){view.release(selected);view.setRotation(selected,0);}clear();render();}
-async function playAction(a,token){
- const side=game.turn,before=game,resolution=previewEffect(game,a),next=placeEffect(game,a),draw=drawnCard(before,next,side),played=before.players[side].hand.find(c=>c.uid===a.uid);
+async function playAction(a,token,serverNext=null){
+ const side=game.turn,before=game,resolution=previewEffect(game,a),next=serverNext??placeEffect(game,a),draw=drawnCard(before,next,side),played=before.players[side].hand.find(c=>c.uid===a.uid);
  phase=side===1?'opponent':'placing';notice=name(played)+' wird ausgespielt'+(played.ability?' · '+ABILITIES[played.ability].name:'')+'.';view.setRotation(a.uid,a.rotation);render();
  if(!await view.place(a.uid,a.cell)||token!==epoch)return false;audio.play('place');
  if(draw){view.hide(draw.uid);view.hold(draw.uid);}game=next;if(isMatch()&&game.finished)roundResults[round-1]=scores(game);clear();render();
@@ -98,36 +105,50 @@ async function playAction(a,token){
  if(next.last.flips.length){audio.play('capture',{side,count:next.last.flips.length});announce((side===0?'Deine Übernahme':'Gegner übernimmt')+' · '+next.last.flips.length);notice=next.last.flips.length+(next.last.flips.length===1?' Karte wechselt':' Karten wechseln')+' die Seite.';render();await Promise.all(next.last.flips.map(cell=>view.flip(next.board[cell].uid,side)));if(token!==epoch)return false;}
  if(draw){audio.play('draw');notice=(side===0?'Du ziehst':'Der Gegner zieht')+' eine Karte nach.';phase=side===1?'opponent':'drawing';render();if(!await view.draw(draw.uid,side)||token!==epoch)return false;}
  if(next.last.event!==null){view.eventChange();announce('Feldwechsel · neue Resonanz');audio.play('event');}
- if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked});}
+ if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked});if(accountGame){const awarded=accountSnapshot?.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+awarded+' Pixels · Runde '+round+' gutgeschrieben';}}
  return true;
 }
 async function cycle(a,showPreview=false,fromTimeout=false){if(!fromTimeout&&expireTurn())return;if(busy||game.finished||!a)return;const token=epoch;busy=true;
  try{
+  if(accountGame){phase='connection';notice='Spielzug wird gespeichert.';render();const data=await accountGame.move({kind:fromTimeout?'timeout':'place',action:a});acceptAccount(data);for(const step of data.steps){if(token!==epoch)return;if(!await playAction(step.action,token,step.after))return;}return;}
   if(showPreview){selected=a.uid;target=a.cell;rotation=a.rotation;abilityDirection=a.abilityDirection;twistCell=a.twistCell;mode='card';view.setRotation(selected,rotation);notice='Vorschau: '+name(selectedCard())+' auf das markierte Feld.';phase='preview';render();if(!await view.animate(850,()=>{})||token!==epoch)return;}
   if(!await playAction(a,token))return;
   if(!game.finished&&game.turn===1){phase='opponent';notice='Der Gegner wählt seinen Demo-Zug.';render();if(!await view.animate(240,()=>{})||token!==epoch)return;const response=demoAction(game);if(response&&!await playAction(response,token))return;}
- }catch(error){notice=error.message;console.error(error);}finally{if(token===epoch){busy=false;phase='idle';clear();render();if(!game.finished)audio.play('turn',{side:game.turn});}}
+ }catch(error){notice=error.message;console.error(error);if(accountGame)accountProblem(error);}finally{if(token===epoch){busy=accountFailed;phase='idle';clear();render();if(!game.finished)audio.play('turn',{side:game.turn});}}
 }
 async function confirm(){if(expireTurn()||busy)return;if(mode!=='shift'){if(plan())cycle(action());return;}if(!moveTargets(game).includes(target))return;
- const token=epoch,next=shiftBlock(game,target);busy=true;notice='Blockade wird verschoben.';audio.play('shift');render();const ok=await view.shift(target);if(ok&&token===epoch){game=next;busy=false;notice='';clear();render();}}
+ const token=epoch;let next;if(accountGame){busy=true;phase='connection';render();try{const data=await accountGame.move({kind:'shift',cell:target});acceptAccount(data);next=data.state.game;}catch(error){accountProblem(error);return;}}else next=shiftBlock(game,target);busy=true;notice='Blockade wird verschoben.';audio.play('shift');render();const ok=await view.shift(target);if(ok&&token===epoch){game=next;busy=false;notice='';clear();render();}}
 async function reset({preserveSeries=false}={}){
- if(!view)return;const token=++epoch;startDialog.cancel();ceremony.cancel();
+ if(!view||accountFailed)return;const token=++epoch;startDialog.cancel();ceremony.cancel();
  if(drag){drag.node.classList.remove('dragging');try{drag.node.releasePointerCapture(drag.id);}catch{}drag=null;}
  view.cancel();audio.cancel();clearTimeout(messageTimer);$('arenaMessage').classList.remove('active');
  if(!preserveSeries){round=1;roundResults=[];matchSeed=freshMatchSeed(matchSeed);firstStarter=null;}
  busy=true;clear();phase=isMatch()&&!preserveSeries?'opening':'dealing';notice=phase==='opening'?'Spielt das Startrecht aus.':'Neue Karten werden ausgeteilt.';
+ let accountData=null;
+ if(accountGame){
+  try{
+   if(accountResume){accountData=accountResume;accountResume=null;acceptAccount(accountData);phase='restoring';}
+   else if(preserveSeries){accountData=await accountGame.move({kind:'next'});acceptAccount(accountData);phase='dealing';}
+  }catch(error){accountProblem(error);return;}
+ }
  game=isMatch()?createTacticsMatch({loadouts:[$('loadout').value,$('opponentLoadout').value],seed:matchSeed,starter:roundStarter(firstStarter??0,round)}):createTableDemo($('loadout').value);
  if(isMatch())game=applyPortalDecks(game,portalDeck.cards,[$('loadout').value,$('opponentLoadout').value].map(id=>LOADOUTS[id]),{round});
+ if(accountData)game=accountData.state.game;
  game=withDemoFinishes(game);game.rotationLocked=true;await view.prepareGame(game);if(token!==epoch)return;view.initGame(game);
  if(phase==='opening'){
   for(const card of game.players[0].hand)view.hide(card.uid);render();
   $('startDuel').dataset.motion=$('motion').checked?'on':'off';const starter=await startDialog.open();if(token!==epoch||starter===null)return;
   firstStarter=starter;game.starter=game.turn=roundStarter(firstStarter,round);
+  if(accountGame){try{accountData=await accountGame.start({starter,deckId:portalDeck.deckId??null,loadouts:[$('loadout').value,$('opponentLoadout').value]});acceptAccount(accountData);game=accountData.steps[0]?.before??accountData.state.game;await view.prepareGame(game);view.initGame(game);}catch(error){accountProblem(error);return;}}
  }
+ if(accountData&&phase==='restoring'){game=accountData.state.game;view.initGame(game);busy=false;phase='idle';notice='Gespeichertes Duell wiederhergestellt.';if(game.finished){const award=accountData.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+award+' Pixels · Runde '+round+' bereits gutgeschrieben';}render();return;}
+ if(accountData){game=accountData.steps[0]?.before??accountData.state.game;view.initGame(game);}
+ $('gameRoundReward').hidden=true;
  phase='dealing';notice='Neue Karten werden ausgeteilt.';render();const ok=await view.deal();if(!ok||token!==epoch)return;
  phase='intro';notice='Die Runde beginnt.';render();
  if(!await ceremony.intro(token,{round,starter:game.turn,motion:$('motion').checked})||token!==epoch)return;
- if(game.turn===1){phase='opponent';notice=round===1?'Der Gegner hat den ersten Zug gewählt.':'Rückspiel: Der Gegner beginnt.';render();const response=demoAction(game);if(!await playAction(response,token)||token!==epoch)return;}
+ if(accountData){for(const step of accountData.steps){if(!await playAction(step.action,token,step.after)||token!==epoch)return;}game=accountData.state.game;}
+ else if(game.turn===1){phase='opponent';notice=round===1?'Der Gegner hat den ersten Zug gewählt.':'Rückspiel: Der Gegner beginnt.';render();const response=demoAction(game);if(!await playAction(response,token)||token!==epoch)return;}
  busy=false;phase='idle';notice='';render();
 }
 
@@ -164,7 +185,11 @@ $('motion').checked=!matchMedia('(prefers-reduced-motion:reduce)').matches;atmos
 $('arenaTheme').onchange=()=>{view?.setArena($('arenaTheme').value);audio.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];};
 async function setSound(value){soundWanted=Boolean(value);try{localStorage.setItem('duelverse.arena-sound.v42',soundWanted?'on':'off');}catch{}renderSound();const ok=await audio.setEnabled(soundWanted);if(ok)audio.play('select');}
 $('arenaSound').onclick=()=>setSound(!soundWanted);$('soundEnabled').onchange=()=>setSound($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('soundTest').onclick=async()=>{await setSound(true);if(audio.running){audio.test();}};
-try{view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [id,p,y] of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(id).style.left=p.x+'px';$(id).style.top=(p.labelY??y)+'px';}}});view.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';view.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];$('loadStatus').hidden=true;await reset();}catch(error){$('loadStatus').hidden=false;$('loadStatus').querySelector('strong').textContent='Der Spieltisch konnte nicht geladen werden.';$('loadStatus').querySelector('span').textContent='Bitte die Seite neu laden.';console.error(error);}
+try{
+ accountGame=await connectAccountGame({sandbox:portalDeck.source==='sandbox'});
+ if(accountGame){const chosen=accountGame.profile.decks.find(d=>d.id===portalDeck.deckId)??accountGame.profile.decks.find(d=>d.active)??accountGame.profile.decks[0];if(!chosen)throw Error('Bitte zuerst ein gültiges 15-Karten-Deck speichern.');portalDeck={...chosen,deckId:chosen.id,source:'account'};accountResume=accountGame.resumed&&accountGame.resumed.state.deck.id===chosen.id&&JSON.stringify(accountGame.resumed.state.deck.cards)===JSON.stringify(chosen.cards)?accountGame.resumed:null;accountWallet(accountGame.profile.wallet);$('gameWallet').hidden=false;$('gameAccountInfo').hidden=false;$('accountDeckName').textContent=chosen.name;$('sceneMode').value='match';$('autoDemo').hidden=true;window.addEventListener('focus',()=>void accountGame.refreshWallet().then(accountWallet).catch(()=>{}));}
+ else{$('guestRewardNote').hidden=false;}
+ view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [id,p,y] of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(id).style.left=p.x+'px';$(id).style.top=(p.labelY??y)+'px';}}});view.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';view.setArena($('arenaTheme').value);$('arenaName').textContent=({painted:'VOID-KLUFT · 2,5D',grove:'RESONANZHAIN',rift:'GLUTKLUFT',void:'VOID-SANKTUARIUM'})[$('arenaTheme').value];$('loadStatus').hidden=true;await reset();}catch(error){$('loadStatus').hidden=false;$('loadStatus').querySelector('strong').textContent='Der Spieltisch konnte nicht geladen werden.';$('loadStatus').querySelector('span').textContent='Bitte die Seite neu laden.';console.error(error);$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=error.message;}
 clockInterval=setInterval(()=>{renderClock();expireTurn();},250);
 document.addEventListener('visibilitychange',()=>{renderClock();expireTurn();});
 window.addEventListener('pagehide',e=>{if(!e.persisted){epoch++;startDialog.cancel();ceremony.dispose();document.removeEventListener('pointerdown',unlockSound,true);document.removeEventListener('keydown',unlockSound,true);clearInterval(clockInterval);clearTimeout(messageTimer);audio.dispose();view?.dispose();}});

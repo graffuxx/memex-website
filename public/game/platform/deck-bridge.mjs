@@ -4,7 +4,7 @@ export function readPlayDeck(storage){
  try{const saved=JSON.parse(storage.getItem(PLAY_DECK_KEY));if(saved?.version!==1)return null;
  // This is an unranked local alpha snapshot, never proof of ownership or a reward claim.
  const result=validateDeck(saved.cards,saved.inventory??{});
- return result.valid?{cards:saved.cards,name:typeof saved.name==='string'?saved.name.slice(0,40):'My deck',source:saved.source==='sandbox'?'sandbox':saved.source==='account'?'account':'guest'}:null;
+ return result.valid?{cards:saved.cards,deckId:typeof saved.deckId==='string'?saved.deckId:null,name:typeof saved.name==='string'?saved.name.slice(0,40):'My deck',source:saved.source==='sandbox'?'sandbox':saved.source==='account'?'account':'guest'}:null;
  }catch{return null;}
 }
 export function applyPortalDecks(game,cards,loadouts,{round=1}={}){

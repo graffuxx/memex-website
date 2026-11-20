@@ -1,0 +1,5 @@
+[functions.duelverse-game50]
+# The function verifies real user sessions with Supabase Auth before privileged access.
+# The platform's legacy-only HS256 check would reject current asymmetric user JWTs.
+verify_jwt = false
+entrypoint = "./functions/duelverse-game50/deploy.js"
