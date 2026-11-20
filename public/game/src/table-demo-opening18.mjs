@@ -39,7 +39,7 @@ document.addEventListener('pointerdown',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
 let accountGame=null,accountSnapshot=null,accountResume=null,accountFailed=false;
 function accountWallet(wallet){if(!wallet)return;for(const c of ['pixels','shards','echoes'])$('game'+c).textContent=wallet[c].toLocaleString('en-US');}
-function acceptAccount(data){accountSnapshot=data;portalDeck={...data.state.deck,deckId:data.state.deck.id,source:'account'};round=data.state.round;roundResults=data.state.results;firstStarter=data.state.starter;matchSeed=data.state.seed;accountWallet(data.wallet);if(data.award===5)void refreshPresence85();$('accountDeckName').textContent=data.state.deck.name;}
+function acceptAccount(data){accountSnapshot=data;portalDeck={...data.state.deck,deckId:data.state.deck.id,source:'account'};round=data.state.round;roundResults=data.state.results;firstStarter=data.state.starter;matchSeed=data.state.seed;accountWallet(data.wallet);if(data.award>0)void refreshPresence85();$('accountDeckName').textContent=data.state.deck.name;}
 function accountProblem(error){accountFailed=true;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=error.message;busy=true;phase='connection';render();}
 $('gameAccountRetry').onclick=()=>window.location.reload();
 $('gameAccountNew').onclick=()=>{if(accountGame?.pending)return;try{accountGame?.forget();}catch{}window.location.reload();};

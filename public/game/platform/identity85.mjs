@@ -1,3 +1,4 @@
+import {ACHIEVEMENT_TITLES88,earnedTitle88} from './achievements88.mjs';
 import {DEFINITIONS} from './catalog.mjs';
 export const WIN_XP85=100;
 const ids=['pepe','doge','roll-safe','harold','disaster-girl','grumpy-cat','smudge','confused','gigachad','this-is-fine','trollface','stonks','crying-cat','keyboard-cat','galaxy-brain','npc','copium','diamond-hands','hodl','rage-quit'];
@@ -11,24 +12,14 @@ export const FRAMES85=Object.freeze([
  {id:'cosmic-250',name:'Galaxy Brain',level:250,color:'#f4b1ef',accent:'#bd43bc',tier:5},
  {id:'legend-300',name:'Final Boss',level:300,color:'#ffe6ad',accent:'#ee765d',tier:6}
 ].map(f=>Object.freeze({...f,kind:'frame',minLevel:f.level,minWins:0})));
-export const TITLES85=Object.freeze([
- {id:'rookie',name:'Fresh Spawn',minWins:0,minLevel:1},
- {id:'first-flip',name:'First Blood, First Meme',minWins:1,minLevel:1},
- {id:'getting-gud',name:'Getting Gud',minWins:10,minLevel:1},
- {id:'no-touch-grass',name:'Grass? Never Heard of It',minWins:50,minLevel:1},
- {id:'certified-menace',name:'Certified Meme Menace',minWins:100,minLevel:1},
- {id:'pixel-veteran',name:'Pixel Veteran',minWins:0,minLevel:50},
- {id:'big-brain',name:'Too Much Brain, Too Little Sleep',minWins:0,minLevel:100},
- {id:'void-witness',name:'The Void Blinked First',minWins:0,minLevel:200},
- {id:'final-boss',name:'Your Final Boss',minWins:0,minLevel:300}
-].map(t=>Object.freeze({...t,kind:'title'})));
+export const TITLES85=Object.freeze([{id:'rookie',name:'Fresh Spawn',kind:'title',minWins:0,minLevel:1,requirements:Object.freeze({})},...ACHIEVEMENT_TITLES88]);
 export function xpAtLevel85(level){const n=Math.max(0,Math.floor(Number(level)||1)-1);return 250*n+5*n*(n-1);}
 export function progression85(value){const xp=Math.min(Number.MAX_SAFE_INTEGER,Math.max(0,Math.floor(Number(value)||0)));let n=Math.max(0,Math.floor((-245+Math.sqrt(60025+20*xp))/10));while(xpAtLevel85(n+2)<=xp)n++;while(xpAtLevel85(n+1)>xp)n--;const level=n+1,start=xpAtLevel85(level),next=xpAtLevel85(level+1);return {xp,level,current:xp-start,required:next-start,next,percent:(xp-start)/(next-start)*100};}
-export function unlocked85(item,identity){return Boolean(item&&(identity?.owned??[]).includes(item.kind+':'+item.id)||item&&item.minLevel<=progression85(identity?.xp).level&&item.minWins<=(identity?.wins??0));}
+export function unlocked85(item,identity){if(!item)return false;if(item.kind==='title'&&Object.keys(item.requirements??{}).length)return earnedTitle88(item,identity);return (identity?.owned??[]).includes(item.kind+':'+item.id)||item.minLevel<=progression85(identity?.xp).level&&item.minWins<=(identity?.wins??0);}
 export function frame85(identity){const eligible=FRAMES85.filter(f=>unlocked85(f,identity));return eligible.find(f=>f.id===identity?.frameId)??eligible.at(-1)??FRAMES85[0];}
 export function portrait85(id){return PORTRAITS85.find(p=>p.id===id)??PORTRAITS85[0];}
 export function title85(identity){return TITLES85.find(t=>t.id===identity?.titleId&&unlocked85(t,identity))?.name??'';}
-export const DEFAULT_IDENTITY85=Object.freeze({displayName:'Player',nameClaimed:false,avatarId:'pepe',frameId:'auto',titleId:'rookie',xp:0,wins:0,owned:[]});
+export const DEFAULT_IDENTITY85=Object.freeze({displayName:'Player',nameClaimed:false,avatarId:'pepe',frameId:'auto',titleId:'rookie',xp:0,wins:0,skills:Object.freeze({}),owned:[]});
 export function frameSvg85(frame,level){const f=frame??FRAMES85[0],tier=f.tier,c=f.color,a=f.accent;
  const gems=Array.from({length:tier>=3?8:4},(_,i)=>{const angle=i*Math.PI*2/(tier>=3?8:4),x=100+83*Math.sin(angle),y=100-83*Math.cos(angle);return `<path d="m${x} ${y-7} 5 7-5 7-5-7Z" fill="${c}" stroke="#182039" stroke-width="2"/>`;}).join('');
  const wings=tier?`<path d="M25 128 7 110 14 103 8 87 25 94M175 128l18-18-7-7 6-16-17 7" fill="${a}" stroke="${c}" stroke-width="2"/>`:'';

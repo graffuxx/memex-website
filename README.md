@@ -46,6 +46,12 @@ can equip automatically. XP and wins are never writable by clients. Apply
 `202611200008_player_identity85.sql` after the preceding migrations; applied live
 on 20 November 2026. Existing verified wins are included. Profile cosmetics in the
 shop are previews only; premium and limited editions are not on sale yet.
+Skill titles use verified round feats instead of early wins or player levels.
+Double Trouble requires 50 turns with at least two captures; triple/quad captures,
+comebacks, dominant wins and 2–0 double duels have separate milestones. Counters
+commit once per completed server round. Local training, deck tests and abandoned
+rounds never grant progress. Only retained complete older histories are recovered.
+Apply `202611200010_skill_titles88.sql` after the name migration.
 Booster purchases and openings are saved atomically; paid currency is separately
 verified by the payment service. Return rounds reshuffle both decks.
 

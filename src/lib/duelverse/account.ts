@@ -2,7 +2,7 @@ import {supabase} from '@/lib/supabaseClient';
 import {boosterHistoryFilter} from '../../../public/game/platform/player-area49.mjs';
 import {loadAllInventory} from '../../../public/game/platform/inventory54.mjs';
 export type SavedDeck={id:string;name:string;cards:string[];active:boolean};
-export type PlayerIdentity85={displayName:string;nameClaimed:boolean;avatarId:string;frameId:string;titleId:string;xp:number;wins:number;owned:string[]};
+export type PlayerIdentity85={displayName:string;nameClaimed:boolean;avatarId:string;frameId:string;titleId:string;xp:number;wins:number;skills?:Record<string,number>;owned:string[]};
 export type PlayerState={displayName:string;identity:PlayerIdentity85;inventory:Record<string,number>;decks:SavedDeck[];pixels:number;shards:number;echoes:number};
 export async function loadIdentity85():Promise<PlayerIdentity85>{const {data,error}=await supabase.rpc('dv_identity85');if(error||!data)throw Error('Your player profile could not be loaded. Please retry.');return data as PlayerIdentity85;}
 export async function saveIdentity85(identity:PlayerIdentity85):Promise<PlayerIdentity85>{const {data,error}=await supabase.rpc('dv_save_cosmetics87',{p_avatar:identity.avatarId,p_frame:identity.frameId,p_title:identity.titleId});if(error||!data)throw Error(error?.message==='This cosmetic is locked or unknown'?error.message:'Your profile could not be saved. Please retry.');return data as PlayerIdentity85;}

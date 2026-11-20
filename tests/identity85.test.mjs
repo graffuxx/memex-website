@@ -10,7 +10,7 @@ test('twenty real starter portraits and earned frame tiers resolve consistently;
  for(let level=1;level<=1000;level++){assert.equal(progression85(xpAtLevel85(level)).level,level);if(level>1)assert.equal(progression85(xpAtLevel85(level)-1).level,level-1);}
  const identity={xp:0,wins:0,frameId:'auto',owned:[]};assert.equal(frame85(identity).id,'starter');assert.equal(unlocked85(FRAMES85[1],identity),false);
  for(const f of FRAMES85){const state={...identity,xp:xpAtLevel85(f.level)};assert.equal(frame85(state).id,f.id);assert.ok(!frameSvg85(f,f.level).includes('NaN'));}
- assert.equal(frame85({...identity,frameId:'void-200'}).id,'starter');assert.equal(unlocked85(TITLES85[1],identity),false);assert.equal(unlocked85(TITLES85[1],{...identity,wins:1}),true);
+ assert.equal(frame85({...identity,frameId:'void-200'}).id,'starter');assert.equal(unlocked85(TITLES85[1],identity),false);assert.equal(unlocked85(TITLES85[1],{...identity,wins:1}),false);assert.equal(unlocked85(TITLES85[1],{...identity,skills:{double_flips:50}}),true);
 });
 test('the identity foundation preserves historic grants, catalog rules and account isolation before the permanent-name rollout',async()=>{
  const db=new PGlite();try{
@@ -31,7 +31,7 @@ test('the identity foundation preserves historic grants, catalog rules and accou
   const saved=(await save()).rows[0].data;assert.equal(saved.displayName,'Meme Captain');assert.equal(saved.avatarId,'doge');assert.equal(saved.titleId,'first-flip');assert.equal(saved.xp,100);
   await db.exec(`set request.jwt.claim.sub='${b}';`);assert.equal((await identity()).displayName,'Player');assert.equal((await identity()).xp,0);await assert.rejects(save(),/locked or unknown/);
   await db.exec('reset role');for(const [level,win] of [[1,0],[50,10],[100,100],[150,200],[200,300],[250,400],[300,500]]){await db.query('insert into public.dv_profile_progress85(user_id,xp,wins) values($1,$2,$3) on conflict(user_id) do update set xp=excluded.xp,wins=excluded.wins',[b,xpAtLevel85(level),win]);await db.exec(`set role authenticated;set request.jwt.claim.sub='${b}';`);assert.equal((await identity()).level,level);await save('Milestone','pepe',FRAMES85.find(f=>f.level===level).id,'rookie');await db.exec('reset role');}
-  const catalog=(await db.query('select kind,id,min_level,min_wins from public.dv_identity_catalog85')).rows;for(const c of [...PORTRAITS85,...FRAMES85,...TITLES85]){const row=catalog.find(r=>r.kind===c.kind&&r.id===c.id);assert.equal(row.min_level,c.minLevel);assert.equal(Number(row.min_wins),c.minWins);}
+  const catalog=(await db.query('select kind,id,min_level,min_wins from public.dv_identity_catalog85')).rows;for(const c of [...PORTRAITS85,...FRAMES85]){const row=catalog.find(r=>r.kind===c.kind&&r.id===c.id);assert.equal(row.min_level,c.minLevel);assert.equal(Number(row.min_wins),c.minWins);}
   await db.exec('set role anon');await assert.rejects(db.query('select public.dv_identity85()'),/permission denied/);await assert.rejects(save(),/permission denied/);
  }finally{await db.close();}
 });
