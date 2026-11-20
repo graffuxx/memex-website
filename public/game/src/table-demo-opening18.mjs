@@ -141,7 +141,7 @@ async function reset({preserveSeries=false}={}){
   firstStarter=starter;game.starter=game.turn=roundStarter(firstStarter,round);
   if(accountGame){try{accountData=await accountGame.start({starter,deckId:portalDeck.deckId??null,loadouts:[$('loadout').value,$('opponentLoadout').value]});acceptAccount(accountData);game=accountData.steps[0]?.before??accountData.state.game;await view.prepareGame(game);view.initGame(game);}catch(error){accountProblem(error);return;}}
  }
- if(accountData&&phase==='restoring'){game=accountData.state.game;view.initGame(game);busy=false;phase='idle';notice='Gespeichertes Duell wiederhergestellt.';if(game.finished){const award=accountData.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+award+' Pixels · Runde '+round+' bereits gutgeschrieben';}render();return;}
+ if(accountData&&phase==='restoring'){ceremony.restore(token);game=accountData.state.game;view.initGame(game);busy=false;phase='idle';notice='Gespeichertes Duell wiederhergestellt.';if(game.finished){const award=accountData.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+award+' Pixels · Runde '+round+' bereits gutgeschrieben';}render();return;}
  if(accountData){game=accountData.steps[0]?.before??accountData.state.game;view.initGame(game);}
  $('gameRoundReward').hidden=true;
  phase='dealing';notice='Neue Karten werden ausgeteilt.';render();const ok=await view.deal();if(!ok||token!==epoch)return;

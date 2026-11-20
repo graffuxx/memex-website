@@ -33,3 +33,8 @@ test('only the trusted game service can persist results; duplicate/concurrent fi
  await db.exec('reset role;set role service_role');await db.query('select public.dv_game_start50($1,$2,$3)',[a,id(102),JSON.stringify(start)]);await assert.rejects(commit(150,3,r2.state,0),/Duel unavailable/);
  }finally{await db.close();}
 });
+
+test('profile accepts an empty successful initialization response and loads only the authenticated account',async()=>{
+ const seen=[];const handle=createGameHandler({env:k=>({SUPABASE_URL:'https://example.test',SUPABASE_SERVICE_ROLE_KEY:'server-only',SUPABASE_ANON_KEY:'public'})[k],fetcher:async(url,opt)=>{seen.push(url);if(url.endsWith('/auth/v1/user'))return Response.json({id:a});if(url.endsWith('rpc/dv_initialize_account')){assert.equal(opt.headers.Authorization,'Bearer user-session');return new Response(null,{status:204});}if(url.includes('dv_decks?'))return Response.json([{id:id(9),name:'Saved',cards:starterDeck(),active:true}]);if(url.includes('dv_wallets?'))return Response.json([{earned:7,premium:0,echoes:0}]);throw Error('Unexpected request');}});
+ const res=await handle(new Request('https://test',{method:'POST',headers:{Authorization:'Bearer user-session'},body:JSON.stringify({op:'profile',userId:b})}));assert.equal(res.status,200);const data=await res.json();assert.equal(data.wallet.pixels,7);assert.equal(data.decks[0].name,'Saved');assert.ok(seen.filter(url=>url.includes('?')).every(url=>url.includes(a)));
+});

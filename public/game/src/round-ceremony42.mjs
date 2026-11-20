@@ -16,6 +16,7 @@ export function bindRoundCeremony(root,{audio,onContinue=()=>false,setTimer=setT
  find('skip').onclick=()=>hide();find('board').onclick=()=>hide();find('continue').onclick=()=>{if(onContinue())hide();};
  return {
   get visible(){return !root.hidden;},
+  restore(key){gate.begin(key);hide(false);},
   intro(key,{round,starter,motion=true}){if(!gate.begin(key))return Promise.resolve(false);hide(false);show(roundIntro({round,starter}),motion);return new Promise(resolve=>{resolveIntro=resolve;timer=setTimer(()=>hide(),round===2?3200:2800);});},
   finish(key,options){if(!gate.finish(key))return false;hide(false);show(roundOutcome(options),options.motion!==false);timer=setTimer(()=>hide(),3400);return true;},
   dismiss(){if(root.hidden)return false;hide();return true;},

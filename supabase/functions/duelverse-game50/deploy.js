@@ -1023,8 +1023,8 @@ function createGameHandler({ env, fetcher = fetch, randomSeed = () => crypto.get
   const url = env("SUPABASE_URL"), key = env("SUPABASE_SERVICE_ROLE_KEY");
   async function rest(path, options = {}) {
     const res = await fetcher(url + "/rest/v1/" + path, { ...options, headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json", ...options.headers } });
-    const data = await res.json();
-    if (!res.ok) throw Object.assign(Error(data.message || "Game storage unavailable."), { status: data.code === "40001" ? 409 : res.status >= 500 ? 503 : 400 });
+    const text = await res.text(), data = text ? JSON.parse(text) : null;
+    if (!res.ok) throw Object.assign(Error(data?.message || "Game storage unavailable."), { status: data?.code === "40001" ? 409 : res.status >= 500 ? 503 : 400 });
     return data;
   }
   return async function handle(req) {
