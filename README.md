@@ -14,8 +14,11 @@ Runtime patch baseline: Next.js 16.0.11, React/React DOM 19.1.10.
 - `/play`: solo training and deck tests with three AI levels and optional 90-second
   turns. `/play?mode=duel` retains server-verified AI duels with Pixel rewards.
   Both launch the full-window arena; training and deck tests award no currencies or XP.
-- `/account/private/profile`: saved player name, 20 free meme portraits, level frames
+- `/account/private/profile`: one-time player name, 20 free meme portraits, level frames
   and earned titles. Profile and arena share the circular portrait renderer.
+  Names require a verified account and explicit confirmation, ignore case and stay
+  reserved after account deletion. Appearance saves cannot change or claim a name.
+  Apply `202611200009_permanent_names87.sql` after the identity migration.
 - `/collection`: common/rare/epic/legendary/mythic variants, owned quantities.
 - `/decks`: exactly 15 owned copies, saved guest draft or authenticated cloud deck.
 - `/account`: existing Supabase email authentication without wallet dependency.

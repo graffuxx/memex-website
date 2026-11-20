@@ -28,7 +28,7 @@ export function unlocked85(item,identity){return Boolean(item&&(identity?.owned?
 export function frame85(identity){const eligible=FRAMES85.filter(f=>unlocked85(f,identity));return eligible.find(f=>f.id===identity?.frameId)??eligible.at(-1)??FRAMES85[0];}
 export function portrait85(id){return PORTRAITS85.find(p=>p.id===id)??PORTRAITS85[0];}
 export function title85(identity){return TITLES85.find(t=>t.id===identity?.titleId&&unlocked85(t,identity))?.name??'';}
-export const DEFAULT_IDENTITY85=Object.freeze({displayName:'Player',avatarId:'pepe',frameId:'auto',titleId:'rookie',xp:0,wins:0,owned:[]});
+export const DEFAULT_IDENTITY85=Object.freeze({displayName:'Player',nameClaimed:false,avatarId:'pepe',frameId:'auto',titleId:'rookie',xp:0,wins:0,owned:[]});
 export function frameSvg85(frame,level){const f=frame??FRAMES85[0],tier=f.tier,c=f.color,a=f.accent;
  const gems=Array.from({length:tier>=3?8:4},(_,i)=>{const angle=i*Math.PI*2/(tier>=3?8:4),x=100+83*Math.sin(angle),y=100-83*Math.cos(angle);return `<path d="m${x} ${y-7} 5 7-5 7-5-7Z" fill="${c}" stroke="#182039" stroke-width="2"/>`;}).join('');
  const wings=tier?`<path d="M25 128 7 110 14 103 8 87 25 94M175 128l18-18-7-7 6-16-17 7" fill="${a}" stroke="${c}" stroke-width="2"/>`:'';

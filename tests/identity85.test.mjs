@@ -12,11 +12,11 @@ test('twenty real starter portraits and earned frame tiers resolve consistently;
  for(const f of FRAMES85){const state={...identity,xp:xpAtLevel85(f.level)};assert.equal(frame85(state).id,f.id);assert.ok(!frameSvg85(f,f.level).includes('NaN'));}
  assert.equal(frame85({...identity,frameId:'void-200'}).id,'starter');assert.equal(unlocked85(TITLES85[1],identity),false);assert.equal(unlocked85(TITLES85[1],{...identity,wins:1}),true);
 });
-test('profile saves are account-isolated; catalog, ownership, names, XP, unlocks and historic grants are enforced in the database',async()=>{
+test('the identity foundation preserves historic grants, catalog rules and account isolation before the permanent-name rollout',async()=>{
  const db=new PGlite();try{
   await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id) values('${a}'),('${b}');`);
   const files=(await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort();
-  for(const f of files.filter(f=>!f.includes('identity85')))await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
+  for(const f of files.filter(f=>f<'202611200008_player_identity85.sql'))await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
   for(const u of [a,b])await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();`);
   await db.query("insert into public.dv_reward_ledger(user_id,event_key,currency,amount) values($1,$2,'earned',5)",[a,`game50:${uuid(1)}:1`]);
   await db.exec(await fs.readFile(new URL('../supabase/migrations/202611200008_player_identity85.sql',import.meta.url),'utf8'));
