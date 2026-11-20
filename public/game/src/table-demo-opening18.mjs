@@ -9,7 +9,7 @@ import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=rounds-42';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=tie-break-63';
+import {createTableView} from './table-demo-view-hand17.mjs?v=hand-hover-64';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs?v=tie-break-63';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=tie-break-63';
@@ -89,7 +89,7 @@ function render(){
  view?.update(game,{selected,target,hover,busy,plan:p,mode,twistCell,inspect,abilityDirection});
 }
 function clear(){selected=null;target=null;rotation=0;abilityDirection=0;twistCell=null;hover=null;inspect=null;mode='card';}
-function choose(uid){if(expireTurn()||busy||game.finished)return;if(selected!==uid){clear();selected=uid;view.setRotation(uid,0);audio.play('select');}render();}
+function choose(uid){if(expireTurn()||busy||game.finished)return;if(selected!==uid){const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;view.setRotation(uid,0);audio.play('select');}render();}
 function chooseField(cell){if(expireTurn()||busy||game.finished)return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;render();return;}
  if(game.board[cell]){if(selectedCard()?.ability==='twist'&&target&&abilityAt(game,selectedCard(),target)==='twist'&&twistTargets(game,target).includes(cell)){twistCell=twistCell===cell?null:cell;}else if(!selected){inspect=cell;}else{target=null;twistCell=null;}render();return;}
  if(!selected)return;target=game.block===cell?null:cell;twistCell=null;inspect=null;render();}
@@ -154,6 +154,8 @@ async function reset({preserveSeries=false}={}){
 }
 
 function pointerCell(e){return document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-cell]')?.getAttribute('data-cell')??null;}
+svg.addEventListener('focusin',e=>{const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(!busy&&uid!==hover){hover=uid;render();}});
+svg.addEventListener('focusout',e=>{if(!drag&&hover&&e.target.closest('[data-hand]')){hover=null;render();}});
 svg.addEventListener('pointerdown',e=>{const node=e.target.closest('[data-hand]');if(!node||busy||game.finished||e.button!==0)return;drag={uid:node.dataset.hand,node,id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};node.setPointerCapture(e.pointerId);});
 svg.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){choose(drag.uid);if(!drag||busy)return;drag.moved=true;drag.node.classList.add('dragging');}
  if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const c=pointerCell(e);target=c&&!game.board[c]&&c!==game.block?c:null;twistCell=null;render();}return;}
