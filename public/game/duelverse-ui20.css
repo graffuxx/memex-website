@@ -80,3 +80,10 @@ body.game-table{background:#030819;--dv-panel:#080e24;--dv-line:#719de04a}
 .game-table .deck-label small,.game-table .enemy-caption{color:#a7b7d3;text-shadow:0 1px 4px #010615}
 .game-table .game-sidebar #controls .play-controls>.arena-zoom{background:#050c2088}
 .game-table .hand-caption{background:linear-gradient(120deg,#061024db,#08112777);border:1px solid #c5a36066;border-radius:18px;padding:8px 12px}
+
+/* Illustrated arenas use the same full stage and touch-friendly selector. */
+.game-table #stage[data-arena=city],.game-table #stage[data-arena=lava],.game-table #stage[data-arena=ruins],.game-table #stage[data-arena=cosmos]{border-color:transparent!important;box-shadow:none!important;background:#070712}
+.game-table .arena-picker{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;padding:10px 13px;border:1px solid #bd83f13b;border-radius:13px;background:#110c22ed;flex:none}
+.game-table .arena-picker label{font-size:13px;color:#d4bfe8}.game-table .arena-picker select{width:100%;min-height:44px;border:1px solid #b789e84d;border-radius:9px;background:#120a24;color:#f5eaff;padding:7px 30px 7px 10px;font:14px Barlow,system-ui,sans-serif}.game-table .arena-picker span{grid-column:1/-1;font-size:12px;color:#c9bad8}.game-table .arena-picker span:empty{display:none}
+
+@media(min-width:760px) and (max-width:999px){.game-table main.game-layout{height:calc(100dvh - 82px);grid-template-columns:minmax(0,1fr) 220px;gap:8px}.game-table .game-layout>#stage[data-arena]{height:100%;min-height:0}.game-table .game-sidebar>.scorebar{min-height:0}.game-table .game-sidebar #controls .play-controls button{min-height:42px}.game-table .game-sidebar .table-settings summary{min-height:42px;display:flex;align-items:center}}
