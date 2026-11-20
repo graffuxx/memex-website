@@ -5,8 +5,8 @@ const paths={
  scissors:'M22 34 15 13a5 5 0 0 1 9-3l9 20 10-20a5 5 0 0 1 9 4L41 38a5 5 0 0 1 10 2v5c0 10-8 15-17 15h-7c-7 0-12-5-14-12l-2-6a5 5 0 0 1 9-4l5 8 M26 36l13 8 M37 48h9'
 };
 function glyph(key){return key?`<svg viewBox="0 0 64 64" aria-hidden="true"><path d="${paths[key]}"/></svg>`:'<span aria-hidden="true">?</span>';}
-export function bindStartDuelDialog(dialog,{onOpen=()=>{},onClose=()=>{}}={}){
- const $=id=>dialog.querySelector('#'+id);let duel=null,resolve=null,previousFocus=null;
+export function bindStartDuelDialog(dialog,{onOpen=()=>{},onClose=()=>{},onBeforeClose=()=>{},onCancel=()=>{},createDuel=()=>createStartDuel()}={}){
+ const $=id=>dialog.querySelector('#'+id);let duel=null,resolve=null,previousFocus=null,finishing=false,generation=0;
  function paint(){
   const s=duel.snapshot(),choosing=s.phase==='choose';dialog.dataset.phase=s.phase;
   $('startAttempt').textContent='VERSUCH '+s.attempt;
@@ -17,14 +17,23 @@ export function bindStartDuelDialog(dialog,{onOpen=()=>{},onClose=()=>{}}={}){
   $('startTitle').textContent=choosing?'Wer macht den ersten Zug?':s.phase==='tie'?'Unentschieden. Noch einmal.':s.winner===0?'Du gewinnst das Startrecht.':'Der Gegner gewinnt das Startrecht.';
   $('startStatus').textContent=choosing?'Stein schlägt Schere. Schere schlägt Papier. Papier schlägt Stein.':s.phase==='tie'?'Beide haben dasselbe Zeichen gewählt. Der Gegner legt erneut verdeckt vor.':s.winner===0?'Wähle, ob du selbst oder der Gegner die erste Karte legt.':'Der Demo-Gegner entscheidet sich für den ersten Zug.';
  }
- function finish(){if(!duel||duel.snapshot().phase!=='ready')return;const starter=duel.finish(),done=resolve;resolve=null;dialog.close();onClose();previousFocus?.focus?.();done?.(starter);}
+ async function finish(){
+  if(finishing||!duel||duel.snapshot().phase!=='ready')return;
+  finishing=true;const starter=duel.finish(),done=resolve,run=generation;let transition;
+  // Measure the visible portraits before the native dialog leaves the top layer.
+  try{transition=onBeforeClose();}catch{}
+  dialog.close();onClose();
+  try{await transition;}catch{}
+  if(run!==generation||resolve!==done)return;
+  resolve=null;finishing=false;previousFocus?.focus?.();done?.(starter);
+ }
  for(const button of dialog.querySelectorAll('[data-gesture]')){button.querySelector('.gesture-art').innerHTML=glyph(button.dataset.gesture);button.onclick=()=>{if(!duel||duel.snapshot().phase!=='choose')return;duel.play(button.dataset.gesture);paint();const phase=duel.snapshot().phase,target=phase==='tie'?$('startRetry'):phase==='choose-starter'?dialog.querySelector('[data-starter]'):$('startContinue');target?.focus();};}
  $('startRetry').onclick=()=>{duel.retry();paint();dialog.querySelector('[data-gesture]')?.focus();};
  for(const button of dialog.querySelectorAll('[data-starter]'))button.onclick=()=>{if(duel?.snapshot().phase!=='choose-starter')return;duel.chooseStarter(Number(button.dataset.starter));finish();};
  $('startContinue').onclick=finish;
  dialog.addEventListener('cancel',event=>event.preventDefault());
  return {
-  open(){this.cancel();duel=createStartDuel();previousFocus=document.activeElement;paint();onOpen();dialog.showModal();dialog.querySelector('[data-gesture]')?.focus();return new Promise(r=>{resolve=r;});},
-  cancel(){if(resolve){const done=resolve;resolve=null;if(dialog.open)dialog.close();onClose();done(null);}}
+  open(){this.cancel();duel=createDuel();previousFocus=document.activeElement;paint();onOpen();dialog.showModal();dialog.querySelector('[data-gesture]')?.focus();return new Promise(r=>{resolve=r;});},
+  cancel(){generation++;finishing=false;onCancel();if(resolve){const done=resolve;resolve=null;if(dialog.open)dialog.close();onClose();done(null);}}
  };
 }

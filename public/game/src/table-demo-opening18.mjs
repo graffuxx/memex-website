@@ -1,3 +1,4 @@
+import {bindPortraitIntro86} from './portrait-intro86.mjs';
 import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs';
 import {soloAction84} from './solo-ai84.mjs';
@@ -5,7 +6,7 @@ import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {connectAccountGame} from '../platform/account-client50.mjs?v=identity-85';
 import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=solo-84';
-import {bindStartDuelDialog} from './start-duel-dialog18.mjs';
+import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=portrait-intro-86';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
@@ -25,7 +26,8 @@ const $=id=>document.getElementById(id),stage=$('stage'),svg=$('interaction');
 const refreshPresence85=mountPlayerPresence85();void refreshPresence85();
 if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[href="/decks"]'))link.href='/decks?test=1';
 let game=createTableDemo(),view,selected=null,target=null,rotation=0,abilityDirection=0,twistCell=null,hover=null,inspect=null,mode='card',busy=true,phase='loading',epoch=0,drag=null,notice='',round=1,roundResults=[],matchSeed=null,firstStarter=null;
-const startDialog=bindStartDuelDialog($('startDuel'));
+const portraitIntro86=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
+const startDialog=bindStartDuelDialog($('startDuel'),{onOpen:()=>portraitIntro86.open(),onBeforeClose:()=>portraitIntro86.fly(),onCancel:()=>portraitIntro86.cancel()});
 const atmosphere=createVoidAtmosphere();
 let soundWanted=true;try{soundWanted=localStorage.getItem('duelverse.arena-sound.v42')!=='off';}catch{}
 function renderSound(){const button=$('arenaSound');button.textContent=soundWanted?'♪ Ton an':'♪ Ton aus';button.setAttribute('aria-pressed',String(soundWanted));button.setAttribute('aria-label',soundWanted?'Spielton ausschalten':'Spielton einschalten');$('soundEnabled').checked=soundWanted;}
