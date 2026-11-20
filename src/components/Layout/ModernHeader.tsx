@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ModernHeader.module.css';
 import MobileMenu from './MobileMenu';
+import BackButton from './BackButton';
 import {usePathname} from 'next/navigation';
 import {NAV_LINKS,activeNav} from './navigation';
 import {supabase} from '@/lib/supabaseClient';
@@ -22,11 +23,13 @@ export default function ModernHeader() {
   return (
     <header className={styles.header}>
       <MobileMenu />
+      {path!=='/'&&<BackButton className={styles.mobileBack} fallback={signedIn&&path!=='/account/private'?'/account/private':'/'}/>}
       <a className={styles.mobileLocation} href={current?.[0]??'/'}><img src="/background-card.png" alt=""/>{current?.[1]??'MEMEX'}</a>
 
       <div className={`${styles.bar} ${scrolled ? styles.barScrolled : ''}`}>
         <div className={styles.container}>
           <div className={styles.leftGroup}>
+            {path!=='/'&&<BackButton fallback={signedIn&&path!=='/account/private'?'/account/private':'/'}/> }
             <a href="/" className={styles.logoLink}>
               <img
                 src="/background-card.png"

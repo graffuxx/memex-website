@@ -1,0 +1,2 @@
+.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 12px;border:1px solid #b998df66;border-radius:12px;background:linear-gradient(135deg,#301c48db,#130d24ef);color:#f0defd;font:500 13px/1.2 Arial,sans-serif;white-space:nowrap;cursor:pointer;flex-shrink:0;transition:border-color .15s,background .15s}
+.button svg{width:18px;height:18px;flex-shrink:0}.button:hover{border-color:#e0b4ffa6;background:#43265ae8}.button:focus-visible{outline:2px solid #f2ceff;outline-offset:3px}

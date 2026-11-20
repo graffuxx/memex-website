@@ -378,3 +378,6 @@
 .mobileLocation{display:none}
 .navItem:focus-visible,.loginButton:focus-visible{outline:2px solid #e6bcff;outline-offset:3px}
 @media(max-width:768px){.mobileLocation{position:fixed;left:16px;top:12px;display:flex;align-items:center;gap:10px;color:#ffdc92;font:600 14px Arial,sans-serif;letter-spacing:.1em;z-index:3}.mobileLocation img{width:36px;height:36px;border-radius:50%}}
+
+.header .mobileBack{display:none}
+@media(max-width:768px){.header .mobileBack{position:fixed;display:inline-flex;right:72px;top:12px;z-index:4;min-height:38px}.mobileBack span{display:none}.mobileBack{width:40px;padding:8px}.mobileLocation{max-width:calc(100% - 146px);overflow:hidden;white-space:nowrap}.mobileLocation img{flex-shrink:0}}
