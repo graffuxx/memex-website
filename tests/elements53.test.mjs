@@ -44,8 +44,9 @@ test('additive database upgrade preserves accounts and matches all 2125 variants
   await db.exec(`set role authenticated;select public.dv_trade_card('53535353-0000-4000-8000-000000000001','craft','capybara-chill:epic:air');`);
   await assert.rejects(db.query(`select public.dv_trade_card('53535353-0000-4000-8000-000000000002','craft','capybara-chill:mythic:air')`),/booster exclusive/);
   await db.exec('reset role');
-  const target='nyan-cat:rare:water';await db.exec(`insert into public.dv_card_acquired36(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants where id<>'${target}' on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);
-  const id=(await db.query(`select public.dv_buy_alpha_booster('53535353-0000-4000-8000-000000000003','pixels') id`)).rows[0].id;const pack=(await db.query('select cards from public.dv_booster_purchases36 where id=$1',[id])).rows[0].cards;assert.ok(pack.includes(target));assert.equal(pack.length,5);
+  // Leave a Water variant available in every finish: the rarity roll itself is intentionally random.
+  const targets=VARIANTS.filter(v=>v.definitionId==='nyan-cat'&&v.element==='water').map(v=>v.id);await db.exec(`insert into public.dv_card_acquired36(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants where id<>all(array[${targets.map(id=>"'"+id+"'").join(',')}]) on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);
+  const id=(await db.query(`select public.dv_buy_alpha_booster('53535353-0000-4000-8000-000000000003','pixels') id`)).rows[0].id;const pack=(await db.query('select cards from public.dv_booster_purchases36 where id=$1',[id])).rows[0].cards;assert.ok(pack.some(id=>targets.includes(id)));assert.equal(pack.length,5);
   await db.exec('reset role');await db.exec(`insert into public.dv_inventory(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);
   const illegal=starterDeck().slice(0,11).concat(['doge:rare:water','doge:epic:air','doge:rare:earth','doge:rare:storm']);await assert.rejects(db.query('select public.dv_save_deck(null,$1,$2)',['Four elements same meme',illegal]),/Maximum 3/);
  }finally{await db.close();}

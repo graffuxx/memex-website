@@ -10,7 +10,7 @@ import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=rounds-42';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=illustrated-arenas-67';
+import {createTableView} from './table-demo-view-hand17.mjs?v=voidforge-77';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs?v=tie-break-63';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=tie-break-63';
@@ -186,10 +186,10 @@ for(const selector of ['loadout','opponentLoadout'])$(selector).replaceChildren(
 $('opponentLoadout').value='hype-twist';
 $('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=['→','↘','↙','←','↖','↗'][i]+' '+n;return o;}));
 $('motion').checked=!matchMedia('(prefers-reduced-motion:reduce)').matches;atmosphere.setMotion($('motion').checked);$('motion').onchange=()=>{atmosphere.setMotion($('motion').checked);view?.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';};
-let arenaRequest=0,currentArena='lava';
-function arenaLabel(id){return ILLUSTRATED_ARENAS[id]?.name??({painted:'Void-Kluft',grove:'Resonanzhain',rift:'Glutkluft',void:'Void-Sanktuarium'})[id];}
-try{const saved=localStorage.getItem('duelverse.arena.v67');if(Object.hasOwn(ILLUSTRATED_ARENAS,saved)||saved==='painted')$('arenaTheme').value=currentArena=saved;}catch{}
-$('arenaTheme').onchange=async()=>{const id=$('arenaTheme').value,request=++arenaRequest;$('arenaTheme').setAttribute('aria-busy','true');$('arenaLoadState').textContent='Arena lädt …';try{const ready=await view?.setArena(id);if(request!==arenaRequest||!ready)return;currentArena=id;audio.setArena(id);$('arenaName').textContent=arenaLabel(id);try{localStorage.setItem('duelverse.arena.v67',id);}catch{}}catch{if(request===arenaRequest){$('arenaTheme').value=currentArena;announce('Arena konnte nicht geladen werden. Bitte erneut versuchen.');}}finally{if(request===arenaRequest){$('arenaTheme').removeAttribute('aria-busy');$('arenaLoadState').textContent='';}}};
+let arenaRequest=0,currentArena='voidforge';
+function arenaLabel(id){return ILLUSTRATED_ARENAS[id]?.name??({voidforge:'Voidforge',painted:'Void-Kluft',grove:'Resonanzhain',rift:'Glutkluft',void:'Void-Sanktuarium'})[id];}
+try{const saved=localStorage.getItem('duelverse.arena.v77');if(saved==='voidforge'||Object.hasOwn(ILLUSTRATED_ARENAS,saved)||saved==='painted')$('arenaTheme').value=currentArena=saved;}catch{}
+$('arenaTheme').onchange=async()=>{const id=$('arenaTheme').value,request=++arenaRequest;$('arenaTheme').setAttribute('aria-busy','true');$('arenaLoadState').textContent='Arena lädt …';try{const ready=await view?.setArena(id);if(request!==arenaRequest||!ready)return;currentArena=id;audio.setArena(id);$('arenaName').textContent=arenaLabel(id);try{localStorage.setItem('duelverse.arena.v77',id);}catch{}}catch{if(request===arenaRequest){$('arenaTheme').value=currentArena;announce('Arena konnte nicht geladen werden. Bitte erneut versuchen.');}}finally{if(request===arenaRequest){$('arenaTheme').removeAttribute('aria-busy');$('arenaLoadState').textContent='';}}};
 async function setSound(value){soundWanted=Boolean(value);try{localStorage.setItem('duelverse.arena-sound.v42',soundWanted?'on':'off');}catch{}renderSound();const ok=await audio.setEnabled(soundWanted);if(ok)audio.play('select');}
 $('arenaSound').onclick=()=>setSound(!soundWanted);$('soundEnabled').onchange=()=>setSound($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('soundTest').onclick=async()=>{await setSound(true);if(audio.running){audio.test();}};
 try{
