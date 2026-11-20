@@ -3,8 +3,8 @@ import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import GameCardFace from './GameCardFace';
 import {DEFINITIONS,RARITIES,getVariant} from '../../../public/game/platform/catalog.mjs';
 import {UNIVERSAL_CARD_BACK} from '../../../public/game/platform/edition36.mjs';
-type Props={id:string;slot:number;visible:boolean;saving:boolean;disabled:boolean;isNew:boolean;onReveal:()=>void;automatic?:boolean};
-export default function BoosterRevealCard({id,slot,visible,saving,disabled,isNew,onReveal,automatic=false}:Props){
+type Props={id:string;slot:number;visible:boolean;saving:boolean;disabled:boolean;isNew:boolean;onReveal:()=>void};
+export default function BoosterRevealCard({id,slot,visible,saving,disabled,isNew,onReveal}:Props){
  const variant=getVariant(id)!,card=DEFINITIONS.find(c=>c.id===variant.definitionId)!,rarity=RARITIES.find(r=>r.id===variant.rarity)!;
  const previous=useRef(visible),[celebrate,setCelebrate]=useState(false);
  const special=['epic','legendary','mythic'].includes(variant.rarity);
@@ -20,6 +20,6 @@ export default function BoosterRevealCard({id,slot,visible,saving,disabled,isNew
     <span className={'alpha-card-flipper'+(visible?' is-face-up':'')}><span className="alpha-card-back" aria-hidden={visible}><img src={UNIVERSAL_CARD_BACK} alt="Face-down card · universal X back"/></span><span className="alpha-card-front" aria-hidden={!visible}>{visible&&<GameCardFace card={card} variant={variant} color={rarity.color}/>}<i className="alpha-reveal-gleam" aria-hidden="true"/></span></span>
    </button>
   </div>
-  <div className="alpha-reveal-meta">{visible?<><strong>{card.name}</strong><span style={{color:rarity.color}}>{rarity.name} · {variant.element}</span>{isNew&&<small>New variant</small>}</>:<span>{saving?'Saving pack…':automatic?'Revealing automatically…':'Click to reveal'}</span>}</div>
+  <div className="alpha-reveal-meta">{visible?<><strong>{card.name}</strong><span style={{color:rarity.color}}>{rarity.name} · {variant.element}</span>{isNew&&<small>New variant</small>}</>:<span>{saving?'Preparing pack…':'Click to reveal'}</span>}</div>
  </article>;
 }

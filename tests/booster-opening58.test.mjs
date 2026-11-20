@@ -1,17 +1,20 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
-import {ALL_PACK_SLOTS,unopenedPacks,playPackOpening} from '../public/game/platform/booster-opening58.mjs';
+import {ALL_PACK_SLOTS,unopenedPacks,prepareManualOpening,flipPackSlot} from '../public/game/platform/booster-opening58.mjs';
 import {previewAlphaPack} from '../public/game/platform/alpha-booster36.mjs';
 const id=n=>'58585858-5858-4585-8585-'+String(n).padStart(12,'0');
-test('automatic opening saves all five before showing cards, resumes a legacy partial and preserves rare reveal pacing',async()=>{
- const log=[],cards=previewAlphaPack();await playPackOpening({cards,shown:[1],save:async()=>{log.push('save');},committed:()=>log.push('committed'),display:(slots,slot)=>log.push({slots,slot}),complete:()=>log.push('complete'),active:()=>true,wait:async ms=>{log.push(ms);}});
- assert.deepEqual(log.slice(0,2),['save','committed']);assert.deepEqual(log.filter(x=>typeof x==='object').map(x=>x.slot),[0,2,3,4]);assert.deepEqual(log.filter(x=>typeof x==='object').at(-1).slots,[1,0,2,3,4]);assert.ok(log.indexOf(2600)>log.indexOf(1600));assert.equal(log.at(-1),'complete');
+test('opening saves the whole pack but only reveals the cards the player clicks',async()=>{
+ let release;const pending=new Promise(resolve=>{release=resolve;});
+ const task=prepareManualOpening({cards:previewAlphaPack(),shown:[],save:()=>pending,active:()=>true});release();
+ const prepared=await task;assert.deepEqual(prepared,{savedSlots:[0,1,2,3,4],visibleSlots:[]});
+ let visible=flipPackSlot(prepared.visibleSlots,3);assert.deepEqual(visible,[3]);assert.deepEqual(prepared.visibleSlots,[]);assert.deepEqual(flipPackSlot(visible,3),[3]);
+ for(const slot of [1,4,0,2])visible=flipPackSlot(visible,slot);assert.equal(visible.length,5);assert.equal(new Set(visible).size,5);
 });
-test('failed or cancelled openings show no unsaved cards; reduced motion completes without timers',async()=>{
- const calls=[],base={cards:previewAlphaPack(),save:async()=>{},committed:()=>calls.push('committed'),display:slots=>calls.push(slots),complete:()=>calls.push('complete'),active:()=>true,wait:async()=>{}};
- await assert.rejects(playPackOpening({...base,save:async()=>{throw Error('offline');}}),/offline/);assert.deepEqual(calls,[]);
- assert.equal(await playPackOpening({...base,active:()=>false}),false);assert.deepEqual(calls,[]);
- let active=true;assert.equal(await playPackOpening({...base,active:()=>active,wait:async()=>{active=false;}}),false);assert.equal(calls.filter(Array.isArray).length,1);assert.equal(calls.includes('complete'),false);
- calls.length=0;await playPackOpening({...base,reducedMotion:true,wait:async()=>{throw Error('must not animate');}});assert.deepEqual(calls,['committed',[...ALL_PACK_SLOTS],'complete']);
+test('leaving/reloading has a complete saved pack; failed saves and account switches never enable unsaved reveals',async()=>{
+ const base={cards:previewAlphaPack(),shown:[2],save:async()=>{},active:()=>true};
+ const prepared=await prepareManualOpening(base);assert.deepEqual(prepared.visibleSlots,[2]);assert.deepEqual(prepared.savedSlots,[0,1,2,3,4]);
+ await assert.rejects(prepareManualOpening({...base,save:async()=>{throw Error('offline');}}),/offline/);
+ assert.equal(await prepareManualOpening({...base,active:()=>false}),null);
+ for(const slot of [-1,5,1.5,null])assert.throws(()=>flipPackSlot([],slot),/Invalid card slot/);
 });
 test('next pack queue omits finished/current packs, resumes partials first and keeps older packs beyond recent history',()=>{
  const rows=Array.from({length:125},(_,i)=>({id:String(i).padStart(3,'0'),created_at:'2026-11-20T12:00:00Z',revealed_slots:[]}));rows[0].revealed_slots=[0,1,2,3,4];rows[124].revealed_slots=[2];

@@ -1,4 +1,3 @@
-import {getVariant} from './catalog.mjs';
 import {revealedSlots,validAlphaPack} from './alpha-booster36.mjs';
 export const ALL_PACK_SLOTS=Object.freeze([0,1,2,3,4]);
 /** @param {Array<{id:string,revealed_slots:number[],created_at:string}>} packs @param {string|null} except */
@@ -8,16 +7,16 @@ export function unopenedPacks(packs,except=null){
   return Number(partialB)-Number(partialA)||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id);
  });
 }
-/** @param {string} rarity */
-export function revealPause(rarity){return ({common:420,rare:550,epic:1100,legendary:1600,mythic:2600})[rarity]??420;}
-/** Save first: interrupted animations never leave partly opened packs or award cards again.
- * @param {{cards:string[],shown?:number[],save:()=>Promise<void>,committed:()=>void,display:(slots:number[],slot:number|null)=>void,complete:()=>void,active:()=>boolean,wait:(ms:number)=>Promise<void>,reducedMotion?:boolean}} opts
+/** Save all contents before enabling manual flips, so leaving cannot strand a half-open pack.
+ * @param {{cards:string[],shown?:number[],save:()=>Promise<void>,active:()=>boolean}} opts
  */
-export async function playPackOpening({cards,shown=[],save,committed,display,complete,active,wait,reducedMotion=false}){
+export async function prepareManualOpening({cards,shown=[],save,active}){
  if(!validAlphaPack(cards))throw Error('Invalid Alpha Booster.');
- await save();if(!active())return false;committed();
- let visible=revealedSlots(shown);
- if(reducedMotion){display([...ALL_PACK_SLOTS],null);complete();return true;}
- for(const slot of ALL_PACK_SLOTS){if(visible.includes(slot))continue;if(!active())return false;visible=[...visible,slot];display(visible,slot);await wait(revealPause(getVariant(cards[slot]).rarity));}
- if(!active())return false;complete();return true;
+ await save();if(!active())return null;
+ return {savedSlots:[...ALL_PACK_SLOTS],visibleSlots:revealedSlots(shown)};
+}
+/** A click reveals exactly one slot; repeated clicks cannot replay a reveal. */
+export function flipPackSlot(shown,slot){
+ if(!Number.isInteger(slot)||slot<0||slot>4)throw Error('Invalid card slot.');
+ const visible=revealedSlots(shown);return visible.includes(slot)?visible:[...visible,slot];
 }
