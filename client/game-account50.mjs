@@ -1,6 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 const URL='https://vnwvwwukqlbwzqroaqeu.supabase.co',PUBLIC_KEY='sb_publishable_Nz664DzwUuBcOpLzCXgB_Q_4SzenMlV';
 const auth=createClient(URL,PUBLIC_KEY),ENDPOINT=URL+'/functions/v1/duelverse-game50';
+export async function readPlayerIdentity85(){const {data:{session},error}=await auth.auth.getSession();if(error)throw Error('Player profile unavailable.');if(!session)return null;const result=await auth.rpc('dv_identity85');if(result.error)throw Error('Player profile unavailable.');return result.data;}
 export async function connectAccountGame({sandbox=false}={}){
  if(sandbox)return null;
  const {data:{session},error}=await auth.auth.getSession();if(error)throw Error('Deine Anmeldung konnte nicht geprüft werden. Bitte neu anmelden.');if(!session)return null;

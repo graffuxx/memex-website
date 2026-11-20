@@ -11,9 +11,11 @@ and legacy capture are disabled; purchase history is retained.
 
 Runtime patch baseline: Next.js 16.0.11, React/React DOM 19.1.10.
 
-- `/play`: prepares the active cloud deck or saved guest draft, then navigates
-  directly to the full-window arena. No iframe, outer page chrome or nested page
-  scrolling. The arena header links back to the website and deck builder.
+- `/play`: solo training and deck tests with three AI levels and optional 90-second
+  turns. `/play?mode=duel` retains server-verified AI duels with Pixel rewards.
+  Both launch the full-window arena; training and deck tests award no currencies or XP.
+- `/account/private/profile`: saved player name, 20 free meme portraits, level frames
+  and earned titles. Profile and arena share the circular portrait renderer.
 - `/collection`: common/rare/epic/legendary/mythic variants, owned quantities.
 - `/decks`: exactly 15 owned copies, saved guest draft or authenticated cloud deck.
 - `/account`: existing Supabase email authentication without wallet dependency.
@@ -34,6 +36,13 @@ The Alpha catalog now contains 85 motifs with five elements and five cosmetic
 finishes (2,125 variants). Decks have exactly 15 owned cards, at most three copies
 per motif. Registered players receive ten verified-email welcome boosters once.
 Account-backed AI rounds use the trusted match service for 5/2 Pixel rewards.
+Confirmed wins also grant 100 XP exactly once through the trusted reward ledger.
+Level `L` starts at `250*(L-1)+5*(L-1)*(L-2)` XP; frames unlock at levels
+50/100/150/200/250/300. Older unlocked frames can be equipped, or the newest frame
+can equip automatically. XP and wins are never writable by clients. Apply
+`202611200008_player_identity85.sql` after the preceding migrations; applied live
+on 20 November 2026. Existing verified wins are included. Profile cosmetics in the
+shop are previews only; premium and limited editions are not on sale yet.
 Booster purchases and openings are saved atomically; paid currency is separately
 verified by the payment service. Return rounds reshuffle both decks.
 

@@ -1,8 +1,9 @@
+import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs';
 import {soloAction84} from './solo-ai84.mjs';
 import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {connectAccountGame} from '../platform/account-client50.mjs?v=element-53';
+import {connectAccountGame} from '../platform/account-client50.mjs?v=identity-85';
 import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=solo-84';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs';
 import {roundStarter} from './start-duel18.mjs';
@@ -21,6 +22,7 @@ let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}cat
 const practice=localSolo84(portalDeck)?portalDeck.practice:null;
 const opponentAction84=game=>practice?soloAction84(game,practice.difficulty):demoAction(game);
 const $=id=>document.getElementById(id),stage=$('stage'),svg=$('interaction');
+const refreshPresence85=mountPlayerPresence85();void refreshPresence85();
 if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[href="/decks"]'))link.href='/decks?test=1';
 let game=createTableDemo(),view,selected=null,target=null,rotation=0,abilityDirection=0,twistCell=null,hover=null,inspect=null,mode='card',busy=true,phase='loading',epoch=0,drag=null,notice='',round=1,roundResults=[],matchSeed=null,firstStarter=null;
 const startDialog=bindStartDuelDialog($('startDuel'));
@@ -35,7 +37,7 @@ document.addEventListener('pointerdown',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
 let accountGame=null,accountSnapshot=null,accountResume=null,accountFailed=false;
 function accountWallet(wallet){if(!wallet)return;for(const c of ['pixels','shards','echoes'])$('game'+c).textContent=wallet[c].toLocaleString('en-US');}
-function acceptAccount(data){accountSnapshot=data;portalDeck={...data.state.deck,deckId:data.state.deck.id,source:'account'};round=data.state.round;roundResults=data.state.results;firstStarter=data.state.starter;matchSeed=data.state.seed;accountWallet(data.wallet);$('accountDeckName').textContent=data.state.deck.name;}
+function acceptAccount(data){accountSnapshot=data;portalDeck={...data.state.deck,deckId:data.state.deck.id,source:'account'};round=data.state.round;roundResults=data.state.results;firstStarter=data.state.starter;matchSeed=data.state.seed;accountWallet(data.wallet);if(data.award===5)void refreshPresence85();$('accountDeckName').textContent=data.state.deck.name;}
 function accountProblem(error){accountFailed=true;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=error.message;busy=true;phase='connection';render();}
 $('gameAccountRetry').onclick=()=>window.location.reload();
 $('gameAccountNew').onclick=()=>{if(accountGame?.pending)return;try{accountGame?.forget();}catch{}window.location.reload();};
@@ -117,7 +119,7 @@ async function playAction(a,token,serverNext=null){
  if(next.last.flips.length){audio.play('capture',{side,count:next.last.flips.length});announce((side===0?'Deine Übernahme':'Gegner übernimmt')+' · '+next.last.flips.length);notice=next.last.flips.length+(next.last.flips.length===1?' Karte wechselt':' Karten wechseln')+' die Seite.';render();await Promise.all(next.last.flips.map(cell=>view.flip(next.board[cell].uid,side)));if(token!==epoch)return false;}
  if(draw){audio.play('draw');notice=(side===0?'Du ziehst':'Der Gegner zieht')+' eine Karte nach.';phase=side===1?'opponent':'drawing';render();if(!await view.draw(draw.uid,side)||token!==epoch)return false;}
  if(next.last.event!==null){view.eventChange();announce('Feldwechsel · neue Resonanz');audio.play('event');}
- if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked});if(accountGame){const awarded=accountSnapshot?.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+awarded+' Pixels · Runde '+round+' gutgeschrieben';}}
+ if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked});if(accountGame){const awarded=accountSnapshot?.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+awarded+' Pixels'+(awarded===5?' · +100 XP':'')+' · Runde '+round+' gutgeschrieben';}}
  return true;
 }
 async function cycle(a,showPreview=false,fromTimeout=false){if(!fromTimeout&&expireTurn())return;if(busy||game.finished||!a)return;const token=epoch;busy=true;
@@ -153,7 +155,7 @@ async function reset({preserveSeries=false}={}){
   firstStarter=starter;game.starter=game.turn=roundStarter(firstStarter,round);
   if(accountGame){try{accountData=await accountGame.start({starter,deckId:portalDeck.deckId??null,loadouts:[$('loadout').value,$('opponentLoadout').value]});acceptAccount(accountData);game=accountData.steps[0]?.before??accountData.state.game;await view.prepareGame(game);view.initGame(game);}catch(error){accountProblem(error);return;}}
  }
- if(accountData&&phase==='restoring'){ceremony.restore(token);game=accountData.state.game;view.initGame(game);busy=false;phase='idle';notice='Gespeichertes Duell wiederhergestellt.';if(game.finished){const award=accountData.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+award+' Pixels · Runde '+round+' bereits gutgeschrieben';}render();return;}
+ if(accountData&&phase==='restoring'){ceremony.restore(token);game=accountData.state.game;view.initGame(game);busy=false;phase='idle';notice='Gespeichertes Duell wiederhergestellt.';if(game.finished){const award=accountData.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Runde '+round+' bereits gutgeschrieben';}render();return;}
  if(accountData){game=accountData.steps[0]?.before??accountData.state.game;view.initGame(game);}
  $('gameRoundReward').hidden=true;
  phase='dealing';notice='Neue Karten werden ausgeteilt.';render();const ok=await view.deal();if(!ok||token!==epoch)return;

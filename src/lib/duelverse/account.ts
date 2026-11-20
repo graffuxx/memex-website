@@ -2,18 +2,21 @@ import {supabase} from '@/lib/supabaseClient';
 import {boosterHistoryFilter} from '../../../public/game/platform/player-area49.mjs';
 import {loadAllInventory} from '../../../public/game/platform/inventory54.mjs';
 export type SavedDeck={id:string;name:string;cards:string[];active:boolean};
-export type PlayerState={displayName:string;inventory:Record<string,number>;decks:SavedDeck[];pixels:number;shards:number;echoes:number};
+export type PlayerIdentity85={displayName:string;avatarId:string;frameId:string;titleId:string;xp:number;wins:number;owned:string[]};
+export type PlayerState={displayName:string;identity:PlayerIdentity85;inventory:Record<string,number>;decks:SavedDeck[];pixels:number;shards:number;echoes:number};
+export async function loadIdentity85():Promise<PlayerIdentity85>{const {data,error}=await supabase.rpc('dv_identity85');if(error||!data)throw Error('Your player profile could not be loaded. Please retry.');return data as PlayerIdentity85;}
+export async function saveIdentity85(identity:PlayerIdentity85):Promise<PlayerIdentity85>{const {data,error}=await supabase.rpc('dv_save_identity85',{p_name:identity.displayName,p_avatar:identity.avatarId,p_frame:identity.frameId,p_title:identity.titleId});if(error||!data){const known=['Use a name with 1 to 24 visible characters','This cosmetic is locked or unknown'];throw Error(known.includes(error?.message??'')?error!.message:'Your profile could not be saved. Please retry.');}return data as PlayerIdentity85;}
 export async function loadPlayer():Promise<PlayerState>{
  const {error:initError}=await supabase.rpc('dv_initialize_account');
  if(initError)throw new Error('Cloud collection is not available yet. Your login remains valid; please use the guest preview for now.');
- const [profile,inventory,decks,wallet]=await Promise.all([
-  supabase.from('dv_profiles').select('display_name').single(),
+ const [identity,inventory,decks,wallet]=await Promise.all([
+  loadIdentity85(),
   loadAllInventory(async(cursor,size)=>{let query=supabase.from('dv_inventory').select('variant_id,quantity').order('variant_id').limit(size);if(cursor!==null)query=query.gt('variant_id',cursor);const {data,error}=await query;if(error)throw new Error('Your complete collection could not be loaded. Please try again.');return data??[];}),
   supabase.from('dv_decks').select('id,name,cards,active').order('created_at'),
   supabase.from('dv_wallets').select('earned,premium,echoes').single()
  ]);
- if([profile,decks,wallet].some(r=>r.error))throw new Error('Your collection could not be loaded. Please try again.');
- return {displayName:profile.data?.display_name??'Player',inventory,decks:(decks.data??[]) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
+ if([decks,wallet].some(r=>r.error))throw new Error('Your collection could not be loaded. Please try again.');
+ return {displayName:identity.displayName,identity,inventory,decks:(decks.data??[]) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
 }
 export async function saveDeck(id:string|null,name:string,cards:string[]){
  const {data,error}=await supabase.rpc('dv_save_deck',{p_id:id,p_name:name,p_cards:cards});

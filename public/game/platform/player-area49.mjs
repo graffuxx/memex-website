@@ -1,6 +1,6 @@
 import {DEFINITIONS,VARIANTS} from './catalog.mjs';
 import {revealedSlots} from './alpha-booster36.mjs';
-export const PLAYER_LINKS=Object.freeze([['/account/private','Overview'],['/collection','Collection'],['/decks','Decks'],['/account/private/boosters','Boosters']]);
+export const PLAYER_LINKS=Object.freeze([['/account/private','Overview'],['/collection','Collection'],['/decks','Decks'],['/account/private/boosters','Boosters'],['/account/private/profile','Profile']]);
 export function playerAreaRoute(path){return PLAYER_LINKS.find(([url])=>path===url)?.[0]??null;}
 export function collectionSummary(inventory){
  const owned=VARIANTS.filter(v=>Number.isInteger(inventory[v.id])&&inventory[v.id]>0);

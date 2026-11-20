@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import AlphaBoosterPack from './AlphaBoosterPack';
 import PlayerBalances from './PlayerBalances';
-import {ShopTabs81,ShardShop81,ArenaSkins81,type ShopCategory81} from './ShopCatalog81';
+import {ShopTabs81,ShardShop81,ArenaSkins81,IdentityCosmetics85,type ShopCategory81} from './ShopCatalog81';
 import useBoosterAudio from './useBoosterAudio';
 import BoosterTear from './BoosterTear';
 import BoosterRevealCard from './BoosterRevealCard';
@@ -95,7 +95,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
   finally{if(live(ticket)){setBusy(false);purchaseLock.current=false;}}
  }
  const [category,setCategory]=useState<ShopCategory81>('boosters');
- useEffect(()=>{const c=new URLSearchParams(window.location.search).get('category');if(c==='shards'||c==='arenas')setCategory(c);},[]);
+ useEffect(()=>{const c=new URLSearchParams(window.location.search).get('category');if(c==='shards'||c==='arenas'||c==='frames'||c==='portraits')setCategory(c);},[]);
  function changeCategory(c:ShopCategory81){setCategory(c);const url=new URL(window.location.href);url.searchParams.set('category',c);window.history.replaceState(null,'',url.pathname+url.search);}
  const selectedPrice=confirmation?ALPHA_BOOSTER.prices[confirmation]:0;
  return <section className="portal-section top-space alpha-booster-page">
@@ -118,7 +118,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
     <button className="button glass" disabled={phase==='saving'||busy} onClick={back}>Back to shop</button>
    </div>
   </div>
- </div>:shop&&category==='shards'?<ShardShop81/>:shop&&category==='arenas'?<ArenaSkins81/>:<>
+ </div>:shop&&category==='shards'?<ShardShop81/>:shop&&category==='arenas'?<ArenaSkins81/>:shop&&(category==='frames'||category==='portraits')?<IdentityCosmetics85 kind={category}/>:<>
   {userId&&<section className="alpha-owned-vault" aria-label="Your unopened boosters"><div className="alpha-owned-stack" aria-hidden="true">{[0,1,2].map(n=><div key={n}><AlphaBoosterPack compact/></div>)}</div><div className="alpha-owned-copy"><span className="alpha-eyebrow">Your packs</span><h2>{loadingHistory?'Finding your boosters…':`${queued.length} ${queued.length===1?'booster':'boosters'} waiting.`}</h2><p>{queued.length?'Already yours. Open them without spending currency.':'Your opened cards are waiting in your collection.'}</p></div><div className="alpha-owned-action">{queued.length>0?<button className="button gold" disabled={locked} onClick={openNext}>Open a booster <span aria-hidden="true">→</span></button>:<a href="/collection" className="button glass">View collection</a>}</div></section>}
   <div className="alpha-booster-showcase"><div className="alpha-booster-art-stage"><AlphaBoosterPack/><span>ALPHA BOOSTER · FIRST EDITION</span></div><div className="alpha-booster-product"><span className="alpha-eyebrow">First edition</span><h2>Alpha Booster</h2><div className="alpha-booster-flags"><span>5 cards</span><span>At least 1 Silver or higher</span><span>Duplicate protection</span></div><div className="alpha-purchase-options"><button className="button gold" disabled={locked||!player||player.pixels<100} onClick={()=>setConfirmation('pixels')}><strong>100 Pixels</strong><span>Buy with Pixels</span></button><button className="button glass" disabled={locked||!player||player.shards<150} onClick={()=>setConfirmation('shards')}><strong>150 Shards</strong><span>Buy with Shards</span></button></div>{ready&&!userId?<p className="muted"><a href="/account">Sign in</a> to buy.</p>:player&&<p className="muted">Uses your current balance · <a href="/shop?category=shards" onClick={e=>{if(shop){e.preventDefault();changeCategory('shards');}}}>Get Shards</a></p>}<button className="alpha-preview-button" disabled={locked} onClick={startPreview}>Try the opening preview</button></div></div>
   <a className="alpha-crafting-link" href="/collection"><span><strong>Craft cards</strong><small>Normal · Silver · Gold</small></span><span>Use Echoes</span></a>
