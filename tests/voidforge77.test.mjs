@@ -24,7 +24,7 @@ test('all 19 hexes remain inside real perspective view at PC and tablet sizes an
  }
 });
 test('production default and bounded local textures use approved arena instead of the raster floor',async()=>{
- const entry=await readFile(new URL('../public/game/table-demo.html',import.meta.url),'utf8');assert.match(entry,/<option value="voidforge" selected>/);assert.match(entry,/voidforge-77/);
+ const entry=await readFile(new URL('../public/game/table-demo.html',import.meta.url),'utf8');assert.match(entry,/<option value="voidforge" selected>/);assert.match(entry,/src\/table-demo-opening18\.mjs\?v=/);
  let size=0;for(const name of ['sky','slab-painted','cliff-painted','crystal-painted','fracture-face'])size+=(await stat(new URL(`../public/game/assets/arenas/voidforge-v77/${name}.webp`,import.meta.url))).size;
  assert.ok(size<4*1024*1024,`${size} bytes`);
 });

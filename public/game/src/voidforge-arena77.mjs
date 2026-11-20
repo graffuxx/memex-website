@@ -1,9 +1,11 @@
+import {arenaCameraPose78} from './arena-navigation78.mjs';
+import {createVoidNebula78} from './void-nebula78.mjs';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS} from './rules.mjs';
 import {tileCenter} from './arena-projection.mjs';
 import {cardPoints} from './card-prototype.mjs';
-import {createGlowPipeline} from './voidforge-post77.mjs';
-import {createAtmosphere} from './voidforge-atmosphere77.mjs';
+import {createGlowPipeline} from './voidforge-post77.mjs?v=void-effects-78';
+import {createAtmosphere} from './voidforge-atmosphere77.mjs?v=void-effects-78';
 import {createRockIsland} from './voidforge-platform77.mjs';
 
 // Approved v76 geometry and materials. Game cards and hit targets remain in the table view.
@@ -56,20 +58,21 @@ const arcs=[];
 for(const cluster of crystalClusters)for(let j=0;j<3;j++){const points=[];for(let i=0;i<13;i++){const t=i/12;points.push(new T.Vector3(Math.sin(t*12+j)*.14+(t-.5)*.7,.08+t*(j===0?1.9:1.2),Math.cos(t*14+j)*.1));}const material=new T.MeshBasicMaterial({color:new T.Color(1.4,.45,3.6),transparent:true,opacity:.6,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending});const arc=mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),32,.011,4,false),material,cluster);arc.castShadow=false;arcs.push({arc,phase:j+cluster.position.x});}
 
 
- const atmosphere=createAtmosphere({scene,clusters:crystalClusters,root}),glow=createGlowPipeline(renderer);
+ const atmosphere=createAtmosphere({scene,clusters:crystalClusters,root}),glow=createGlowPipeline(renderer),nebula=createVoidNebula78();
  let elapsed=0,lastWidth=0,lastHeight=0;
  return {
-  frame(dt,camera,animated){if(animated)elapsed+=dt;crystalTime.value=elapsed;effectAmount.value=animated?1:0;atmosphere.frame(elapsed,camera,animated);lavaMaterial.uniforms.uTime.value=elapsed;for(const {arc,phase}of arcs)arc.material.opacity=animated?Math.pow(Math.max(0,Math.sin(elapsed*.75+phase)),10)*.7:0;coreMaterial.opacity=animated?.24+.07*Math.sin(elapsed*1.1):0;warmLight.intensity=animated?28+Math.sin(elapsed*.48)*1.2:0;},
+  frame(dt,camera,animated){nebula.frame(dt,animated);if(animated)elapsed+=dt;crystalTime.value=elapsed;effectAmount.value=animated?1:0;atmosphere.frame(elapsed,camera,animated);lavaMaterial.uniforms.uTime.value=elapsed;for(const {arc,phase}of arcs)arc.material.opacity=animated?Math.pow(Math.max(0,Math.sin(elapsed*.75+phase)),10)*.7:0;coreMaterial.opacity=animated?.24+.07*Math.sin(elapsed*1.1):0;warmLight.intensity=animated?28+Math.sin(elapsed*.48)*1.2:0;},
+  renderBackground(width,height){nebula.render(renderer,width,height);},
   render(camera,viewport){const ratio=renderer.getPixelRatio(),w=Math.round(viewport[2]*ratio),h=Math.round(viewport[3]*ratio);if(w!==lastWidth||h!==lastHeight){glow.resize(w,h);lastWidth=w;lastHeight=h;}glow.render(scene,camera,viewport);},
-  dispose(){glow.dispose();const geometries=new Set(),materials=new Set(),textures=new Set([blankMap]);scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(m);for(const t of Object.values(m))if(t?.isTexture)textures.add(t);}o.shadow?.dispose();});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();scene.clear();}
+  dispose(){nebula.dispose();glow.dispose();const geometries=new Set(),materials=new Set(),textures=new Set([blankMap]);scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(m);for(const t of Object.values(m))if(t?.isTexture)textures.add(t);}o.shadow?.dispose();});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();scene.clear();}
  };
 }
 
-export function fitVoidforgeCamera77(camera,width,height,requested=1){
+export function fitVoidforgeCamera77(camera,width,height,requested=1,orbit){
  const value=T.MathUtils.clamp(Number.isFinite(requested)?requested:1,.85,1.12),pitch=68*Math.PI/180,focus=new T.Vector3(0,-.30,0);
- camera.fov=35;camera.aspect=width/height;camera.updateProjectionMatrix();
+ camera.up.set(0,1,0);camera.fov=35;camera.aspect=width/height;camera.updateProjectionMatrix();
  const pose=d=>{camera.position.copy(focus).add(new T.Vector3(0,Math.sin(pitch),Math.cos(pitch)).multiplyScalar(d));camera.lookAt(focus);camera.updateMatrixWorld();};
  const bounds=CELLS.flatMap(c=>{const p=tileCenter(c);return cardPoints(1.1).map(([x,z])=>new T.Vector3(p.x+x,.42,p.z+z));});bounds.push(new T.Vector3(-6.8,2.8,-3.8),new T.Vector3(6.8,2.8,-3.8),new T.Vector3(0,-3.9,3.1));
- let lo=8,hi=60;for(let i=0;i<24;i++){const d=(lo+hi)/2;pose(d);if(bounds.every(p=>{const v=p.clone().project(camera);return Math.abs(v.x)<.91&&Math.abs(v.y)<.90;}))hi=d;else lo=d;}pose(hi/value);
+ let lo=8,hi=60;for(let i=0;i<24;i++){const d=(lo+hi)/2;pose(d);if(bounds.every(p=>{const v=p.clone().project(camera);return Math.abs(v.x)<.91&&Math.abs(v.y)<.90;}))hi=d;else lo=d;}pose(hi/value);if(orbit)arenaCameraPose78(camera,hi/value,orbit);
  return {value,min:.85,max:1.12,pan:{x:0,y:0},canPan:false};
 }

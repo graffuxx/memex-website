@@ -157,3 +157,6 @@ body.game-table{background:#0c0918;isolation:isolate;min-height:100dvh}
 
 /* A separate sky stays fixed while the approved 3D arena uses true camera zoom. */
 .game-table #stage[data-arena=voidforge]{background:radial-gradient(ellipse at 50% 45%,transparent 35%,#03030d9c 100%),url('./assets/arenas/voidforge-v77/sky.webp') center/cover no-repeat,#060613;border-color:#b28cdb20}
+
+.arena-navigation-hint{font-size:11px;line-height:1.5;color:#bba8d0}.arena-zoom button[hidden]{display:none!important}.arena-zoom button[aria-pressed=true]{border-color:#be8cf6;background:#9b5ede33;color:#fff}#stage[data-camera-dragging=orbit]{cursor:grabbing}#stage[data-camera-dragging=pan]{cursor:move}
+body:has(#stage:not([data-arena=voidforge])) .arena-navigation-hint{display:none}
