@@ -48,3 +48,14 @@ never become negative. No refund is initiated by this integration.
 `tests/shard-payments81.test.mjs` verifies SQL permissions, cross-account isolation,
 receipt tampering, capture recovery, sandbox isolation, refunds/debt and forged
 webhooks. Provider sandbox end-to-end testing is additional, not replaced by mocks.
+
+## Provider test evidence · 20 November 2026
+
+On the deployed website the designated account completed sandbox purchases for
+150 Shards / EUR 1.99 and 800 Shards / EUR 9.99 using the existing PayPal sandbox
+buyer. The second checkout was interrupted by a page reload and resumed with the
+same PayPal order ID. Both purchases display as completed in the account history.
+Real wallet Shards and paid-credit ledger entries remained zero. The price/recipient
+checks ran against actual provider receipts, not just the mocked test fixtures.
+Public/live purchases remain disabled; only the designated account sees sandbox
+checkout. Merchant disclosures and live webhook configuration are still pending.
