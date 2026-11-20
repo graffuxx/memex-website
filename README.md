@@ -3,7 +3,7 @@
 Next.js website for memexduelverse.com. The original branding, video and email
 account provider are retained. Presale, coin, wallet and NFT navigation is hidden;
 old purchase pages redirect to the game/shop. Creation of new presale PayPal orders
-is disabled; existing capture handling and purchase history remain untouched.
+and legacy capture are disabled; purchase history is retained.
 
 ## Run and verify
 
@@ -17,7 +17,9 @@ Runtime patch baseline: Next.js 16.0.11, React/React DOM 19.1.10.
 - `/collection`: common/rare/epic/legendary/mythic variants, owned quantities.
 - `/decks`: exactly 15 owned copies, saved guest draft or authenticated cloud deck.
 - `/account`: existing Supabase email authentication without wallet dependency.
-- `/shop`: truthful development preview; no checkout, prices or rewards enabled.
+- `/shop`: Boosters / Shards / Arena skins. Approved Shard prices, secure PayPal
+  checkout and account-restricted sandbox testing; arena skins are concept placeholders.
+  See [payment configuration](docs/shard-payments81.md). Live payments remain gated.
 
 `public/game/platform/catalog.mjs` is the shared identity, variant and deck contract.
 The SQL seed, React collection and game adapter use the same identifiers. Starter
@@ -25,6 +27,17 @@ allocation is provisional: six common copies per identity; default deck five eac
 Rarity is cosmetic. Only three distinct gameplay identities currently have artwork.
 The alpha deals five cards from 15 and allows nine placements per side, leaving six
 cards unused. The paired round reuses draw order and reverses initiative.
+
+## Current game status
+
+The Alpha catalog now contains 85 motifs with five elements and five cosmetic
+finishes (2,125 variants). Decks have exactly 15 owned cards, at most three copies
+per motif. Registered players receive ten verified-email welcome boosters once.
+Account-backed AI rounds use the trusted match service for 5/2 Pixel rewards.
+Booster purchases and openings are saved atomically; paid currency is separately
+verified by the payment service. Return rounds reshuffle both decks.
+
+The foundation notes below describe the original v01 baseline, not current limits.
 
 ## Database
 
