@@ -60,3 +60,17 @@ export async function revealBoosterCard(boosterId:string,slot:number):Promise<vo
  const {error}=await supabase.rpc('dv_reveal_booster_card',{p_booster:boosterId,p_slot:slot});
  if(error)throw Error('The card reveal could not be saved. Your purchased cards are safe; please retry.');
 }
+export async function loadUnopenedBoosters():Promise<BoosterPurchase[]>{
+ const rows:BoosterPurchase[]=[],seen=new Set<string>();let cursor:{id:string;created_at:string}|null=null;
+ for(;;){
+  let query=supabase.from('dv_booster_purchases36').select(boosterFields).not('revealed_slots','cs','{0,1,2,3,4}').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(100);
+  if(cursor)query=query.or(boosterHistoryFilter(cursor));
+  const {data,error}=await query;if(error)throw Error('Your unopened boosters could not be loaded. Please retry.');
+  const page=(data??[]) as BoosterPurchase[];for(const p of page){if(seen.has(p.id))throw Error('Your unopened boosters could not be loaded completely.');seen.add(p.id);}rows.push(...page);if(page.length<100)return rows;
+  const last=page.at(-1)!;cursor={id:last.id,created_at:last.created_at};
+ }
+}
+export async function openAlphaBooster(boosterId:string):Promise<void>{
+ const {error}=await supabase.rpc('dv_open_alpha_booster58',{p_booster:boosterId});
+ if(error)throw Error('Opening could not be confirmed. Your cards are safe. Retry this pack without paying again.');
+}

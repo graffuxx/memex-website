@@ -36,3 +36,33 @@
 @media(max-width:700px){.dv-portal .alpha-shop-heading{align-items:flex-start;flex-direction:column;gap:16px}.dv-portal .alpha-shop-heading h1{font-size:32px}.dv-portal .alpha-wallet{width:100%;justify-content:flex-start;gap:7px}.dv-portal .alpha-wallet-balance{flex:1;min-width:0;gap:8px;padding:11px 10px}.dv-portal .alpha-wallet-balance strong{font-size:20px}.dv-portal .alpha-wallet-balance small{font-size:13px}.dv-portal .alpha-wallet-balance i{width:15px;height:15px}.dv-portal .alpha-booster-showcase{padding:18px;min-height:0}.dv-portal .alpha-booster-art-stage{min-height:300px}.dv-portal .alpha-booster-art-stage .alpha-pack-art{width:195px}.dv-portal .alpha-booster-product{padding:12px 0 0;width:100%}.dv-portal .alpha-crafting-link{padding:16px}.dv-portal .alpha-crafting-link>span:last-child{padding:8px 10px}}
 
 .dv-portal .alpha-shop-heading{scroll-margin-top:128px}.dv-portal .alpha-shop-heading .alpha-back-link{display:inline-block;margin-top:9px}@media(max-width:700px){.dv-portal .alpha-shop-heading{scroll-margin-top:105px}}
+
+/* A pack queue, rather than a dropdown of unfinished openings. */
+.dv-portal .alpha-owned-vault{display:flex;align-items:center;gap:28px;position:relative;overflow:hidden;padding:20px 28px;margin:0 0 24px;border:1px solid #be91f34f;border-radius:22px;background:radial-gradient(ellipse at 4% 80%,#7540c34d,transparent 50%),linear-gradient(115deg,#1e1138ed,#0c091fee);min-height:168px}
+.dv-portal .alpha-owned-stack{position:relative;flex:0 0 136px;height:140px;isolation:isolate}
+.dv-portal .alpha-owned-stack>div{position:absolute;top:-15px;left:15px;transform:rotate(-16deg) translateX(-15px);opacity:.55}
+.dv-portal .alpha-owned-stack>div:nth-child(2){transform:rotate(8deg) translateX(16px);opacity:.8}
+.dv-portal .alpha-owned-stack>div:nth-child(3){transform:rotate(-3deg)}
+.dv-portal .alpha-owned-stack .alpha-pack-art--compact{width:102px;margin:0}
+.dv-portal .alpha-owned-copy{flex:1;min-width:0}
+.dv-portal .alpha-owned-copy h2{font:500 clamp(25px,2.6vw,36px)/1.15 Georgia,serif;color:#f7edff;margin:9px 0}
+.dv-portal .alpha-owned-copy p{font:14px/1.5 Arial,sans-serif;color:#cbb6df;margin:0}
+.dv-portal .alpha-owned-action .button,.dv-portal .alpha-next-pack{display:flex;align-items:center;justify-content:center;gap:22px;white-space:nowrap;font:600 15px Arial,sans-serif;min-height:48px}
+.dv-portal .alpha-owned-action .button>span,.dv-portal .alpha-next-pack>span{font-size:23px;font-weight:400}
+.dv-portal .alpha-opening--guided{background:radial-gradient(ellipse at 50% 38%,#49307047,transparent 68%),linear-gradient(130deg,#110b24f5,#090619f5);padding:30px 28px 0;overflow:hidden}
+.dv-portal .alpha-opening--guided .alpha-opening-heading h2{font-size:clamp(29px,3.4vw,42px);margin:12px 0}
+.dv-portal .alpha-opening--guided .alpha-opening-heading p{margin:0;color:#c6b5d5;font:14px/1.5 Arial,sans-serif}
+.dv-portal .alpha-opening--guided .alpha-reveal-grid{margin:36px 0 18px;min-height:280px}
+.dv-portal .alpha-opening--guided .alpha-reveal-slot.is-revealed .alpha-card-reveal{animation:none}
+.dv-portal .alpha-opening--guided .alpha-reveal-meta{min-height:74px}
+.dv-portal .alpha-pack-finish{display:flex;align-items:center;justify-content:space-between;gap:22px;border-top:1px solid #a180c633;margin:0 -28px;padding:22px 28px;background:#0806167d;min-height:108px}
+.dv-portal .alpha-pack-finish-copy strong{display:block;font:500 23px/1.25 Georgia,serif;color:#ecd7ff;margin-bottom:6px}
+.dv-portal .alpha-pack-finish[data-complete=true] .alpha-pack-finish-copy strong{color:#f7db9a}
+.dv-portal .alpha-pack-finish-copy span{font:13px/1.5 Arial,sans-serif;color:#bca9d0}
+.dv-portal .alpha-pack-finish .alpha-opening-actions{justify-content:flex-end;margin:0;gap:10px;flex-shrink:0}
+.dv-portal .alpha-pack-finish .button{border-radius:12px}
+.dv-portal .alpha-booster-error p{margin:0 0 10px}
+@media(max-width:850px){.dv-portal .alpha-owned-vault{gap:16px;padding:18px}.dv-portal .alpha-owned-stack{flex-basis:100px;transform:scale(.83);transform-origin:center}.dv-portal .alpha-owned-action .button{font-size:13px;gap:10px}.dv-portal .alpha-pack-finish{flex-wrap:wrap}.dv-portal .alpha-pack-finish .alpha-opening-actions{justify-content:flex-start;flex-wrap:wrap;flex-shrink:1}}
+@media(max-width:600px){.dv-portal .alpha-owned-vault{display:grid;grid-template-columns:100px 1fr;gap:4px 12px}.dv-portal .alpha-owned-action{grid-column:1/-1}.dv-portal .alpha-owned-action .button{width:100%;margin-top:6px}.dv-portal .alpha-owned-copy h2{font-size:25px}.dv-portal .alpha-opening--guided{padding:22px 14px 0}.dv-portal .alpha-pack-finish{margin:0 -14px;padding:20px 14px}.dv-portal .alpha-opening--guided .alpha-reveal-grid{min-height:0}.dv-portal .alpha-pack-finish .alpha-opening-actions{width:100%}.dv-portal .alpha-pack-finish .button{flex:1}.dv-portal .alpha-opening--guided .alpha-reveal-count{padding-top:0}}
+/* Keep the cards and next-pack action together on typical laptop screens. */
+@media(min-width:701px){.dv-portal .alpha-opening--guided{padding-top:24px}.dv-portal .alpha-opening--guided .alpha-reveal-grid{margin-top:26px;margin-bottom:12px}.dv-portal .alpha-opening--guided .alpha-card-number{display:none}.dv-portal .alpha-opening--guided .alpha-reveal-meta{min-height:58px;margin-top:12px}.dv-portal .alpha-opening--guided .alpha-pack-finish{padding-top:18px;padding-bottom:18px;min-height:96px}}
