@@ -1,5 +1,6 @@
 import {supabase} from '@/lib/supabaseClient';
 import {boosterHistoryFilter} from '../../../public/game/platform/player-area49.mjs';
+import {loadAllInventory} from '../../../public/game/platform/inventory54.mjs';
 export type SavedDeck={id:string;name:string;cards:string[];active:boolean};
 export type PlayerState={displayName:string;inventory:Record<string,number>;decks:SavedDeck[];pixels:number;shards:number;echoes:number};
 export async function loadPlayer():Promise<PlayerState>{
@@ -7,12 +8,12 @@ export async function loadPlayer():Promise<PlayerState>{
  if(initError)throw new Error('Cloud collection is not available yet. Your login remains valid; please use the guest preview for now.');
  const [profile,inventory,decks,wallet]=await Promise.all([
   supabase.from('dv_profiles').select('display_name').single(),
-  supabase.from('dv_inventory').select('variant_id,quantity'),
+  loadAllInventory(async(cursor,size)=>{let query=supabase.from('dv_inventory').select('variant_id,quantity').order('variant_id').limit(size);if(cursor!==null)query=query.gt('variant_id',cursor);const {data,error}=await query;if(error)throw new Error('Your complete collection could not be loaded. Please try again.');return data??[];}),
   supabase.from('dv_decks').select('id,name,cards,active').order('created_at'),
   supabase.from('dv_wallets').select('earned,premium,echoes').single()
  ]);
- if([profile,inventory,decks,wallet].some(r=>r.error))throw new Error('Your collection could not be loaded. Please try again.');
- return {displayName:profile.data?.display_name??'Player',inventory:Object.fromEntries((inventory.data??[]).map(r=>[r.variant_id,r.quantity])),decks:(decks.data??[]) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
+ if([profile,decks,wallet].some(r=>r.error))throw new Error('Your collection could not be loaded. Please try again.');
+ return {displayName:profile.data?.display_name??'Player',inventory,decks:(decks.data??[]) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
 }
 export async function saveDeck(id:string|null,name:string,cards:string[]){
  const {data,error}=await supabase.rpc('dv_save_deck',{p_id:id,p_name:name,p_cards:cards});

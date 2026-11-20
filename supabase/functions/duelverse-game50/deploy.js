@@ -2307,7 +2307,9 @@ function createGameHandler({ env, fetcher = fetch, randomSeed = () => crypto.get
         const existing = await rest("dv_game_sessions50?id=eq." + input.id + "&user_id=eq." + uid + "&active=eq.true&select=id,state,version");
         if (existing[0]) return reply({ ...existing[0], steps: [], award: 0, wallet: await wallet() });
         const decks = await rest("dv_decks?user_id=eq." + uid + "&select=id,name,cards,active&order=created_at.asc"), deck = input.deckId ? decks.find((d) => d.id === input.deckId) : decks.find((d) => d.active) ?? decks[0];
-        const rows2 = await rest("dv_inventory?user_id=eq." + uid + "&select=variant_id,quantity"), inventory = Object.fromEntries(rows2.map((r) => [r.variant_id, r.quantity]));
+        if (!Array.isArray(deck?.cards) || deck.cards.length !== DECK_SIZE || deck.cards.some((id) => !getVariant(id))) throw Error("Saved deck is not playable.");
+        const params = new URLSearchParams({ user_id: "eq." + uid, select: "variant_id,quantity", variant_id: "in.(" + [...new Set(deck.cards)].join(",") + ")" });
+        const rows2 = await rest("dv_inventory?" + params), inventory = Object.fromEntries(rows2.map((r) => [r.variant_id, r.quantity]));
         const initial = createAccountDuel({ deck, inventory, seed: randomSeed(), starter: input.starter, loadouts: input.loadouts });
         const result2 = beginAccountRound(initial);
         const saved2 = await rest("rpc/dv_game_start50", { method: "POST", body: JSON.stringify({ p_user: uid, p_id: input.id, p_state: result2.state }) });

@@ -6,3 +6,4 @@
 @media(max-width:420px){.dv-portal .active-deck-body{flex-direction:column;align-items:flex-start}.dv-portal .player-deck-art{align-self:center;width:225px}.dv-portal .player-area-bar .alpha-wallet{gap:15px}.dv-portal .player-area-bar .alpha-wallet-balance>span{gap:4px}}
 
 .dv-portal .player-preview-tools{position:relative;font-size:14px;color:#d7bde9}.dv-portal .player-preview-tools summary{cursor:pointer;padding:10px}.dv-portal .player-preview-tools[open]{padding:10px 14px;border:1px solid #b997db55;border-radius:14px;background:#160d26}.dv-portal .player-preview-tools[open] a{display:block;padding:10px;text-decoration:underline;text-underline-offset:3px}
+.dv-portal .player-elements [data-element=water]{color:#65cfff}.dv-portal .player-elements [data-element=earth]{color:#e8cd8f}.dv-portal .player-elements [data-element=air]{color:#a9eee1}
