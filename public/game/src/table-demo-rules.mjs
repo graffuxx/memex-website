@@ -1,5 +1,5 @@
-import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage} from '../platform/elements53.mjs';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs';
+import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=tie-break-63';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -45,7 +45,7 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
  const f=eventFieldAt(game,cell),base=sideValue(card,dir),field=f?.type==='resonance'&&f.element===cardOf(card).element?1:f?.type==='crossfire'&&f.directions.includes(dir)?1:0;
  const element=elementAdvantage(cardOf(card).element,cardOf(opponent).element,game.elementRules??3)?1:0;
  const ability=attacking?(abilityAt(game,card,cell)==='hype'&&dir===abilityDirection?1:0):(guardActive(game,card,cell)&&dir===card.guardDirection?GUARD_BONUS:0);
- return {base,field,element,ability,total:base+field+element+ability};
+ return {base,field,element,ability,total:base+field+ability+((game.elementRules??3)===3?element:0)};
 }
 // All effects resolve on a copy. Merely aiming or cancelling can never alter the board.
 export function previewEffect(game,action){
@@ -60,7 +60,7 @@ export function previewEffect(game,action){
  if(ability==='guard'){card.guardDirection=abilityDirection;card.guardOwner=game.turn;card.guardUntil=game.placements+2;}
  const comparisons=neighbors(cell).filter(n=>working.board[n.id]&&working.board[n.id].controller!==game.turn).map(n=>{
   const other=working.board[n.id],attack=effectStrength(working,card,cell,n.dir,other,{attacking:true,abilityDirection}),defend=effectStrength(working,other,n.id,(n.dir+3)%6,card);
-  return {cell:n.id,dir:n.dir,attack,defend,setup:n.id===twistCell,flip:n.id!==twistCell&&attack.total>defend.total,name:cardOf(other).name};
+  return {cell:n.id,dir:n.dir,attack,defend,setup:n.id===twistCell,flip:n.id!==twistCell&&attackWins(attack,defend,game.elementRules??3),name:cardOf(other).name};
  });
  return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips:comparisons.filter(c=>c.flip).map(c=>c.cell),board:working.board};
 }

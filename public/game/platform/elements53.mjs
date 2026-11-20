@@ -16,4 +16,9 @@ export function elementAdvantage(attacker,defender,rules=5){
  if(rules===3)return ({fire:'earth',earth:'storm',storm:'fire'})[a]===b;
  return ELEMENTS[a]?.beats.includes(b)??false;
 }
+// Five-element games compare numeric edge strength first. Elements only break a tie.
+// Historical three-element saves retain their already-recorded additive totals.
+export function attackWins(attack,defend,rules=5){
+ return attack.total>defend.total||(rules!==3&&attack.total===defend.total&&attack.element>defend.element);
+}
 export function elementSvg(id){const e=ELEMENTS[normalizeElement(id)];if(!e)throw Error('Unknown element');return `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs><linearGradient id="e" x2="0" y2="1"><stop stop-color="${e.from}"/><stop offset="1" stop-color="${e.to}"/></linearGradient></defs><path d="${e.path}" fill="${e.stroke?'none':'url(#e)'}" stroke="${e.stroke?'url(#e)':'#ffd876'}" stroke-width="${e.stroke?16:5}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}

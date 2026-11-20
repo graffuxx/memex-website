@@ -11,8 +11,8 @@ import {createPaintedBackdrop} from './painted-backdrop-glow8.mjs?v=home-rift-25
 import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
-import {CELLS,ELEMENTS,moveTargets,cardOf} from './rules.mjs';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=random-layout-1';
+import {CELLS,ELEMENTS,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=tie-break-63';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
 import {createCardRuntime} from './card-runtime-art16.mjs?v=board-ownership-62';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';

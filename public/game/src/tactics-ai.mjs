@@ -1,6 +1,6 @@
-import {ELEMENT_IDS} from '../platform/elements53.mjs';
-import {freeCells,neighbors,sideValue} from './rules.mjs';
-import * as currentRules from './table-demo-rules.mjs?v=random-layout-1';
+import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
+import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
+import * as currentRules from './table-demo-rules.mjs?v=tie-break-63';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -28,7 +28,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
  for(const cell of freeCells(future)){const enemies=neighbors(cell).filter(n=>board[n.id]?.controller===game.turn);if(!enemies.length)continue;
   for(const id of ARCHETYPES)for(const element of game.elementRules===5?ELEMENT_IDS:[undefined])for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
    const card={id,element,rotation,controller:future.turn};let flips=0;
-   for(const n of enemies){const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);if(a.total>d.total)flips++;}worst=Math.max(worst,flips);
+   for(const n of enemies){const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);if(attackWins(a,d,future.elementRules??3))flips++;}worst=Math.max(worst,flips);
   }
  }return worst;
 }

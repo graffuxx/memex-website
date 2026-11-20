@@ -4,7 +4,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// public/game/platform/elements53.mjs
+// public/game/platform/elements53.mjs?v=tie-break-63
 var ELEMENT_IDS = Object.freeze(["fire", "water", "earth", "air", "storm"]);
 var normalizeElement = (id) => id === "stone" ? "earth" : id;
 var raw = {
@@ -20,6 +20,9 @@ function elementAdvantage(attacker, defender, rules = 5) {
   const a = normalizeElement(attacker), b = normalizeElement(defender);
   if (rules === 3) return { fire: "earth", earth: "storm", storm: "fire" }[a] === b;
   return ELEMENTS[a]?.beats.includes(b) ?? false;
+}
+function attackWins(attack, defend, rules = 5) {
+  return attack.total > defend.total || rules !== 3 && attack.total === defend.total && attack.element > defend.element;
 }
 
 // public/game/platform/art-atlases53.mjs
@@ -275,6 +278,19 @@ var ATLAS_REGIONS = {
     "y": 0.10000000000000003
   }
 };
+
+// public/game/platform/elements53.mjs
+var ELEMENT_IDS2 = Object.freeze(["fire", "water", "earth", "air", "storm"]);
+var normalizeElement2 = (id) => id === "stone" ? "earth" : id;
+var raw2 = {
+  fire: { name: "Fire", symbol: "\u2668", color: "#ff9d62", from: "#fff07a", to: "#ff8d12", path: "M138 20 C113 102 220 108 195 184 C156 248 56 251 54 166 C51 118 102 84 138 20 Z", beats: ["earth", "air"] },
+  water: { name: "Water", symbol: "\u2248", color: "#65cfff", from: "#d4fbff", to: "#2284e4", path: "M128 18 C112 68 49 120 49 167 C49 266 207 266 207 167 C207 120 144 68 128 18 Z", beats: ["fire", "earth"] },
+  earth: { name: "Earth", symbol: "\u25C6", color: "#d6bc78", from: "#f7e7ae", to: "#a9853a", path: "M128 26 L210 128 L128 230 L46 128 Z", beats: ["air", "storm"] },
+  air: { name: "Air", symbol: "\u224B", color: "#a9eee1", from: "#edfff9", to: "#57bbaa", path: "M28 82 H157 C217 82 218 17 177 25 C156 28 153 47 168 56 M28 126 H207 C252 126 246 184 216 182 C197 180 191 165 201 154 M28 170 H119 C166 170 169 230 133 230 C113 230 105 215 117 203", beats: ["storm", "water"], stroke: true },
+  storm: { name: "Storm", symbol: "\u03DF", color: "#bb99ff", from: "#fff3c2", to: "#a49aff", path: "M151 20 L59 138 L118 138 L92 236 L202 108 L136 108 Z", beats: ["water", "fire"] }
+};
+var ELEMENTS2 = Object.freeze(Object.fromEntries(ELEMENT_IDS2.map((id) => [id, Object.freeze({ id, ...raw2[id], beats: Object.freeze(raw2[id].beats) })])));
+var ELEMENT_LIST2 = Object.freeze(ELEMENT_IDS2.map((id) => ELEMENTS2[id]));
 
 // public/game/platform/expansion53.mjs
 var ELEMENT_CARDS = Object.freeze([
@@ -1630,9 +1646,9 @@ var DEFINITIONS = Object.freeze([
   { id: "doge", name: "Doge", short: "Doge", ruleId: "brain", element: "fire", values: [5, 2, 5, 2, 5, 5], ability: "hype", quote: "Such strategy. Much wow.", image: "/game/assets/cards/frame-v21/swollen-doge.webp" },
   { id: "roll-safe", name: "Roll Safe", short: "Roll Safe", ruleId: "trust", element: "stone", values: [5, 5, 5, 3, 3, 3], ability: "twist", quote: "Can\u2019t lose if you think ahead.", image: "/game/assets/cards/v04/roll-safe.webp" },
   ...EXPANSION_CARDS
-].map((c) => Object.freeze({ ...c, element: normalizeElement(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
+].map((c) => Object.freeze({ ...c, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
 var STARTER_IDS = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "confused"]);
-var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS.flatMap((element) => RARITIES.map((rarity) => Object.freeze({
+var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((element) => RARITIES.map((rarity) => Object.freeze({
   id: `${card.id}:${rarity.id}${element === card.element ? "" : ":" + element}`,
   definitionId: card.id,
   element,
@@ -1645,7 +1661,7 @@ var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS.flatMap((eleme
 var definitionOrder = new Map(DEFINITIONS.map((c, i) => [c.id, i]));
 var nativeElement = new Map(DEFINITIONS.map((c) => [c.id, c.element]));
 var rarityOrder = new Map(RARITIES.map((r, i) => [r.id, i]));
-var VARIANTS = Object.freeze(UNSORTED_VARIANTS.sort((a, b) => rarityOrder.get(a.rarity) - rarityOrder.get(b.rarity) || Number(a.element !== nativeElement.get(a.definitionId)) - Number(b.element !== nativeElement.get(b.definitionId)) || definitionOrder.get(a.definitionId) - definitionOrder.get(b.definitionId) || ELEMENT_IDS.indexOf(a.element) - ELEMENT_IDS.indexOf(b.element)));
+var VARIANTS = Object.freeze(UNSORTED_VARIANTS.sort((a, b) => rarityOrder.get(a.rarity) - rarityOrder.get(b.rarity) || Number(a.element !== nativeElement.get(a.definitionId)) - Number(b.element !== nativeElement.get(b.definitionId)) || definitionOrder.get(a.definitionId) - definitionOrder.get(b.definitionId) || ELEMENT_IDS2.indexOf(a.element) - ELEMENT_IDS2.indexOf(b.element)));
 var VARIANT_INDEX = new Map(VARIANTS.map((v) => [v.id, v]));
 function getVariant(id) {
   return VARIANT_INDEX.get(id);
@@ -1687,8 +1703,7 @@ function expandGameDeck(cards, side) {
 }
 
 // public/game/src/rules.mjs
-var VERSION = 1;
-var ELEMENTS2 = { ...ELEMENTS, stone: ELEMENTS.earth };
+var ELEMENTS3 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
 var CATALOG = [
   { id: "oracle", name: "Overthinker", element: "storm", values: [7, 6, 3, 2, 3, 3], face: "hood", quote: "Ich habe 14 Z\xFCge vorausgedacht. Leider die falschen." },
@@ -1702,77 +1717,16 @@ var CATALOG = [
   { id: "brain", name: "Last Braincell", element: "fire", values: [5, 2, 5, 2, 5, 5], face: "cat", quote: "Heute bin ich allein im Dienst." },
   ...EXPANSION_CARDS
 ];
-var LEGACY_IDS = /* @__PURE__ */ new Set(["oracle", "rage", "mage", "moon", "trust", "reset", "grass", "fine", "brain"]);
 var CELLS = [];
 for (let r = -2; r <= 2; r++) for (let q = -2; q <= 2; q++) if (Math.abs(q + r) <= 2) CELLS.push({ id: q + "," + r, q, r });
-var LAYOUTS = [{ id: "core", name: "Kernbruch", block: "0,0" }, { id: "east", name: "Ostpass", block: "1,0" }, { id: "west", name: "Westpass", block: "-1,0" }];
 var CARD_INDEX = new Map(CATALOG.map((c) => [c.id, Object.freeze({ ...c, element: normalizeElement(c.element) })]));
-var ELEMENT_CARD_INDEX = /* @__PURE__ */ new Map();
-function cardOf(card) {
-  const base = CARD_INDEX.get(card.id);
-  if (!base) return void 0;
-  const variant = card.variantId ? getVariant(card.variantId) : null;
-  const element = variant?.element ?? normalizeElement(card.element ?? base.element);
-  if (!Object.hasOwn(ELEMENTS, element)) return void 0;
-  if (element === base.element) return base;
-  const key = base.id + ":" + element;
-  if (!ELEMENT_CARD_INDEX.has(key)) ELEMENT_CARD_INDEX.set(key, Object.freeze({ ...base, element }));
-  return ELEMENT_CARD_INDEX.get(key);
-}
 var cellSet = new Set(CELLS.map((c) => c.id));
-function random(seed) {
-  let n = seed >>> 0;
-  return () => {
-    n = Math.imul(n, 1664525) + 1013904223 >>> 0;
-    return n / 4294967296;
-  };
-}
-function shuffle(a, rng) {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
-  if (![0, 1].includes(starter) || !LAYOUTS.some((l) => l.id === layout)) throw Error("Ung\xFCltige Partieauswahl.");
-  const rng = random(seed), players = [0, 1].map((p) => {
-    const cards = shuffle(CATALOG.filter((c) => LEGACY_IDS.has(c.id)).map((c) => ({ id: c.id, uid: p + ":" + c.id, origin: p })), rng);
-    return { hand: cards.slice(0, 5), deck: cards.slice(5), shifts: 1, flips: 0 };
-  });
-  return { version: VERSION, elementRules: 5, seed, layout, starter, turn: starter, placements: 0, board: {}, block: LAYOUTS.find((l) => l.id === layout).block, players, events: [{ cell: "-1,1", element: "storm" }, { cell: "1,-1", element: "water" }], history: [], last: null, winner: null, finished: false };
-}
 function neighbors(id) {
   const c = CELLS.find((c2) => c2.id === id);
   return c ? DIRECTIONS.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet.has(n.id)) : [];
 }
 var freeCells = (g) => CELLS.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
 var scores = (g) => [0, 1].map((p) => Object.values(g.board).filter((c) => c.controller === p).length);
-var eventPhase = (g) => g.placements >= 12 ? 2 : g.placements >= 6 ? 1 : 0;
-function fieldAt(g, cell) {
-  const f = g.events.find((f2) => f2.cell === cell);
-  if (!f) return null;
-  const phase = eventPhase(g);
-  return { element: phase === 2 ? { storm: "water", water: "storm" }[f.element] : f.element, bonus: phase === 1 ? 2 : 1 };
-}
-function sideValue(card, dir, rotation = card.rotation ?? 0) {
-  return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
-}
-function strength(g, card, cell, dir, opponent) {
-  const base = sideValue(card, dir), field = fieldAt(g, cell), fieldBonus = field?.element === cardOf(card).element ? field.bonus : 0, advantage = elementAdvantage(cardOf(card).element, cardOf(opponent).element, g.elementRules ?? 3) ? 1 : 0;
-  return { base, field: fieldBonus, element: advantage, total: base + fieldBonus + advantage };
-}
-function preview(g, { uid, cell, rotation = 0 }) {
-  if (g.finished) throw Error("Die Runde ist beendet.");
-  const card = g.players[g.turn].hand.find((c) => c.uid === uid);
-  if (!card || !cellSet.has(cell) || cell === g.block || g.board[cell] || !Number.isInteger(rotation) || rotation < 0 || rotation > 5) throw Error("Diese Platzierung ist nicht m\xF6glich.");
-  const incoming = { ...card, rotation, controller: g.turn, flips: 0 };
-  const comparisons = neighbors(cell).filter((n) => g.board[n.id] && g.board[n.id].controller !== g.turn).map((n) => {
-    const other = g.board[n.id], attack = strength(g, incoming, cell, n.dir, other), defend = strength(g, other, n.id, (n.dir + 3) % 6, incoming);
-    return { cell: n.id, attack, defend, flip: attack.total > defend.total, name: cardOf(other).name };
-  });
-  return { card: incoming, cell, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell) };
-}
 function moveTargets(g) {
   return g.finished || !g.players[g.turn].shifts ? [] : neighbors(g.block).map((n) => n.id).filter((id) => !g.board[id]);
 }
@@ -1801,7 +1755,95 @@ function createTacticsLayout(seed) {
   return { block: cells[0], eventCells: cells.slice(1, 3), crossfireOffset: Math.floor(random2() * 3) };
 }
 
-// public/game/src/table-demo-rules.mjs?v=random-layout-1
+// public/game/src/rules.mjs?v=tie-break-63
+var VERSION = 1;
+var ELEMENTS4 = { ...ELEMENTS, stone: ELEMENTS.earth };
+var DIRECTIONS2 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
+var CATALOG2 = [
+  { id: "oracle", name: "Overthinker", element: "storm", values: [7, 6, 3, 2, 3, 3], face: "hood", quote: "Ich habe 14 Z\xFCge vorausgedacht. Leider die falschen." },
+  { id: "rage", name: "Rage Quit", element: "fire", values: [7, 2, 2, 7, 3, 3], face: "cat", quote: "Das war nat\xFCrlich alles Lag." },
+  { id: "mage", name: "404 Mage", element: "water", values: [4, 4, 4, 4, 4, 4], face: "robot", quote: "Zauber gefunden. Kompetenz nicht." },
+  { id: "moon", name: "Moonbound", element: "storm", values: [6, 2, 6, 2, 6, 2], face: "astronaut", quote: "Zum Mond. \xDCber den Umweg." },
+  { id: "trust", name: "Trust Me", element: "stone", values: [5, 5, 5, 3, 3, 3], face: "frog", quote: "Quelle: Vertrau mir, Bruder." },
+  { id: "reset", name: "Hard Reset", element: "stone", values: [6, 5, 4, 4, 3, 2], face: "robot", quote: "Schon mal aus- und wieder angezweifelt?" },
+  { id: "grass", name: "Touch Grass", element: "water", values: [2, 5, 6, 5, 2, 4], face: "frog", quote: "Die Au\xDFenwelt ist auch nur ein anderer Server." },
+  { id: "fine", name: "Fine. Actually.", element: "fire", values: [3, 6, 3, 6, 3, 3], face: "hood", quote: "Alles unter Kontrolle. Ignoriere das Feuer." },
+  { id: "brain", name: "Last Braincell", element: "fire", values: [5, 2, 5, 2, 5, 5], face: "cat", quote: "Heute bin ich allein im Dienst." },
+  ...EXPANSION_CARDS
+];
+var LEGACY_IDS = /* @__PURE__ */ new Set(["oracle", "rage", "mage", "moon", "trust", "reset", "grass", "fine", "brain"]);
+var CELLS2 = [];
+for (let r = -2; r <= 2; r++) for (let q = -2; q <= 2; q++) if (Math.abs(q + r) <= 2) CELLS2.push({ id: q + "," + r, q, r });
+var LAYOUTS = [{ id: "core", name: "Kernbruch", block: "0,0" }, { id: "east", name: "Ostpass", block: "1,0" }, { id: "west", name: "Westpass", block: "-1,0" }];
+var CARD_INDEX2 = new Map(CATALOG2.map((c) => [c.id, Object.freeze({ ...c, element: normalizeElement(c.element) })]));
+var ELEMENT_CARD_INDEX = /* @__PURE__ */ new Map();
+function cardOf(card) {
+  const base = CARD_INDEX2.get(card.id);
+  if (!base) return void 0;
+  const variant = card.variantId ? getVariant(card.variantId) : null;
+  const element = variant?.element ?? normalizeElement(card.element ?? base.element);
+  if (!Object.hasOwn(ELEMENTS, element)) return void 0;
+  if (element === base.element) return base;
+  const key = base.id + ":" + element;
+  if (!ELEMENT_CARD_INDEX.has(key)) ELEMENT_CARD_INDEX.set(key, Object.freeze({ ...base, element }));
+  return ELEMENT_CARD_INDEX.get(key);
+}
+var cellSet2 = new Set(CELLS2.map((c) => c.id));
+function random(seed) {
+  let n = seed >>> 0;
+  return () => {
+    n = Math.imul(n, 1664525) + 1013904223 >>> 0;
+    return n / 4294967296;
+  };
+}
+function shuffle(a, rng) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
+  if (![0, 1].includes(starter) || !LAYOUTS.some((l) => l.id === layout)) throw Error("Ung\xFCltige Partieauswahl.");
+  const rng = random(seed), players = [0, 1].map((p) => {
+    const cards = shuffle(CATALOG2.filter((c) => LEGACY_IDS.has(c.id)).map((c) => ({ id: c.id, uid: p + ":" + c.id, origin: p })), rng);
+    return { hand: cards.slice(0, 5), deck: cards.slice(5), shifts: 1, flips: 0 };
+  });
+  return { version: VERSION, elementRules: 5, seed, layout, starter, turn: starter, placements: 0, board: {}, block: LAYOUTS.find((l) => l.id === layout).block, players, events: [{ cell: "-1,1", element: "storm" }, { cell: "1,-1", element: "water" }], history: [], last: null, winner: null, finished: false };
+}
+function neighbors2(id) {
+  const c = CELLS2.find((c2) => c2.id === id);
+  return c ? DIRECTIONS2.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet2.has(n.id)) : [];
+}
+var freeCells2 = (g) => CELLS2.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
+var scores2 = (g) => [0, 1].map((p) => Object.values(g.board).filter((c) => c.controller === p).length);
+var eventPhase = (g) => g.placements >= 12 ? 2 : g.placements >= 6 ? 1 : 0;
+function fieldAt(g, cell) {
+  const f = g.events.find((f2) => f2.cell === cell);
+  if (!f) return null;
+  const phase = eventPhase(g);
+  return { element: phase === 2 ? { storm: "water", water: "storm" }[f.element] : f.element, bonus: phase === 1 ? 2 : 1 };
+}
+function sideValue(card, dir, rotation = card.rotation ?? 0) {
+  return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
+}
+function strength(g, card, cell, dir, opponent) {
+  const base = sideValue(card, dir), field = fieldAt(g, cell), fieldBonus = field?.element === cardOf(card).element ? field.bonus : 0, advantage = elementAdvantage(cardOf(card).element, cardOf(opponent).element, g.elementRules ?? 3) ? 1 : 0;
+  return { base, field: fieldBonus, element: advantage, total: base + fieldBonus + ((g.elementRules ?? 3) === 3 ? advantage : 0) };
+}
+function preview(g, { uid, cell, rotation = 0 }) {
+  if (g.finished) throw Error("Die Runde ist beendet.");
+  const card = g.players[g.turn].hand.find((c) => c.uid === uid);
+  if (!card || !cellSet2.has(cell) || cell === g.block || g.board[cell] || !Number.isInteger(rotation) || rotation < 0 || rotation > 5) throw Error("Diese Platzierung ist nicht m\xF6glich.");
+  const incoming = { ...card, rotation, controller: g.turn, flips: 0 };
+  const comparisons = neighbors2(cell).filter((n) => g.board[n.id] && g.board[n.id].controller !== g.turn).map((n) => {
+    const other = g.board[n.id], attack = strength(g, incoming, cell, n.dir, other), defend = strength(g, other, n.id, (n.dir + 3) % 6, incoming);
+    return { cell: n.id, attack, defend, flip: attackWins(attack, defend, g.elementRules ?? 3), name: cardOf(other).name };
+  });
+  return { card: incoming, cell, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell) };
+}
+
+// public/game/src/table-demo-rules.mjs?v=tie-break-63
 var table_demo_rules_exports = {};
 __export(table_demo_rules_exports, {
   ABILITIES: () => ABILITIES,
@@ -1866,7 +1908,7 @@ function nextEvent(game) {
 }
 function fieldText(f) {
   if (!f) return "Normales Feld";
-  return FIELD_TYPES[f.type].name + (f.type === "resonance" ? " \xB7 " + ELEMENTS2[f.element].name + " +1" : f.type === "crossfire" ? " \xB7 " + f.directions.map((d) => DIRECTION_NAMES[d]).join("/") + " +1" : " \xB7 F\xE4higkeiten aus");
+  return FIELD_TYPES[f.type].name + (f.type === "resonance" ? " \xB7 " + ELEMENTS4[f.element].name + " +1" : f.type === "crossfire" ? " \xB7 " + f.directions.map((d) => DIRECTION_NAMES[d]).join("/") + " +1" : " \xB7 F\xE4higkeiten aus");
 }
 function abilityAt(game, card, cell) {
   return card.ability && eventFieldAt(game, cell)?.type !== "silence" ? card.ability : null;
@@ -1875,13 +1917,13 @@ function guardActive(game, card, cell) {
   return abilityAt(game, card, cell) === "guard" && card.guardOwner === card.controller && game.placements < card.guardUntil;
 }
 function twistTargets(game, cell) {
-  return neighbors(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
+  return neighbors2(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
 }
 function effectStrength(game, card, cell, dir, opponent, { attacking = false, abilityDirection = null } = {}) {
   const f = eventFieldAt(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
   const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const ability = attacking ? abilityAt(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS : 0;
-  return { base, field, element, ability, total: base + field + element + ability };
+  return { base, field, element, ability, total: base + field + ability + ((game.elementRules ?? 3) === 3 ? element : 0) };
 }
 function previewEffect(game, action) {
   const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
@@ -1909,9 +1951,9 @@ function previewEffect(game, action) {
     card.guardOwner = game.turn;
     card.guardUntil = game.placements + 2;
   }
-  const comparisons = neighbors(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
+  const comparisons = neighbors2(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attack.total > defend.total, name: cardOf(other).name };
+    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf(other).name };
   });
   return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
 }
@@ -1932,9 +1974,9 @@ function placeEffect(game, action) {
   next.placements++;
   next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
   next.history.push(next.last);
-  if (freeCells(next).length === 0) {
+  if (freeCells2(next).length === 0) {
     next.finished = true;
-    const s = scores(next);
+    const s = scores2(next);
     next.winner = s[0] === s[1] ? null : s[0] > s[1] ? 0 : 1;
   } else next.turn = 1 - side;
   return next;
@@ -1944,7 +1986,7 @@ function actionOptions(game, card, cell, rotation) {
   return directions.flatMap((abilityDirection) => targets.map((twistCell) => ({ uid: card.uid, cell, rotation, abilityDirection, twistCell })));
 }
 
-// public/game/src/tactics-ai.mjs?v=random-layout-1
+// public/game/src/tactics-ai.mjs?v=tie-break-63
 var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 
 // public/game/src/table-demo-state.mjs
@@ -2038,13 +2080,13 @@ function guardActive2(game, card, cell) {
   return abilityAt2(game, card, cell) === "guard" && card.guardOwner === card.controller && game.placements < card.guardUntil;
 }
 function twistTargets2(game, cell) {
-  return neighbors(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
+  return neighbors2(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
 }
 function effectStrength2(game, card, cell, dir, opponent, { attacking = false, abilityDirection = null } = {}) {
   const f = eventFieldAt2(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
   const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const ability = attacking ? abilityAt2(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive2(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS2 : 0;
-  return { base, field, element, ability, total: base + field + element + ability };
+  return { base, field, element, ability, total: base + field + ability + ((game.elementRules ?? 3) === 3 ? element : 0) };
 }
 function previewEffect2(game, action) {
   const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
@@ -2072,9 +2114,9 @@ function previewEffect2(game, action) {
     card.guardOwner = game.turn;
     card.guardUntil = game.placements + 2;
   }
-  const comparisons = neighbors(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
+  const comparisons = neighbors2(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength2(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength2(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attack.total > defend.total, name: cardOf(other).name };
+    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf(other).name };
   });
   return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
 }
@@ -2095,9 +2137,9 @@ function placeEffect2(game, action) {
   next.placements++;
   next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
   next.history.push(next.last);
-  if (freeCells(next).length === 0) {
+  if (freeCells2(next).length === 0) {
     next.finished = true;
-    const s = scores(next);
+    const s = scores2(next);
     next.winner = s[0] === s[1] ? null : s[0] > s[1] ? 0 : 1;
   } else next.turn = 1 - side;
   return next;
@@ -2107,8 +2149,8 @@ function placeEffect2(game, action) {
 var ARCHETYPES2 = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 function legalCandidates(game, rules = table_demo_rules_exports) {
   const result = [];
-  for (const card of game.players[game.turn].hand) for (const cell of freeCells(game)) for (const rotation of game.rotationLocked ? [0] : [0, 1, 2, 3, 4, 5]) {
-    const around = neighbors(cell), ability = rules.abilityAt(game, card, cell), relevant = ability === "hype" ? around.filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.dir) : ability === "guard" && rules.GUARD_ARC === 6 ? [0] : ability === "guard" ? around.filter((n) => n.id !== game.block && !game.board[n.id]).map((n) => n.dir) : [0], directions = relevant.length ? relevant : [0];
+  for (const card of game.players[game.turn].hand) for (const cell of freeCells2(game)) for (const rotation of game.rotationLocked ? [0] : [0, 1, 2, 3, 4, 5]) {
+    const around = neighbors2(cell), ability = rules.abilityAt(game, card, cell), relevant = ability === "hype" ? around.filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.dir) : ability === "guard" && rules.GUARD_ARC === 6 ? [0] : ability === "guard" ? around.filter((n) => n.id !== game.block && !game.board[n.id]).map((n) => n.dir) : [0], directions = relevant.length ? relevant : [0];
     for (const action of rules.actionOptions(game, card, cell, rotation)) if (directions.includes(action.abilityDirection)) {
       const plan = rules.previewEffect(game, action);
       result.push({ action, plan });
@@ -2118,7 +2160,7 @@ function legalCandidates(game, rules = table_demo_rules_exports) {
 }
 function positionalValue(game, { action, plan }, rules = table_demo_rules_exports) {
   let safety = 0, contacts = 0;
-  for (const n of neighbors(action.cell)) {
+  for (const n of neighbors2(action.cell)) {
     if (n.id === game.block) continue;
     const other = plan.board[n.id];
     if (!other) {
@@ -2130,7 +2172,7 @@ function positionalValue(game, { action, plan }, rules = table_demo_rules_export
   for (const t of plan.transforms) {
     if (t.temporary) continue;
     const before = game.board[t.cell], after = plan.board[t.cell];
-    for (const n of neighbors(t.cell)) if (!game.board[n.id] && n.id !== game.block) twistSafety += (sideValue(before, n.dir) - sideValue(after, n.dir)) * 0.18;
+    for (const n of neighbors2(t.cell)) if (!game.board[n.id] && n.id !== game.block) twistSafety += (sideValue(before, n.dir) - sideValue(after, n.dir)) * 0.18;
   }
   return plan.flips.length * 2 + safety * 0.42 + contacts * 0.16 + twistSafety;
 }
@@ -2146,15 +2188,15 @@ function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
     future.demoFields = rules.eventFields(copy).map((f) => rotateField(f, game.auditOrientation));
   }
   let worst = 0;
-  for (const cell of freeCells(future)) {
-    const enemies = neighbors(cell).filter((n) => board[n.id]?.controller === game.turn);
+  for (const cell of freeCells2(future)) {
+    const enemies = neighbors2(cell).filter((n) => board[n.id]?.controller === game.turn);
     if (!enemies.length) continue;
     for (const id of ARCHETYPES2) for (const element of game.elementRules === 5 ? ELEMENT_IDS : [void 0]) for (const rotation of game.rotationLocked ? [0] : [0, 1, 2, 3, 4, 5]) {
       const card = { id, element, rotation, controller: future.turn };
       let flips = 0;
       for (const n of enemies) {
         const other = board[n.id], a = rules.effectStrength(future, card, cell, n.dir, other, { attacking: true }), d = rules.effectStrength(future, other, n.id, (n.dir + 3) % 6, card);
-        if (a.total > d.total) flips++;
+        if (attackWins(a, d, future.elementRules ?? 3)) flips++;
       }
       worst = Math.max(worst, flips);
     }
@@ -2192,13 +2234,82 @@ function chooseTactic2(game, { rules = table_demo_rules_exports, policy = "reply
   return { chosen, candidates };
 }
 
+// public/game/src/table-demo-rules.mjs?v=random-layout-1
+var TACTIC_BEATS3 = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
+var GUARD_BONUS3 = 2;
+var FIELD_PHASES3 = [
+  [{ cell: "-1,0", type: "resonance", element: "storm" }, { cell: "0,1", type: "crossfire", directions: [0, 3] }],
+  [{ cell: "-1,0", type: "silence" }, { cell: "0,1", type: "resonance", element: "fire" }],
+  [{ cell: "-1,0", type: "resonance", element: "stone" }, { cell: "0,1", type: "crossfire", directions: [1, 4] }]
+];
+function eventFields3(game) {
+  if (game.demoFields) return game.demoFields;
+  const phase = eventPhase(game);
+  return FIELD_PHASES3[phase].map((template, index) => {
+    const field = { ...template, cell: game.eventCells?.[index] ?? template.cell };
+    if (field.type === "resonance") field.element = (game.elementRules === 5 ? ELEMENT_IDS : ["storm", "fire", "earth"])[(phase + (game.resonanceOffset ?? 0)) % (game.elementRules === 5 ? 5 : 3)];
+    if (field.directions) field.directions = field.directions.map((d) => (d + (game.crossfireOffset ?? 0)) % 6);
+    return field;
+  });
+}
+function eventFieldAt3(game, cell) {
+  return cell === game.block ? null : eventFields3(game).find((f) => f.cell === cell) ?? null;
+}
+function abilityAt3(game, card, cell) {
+  return card.ability && eventFieldAt3(game, cell)?.type !== "silence" ? card.ability : null;
+}
+function guardActive3(game, card, cell) {
+  return abilityAt3(game, card, cell) === "guard" && card.guardOwner === card.controller && game.placements < card.guardUntil;
+}
+function twistTargets3(game, cell) {
+  return neighbors2(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
+}
+function effectStrength3(game, card, cell, dir, opponent, { attacking = false, abilityDirection = null } = {}) {
+  const f = eventFieldAt3(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
+  const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
+  const ability = attacking ? abilityAt3(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive3(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS3 : 0;
+  return { base, field, element, ability, total: base + field + ability + ((game.elementRules ?? 3) === 3 ? element : 0) };
+}
+function previewEffect3(game, action) {
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
+  if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
+  preview(game, { uid, cell, rotation });
+  if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
+  const working = { ...game, board: { ...game.board } };
+  for (const [cell2, old] of Object.entries(working.board)) if (old.guardOwner === game.turn) {
+    const c = { ...old };
+    delete c.guardOwner;
+    delete c.guardUntil;
+    delete c.guardDirection;
+    working.board[cell2] = c;
+  }
+  const card = { ...working.players[game.turn].hand.find((c) => c.uid === uid), rotation, controller: game.turn, flips: 0 }, ability = abilityAt3(working, card, cell), transforms = [];
+  if (twistCell !== null) {
+    if (ability !== "twist" || !twistTargets3(working, cell).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
+    const target = { ...working.board[twistCell] };
+    working.board[twistCell] = target;
+    transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
+    target.rotation = (target.rotation + 1) % 6;
+  }
+  if (ability === "guard") {
+    card.guardDirection = abilityDirection;
+    card.guardOwner = game.turn;
+    card.guardUntil = game.placements + 2;
+  }
+  const comparisons = neighbors2(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
+    const other = working.board[n.id], attack = effectStrength3(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength3(working, other, n.id, (n.dir + 3) % 6, card);
+    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf(other).name };
+  });
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
+}
+
 // public/game/src/turn-clock.mjs
 function timeoutAction(game) {
   if (game.finished) return null;
   for (const card of game.players[game.turn].hand) for (const cell of freeCells(game)) {
     const action = { uid: card.uid, cell, rotation: 0, abilityDirection: 0, twistCell: null };
     try {
-      previewEffect(game, action);
+      previewEffect3(game, action);
       return action;
     } catch {
     }

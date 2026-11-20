@@ -1,4 +1,4 @@
-import {ELEMENTS as FIVE_ELEMENTS,normalizeElement,elementAdvantage} from '../platform/elements53.mjs';
+import {ELEMENTS as FIVE_ELEMENTS,normalizeElement,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {getVariant} from '../platform/catalog.mjs';
 import {EXPANSION_CARDS} from '../platform/expansion27.mjs';
 export const VERSION=1;
@@ -44,13 +44,13 @@ export const scores=g=>[0,1].map(p=>Object.values(g.board).filter(c=>c.controlle
 export const eventPhase=g=>g.placements>=12?2:g.placements>=6?1:0;
 export function fieldAt(g,cell){const f=g.events.find(f=>f.cell===cell);if(!f)return null;const phase=eventPhase(g);return {element:phase===2?({storm:'water',water:'storm'}[f.element]):f.element,bonus:phase===1?2:1};}
 export function sideValue(card,dir,rotation=card.rotation??0){return cardOf(card).values[((dir-rotation)%6+6)%6];}
-export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,total:base+fieldBonus+advantage};}
+export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,total:base+fieldBonus+((g.elementRules??3)===3?advantage:0)};}
 export function preview(g,{uid,cell,rotation=0}){
  if(g.finished)throw Error('Die Runde ist beendet.');
  const card=g.players[g.turn].hand.find(c=>c.uid===uid);
  if(!card||!cellSet.has(cell)||cell===g.block||g.board[cell]||!Number.isInteger(rotation)||rotation<0||rotation>5)throw Error('Diese Platzierung ist nicht möglich.');
  const incoming={...card,rotation,controller:g.turn,flips:0};
- const comparisons=neighbors(cell).filter(n=>g.board[n.id]&&g.board[n.id].controller!==g.turn).map(n=>{const other=g.board[n.id],attack=strength(g,incoming,cell,n.dir,other),defend=strength(g,other,n.id,(n.dir+3)%6,incoming);return {cell:n.id,attack,defend,flip:attack.total>defend.total,name:cardOf(other).name};});
+ const comparisons=neighbors(cell).filter(n=>g.board[n.id]&&g.board[n.id].controller!==g.turn).map(n=>{const other=g.board[n.id],attack=strength(g,incoming,cell,n.dir,other),defend=strength(g,other,n.id,(n.dir+3)%6,incoming);return {cell:n.id,attack,defend,flip:attackWins(attack,defend,g.elementRules??3),name:cardOf(other).name};});
  return {card:incoming,cell,comparisons,flips:comparisons.filter(c=>c.flip).map(c=>c.cell)};
 }
 export function moveTargets(g){return g.finished||!g.players[g.turn].shifts?[]:neighbors(g.block).map(n=>n.id).filter(id=>!g.board[id]);}
