@@ -3,7 +3,7 @@ import {ELEMENT_LIST} from '../../../public/game/platform/elements53.mjs';
 import {useEffect,useState} from 'react';
 import {loadBoosterHistory,type BoosterPurchase,type PlayerState} from '@/lib/duelverse/account';
 import usePlayerCollection from './usePlayerCollection';
-import {PlayerAreaGate,PlayerAccountActions} from './PlayerArea';
+import {PlayerAreaGate} from './PlayerArea';
 import GameCardFace from './GameCardFace';
 import {DEFINITIONS,RARITIES,getVariant,validateDeck} from '../../../public/game/platform/catalog.mjs';
 import {summarizeDeck} from '../../../public/game/platform/deck-library28.mjs';
@@ -26,6 +26,5 @@ function Dashboard(){
    <section className="player-panel recent-booster-panel" aria-labelledby="recent-booster-title"><header><h2 id="recent-booster-title">Recent boosters</h2><a href="/account/private/boosters">View history</a></header>{loading?<p role="status">Loading saved boosters…</p>:historyError?<div><p className="error" role="alert">{historyError}</p><button className="player-quiet-link" onClick={()=>setReload(n=>n+1)}>Try again</button></div>:recent.length?<div className="player-recent-list">{recent.map(pack=>{const progress=boosterProgress(pack);return <a key={pack.id} href={boosterLink(pack.id)} className="player-recent-pack"><img src="/game/assets/cards/frame-v21/memex-back.webp" alt=""/><span><strong>Alpha Booster</strong><small>{pack.currency==='starter'?'Welcome gift · ':''}{progress.label} · {progress.revealed}/5 revealed</small></span><em>{progress.action}</em></a>;})}</div>:<div className="player-empty-boosters"><img src="/game/assets/cards/frame-v21/memex-back.webp" alt=""/><p>No boosters yet.</p><span>Your next five cards are waiting.</span></div>}<a className="button glass" href="/boosters">Explore Alpha Boosters</a></section>
   </div>
   <div className="player-shortcuts"><a href="/collection"><strong>Your collection</strong><span>Explore, craft and recycle spare cards.</span></a><a href="/decks"><strong>Your decks</strong><span>Build, name and save your next strategy.</span></a></div>
-  <PlayerAccountActions/>
  </section>;
 }

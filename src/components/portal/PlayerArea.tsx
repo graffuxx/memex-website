@@ -11,7 +11,7 @@ export default function PlayerArea({children}:{children:ReactNode}){
  const {ready,userId,player,testMode}=usePlayerCollection(),path=usePathname();
  const visible=ready&&userId&&!testMode&&playerAreaRoute(path);
  if(!visible)return <>{children}</>;
- return <div className="player-area"><header className="player-area-bar"><nav aria-label="Player area">{PLAYER_LINKS.map(([url,label])=><a key={url} href={url} aria-current={path===url?'page':undefined}>{label}</a>)}</nav><PlayerBalances ready={ready} userId={userId} player={player}/></header><div className="player-area-content">{children}</div></div>;
+ return <div className="player-area"><header className="player-area-bar"><nav aria-label="Player area">{PLAYER_LINKS.map(([url,label])=><a key={url} href={url} aria-current={path===url?'page':undefined}>{label}</a>)}</nav><div className="player-area-tools"><PlayerBalances ready={ready} userId={userId} player={player}/><PlayerAccountActions/></div></header><div className="player-area-content">{children}</div></div>;
 }
 export function PlayerAreaGate({children}:{children:ReactNode}){
  const {ready,userId,player,error,refresh}=usePlayerCollection(),[retrying,setRetrying]=useState(false);
@@ -22,5 +22,9 @@ export function PlayerAreaGate({children}:{children:ReactNode}){
 }
 export function PlayerAccountActions(){
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);
- return <details className="player-account-options"><summary>Account options</summary><div><a href="/account/reset">Reset password</a><button disabled={busy} onClick={async()=>{setBusy(true);setError('');const result=await supabase.auth.signOut();if(result.error){setError('Sign out failed. Please retry.');setBusy(false);}else window.location.assign('/account');}}>{busy?'Signing out…':'Sign out'}</button></div>{error&&<p role="alert">{error}</p>}</details>;
+ return <div className="player-account-controls" role="group" aria-label="Account controls">
+  <a className="player-password-action" href="/account/reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="8" cy="8" r="4"/><path d="m11 11 9 9m-4-4 3-3m-6 0 3-3"/></svg><span>Reset password</span></a>
+  <button className="player-logout-action" type="button" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{const result=await supabase.auth.signOut();if(result.error)throw result.error;window.location.assign('/account');}catch{setError('Log out failed. Please retry.');setBusy(false);}}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M10 4H5v16h5M10 12h11m-4-4 4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg><span>{busy?'Logging out…':'Log out'}</span></button>
+  {error&&<p className="player-account-error" role="alert">{error}</p>}
+ </div>;
 }
