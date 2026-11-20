@@ -7,6 +7,7 @@ export default function Footer() {
     <footer className={styles.footer}>
       <p>© 2025 <strong>MemeX</strong> · <strong>Duelverse</strong>. All rights reserved.</p>
       <p>Made with ❤️ for the Meme Community</p>
+      <nav className={styles.legalLinks} aria-label="Legal"><a href="/impressum">Impressum</a></nav>
     </footer>
   );
 }

@@ -69,6 +69,11 @@
   color: #ffffff;
 }
 
+.legalLinks{position:relative;z-index:2;margin-top:14px}
+.legalLinks a{color:rgba(234,220,249,.85);text-decoration:underline;text-underline-offset:4px}
+.legalLinks a:hover{color:#ffe1a4}
+.legalLinks a:focus-visible{outline:2px solid #ffe1a4;outline-offset:5px}
+
 /* ✅ Mobile */
 @media (max-width: 768px) {
   .footer {
