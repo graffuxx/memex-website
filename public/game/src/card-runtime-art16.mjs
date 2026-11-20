@@ -52,7 +52,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   faces.set(cacheKey,target);return target.texture;
  }
  function faceGeometry(){return new T.PlaneGeometry(2.096,2.096);}
- const ownerTitleGeometry=new T.PlaneGeometry(.07,.07),ownerTitleTextures=new Map();
+ const ownerTitleGeometry=new T.PlaneGeometry(.18,.18),ownerTitleTextures=new Map();
  function ownerTitleTexture(profile,side){
   const key=String(side);if(ownerTitleTextures.has(key))return ownerTitleTextures.get(key);
   const marker=ownerMarker(side),c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d');
@@ -78,7 +78,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   const frontMaterial=new T.MeshBasicMaterial({map:bake(profile,rotation,false,rarity),transparent:true,alphaTest:.025,toneMapped:false}),front=new T.Mesh(face,frontMaterial);front.position.z=.035;group.add(front);
   const back=new T.Mesh(face,backMaterial);back.rotation.y=Math.PI;back.position.z=-.035;group.add(back);
   const finish=createCardFinishLayer(rarity,owner,uid);group.add(finish.root);
-  const ownerTitleMaterial=new T.MeshBasicMaterial({map:ownerTitleTexture(profile,owner),transparent:true,depthWrite:false,toneMapped:false}),ownerTitle=new T.Mesh(ownerTitleGeometry,ownerTitleMaterial);ownerTitle.position.set(-.43,FRAME_LAYOUT.titleY,.069);ownerTitle.visible=owner===0||owner===1;group.add(ownerTitle);
+  const ownerTitleMaterial=new T.MeshBasicMaterial({map:ownerTitleTexture(profile,owner),transparent:true,depthWrite:false,toneMapped:false}),ownerTitle=new T.Mesh(ownerTitleGeometry,ownerTitleMaterial);ownerTitle.position.set(-.49,FRAME_LAYOUT.titleY,.079);ownerTitle.visible=owner===0||owner===1;group.add(ownerTitle);
   const badgeMaterial=new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}),badge=new T.Mesh(badgeGeometry,badgeMaterial);badge.position.set(0,CARD_SPEC.socketY,.07);badge.visible=false;group.add(badge);const boost=new T.Mesh(boostGeometry,boostMaterial);boost.visible=false;group.add(boost);
   const socket=new T.Mesh(new T.CircleGeometry(.127,32),new T.MeshBasicMaterial({color:'#101829',toneMapped:false}));socket.position.set(0,FRAME_LAYOUT.elementY,.073);group.add(socket);
   const glyphMaterial=new T.MeshBasicMaterial({map:elementTextures.get(element),transparent:true,depthWrite:false,toneMapped:false}),glyph=new T.Mesh(new T.PlaneGeometry(.245,.245),glyphMaterial);glyph.position.set(0,FRAME_LAYOUT.elementY,.075);group.add(glyph);
