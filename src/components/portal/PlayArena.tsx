@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import BrandPage from './BrandPage';
 import RewardedDuelLauncher from './RewardedDuelLauncher';
+import Matchmaking90 from './Matchmaking90';
 import usePlayerCollection from './usePlayerCollection';
 import GameCardFace from './GameCardFace';
 import {DEFINITIONS,RARITIES,getVariant,starterDeck,starterInventory,validateDeck} from '../../../public/game/platform/catalog.mjs';
@@ -12,10 +13,11 @@ import './solo84.css';
 type Mode='training'|'deck-test';
 type Selection={cards:string[];name:string;source:string;deckId?:string|null};
 export default function PlayArena(){
- const [route,setRoute]=useState<{mode:Mode|'duel';deck:string|null}|null>(null);
- useEffect(()=>{const p=new URLSearchParams(window.location.search),m=p.get('mode');setRoute({mode:m==='duel'?'duel':m==='deck-test'?'deck-test':'training',deck:p.get('deck')});},[]);
- if(!route)return <div className="solo-loading84" role="status">Preparing solo play…</div>;
- if(route.mode==='duel')return <RewardedDuelLauncher/>;
+ const [route,setRoute]=useState<{mode:Mode|'duel'|'ai-duel';deck:string|null}|null>(null);
+ useEffect(()=>{const p=new URLSearchParams(window.location.search),m=p.get('mode');setRoute({mode:m==='ai-duel'?'ai-duel':m==='deck-test'?'deck-test':m==='training'?'training':'duel',deck:p.get('deck')});},[]);
+ if(!route)return <div className="solo-loading84" role="status">Preparing Duelverse…</div>;
+ if(route.mode==='ai-duel')return <RewardedDuelLauncher/>;
+ if(route.mode==='duel')return <BrandPage><Matchmaking90/></BrandPage>;
  return <BrandPage><SoloHub initialMode={route.mode} requestedDeck={route.deck}/></BrandPage>;
 }
 function SoloHub({initialMode,requestedDeck}:{initialMode:Mode;requestedDeck:string|null}){
@@ -39,6 +41,6 @@ function SoloHub({initialMode,requestedDeck}:{initialMode:Mode;requestedDeck:str
  <div className="solo-actions84"><button className="button gold" disabled={!canStart} onClick={start}>{launching?'Starting…':!ready?'Loading your deck…':mode==='training'?'Start training':'Test this deck'}</button>{mode==='training'&&<a className="button glass" href={owned?'/decks?deck='+encodeURIComponent(owned.id):'/decks'}>Deck builder</a>}{mode==='deck-test'&&<a className="button glass" href="/decks?test=1">Build with all cards</a>}</div>
  {!valid&&ready&&<p className="solo-error84">Choose a valid 15-card deck before starting.</p>}
  </div><aside className="solo-deck84" aria-label="Selected deck preview"><div className="solo-deck-art84">{[...new Set(selected?.cards??[])].slice(0,3).map((id,i)=>{const v=getVariant(id)!,card=DEFINITIONS.find(c=>c.id===v.definitionId)!,rarity=RARITIES.find(r=>r.id===v.rarity)!;return <div key={i}><GameCardFace card={{...card,element:v.element}} variant={v} color={rarity.color} compact/></div>;})}</div><h3>{selected?.name??'Your next deck'}</h3><div className="solo-facts84"><span>15 cards</span><span>2 rounds</span><span>Free practice</span></div><p>Hints suggest a move without playing it. Random fields and reshuffled decks keep each duel different.</p><small>Training and deck tests award no Pixels and do not change your collection.</small></aside></div>
- {userId&&<div className="solo-reward-link84"><span>Want to play for Pixels?</span><a href="/play?mode=duel">Standard AI duel · Win +5 / Loss or draw +2</a></div>}
+ {userId&&<div className="solo-reward-link84"><span>Ready for another player?</span><a href="/play">Find an online duel</a></div>}
  </section>;
 }

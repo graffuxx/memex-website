@@ -46,14 +46,24 @@ can equip automatically. XP and wins are never writable by clients. Apply
 `202611200008_player_identity85.sql` after the preceding migrations; applied live
 on 20 November 2026. Existing verified wins are included. Profile cosmetics in the
 shop are previews only; premium and limited editions are not on sale yet.
-Skill titles use verified round feats instead of early wins or player levels.
+Skill titles use verified Random PvP round feats instead of early wins or player levels.
 Double Trouble requires 50 turns with at least two captures; triple/quad captures,
 comebacks, dominant wins and 2–0 double duels have separate milestones. Counters
 commit once per completed server round. Local training, deck tests and abandoned
-rounds never grant progress. Only retained complete older histories are recovered.
+rounds never grant progress. Earlier AI statistics remain in the audit tables but no longer count toward titles.
 Apply `202611200010_skill_titles88.sql` after the name migration.
 Then apply `202611200011_quad_luck89.sql`: Four of a Kind needs one quad flip;
 Your Final Boss needs 50 triple-flip turns and 50 double-duel sweeps, with no quad requirement.
+Apply `202611200012_matchmaking90.sql` next. `/play` offers real Random pairing,
+private invitation duels, and disabled Ranked (Coming soon). The existing Vercel
+server uses `SUPABASE_SERVICE_ROLE_KEY` for `/api/duel`; no browser receives this key.
+One active match per account; both decks are checked and frozen at pairing. Only
+own hand and played cards are revealed; future draws and opponent cards stay hidden.
+Server deadlines enforce 90-second turns, both players confirm the return round,
+and reconnect restores the saved board. Only completed Random rounds grant titles
+and 5/2 Pixels; private matches grant no currencies, XP or titles. Random has no AI
+fallback or skill rating yet. Run `node scripts/preview-matchmaking90.mjs` for isolated
+two-tab QA with disposable accounts (loopback only, no production credentials).
 Booster purchases and openings are saved atomically; paid currency is separately
 verified by the payment service. Return rounds reshuffle both decks.
 

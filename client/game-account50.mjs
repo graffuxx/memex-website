@@ -16,3 +16,12 @@ export async function connectAccountGame({sandbox=false}={}){
  if(stored.id){try{resumed=await invoke({op:'resume',id:stored.id});current=resumed;}catch(e){if(e.status!==404)throw e;stored.id=null;persist();}}
  return {profile,resumed,forget(){if(!pending)localStorage.removeItem(storageKey);},get current(){return current;},get pending(){return Boolean(pending);},start(settings){return mutate({op:'start',id:crypto.randomUUID(),...settings});},move(move){if(!current)throw Error('Kein gespeichertes Duell.');return mutate({op:'action',id:current.id,version:current.version,requestId:crypto.randomUUID(),move});},async refreshWallet(){return (await invoke({op:'profile'})).wallet;}};
 }
+
+// Same-origin online service: authentication stays with the player's existing account.
+export async function connectOnline90(id){
+ const first=await auth.auth.getSession(),userId=first.data.session?.user.id;if(!userId)throw Error('Sign in to resume this duel.');
+ const storageKey='duelverse.online90.'+userId+'.'+id;let pending=null;try{pending=JSON.parse(localStorage.getItem(storageKey)??'null');}catch{}
+ async function invoke(body){const {data:{session}}=await auth.auth.getSession();if(!session||session.user.id!==userId)throw Error('Sign in with the same player account to resume.');const res=await fetch('/api/duel',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw Object.assign(Error(data.error??'Duel unavailable.'),{status:res.status});return data;}
+ async function send(){try{const data=await invoke(pending);pending=null;localStorage.removeItem(storageKey);return data;}catch(e){if(e.status&&e.status<500&&e.status!==429){pending=null;localStorage.removeItem(storageKey);}throw e;}}
+ return {async poll(version){if(pending)return send();return invoke({op:'poll',id,version});},async move(version,move){if(pending)return send();pending={op:'move',id,version,requestId:crypto.randomUUID(),move};localStorage.setItem(storageKey,JSON.stringify(pending));return send();}};
+}
