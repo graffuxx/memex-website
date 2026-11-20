@@ -69,3 +69,5 @@
  .dv-portal .original-page-content:has(>.deck-builder)>footer{display:none}
 }
 @media(max-height:790px) and (min-width:901px){.dv-portal .deck-pool-preview .duelverse-card{max-width:135px}.dv-portal .deck-catalog-footer{padding-top:6px;padding-bottom:6px}}
+
+.dv-portal .deck-sandbox-link{display:inline-block;margin-top:7px;font-size:14px;color:#e1b8ff;text-decoration:underline;text-underline-offset:3px}.dv-portal .deck-sandbox-link:hover{color:#ffe2ad}
