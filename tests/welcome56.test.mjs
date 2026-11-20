@@ -5,9 +5,9 @@ import {validateDeck} from '../public/game/platform/catalog.mjs';
 const uid=n=>'56565656-5656-4565-8565-'+String(n).padStart(12,'0');
 test('welcome grant: verified accounts get ten saved packs exactly once, free and paid share protection, no caller can self-grant',async()=>{
  const db=new PGlite();try{
-  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
   for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
-  await db.query('insert into auth.users values($1,now(),false),($2,null,false),($3,now(),true),($4,now(),false)',[uid(1),uid(2),uid(3),uid(4)]);
+  await db.query("insert into auth.users values($1,now(),false,'one@example.test'),($2,null,false,'two@example.test'),($3,now(),true,'anon@example.test'),($4,now(),false,'four@example.test')",[uid(1),uid(2),uid(3),uid(4)]);
   const asUser=async n=>db.exec(`reset role;set role authenticated;set request.jwt.claim.sub='${uid(n)}';`);
   await asUser(1);await Promise.all(Array.from({length:8},()=>db.query('select public.dv_initialize_account()')));
   const packs=(await db.query('select * from public.dv_booster_purchases36')).rows;assert.equal(packs.length,10);assert.equal(new Set(packs.map(p=>p.request_id)).size,10);
