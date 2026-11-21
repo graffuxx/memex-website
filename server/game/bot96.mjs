@@ -3,7 +3,8 @@ import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
 import {ELEMENT_IDS} from '../../public/game/platform/elements53.mjs';
 import {chooseTactic} from '../../public/game/src/tactics-ai.mjs';
 import {advancePvp90} from './pvp90.mjs';
-export const BOT_WAIT_MS96=15000;
+import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
+export const BOT_WAIT_MS96=RANDOM_AI_WAIT_MS98;
 // Match the existing middle training tier: captures + position, without reply search.
 export const BOT_DIFFICULTY97='standard',BOT_POLICY97='position';
 export function random96(seed){let n=seed>>>0;return()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}

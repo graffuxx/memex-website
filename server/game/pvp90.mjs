@@ -4,6 +4,7 @@ import {LOADOUTS,placeEffect} from '../../public/game/src/table-demo-rules.mjs';
 import {shiftBlock,scores} from '../../public/game/src/rules.mjs';
 import {timeoutAction} from '../../public/game/src/turn-clock.mjs';
 import {balanceVersion94,BALANCE_FINGERPRINT94} from './balance-version94.mjs';
+import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
 export const PVP_RULE90='pvp-90',TURN_MS90=90000;
 const gestures=['rock','paper','scissors'];
 const due=now=>now+TURN_MS90;
@@ -75,7 +76,7 @@ function perspectiveGame(game,side,revealUid=null){
 export function projectPvp90(row,uid,now=Date.now()){
  const side=row.host_id===uid?0:row.guest_id===uid?1:null;if(side===null)throw Error('Duel unavailable.');
  const s=row.state,swap=n=>n===null||n===undefined?n:side===1?1-n:n;
- if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,15000-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
+ if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,RANDOM_AI_WAIT_MS98-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
  const players=side===1?[row.identities[1],row.identities[0]]:row.identities;
  return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',round:s.round,starter:swap(s.starter),players,
   results:s.results.map(r=>side===1?[r[1],r[0]]:r),game:perspectiveGame(s.game,side),ready:side===1?[s.ready[1],s.ready[0]]:s.ready,
