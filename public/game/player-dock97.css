@@ -1,9 +1,9 @@
 /* Opposing, free-standing portraits. Keep real profile nodes as the intro-flight targets. */
 .game-table.player-dock-layout97 #stage{container-type:inline-size}
 .player-dock97{position:absolute;inset:0;z-index:4;pointer-events:none}
-.game-table .player-dock97 .team{position:absolute;left:clamp(18px,calc(50% - 510px),360px);width:180px;display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:5px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;text-align:center;min-width:0;color:#d9cde7;filter:drop-shadow(0 3px 6px #020413b3)}
-.game-table .player-dock97 .team.rust{top:clamp(24px,7vh,68px)}
-.game-table .player-dock97 .team.cobalt{bottom:24px}
+.game-table .player-dock97 .team{position:absolute;left:clamp(18px,calc(50% - 410px),540px);width:180px;--dock-avatar:96px;--duel-light:85,237,148;display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:5px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;text-align:center;min-width:0;color:#d9cde7;filter:drop-shadow(0 3px 6px #020413b3)}
+.game-table .player-dock97 .team.rust{top:clamp(44px,12vh,124px);--duel-light:255,93,114}
+.game-table .player-dock97 .team.cobalt{bottom:clamp(30px,6vh,64px)}
 .game-table .player-dock97 .identity-portrait85{--portrait-size:96px!important}
 .game-table .player-dock97 .team>span:not(#enemyPortrait85){min-width:0;max-width:100%;display:block;font:14px/1.25 Arial,sans-serif;letter-spacing:0;font-weight:600;text-align:center}
 .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font:400 18px/1.2 'Duelverse Display',Barlow,sans-serif!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 5px #020313;color:#dce7f5}
@@ -22,18 +22,22 @@
 .game-table.player-dock-layout97 .game-sidebar .scorebar>.turn{padding:0;border-top:0;max-width:none}
 .game-table[data-portrait-stage86=opening] .player-dock97,.game-table[data-portrait-stage86=flying] .player-dock97{visibility:hidden}
 @container (max-width:1000px){
- .game-table .player-dock97 .team{left:12px;width:142px;gap:4px}
- .game-table .player-dock97 .team.rust{top:24px}
- .game-table .player-dock97 .team.cobalt{bottom:20px}
+ .game-table .player-dock97 .team{left:clamp(12px,calc(50% - 330px),100px);width:142px;gap:4px;--dock-avatar:76px}
+ .game-table .player-dock97 .team.rust{top:44px}
+ .game-table .player-dock97 .team.cobalt{bottom:30px}
  .game-table .player-dock97 .identity-portrait85{--portrait-size:76px!important}
  .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:15px!important}
  .game-table .player-dock97 .team b{top:49px;left:calc(50% + 23px);min-width:30px;height:30px;font-size:22px}
 }
 @container (max-width:700px){
- .game-table .player-dock97 .team{left:8px;width:116px}
+ .game-table .player-dock97 .team{left:8px;width:116px;--dock-avatar:68px}
  .game-table .player-dock97 .team.rust{top:16px}
  .game-table .player-dock97 .team.cobalt{bottom:180px}
  .game-table .player-dock97 .identity-portrait85{--portrait-size:68px!important}
  .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:14px!important}
  .game-table .player-dock97 .team b{top:43px;left:calc(50% + 20px);min-width:28px;height:28px;font-size:21px}
 }
+
+/* Soft arena light and a shallow circular footprint, never an enclosing panel. */
+.game-table .player-dock97 .team::before{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;top:-18px;width:calc(var(--dock-avatar) + 38px);height:calc(var(--dock-avatar) + 38px);transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(var(--duel-light),.18),rgba(var(--duel-light),.07) 42%,transparent 72%);filter:blur(7px)}
+.game-table .player-dock97 .team::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;top:calc(var(--dock-avatar) - 5px);width:calc(var(--dock-avatar) + 22px);height:15px;transform:translateX(-50%);border-radius:50%;border-bottom:1px solid rgba(var(--duel-light),.36);background:radial-gradient(ellipse,rgba(var(--duel-light),.16),transparent 70%);box-shadow:0 5px 13px rgba(var(--duel-light),.09)}
