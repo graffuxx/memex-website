@@ -1,11 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
-import {createBot96,armBot96,stepBot96} from '../server/game/bot96.mjs';
+import {createBot96,armBot96,stepBot96,BOT_DIFFICULTY97,BOT_POLICY97} from '../server/game/bot96.mjs';
 import {createPvp90,advancePvp90,projectPvp90} from '../server/game/pvp90.mjs';
 import {createMatchHandler90} from '../server/game/match-handler90.mjs';
 import {getVariant,countCards,validateDeck,starterDeck} from '../public/game/platform/catalog.mjs';import {chooseTactic} from '../public/game/src/tactics-ai.mjs';
 const uid=n=>'96969696-9696-4696-8696-'+String(n).padStart(12,'0'),a=uid(1),b=uid(2),c=uid(3);
 const deck={name:'Human deck',cards:starterDeck()};
 test('AI identities and balanced 15-card decks vary, stay legal and never contain Recruiter rewards',()=>{
+ assert.equal(BOT_DIFFICULTY97,'standard');assert.equal(BOT_POLICY97,'position');
  const names=new Set(),decks=new Set();for(let seed=1;seed<=100;seed++){
   const bot=createBot96(seed);assert.deepEqual(bot,createBot96(seed));assert.ok(bot.identity.isAi);assert.ok(bot.identity.displayName.length<=24);assert.ok(validateDeck(bot.deck.cards,countCards(bot.deck.cards)).valid);
   const elements={};for(const id of bot.deck.cards){const v=getVariant(id);assert.equal(v.edition,'alpha');elements[v.element]=(elements[v.element]??0)+1;}assert.deepEqual(Object.values(elements),[3,3,3,3,3]);names.add(bot.identity.displayName);decks.add(bot.deck.cards.join(','));
