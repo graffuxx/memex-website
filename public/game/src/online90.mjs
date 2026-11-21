@@ -1,5 +1,5 @@
 import {connectOnline90} from '../platform/account-client50.mjs?v=online-90';
-import {createTableView} from './table-demo-view-hand17.mjs?v=ownership-80';
+import {createTableView} from './table-demo-view-hand17.mjs?v=hand-foreground-105';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';

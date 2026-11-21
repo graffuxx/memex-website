@@ -65,3 +65,12 @@
  .game-table.player-dock-layout97>.duelverse-header .nav-new{grid-column:4;grid-row:2;margin:0;font-size:13px;padding:8px 12px;white-space:nowrap}
  .game-table.player-dock-layout97 main.game-layout{height:calc(100dvh - 108px)}
 }
+
+/* Ownership fills are mirrored from the outer portrait toward the middle score. */
+.game-table .player-dock97 .team::before{background:linear-gradient(90deg,rgba(var(--duel-light),.06),rgba(var(--duel-light),.025))}
+.game-table .player-dock97 .team .duel-meter105{position:absolute;z-index:-1;inset:8px 0 9px 28px;display:block;width:auto;height:auto;border:0;border-radius:0;box-shadow:none;background:none;clip-path:polygon(0 0,100% 9%,96% 100%,0 88%);pointer-events:none}
+.game-table .player-dock97 .team.rust .duel-meter105{inset:8px 28px 9px 0;transform:scaleX(-1)}
+.game-table .player-dock97 .duel-meter105 em{display:block;width:100%;height:100%;transform:scaleX(var(--control-share,.5));transform-origin:left center;background:linear-gradient(90deg,rgba(var(--duel-light),.38),rgba(var(--duel-light),.18) 65%,rgba(var(--duel-light),.06));transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.game-table .player-dock97 .team::after{transform:scaleX(var(--control-share,.5)) skewY(.8deg);transform-origin:left center;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.game-table .player-dock97 .team.rust::after{transform:scaleX(var(--control-share,.5)) skewY(-.8deg);transform-origin:right center}
+@media(prefers-reduced-motion:reduce){.game-table .player-dock97 .duel-meter105 em,.game-table .player-dock97 .team::after{transition:none}}
