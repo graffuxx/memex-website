@@ -9,8 +9,8 @@
 .game-table .player-dock97 .team.rust{top:clamp(44px,12vh,124px);--duel-light:255,93,114}
 .game-table .player-dock97 .team.cobalt{bottom:clamp(30px,6vh,64px)}
 .game-table .player-dock97 .identity-portrait85{--portrait-size:96px!important}
-.game-table .player-dock97 .team>span:not(#enemyPortrait85){min-width:0;max-width:100%;display:block;font:14px/1.25 Arial,sans-serif;letter-spacing:0;font-weight:600;text-align:center}
-.game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font:400 18px/1.2 'Duelverse Display',Barlow,sans-serif!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 5px #020313;color:#dce7f5}
+.game-table .player-dock97 .team>span:not(#enemyPortrait85){min-width:0;width:100%;max-width:100%;display:block;font:14px/1.25 Arial,sans-serif;letter-spacing:0;font-weight:600;text-align:center}
+.game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font:400 16px/1.2 'Duelverse Display',Barlow,sans-serif!important;display:block;white-space:normal;overflow-wrap:anywhere;text-shadow:0 2px 5px #020313;color:#dce7f5}
 .game-table .player-dock97 #playerName85{color:#a5efc4}
 .game-table .player-dock97 #enemyName90{color:#ffbec7}
 .game-table .player-dock97 .team small{font:12px/1.4 Arial,sans-serif!important;letter-spacing:0;display:block;color:#c1b6d1;margin:3px 0 0;text-shadow:0 2px 4px #020313}
