@@ -52,3 +52,16 @@
  .game-table.player-dock-layout97 .game-sidebar{display:flex;order:2;overflow:visible}
  .game-table .player-dock97 .team small{font-size:11px!important}
 }
+/* Keep wrapped tablet navigation above the duel ribbons, including the wallet and lobby exit. */
+@media(min-width:760px) and (max-width:1199px){
+ .game-table.player-dock-layout97>.duelverse-header{display:grid;grid-template-columns:76px minmax(0,1fr) auto auto;grid-template-rows:40px 36px;align-items:center;gap:0 10px;height:96px;min-height:96px;padding:8px 12px 8px 6px;border-radius:24px}
+ .game-table.player-dock-layout97>.duelverse-header .brand{grid-column:1;grid-row:1/3}
+ .game-table.player-dock-layout97>.duelverse-header .brand img{width:76px;height:56px}
+ .game-table.player-dock-layout97>.duelverse-header .title,.game-table.player-dock-layout97>.duelverse-header .round-badge{display:none}
+ .game-table.player-dock-layout97>.duelverse-header nav{grid-column:2/-1;grid-row:1;margin:0;justify-content:flex-end;gap:0;min-width:0}
+ .game-table.player-dock-layout97>.duelverse-header nav a,.game-table.player-dock-layout97>.duelverse-header nav button,.game-table.player-dock-layout97>.duelverse-header .nav-current{font-size:13px;padding:8px 10px}
+ .game-table.player-dock-layout97>.duelverse-header .game-wallet50{grid-column:2;grid-row:2;width:auto;justify-content:flex-end;gap:14px;margin:0;padding:0;font-size:13px}
+ .game-table.player-dock-layout97>.duelverse-header .arena-sound{grid-column:3;grid-row:2;margin:0}
+ .game-table.player-dock-layout97>.duelverse-header .nav-new{grid-column:4;grid-row:2;margin:0;font-size:13px;padding:8px 12px;white-space:nowrap}
+ .game-table.player-dock-layout97 main.game-layout{height:calc(100dvh - 108px)}
+}
