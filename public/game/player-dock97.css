@@ -1,20 +1,20 @@
-/* The real player nodes dock beside the hand; intro flights keep their original targets. */
+/* Opposing, free-standing portraits. Keep real profile nodes as the intro-flight targets. */
 .game-table.player-dock-layout97 #stage{container-type:inline-size}
-.player-dock97{position:absolute;z-index:4;left:clamp(14px,2.2cqw,32px);bottom:24px;width:clamp(232px,23cqw,300px);display:grid;gap:10px;pointer-events:none}
-.game-table .player-dock97 .team{display:grid;grid-template-columns:70px minmax(0,1fr) 34px;align-items:center;justify-content:stretch;gap:10px;padding:9px 12px 9px 8px;border:1px solid #9983c040;border-radius:15px;background:linear-gradient(110deg,#0a1024ed,#100c22d9);box-shadow:0 6px 20px #02051360;backdrop-filter:blur(12px);text-align:left;min-width:0;color:#d9cde7}
-.game-table .player-dock97 .team.cobalt{border-left:3px solid #55ed94}
-.game-table .player-dock97 .team.rust{border-left:3px solid #ff5d72}
-.game-table .player-dock97 .identity-portrait85{--portrait-size:68px!important}
-.game-table .player-dock97 .team>span:not(#enemyPortrait85){min-width:0;display:block;font:14px/1.25 Arial,sans-serif;letter-spacing:0;font-weight:600}
-.game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font:400 17px/1.15 'Duelverse Display',Barlow,sans-serif!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dce7f5}
+.player-dock97{position:absolute;inset:0;z-index:4;pointer-events:none}
+.game-table .player-dock97 .team{position:absolute;left:clamp(18px,calc(50% - 510px),360px);width:180px;display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:5px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;text-align:center;min-width:0;color:#d9cde7;filter:drop-shadow(0 3px 6px #020413b3)}
+.game-table .player-dock97 .team.rust{top:clamp(24px,7vh,68px)}
+.game-table .player-dock97 .team.cobalt{bottom:24px}
+.game-table .player-dock97 .identity-portrait85{--portrait-size:96px!important}
+.game-table .player-dock97 .team>span:not(#enemyPortrait85){min-width:0;max-width:100%;display:block;font:14px/1.25 Arial,sans-serif;letter-spacing:0;font-weight:600;text-align:center}
+.game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font:400 18px/1.2 'Duelverse Display',Barlow,sans-serif!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 5px #020313;color:#dce7f5}
 .game-table .player-dock97 #playerName85{color:#a5efc4}
 .game-table .player-dock97 #enemyName90{color:#ffbec7}
-.game-table .player-dock97 .team small{font:12px/1.4 Arial,sans-serif!important;letter-spacing:0;display:block;color:#acacc5;margin:3px 0 0}
+.game-table .player-dock97 .team small{font:12px/1.4 Arial,sans-serif!important;letter-spacing:0;display:block;color:#c1b6d1;margin:3px 0 0;text-shadow:0 2px 4px #020313}
 .game-table .player-dock97 #playerTitle85{color:#c7b5dd}
-.game-table .player-dock97 #enemyTitle90{font-size:12px!important;color:#b3accb}
-.game-table .player-dock97 #stock0,.game-table .player-dock97 #stock1{font-size:12px!important;color:#a0a4b9;line-height:1.4}
-.game-table .player-dock97 .team b{font:600 32px/1 'Barlow Condensed',sans-serif;text-align:center;color:#8aedb0}
-.game-table .player-dock97 .team.rust b{color:#ff8e9c}
+.game-table .player-dock97 #enemyTitle90{color:#b3accb}
+.game-table .player-dock97 #stock0,.game-table .player-dock97 #stock1{display:none}
+.game-table .player-dock97 .team b{position:absolute;top:65px;left:calc(50% + 28px);display:grid;place-items:center;min-width:34px;height:34px;padding:0 5px;border:1px solid #86dca87a;border-radius:50%;background:#090d25eb;font:600 25px/1 'Barlow Condensed',sans-serif;color:#8aedb0;box-shadow:0 2px 9px #02031388}
+.game-table .player-dock97 .team.rust b{color:#ff9aa7;border-color:#ff8d9e80}
 .player-dock97 a{pointer-events:auto;border-radius:50%;min-height:44px}
 .player-dock97 a:focus-visible{outline:2px solid #e1c38b;outline-offset:3px}
 .game-table.player-dock-layout97 .hand-caption{display:none}
@@ -22,15 +22,18 @@
 .game-table.player-dock-layout97 .game-sidebar .scorebar>.turn{padding:0;border-top:0;max-width:none}
 .game-table[data-portrait-stage86=opening] .player-dock97,.game-table[data-portrait-stage86=flying] .player-dock97{visibility:hidden}
 @container (max-width:1000px){
- .player-dock97{bottom:24px;left:12px;width:172px;gap:7px}
- .game-table .player-dock97 .team{grid-template-columns:48px minmax(0,1fr) 22px;gap:5px;padding:7px 6px 7px 4px;border-radius:12px}
- .game-table .player-dock97 .identity-portrait85{--portrait-size:46px!important}
- .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:14px!important}
- .game-table .player-dock97 .team b{font-size:26px}
- .game-table .player-dock97 #stock0,.game-table .player-dock97 #stock1{display:none}
+ .game-table .player-dock97 .team{left:12px;width:142px;gap:4px}
+ .game-table .player-dock97 .team.rust{top:24px}
+ .game-table .player-dock97 .team.cobalt{bottom:20px}
+ .game-table .player-dock97 .identity-portrait85{--portrait-size:76px!important}
+ .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:15px!important}
+ .game-table .player-dock97 .team b{top:49px;left:calc(50% + 23px);min-width:30px;height:30px;font-size:22px}
 }
 @container (max-width:700px){
- .player-dock97{bottom:154px;left:12px;width:calc(100% - 24px);display:flex;gap:8px}
- .game-table .player-dock97 .team{flex:1;min-width:0}
+ .game-table .player-dock97 .team{left:8px;width:116px}
+ .game-table .player-dock97 .team.rust{top:16px}
+ .game-table .player-dock97 .team.cobalt{bottom:180px}
+ .game-table .player-dock97 .identity-portrait85{--portrait-size:68px!important}
+ .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:14px!important}
+ .game-table .player-dock97 .team b{top:43px;left:calc(50% + 20px);min-width:28px;height:28px;font-size:21px}
 }
-@container (max-width:480px){.player-dock97{bottom:150px;gap:5px}.game-table .player-dock97 .team{grid-template-columns:38px minmax(0,1fr) 20px;padding-inline:4px;gap:3px}.game-table .player-dock97 .identity-portrait85{--portrait-size:36px!important}}
