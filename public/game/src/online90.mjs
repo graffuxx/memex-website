@@ -8,7 +8,7 @@ import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),id=new URLSearchParams(location.search).get('match'),stage=$('stage'),svg=$('interaction');
-let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=true,identityKey='';
+let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=true,identityKey='',polling=false,moveEpoch=0;
 const atmosphere=createVoidAtmosphere(),audio=createTableAudio(),portraitIntro=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(data?.phase==='between')void move({kind:'ready'});else location.assign('/play');return true;}});
 const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
@@ -47,6 +47,7 @@ function rps(){
  for(const b of dialog.querySelectorAll('[data-starter]'))b.disabled=working;
 }
 async function accept(next){
+ if(!next.unchanged&&data&&next.version<data.version)return;
  if(next.unchanged){remaining=next.remainingMs;receivedAt=Date.now();if(data)data.wallet=next.wallet;clock();return;}
  const previous=data,changed=!previous||next.version!==previous.version;data=next;remaining=next.remainingMs;receivedAt=Date.now();profiles();
  if(next.status==='cancelled'||next.phase==='waiting'||next.phase==='preparing'){notice=next.status==='cancelled'?'This search was cancelled. Return to the match lobby.':'Waiting for your opponent. Return to the match lobby to manage the search.';$('loadStatus').querySelector('strong').textContent=notice;$('loadStatus').querySelector('span').textContent='Match lobby: /play';return;}
@@ -63,8 +64,8 @@ async function accept(next){
  if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5&&next.opponentType!=='ai'?' · +100 XP':'')+(next.opponentType==='ai'?' · AI round saved':' · Random round saved');}}
  if(next.forfeit!==undefined){ceremony.cancel();notice=(next.forfeit===0?'You conceded.':'Your opponent conceded.')+' Return to matchmaking.';render();$('nextRound').hidden=false;$('nextRound').disabled=false;$('nextRound').textContent='Back to matchmaking';}
 }
-async function move(input){if(working||animating||!client||!data)return;working=true;notice='Saving…';render();rps();try{await accept(await client.move(data.version,input));$('gameAccountError').hidden=true;}catch(e){notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
-async function poll(){if(working||animating||stopped||!client)return;working=true;try{await accept(await client.poll(data?.version));$('gameAccountError').hidden=true;}catch(e){$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
+async function move(input){if(working||animating||!client||!data)return;working=true;moveEpoch++;notice='Saving…';render();rps();try{await accept(await client.move(data.version,input));$('gameAccountError').hidden=true;}catch(e){notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
+async function poll(){if(working||animating||stopped||!client||polling)return;polling=true;const epoch=moveEpoch;try{const next=await client.poll(data?.version);if(epoch!==moveEpoch||working)return;await accept(next);$('gameAccountError').hidden=true;}catch(e){if(epoch===moveEpoch){$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}}finally{polling=false;render();rps();}}
 function choose(uid){if(locked())return;clear();selected=uid;audio.play('select');render();}
 function field(cell){if(locked())return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;}else if(selected&&!game.board[cell]&&game.block!==cell){target=cell;twistCell=null;}render();}
 function confirm(){if(locked())return;if(mode==='shift'){if(moveTargets(game).includes(target))void move({kind:'shift',cell:target});}else if(plan())void move({kind:'place',action:action()});}
