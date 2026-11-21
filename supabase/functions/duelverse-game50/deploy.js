@@ -1640,6 +1640,7 @@ var CARD_MATERIALS = Object.freeze({
 // public/game/platform/catalog.mjs
 var DECK_SIZE = 15;
 var MAX_MOTIF_COPIES = 3;
+var CATALOG_VERSION = 7;
 var RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
 var DEFINITIONS = Object.freeze([
   { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
@@ -2021,8 +2022,20 @@ function createTacticsMatch({ loadouts = ["hype-guard", "hype-twist"], seed = 20
   return game;
 }
 
+// public/game/platform/solo84.mjs
+var SOLO_LEVELS84 = Object.freeze([
+  { id: "easy", name: "Easy", description: "Focuses on immediate captures." },
+  { id: "standard", name: "Standard", description: "Balances captures and board position." },
+  { id: "tactical", name: "Tactical", description: "Also checks possible counterattacks." }
+]);
+var SOLO_OPPONENTS84 = Object.freeze([
+  { id: "balanced", name: "Mixed elements", description: "A varied deck across all five elements." },
+  { id: "pressure", name: "Pressure deck", description: "More exposed high-value attacking sides." },
+  { id: "mirror", name: "Mirror my deck", description: "The AI uses the same 15 cards as you." }
+]);
+
 // public/game/platform/deck-bridge.mjs
-function applyPortalDecks(game, cards, loadouts, { round = 1 } = {}) {
+function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = null } = {}) {
   if (![1, 2].includes(round)) throw Error("Invalid round.");
   const next = structuredClone(game);
   next.players = next.players.map((p, side) => {
@@ -2031,7 +2044,7 @@ function applyPortalDecks(game, cards, loadouts, { round = 1 } = {}) {
       state = Math.imul(state, 1664525) + 1013904223 >>> 0;
       return state / 4294967296;
     };
-    const deck = expandGameDeck(side === 0 ? cards : starterDeck(), side);
+    const deck = expandGameDeck(side === 0 ? cards : opponentCards ?? starterDeck(), side);
     for (const ability of loadouts[side].abilities) {
       const candidates = deck.filter((c) => ({ oracle: "guard", brain: "hype", trust: "twist" })[c.id] === ability);
       if (candidates.length) candidates[Math.floor(random2() * candidates.length)].ability = ability;
@@ -2317,12 +2330,37 @@ function timeoutAction(game) {
   return null;
 }
 
+// server/game/balance-version94.mjs
+var BALANCE_PATCH94 = "alpha-2026-11-21.1";
+var BALANCE_RULES94 = Object.freeze({
+  patch: BALANCE_PATCH94,
+  revision: 1,
+  catalog: CATALOG_VERSION,
+  elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
+  elementTiesOnly: true,
+  rotationLocked: true,
+  turnMs: 9e4,
+  handSize: 5,
+  deckSize: 15,
+  maxMotifCopies: 3,
+  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60 },
+  cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null }))
+});
+var source = JSON.stringify(BALANCE_RULES94);
+var hash = 0xcbf29ce484222325n;
+for (const c of source) {
+  hash ^= BigInt(c.charCodeAt(0));
+  hash = BigInt.asUintN(64, hash * 0x100000001b3n);
+}
+var BALANCE_FINGERPRINT94 = hash.toString(16).padStart(16, "0");
+var balanceVersion94 = (now = Date.now()) => ({ patch: BALANCE_PATCH94, fingerprint: BALANCE_FINGERPRINT94, rules: BALANCE_RULES94, roundStartedAt: now });
+
 // server/game/engine50.mjs
 var RULESET = "account-50";
 function createAccountDuel({ deck, inventory, seed, starter, loadouts = ["hype-guard", "hype-twist"] }) {
   if (!deck || !validateDeck(deck.cards, inventory).valid) throw Error("Saved deck is not playable.");
   if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295 || ![0, 1].includes(starter) || !Array.isArray(loadouts) || loadouts.length !== 2 || loadouts.some((l) => !Object.hasOwn(LOADOUTS2, l))) throw Error("Invalid duel settings.");
-  const state = { ruleset: RULESET, elementRules: 5, deck: { id: deck.id, name: deck.name, cards: [...deck.cards] }, seed, starter, loadouts: [...loadouts], round: 1, results: [], awards: [], game: null };
+  const state = { ruleset: RULESET, balance: balanceVersion94(), elementRules: 5, deck: { id: deck.id, name: deck.name, cards: [...deck.cards] }, seed, starter, loadouts: [...loadouts], round: 1, results: [], awards: [], game: null };
   state.game = roundGame(state);
   return state;
 }
@@ -2359,9 +2397,14 @@ function beginAccountRound(state) {
 function advanceAccountDuel(state, input) {
   if (state.ruleset !== RULESET) throw Error("This duel uses an older ruleset. Start a new duel.");
   const next = structuredClone(state), steps = [];
+  if (next.balance && next.balance.fingerprint !== BALANCE_FINGERPRINT94) {
+    next.balance.mixed = true;
+    next.balance.current = balanceVersion94();
+  }
   if (input.kind === "next") {
     if (!next.game.finished || next.round !== 1) throw Error("Finish round one before the return round.");
     next.round = 2;
+    if (next.balance) next.balance.roundStartedAt = Date.now();
     next.game = roundGame(next);
     return beginAccountRound(next);
   }

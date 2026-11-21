@@ -3,12 +3,13 @@ import {applyPortalDecks} from '../../public/game/platform/deck-bridge.mjs';
 import {LOADOUTS,placeEffect} from '../../public/game/src/table-demo-rules.mjs';
 import {shiftBlock,scores} from '../../public/game/src/rules.mjs';
 import {timeoutAction} from '../../public/game/src/turn-clock.mjs';
+import {balanceVersion94,BALANCE_FINGERPRINT94} from './balance-version94.mjs';
 export const PVP_RULE90='pvp-90',TURN_MS90=90000;
 const gestures=['rock','paper','scissors'];
 const due=now=>now+TURN_MS90;
 export function createPvp90(decks,seed,now=Date.now()){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
- return {ruleset:PVP_RULE90,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null};
+ return {ruleset:PVP_RULE90,balance:balanceVersion94(now),decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null};
 }
 function newRound(s,now){
  const loadouts=[LOADOUTS['hype-guard'],LOADOUTS['hype-guard']];
@@ -18,6 +19,7 @@ function newRound(s,now){
  // Opaque per-round card tokens never reveal a hidden motif or rarity.
  g.players.forEach((p,side)=>[...p.hand,...p.deck].forEach((c,i)=>{c.uid=`r${s.round}-p${side}-c${i}`;}));
  s.game=g;s.phase='play';s.deadline=due(now);s.ready=[false,false];s.step=null;
+ if(s.balance)s.balance.roundStartedAt=now;
 }
 function resolveRps(s,now){
  if(s.choices.some(c=>c===null))return;
@@ -33,6 +35,7 @@ function place(s,action,now){
 export function advancePvp90(state,side,input,now=Date.now()){
  if(state.ruleset!==PVP_RULE90||![0,1].includes(side))throw Error('Invalid online duel.');
  const s=structuredClone(state);s.step=null;
+ if(s.balance&&s.balance.fingerprint!==BALANCE_FINGERPRINT94){s.balance.mixed=true;s.balance.current=balanceVersion94(now);}
  if(input.kind==='resign'){if(s.phase==='ended')throw Error('Duel has ended.');s.phase='ended';s.forfeit=side;s.deadline=null;return s;}
  if(input.kind==='gesture'){
   if(s.phase!=='rps'||s.choices[side]!==null||!gestures.includes(input.value))throw Error('Choose one hidden hand sign.');
@@ -54,6 +57,7 @@ export function advancePvp90(state,side,input,now=Date.now()){
 export function expirePvp90(state,now=Date.now()){
  if(!state.deadline||now<state.deadline)return null;
  const s=structuredClone(state);s.step=null;
+ if(s.balance&&s.balance.fingerprint!==BALANCE_FINGERPRINT94){s.balance.mixed=true;s.balance.current=balanceVersion94(now);}
  if(s.phase==='rps'){for(const side of [0,1])if(s.choices[side]===null)s.choices[side]=gestures[((s.seed>>>side)+s.attempt+side)%3];resolveRps(s,now);return s;}
  if(s.phase==='initiative'){s.starter=s.rpsWinner;newRound(s,now);return s;}
  if(s.phase==='play'){place(s,timeoutAction(s.game),now);return s;}return null;
