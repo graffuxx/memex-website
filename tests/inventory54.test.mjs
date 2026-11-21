@@ -2,10 +2,10 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {loadAllInventory,INVENTORY_PAGE_SIZE} from '../public/game/platform/inventory54.mjs';
 import {VARIANTS,validateDeck} from '../public/game/platform/catalog.mjs';
 import {createGameHandler} from '../server/game/handler50.mjs';
-test('all 2125 owned element/rarity variants load through five keyset pages and validate a late-page deck',async()=>{
+test('all owned element/rarity/recruiter variants load through five keyset pages and validate a late-page deck',async()=>{
  const rows=VARIANTS.map(v=>({variant_id:v.id,quantity:3})).sort((a,b)=>a.variant_id<b.variant_id?-1:1),calls=[];
  const inventory=await loadAllInventory(async(cursor,size)=>{calls.push(cursor);assert.equal(size,INVENTORY_PAGE_SIZE);return rows.filter(r=>cursor===null||r.variant_id>cursor).slice(0,size);});
- assert.equal(calls.length,5);assert.equal(Object.keys(inventory).length,2125);assert.equal(Object.values(inventory).reduce((a,b)=>a+b),6375);
+ assert.equal(calls.length,5);assert.equal(Object.keys(inventory).length,VARIANTS.length);assert.equal(Object.values(inventory).reduce((a,b)=>a+b),VARIANTS.length*3);
  const deck=[...new Map(rows.slice(1000).map(r=>[r.variant_id.split(':')[0],r.variant_id])).values()].slice(0,15);assert.equal(deck.length,15);assert.ok(validateDeck(deck,inventory).valid);
 });
 test('inventory loading never returns a silently partial result on later-page errors, duplicates or exact-page boundaries',async()=>{

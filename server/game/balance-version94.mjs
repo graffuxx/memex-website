@@ -1,7 +1,7 @@
 import {DEFINITIONS,CATALOG_VERSION} from '../../public/game/platform/catalog.mjs';
 import {ELEMENT_LIST} from '../../public/game/platform/elements53.mjs';
 // Bump the patch for rule/ability changes as well as card-value changes.
-export const BALANCE_PATCH94='alpha-2026-11-21.1';
+export const BALANCE_PATCH94='alpha-2026-11-21.2';
 export const BALANCE_RULES94=Object.freeze({patch:BALANCE_PATCH94,revision:1,catalog:CATALOG_VERSION,
  elements:ELEMENT_LIST.map(e=>({id:e.id,beats:e.beats})),elementTiesOnly:true,rotationLocked:true,
  turnMs:90000,handSize:5,deckSize:15,maxMotifCopies:3,abilities:{hype:1,guard:2,guardPlacements:2,twistDegrees:60},

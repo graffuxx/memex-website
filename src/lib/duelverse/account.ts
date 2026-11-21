@@ -27,13 +27,13 @@ export async function saveDeck(id:string|null,name:string,cards:string[]){
 export async function tradeCard(requestId:string,kind:'craft'|'dismantle',variantId:string){
  const {error}=await supabase.rpc('dv_trade_card',{p_request:requestId,p_kind:kind,p_variant:variantId});
  if(error){
-  const known=['Not enough Echoes','No spare copy: starter cards and saved decks are protected','Diamond and Void are booster exclusive','Collection limit reached'];
+  const known=['Not enough Echoes','No spare copy: starter cards and saved decks are protected','Diamond and Void are booster exclusive','Referral rewards cannot be crafted or dismantled','Collection limit reached'];
   throw new Error(known.includes(error.message)?error.message:'Card action could not be confirmed. Retry the same action to check it safely.');
  }
 }
 
 export type BoosterCurrency='pixels'|'shards';
-export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency|'starter';cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
+export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency|'starter'|'quest';cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
 const boosterFields='id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots,created_at';
 export async function loadBoosterHistory({limit=20,before=null}:{limit?:number;before?:{id:string;created_at:string}|null}={}):Promise<BoosterPurchase[]>{
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('Invalid history page size.');

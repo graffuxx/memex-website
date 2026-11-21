@@ -17,6 +17,7 @@ export function protectedCopies(variantId,decks=[]){
 export function tradeQuote(kind,variantId,{inventory={},echoes=0,decks=[]}={}){
  const variant=getVariant(variantId);if(!variant)throw Error('Unknown card.');
  const owned=inventory[variantId]??0,reserved=protectedCopies(variantId,decks);
+ if(variant.edition==='recruiter')return {allowed:false,echoes:null,owned,reserved:owned,reason:'Permanent referral reward'};
  if(kind==='craft'){
   const cost=CRAFT_COST[variant.rarity];
   return {allowed:cost!==undefined&&echoes>=cost&&owned<100000,echoes:cost??null,owned,reserved,reason:cost===undefined?'Booster exclusive':owned>=100000?'Collection limit reached':echoes<cost?'Not enough Echoes':''};

@@ -165,3 +165,4 @@
     width: 100%;
   }
 }
+.questNews{display:grid;grid-template-columns:140px minmax(0,1fr);gap:28px;padding:30px;margin:0 0 30px;border:1px solid #c6a7ed66;border-radius:18px;background:linear-gradient(130deg,#322047ed,#100b22ed);color:#eee4fc}.questNews h2{font-size:30px;line-height:1.2;margin:18px 0}.questNews p,.questNews strong,.questNews summary{font-family:Arial,sans-serif}.questNews p{font-size:16px;line-height:1.7;color:#cfbfdf}.questNews strong{color:#f0d193}.questNews details{font-size:14px;color:#d6bfeb;margin:18px 0}.questNews summary{cursor:pointer}.questNewsArt{display:flex;align-items:center;justify-content:center}.questNewsArt img{width:110px;filter:drop-shadow(0 10px 30px #8f4dcf77)}.questNews .follow{margin-top:10px;border-color:#d3b37677;color:#f7dea2}@media(max-width:700px){.questNews{grid-template-columns:1fr;padding:24px}.questNewsArt img{width:65px}.questNews h2{font-size:26px}}

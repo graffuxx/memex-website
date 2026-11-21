@@ -1,0 +1,46 @@
+'use client';
+import {useCallback,useEffect,useRef,useState} from 'react';
+import {supabase} from '@/lib/supabaseClient';
+import usePlayerCollection from './usePlayerCollection';
+import {PlayerAreaGate} from './PlayerArea';
+import GameCardFace from './GameCardFace';
+import {DEFINITIONS,getVariant,RARITIES} from '../../../public/game/platform/catalog.mjs';
+import {questProgress95,referralLink95} from '../../../public/game/platform/quests95.mjs';
+import './quests95.css';
+type Family='played'|'won'|'referrals';
+type Quest={id:string;family:Family;goal:number;packs:number;card:string|null};
+type Claim={id:string;packs:string[];card:string|null;at?:string};
+type Friend={name:string;qualified:boolean;verified:boolean;rounds:number;opponents:number;days:number};
+type Status={code:string;counts:Record<Family,number>;quests:Quest[];claims:Claim[];friends:Friend[]};
+const FAMILIES:{id:Family;name:string;title:string;verb:string}[]=[{id:'played',name:'Play',title:'Show up. Build your collection.',verb:'complete'},{id:'won',name:'Win',title:'Outplay your next rival.',verb:'win'},{id:'referrals',name:'Invite friends',title:'Bring your next rival.',verb:'activate'}];
+function useQuests95(){
+ const {userId,refresh}=usePlayerCollection(),[data,setData]=useState<Status|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');const generation=useRef(0);
+ const load=useCallback(async()=>{const ticket=++generation.current;if(!userId){setData(null);return;}setBusy(true);setError('');const {data,error}=await supabase.rpc('dv_quest_status95');if(ticket!==generation.current)return;if(error){setError(error.message.includes('Verify your email')?'Confirm your email to unlock quests.':'Quest progress could not be loaded. Please retry.');}else setData(data as Status);setBusy(false);},[userId]);
+ useEffect(()=>{setData(null);void load();return()=>{generation.current++;};},[load]);
+ return {data,busy,error,load,refresh};
+}
+export function QuestSummary95(){const {data,error}=useQuests95();if(error)return <a className="quest95-summary" href="/account/private/quests"><strong>Quests & rewards</strong><span>Open your quest progress</span></a>;if(!data)return null;const ready=data.quests.filter(q=>questProgress95(q,data.counts,data.claims.map(c=>c.id)).ready).length;return <a className="quest95-summary" href="/account/private/quests"><img src="/game/assets/boosters/alpha-v36/alpha-pack.webp" alt=""/><div><strong>Quests & rewards</strong><span>{data.counts.played} rounds played · {data.counts.won} wins · {data.counts.referrals} active referrals</span></div><b>{ready?`${ready} ready to claim`:'View progress'}</b></a>;}
+export default function PlayerQuests(){return <PlayerAreaGate><Quests/></PlayerAreaGate>;}
+function Quests(){
+ const {data,busy,error,load,refresh}=useQuests95(),[family,setFamily]=useState<Family>('played'),[claiming,setClaiming]=useState(''),[message,setMessage]=useState(''),[claimError,setClaimError]=useState(''),[latest,setLatest]=useState<Claim|null>(null),[copied,setCopied]=useState(false),[expanded,setExpanded]=useState(false);const lock=useRef(false);
+ const selected=FAMILIES.find(f=>f.id===family)!,link=data&&typeof window!=='undefined'?referralLink95(window.location.origin,data.code):'';
+ async function claim(q:Quest){if(lock.current)return;lock.current=true;setClaiming(q.id);setClaimError('');setMessage('');try{const {data:receipt,error}=await supabase.rpc('dv_claim_quest95',{p_quest:q.id});if(error)throw error;setLatest(receipt as Claim);await Promise.all([load(),refresh()]);setMessage('Reward saved to your account. Your packs are ready to open.');}catch{setClaimError('Reward could not be confirmed. Reload progress or retry this reward; it can only be granted once.');}finally{lock.current=false;setClaiming('');}}
+ return <section className="portal-section quest95-page"><header className="player-page-heading"><div><p>Every milestone counts.</p><h1>Quests & rewards.</h1></div><button className="button glass" disabled={busy||!!claiming} onClick={()=>void load()}>{busy?'Updating…':'Refresh progress'}</button></header>
+  <p className="quest95-intro">One-time milestones. Real progress. Five cards in every Alpha Booster.</p>
+  {error&&<p role="alert" className="error">{error}</p>}{busy&&!data&&<p role="status">Loading your saved progress…</p>}
+  {data&&<>
+   <div className="quest95-totals">{FAMILIES.map(f=><button key={f.id} onClick={()=>setFamily(f.id)} aria-pressed={family===f.id}><span>{f.name}</span><strong>{data.counts[f.id]}</strong><small>{f.id==='played'?'completed random rounds':f.id==='won'?'random round victories':'qualified new players'}</small></button>)}</div>
+   <div className="quest95-tabs" role="group" aria-label="Quest categories">{FAMILIES.map(f=><button key={f.id} aria-pressed={family===f.id} onClick={()=>{setFamily(f.id);setLatest(null);setMessage('');}}>{f.name}{data.quests.some(q=>q.family===f.id&&questProgress95(q,data.counts,data.claims.map(c=>c.id)).ready)&&<i aria-label="Reward ready"/>}</button>)}</div>
+   <h2 className="quest95-family-title">{selected.title}</h2>
+   {family==='referrals'&&<section className="quest95-invite"><div><strong>Your personal invitation</strong><p>Share it with new players. Registration alone does not unlock a referral reward.</p></div><label><span className="quest95-sr">Your invitation link</span><input aria-label="Your invitation link" readOnly value={link} onFocus={e=>e.target.select()}/></label><button className="button gold" onClick={async()=>{try{await navigator.clipboard.writeText(link);setCopied(true);}catch{setCopied(false);setMessage('Select and copy your invitation link above.');}}}>{copied?'Copied':'Copy link'}</button><small>A friend qualifies after email confirmation and 10 completed random rounds against at least 2 opponents across 3 different UTC days. New accounts only. Each new player has one inviter, fixed at registration. No self-referrals.</small></section>}
+   <div className="quest95-list">{data.quests.filter(q=>q.family===family).map(q=>{const progress=questProgress95(q,data.counts,data.claims.map(c=>c.id)),saved=data.claims.find(c=>c.id===q.id),variant=q.card?getVariant(q.card):null,card=variant?DEFINITIONS.find(c=>c.id===variant.definitionId):null,rarity=variant?RARITIES.find(r=>r.id===variant.rarity):null;return <article key={q.id} className={'quest95-row'+(progress.claimed?' is-claimed':progress.ready?' is-ready':'')}>
+    <div className="quest95-rewardart">{variant&&card&&rarity?<GameCardFace card={card} variant={variant} color={rarity.color}/>:<img src="/game/assets/boosters/alpha-v36/alpha-pack.webp" alt="Alpha Booster"/>}</div>
+    <div className="quest95-body"><h3>{q.family==='played'?`Play ${q.goal} random rounds`:q.family==='won'?`Win ${q.goal} random rounds`:`Invite ${q.goal} active friends`}</h3><p><strong>{q.packs} Alpha Booster{q.packs===1?'':'s'}</strong>{rarity&&<> + <span style={{color:rarity.color}}>Recruiter {rarity.name} · {card!.name}</span></>}</p><div className="quest95-progress"><progress value={progress.progress} max={q.goal} aria-label={`${q.id} progress`}/><span>{progress.current} / {q.goal}</span></div>{variant&&<small>Exclusive artwork · original card values · permanent collectible</small>}</div>
+    <div className="quest95-action">{progress.claimed?<><span className="quest95-claimed">✓ Claimed</span>{saved?.packs[0]&&<a href={'/boosters?booster='+saved.packs[0]}>View packs</a>}{saved?.card&&<a href="/collection">View collection</a>}</>:<button className={'button '+(progress.ready?'gold':'glass')} disabled={!progress.ready||!!claiming} onClick={()=>void claim(q)}>{claiming===q.id?'Saving…':progress.ready?'Claim reward':'In progress'}</button>}</div>
+   </article>;})}</div>
+   {claimError&&<p role="alert" className="error">{claimError}</p>}{message&&<p role="status" className="quest95-message">{message}</p>}{latest&&<div className="quest95-receipt"><strong>Reward saved</strong><span>{latest.packs.length} Alpha Boosters{latest.card?' + exclusive Recruiter card':''}</span>{latest.packs[0]&&<a className="button gold" href={'/boosters?booster='+latest.packs[0]}>Open rewards</a>}</div>}
+   {family==='referrals'&&<details className="quest95-friends"><summary>Invited players ({data.friends.length})</summary>{data.friends.length?<><div>{data.friends.slice(0,expanded?data.friends.length:10).map((f,i)=><article key={i}><strong>{f.name}</strong><span>{f.qualified?'✓ Qualified':!f.verified?'Email confirmation pending':`${Math.min(f.rounds,10)}/10 rounds · ${Math.min(f.opponents,2)}/2 opponents · ${Math.min(f.days,3)}/3 days`}</span></article>)}</div>{data.friends.length>10&&!expanded&&<button className="button glass" onClick={()=>setExpanded(true)}>Show all</button>}</>:<p>No invited players have registered yet.</p>}<p>Your friends’ email addresses are never shown here.</p></details>}
+   <p className="quest95-rules">Each milestone can be claimed once per account. Only completed, server-confirmed random PvP rounds count; the return round is a separate round. AI, private matches, forfeits and unfinished rounds do not advance quests. Referral rewards use separate artworks, never stronger values. Welcome boosters, pack odds and shop prices stay unchanged.</p>
+  </>}
+ </section>;
+}

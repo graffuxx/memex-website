@@ -15,9 +15,9 @@ test('five elements: exactly two wins/two losses, no mutual advantages; bonuses 
  for(const a of ELEMENT_IDS)for(const b of ELEMENT_IDS){const game=createTacticsMatch({seed:11});game.demoFields=[];const card=expandGameDeck([VARIANTS.find(v=>v.definitionId==='doge'&&v.rarity==='common'&&v.element===a).id],0)[0],other=expandGameDeck([VARIANTS.find(v=>v.definitionId==='doge'&&v.rarity==='common'&&v.element===b).id],1)[0];assert.equal(cardOf(card).element,a);assert.equal(effectStrength(game,card,'0,0',0,other).element,Number(elementAdvantage(a,b)));}
 });
 test('50 new motifs, ten native per element, every motif has 25 variants; old IDs stay valid and cap is shared',()=>{
- assert.equal(ELEMENT_CARDS.length,50);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.length,2125);assert.equal(new Set(VARIANTS.map(v=>v.id)).size,2125);
+ assert.equal(ELEMENT_CARDS.length,50);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,2125);assert.equal(new Set(VARIANTS.map(v=>v.id)).size,VARIANTS.length);
  for(const e of ELEMENT_IDS)assert.equal(ELEMENT_CARDS.filter(c=>c.element===e).length,10);
- for(const c of DEFINITIONS){const variants=VARIANTS.filter(v=>v.definitionId===c.id);assert.equal(variants.length,25);for(const e of ELEMENT_IDS)assert.equal(variants.filter(v=>v.element===e).length,5);assert.ok(getVariant(c.id+':common'));}
+ for(const c of DEFINITIONS){const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha');assert.equal(variants.length,25);for(const e of ELEMENT_IDS)assert.equal(variants.filter(v=>v.element===e).length,5);assert.ok(getVariant(c.id+':common'));}
  assert.ok(validateDeck(starterDeck(),starterInventory()).valid);
  const variants=['doge:common','doge:rare:water','doge:epic:air'],inventory=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));assert.throws(()=>addDeckCard(variants,'doge:mythic:earth',inventory),/Maximum 3/);
  assert.deepEqual(summarizeDeck(variants).elements,{fire:1,water:1,earth:0,air:1,storm:0});
@@ -40,7 +40,7 @@ test('additive database upgrade preserves accounts and matches all 2125 variants
   await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();update public.dv_wallets set earned=2000,echoes=20000 where user_id='${u}';`);
   const snapshot=async()=>JSON.stringify({decks:(await db.query('select * from public.dv_decks order by id')).rows,inventory:(await db.query('select * from public.dv_inventory order by variant_id')).rows,wallet:(await db.query('select * from public.dv_wallets')).rows});const before=await snapshot();
   const sql=await fs.readFile(new URL('../supabase/migrations/202611200002_five_elements.sql',import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);assert.equal(await snapshot(),before);
-  const rows=(await db.query('select id,element,image from public.dv_card_variants')).rows;assert.equal(rows.length,2125);for(const v of VARIANTS){const row=rows.find(r=>r.id===v.id);assert.equal(row.element,v.element,v.id);assert.equal(row.image,v.image,v.id);}
+  const rows=(await db.query('select id,element,image from public.dv_card_variants')).rows;assert.equal(rows.length,2125);for(const v of VARIANTS.filter(v=>v.edition==='alpha')){const row=rows.find(r=>r.id===v.id);assert.equal(row.element,v.element,v.id);assert.equal(row.image,v.image,v.id);}
   await db.exec(`set role authenticated;select public.dv_trade_card('53535353-0000-4000-8000-000000000001','craft','capybara-chill:epic:air');`);
   await assert.rejects(db.query(`select public.dv_trade_card('53535353-0000-4000-8000-000000000002','craft','capybara-chill:mythic:air')`),/booster exclusive/);
   await db.exec('reset role');

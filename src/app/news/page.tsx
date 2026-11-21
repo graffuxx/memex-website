@@ -47,10 +47,14 @@ export default function NewsPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>NEWS</h1>
           <p className={styles.subtitle}>
-            Live updates from our X feed. Follow the Duelverse.
+            Game updates, new rewards and news from the Duelverse.
           </p>
         </header>
 
+        <article className={styles.questNews}>
+          <div className={styles.questNewsArt}><img src="/game/assets/boosters/alpha-v36/alpha-pack.webp" alt="Alpha Booster quest reward"/></div>
+          <div><div className={styles.badge}>ALPHA UPDATE · 21 NOV 2026</div><h2>Play. Win. Bring your next rival.</h2><p>Quests are live. Complete random PvP rounds, win duels and invite active new players to earn Alpha Boosters. Your player area now shows every milestone, saved progress and rewards ready to claim.</p><p>Play milestones: <strong>5 / 25 / 100 / 250 rounds</strong>. Win milestones: <strong>3 / 10 / 50 / 100 rounds</strong>. All milestones are one-time rewards.</p><p>At <strong>5 qualified friends</strong>, unlock Recruiter Diamond Doge. At <strong>15</strong>, unlock Recruiter Void Pepe. These separate artworks keep the original card values and cannot be crafted or dismantled.</p><details><summary>How friend referrals qualify</summary><p>New accounts must register through your personal link, confirm their email and finish 10 random rounds against at least 2 opponents across 3 different UTC days. Registration alone does not earn rare rewards. Each new player has one inviter. AI, private matches, forfeits and unfinished rounds do not advance quests.</p></details><p>Five cards per booster, at least one Silver or better. Existing pack odds, welcome gifts and shop prices remain unchanged.</p><a className={styles.follow} href="/account/private/quests">View your quests</a></div>
+        </article>
         <div className={styles.card}>
           <div className={styles.glow} />
           <div className={styles.inner}>

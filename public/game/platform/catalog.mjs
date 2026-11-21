@@ -3,11 +3,12 @@ import {ELEMENT_IDS,normalizeElement} from './elements53.mjs';
 import {EXPANSION_CARDS} from './expansion27.mjs';
 import {ALPHA_IDS} from './edition36.mjs';
 import {CARD_MATERIALS} from '../src/card-materials22.mjs';
+import {RECRUITER_VARIANTS95} from './quests95.mjs';
 // Shared by the website, deck validator, database seed and playable alpha.
 export const DECK_SIZE = 15;
 export const MAX_MOTIF_COPIES = 3;
 export const STARTER_COPIES = 3;
-export const CATALOG_VERSION = 7;
+export const CATALOG_VERSION = 8;
 export const RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id,m])=>Object.freeze({id,name:m.name,color:m.color})));
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',short:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},
@@ -25,7 +26,7 @@ const definitionOrder=new Map(DEFINITIONS.map((c,i)=>[c.id,i]));
 const nativeElement=new Map(DEFINITIONS.map(c=>[c.id,c.element]));
 const rarityOrder=new Map(RARITIES.map((r,i)=>[r.id,i]));
 // Browse motifs before repeats; explicit element/finish filters expose every combination.
-export const VARIANTS=Object.freeze(UNSORTED_VARIANTS.sort((a,b)=>rarityOrder.get(a.rarity)-rarityOrder.get(b.rarity)||Number(a.element!==nativeElement.get(a.definitionId))-Number(b.element!==nativeElement.get(b.definitionId))||definitionOrder.get(a.definitionId)-definitionOrder.get(b.definitionId)||ELEMENT_IDS.indexOf(a.element)-ELEMENT_IDS.indexOf(b.element)));
+export const VARIANTS=Object.freeze([...UNSORTED_VARIANTS,...RECRUITER_VARIANTS95].sort((a,b)=>rarityOrder.get(a.rarity)-rarityOrder.get(b.rarity)||Number(a.element!==nativeElement.get(a.definitionId))-Number(b.element!==nativeElement.get(b.definitionId))||definitionOrder.get(a.definitionId)-definitionOrder.get(b.definitionId)||ELEMENT_IDS.indexOf(a.element)-ELEMENT_IDS.indexOf(b.element)));
 const VARIANT_INDEX=new Map(VARIANTS.map(v=>[v.id,v]));
 export function getVariant(id){return VARIANT_INDEX.get(id);}
 export function starterInventory(){return Object.fromEntries(STARTER_IDS.map(id=>[`${id}:common`,STARTER_COPIES]));}

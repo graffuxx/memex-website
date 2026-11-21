@@ -34,7 +34,7 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
  const title=(card.short??card.name).toUpperCase();
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
  return <div ref={face} className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
-  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.join(', ')}${variant.edition==='alpha'?' · Alpha edition':''}`}>
+  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.join(', ')}${(variant.edition==='alpha'||variant.edition==='recruiter')?' · Alpha edition':''}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
     <linearGradient id={foilId} x1="0" y1="1" x2="1" y2="0"><stop offset="20%" stopColor={color} stopOpacity="0"/><stop offset="48%" stopColor={color} stopOpacity=".12"/><stop offset="52%" stopColor="#fff" stopOpacity=".22"/><stop offset="75%" stopColor={color} stopOpacity="0"/></linearGradient>
@@ -51,7 +51,7 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
     {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{card.values[i]}</text>)}
     <text x="0" y={-FRAME_LAYOUT.titleY+.004} fontSize=".105" textLength={title.length>10?.66:undefined} lengthAdjust="spacingAndGlyphs">{title}</text>
    </g>
-   {variant.edition==='alpha'&&<g dangerouslySetInnerHTML={{__html:alphaNameplateMarkup(FRAME_LAYOUT.titleY)}}/>}
+   {(variant.edition==='alpha'||variant.edition==='recruiter')&&<g dangerouslySetInnerHTML={{__html:alphaNameplateMarkup(FRAME_LAYOUT.titleY)}}/>}
    <svg x="-.1225" y={-FRAME_LAYOUT.elementY-.1225} width=".245" height=".245" viewBox="0 0 256 256" aria-hidden="true">
     <path d={element.path} fill={element.stroke?'none':`url(#${elementId})`} stroke={element.stroke?`url(#${elementId})`:'#ffd876'} strokeWidth={element.stroke?16:5} strokeLinecap="round" strokeLinejoin="round"/>
    </svg>

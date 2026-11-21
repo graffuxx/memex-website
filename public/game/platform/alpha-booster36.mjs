@@ -8,4 +8,4 @@ export function validAlphaPack(cards){return Array.isArray(cards)&&cards.length=
 /** Restoring a server result never awards cards; it only restores their reveal state. */
 export function revealedSlots(slots){if(!Array.isArray(slots))return [];return [...new Set(slots.filter(n=>Number.isInteger(n)&&n>=0&&n<5))].sort((a,b)=>a-b);}
 
-export function boosterCostLabel(pack){return pack.currency==='starter'?'Welcome gift':`${pack.cost} ${pack.currency==='pixels'?'Pixels':'Shards'}`;}
+export function boosterCostLabel(pack){return pack.currency==='starter'?'Welcome gift':pack.currency==='quest'?'Quest reward':`${pack.cost} ${pack.currency==='pixels'?'Pixels':'Shards'}`;}

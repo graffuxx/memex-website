@@ -1637,10 +1637,22 @@ var CARD_MATERIALS = Object.freeze({
   mythic: Object.freeze({ name: "Void", de: "Void", color: "#cd8aff", metal: "#4b2470", finish: "Void-Obsidian", motion: "Wandernder Void-Nebel mit Energieadern und Schattenfunken", palette: ["#080612", "#371747", "#be7ef5"] })
 });
 
+// public/game/platform/quests95.mjs
+var RECRUITER_VARIANTS95 = Object.freeze([
+  Object.freeze({ id: "doge:legendary:fire:recruiter", definitionId: "doge", element: "fire", rarity: "legendary", edition: "recruiter", image: "/game/assets/cards/recruiter-v95/doge-diamond.webp", artOffsetY: 0, artRegion: null }),
+  Object.freeze({ id: "pepe:mythic:storm:recruiter", definitionId: "pepe", element: "storm", rarity: "mythic", edition: "recruiter", image: "/game/assets/cards/recruiter-v95/pepe-void.webp", artOffsetY: 0, artRegion: null })
+]);
+var QUESTS95 = Object.freeze([
+  ...[[5, 1], [25, 1], [100, 3], [250, 5]].map(([goal, packs]) => ({ id: `played-${goal}`, family: "played", goal, packs, card: null })),
+  ...[[3, 1], [10, 1], [50, 3], [100, 5]].map(([goal, packs]) => ({ id: `won-${goal}`, family: "won", goal, packs, card: null })),
+  ...[[1, 1, null], [3, 2, null], [5, 2, RECRUITER_VARIANTS95[0].id], [15, 5, RECRUITER_VARIANTS95[1].id]].map(([goal, packs, card]) => ({ id: `referrals-${goal}`, family: "referrals", goal, packs, card }))
+].map(Object.freeze));
+var REFERRAL_RULES95 = Object.freeze({ rounds: 10, opponents: 2, days: 3 });
+
 // public/game/platform/catalog.mjs
 var DECK_SIZE = 15;
 var MAX_MOTIF_COPIES = 3;
-var CATALOG_VERSION = 7;
+var CATALOG_VERSION = 8;
 var RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
 var DEFINITIONS = Object.freeze([
   { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
@@ -1662,7 +1674,7 @@ var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((elem
 var definitionOrder = new Map(DEFINITIONS.map((c, i) => [c.id, i]));
 var nativeElement = new Map(DEFINITIONS.map((c) => [c.id, c.element]));
 var rarityOrder = new Map(RARITIES.map((r, i) => [r.id, i]));
-var VARIANTS = Object.freeze(UNSORTED_VARIANTS.sort((a, b) => rarityOrder.get(a.rarity) - rarityOrder.get(b.rarity) || Number(a.element !== nativeElement.get(a.definitionId)) - Number(b.element !== nativeElement.get(b.definitionId)) || definitionOrder.get(a.definitionId) - definitionOrder.get(b.definitionId) || ELEMENT_IDS2.indexOf(a.element) - ELEMENT_IDS2.indexOf(b.element)));
+var VARIANTS = Object.freeze([...UNSORTED_VARIANTS, ...RECRUITER_VARIANTS95].sort((a, b) => rarityOrder.get(a.rarity) - rarityOrder.get(b.rarity) || Number(a.element !== nativeElement.get(a.definitionId)) - Number(b.element !== nativeElement.get(b.definitionId)) || definitionOrder.get(a.definitionId) - definitionOrder.get(b.definitionId) || ELEMENT_IDS2.indexOf(a.element) - ELEMENT_IDS2.indexOf(b.element)));
 var VARIANT_INDEX = new Map(VARIANTS.map((v) => [v.id, v]));
 function getVariant(id) {
   return VARIANT_INDEX.get(id);
@@ -2331,7 +2343,7 @@ function timeoutAction(game) {
 }
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-21.1";
+var BALANCE_PATCH94 = "alpha-2026-11-21.2";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
   revision: 1,

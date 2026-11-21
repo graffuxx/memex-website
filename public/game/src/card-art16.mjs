@@ -1,6 +1,6 @@
 import {DEFINITIONS,VARIANTS} from '../platform/catalog.mjs';
 // Cosmetic artwork progression. Identity, rules and controller remain independent.
-export const CARD_ART=Object.freeze(Object.fromEntries(DEFINITIONS.map(c=>[c.id,Object.freeze(Object.fromEntries(VARIANTS.filter(v=>v.definitionId===c.id).map(v=>[v.rarity,v.image.replace('/game/','../')])))])));
+export const CARD_ART=Object.freeze(Object.fromEntries(DEFINITIONS.map(c=>[c.id,Object.freeze(Object.fromEntries(VARIANTS.filter(v=>v.definitionId===c.id&&v.edition!=='recruiter').map(v=>[v.rarity,v.image.replace('/game/','../')])))])));
 export function artworkFor(profile,rarity='common'){
  if(!Object.hasOwn(CARD_ART,profile))throw new Error('Unbekanntes Kartenmotiv.');
  return CARD_ART[profile][Object.hasOwn(CARD_ART[profile],rarity)?rarity:'common'];
