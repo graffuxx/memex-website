@@ -4,16 +4,17 @@ import usePlayerCollection from './usePlayerCollection';
 import {matchRequest90,type Lobby90} from '@/lib/duelverse/matchmaking90';
 import {validateDeck} from '../../../public/game/platform/catalog.mjs';
 import './matchmaking90.css';
+import {chooseOnlineDeck106} from '../../../public/game/platform/deck-selection106.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../../public/game/platform/matchmaking98.mjs';
 import FriendsNotice92 from './FriendsNotice92';
 import './friends92.css';
 export default function Matchmaking90(){
  const {ready,userId,player,inventory,error:accountError}=usePlayerCollection();
  const [kind,setKind]=useState<'random'|'private'>('random'),[deck,setDeck]=useState(''),[code,setCode]=useState(''),[room,setRoom]=useState<Lobby90|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[copied,setCopied]=useState(false),[invitedFriend,setInvitedFriend]=useState('');
- const active=useRef(true),polling=useRef(false),searchGeneration=useRef(0),scope=useRef(userId);scope.current=userId;
- useEffect(()=>{active.current=true;const params=new URLSearchParams(location.search),invite=params.get('invite');setInvitedFriend((params.get('friend')??'').slice(0,24));if(invite&&/^[a-f0-9]{64}$/.test(invite)){setKind('private');setCode(invite);}return()=>{active.current=false;};},[]);
+ const active=useRef(true),polling=useRef(false),searchGeneration=useRef(0),scope=useRef(userId),requestedDeck=useRef<string|null>(null);scope.current=userId;
+ useEffect(()=>{active.current=true;const params=new URLSearchParams(location.search),invite=params.get('invite');requestedDeck.current=params.get('deck');setInvitedFriend((params.get('friend')??'').slice(0,24));if(invite&&/^[a-f0-9]{64}$/.test(invite)){setKind('private');setCode(invite);}return()=>{active.current=false;};},[]);
  useEffect(()=>{setRoom(null);setError('');if(!userId)return;try{const saved=localStorage.getItem('duelverse.match90.'+userId);if(saved)matchRequest90({op:'poll',id:saved}).then(r=>{if(active.current&&scope.current===userId&&r.status!=='cancelled'&&r.status!=='finished'){setRoom(r);setKind(r.kind);}}).catch(()=>{});}catch{}},[userId]);
- useEffect(()=>{if(!player)return;setDeck(old=>player.decks.some(d=>d.id===old)?old:player.decks.find(d=>d.active)?.id??player.decks[0]?.id??'');},[player]);
+ useEffect(()=>{if(!player)return;setDeck(old=>chooseOnlineDeck106(player.decks,old,requestedDeck.current??''));},[player]);
  useEffect(()=>{if(!room||room.status==='cancelled'||room.status==='finished')return;const uid=userId;let alive=true;const tick=async()=>{if(polling.current)return;const ticket=searchGeneration.current;polling.current=true;try{const r=await matchRequest90({op:'poll',id:room.id});if(alive&&active.current&&scope.current===uid&&ticket===searchGeneration.current){if(r.status==='cancelled'){setRoom(null);localStorage.removeItem('duelverse.match90.'+uid);setError('');return;}setRoom(r);setKind(r.kind);setError('');if(r.status==='matched'){window.location.assign('/game/online.html?match='+encodeURIComponent(r.id));}}}catch(e){if(alive&&ticket===searchGeneration.current)setError(e instanceof Error?e.message:'Connection interrupted. Your duel is saved.');}finally{polling.current=false;}};void tick();const timer=setInterval(tick,3000);return()=>{alive=false;clearInterval(timer);};},[room?.id,userId]);
  const selected=player?.decks.find(d=>d.id===deck),valid=Boolean(selected&&validateDeck(selected.cards,inventory).valid),waiting=room?.status==='waiting',matched=room?.status==='matched';
  async function join(invite=false){if(busy||!valid||!userId)return;setBusy(true);setError('');const uid=userId;try{const r=await matchRequest90({op:'join',kind,deckId:deck,...(invite?{code}: {})});if(active.current&&scope.current===uid){localStorage.setItem('duelverse.match90.'+uid,r.id);setRoom(r);setKind(r.kind);if(r.status==='matched')location.assign('/game/online.html?match='+r.id);}}catch(e){setError(e instanceof Error?e.message:'Could not join the queue.');}finally{setBusy(false);}}
