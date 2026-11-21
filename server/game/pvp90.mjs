@@ -75,9 +75,9 @@ function perspectiveGame(game,side,revealUid=null){
 export function projectPvp90(row,uid,now=Date.now()){
  const side=row.host_id===uid?0:row.guest_id===uid?1:null;if(side===null)throw Error('Duel unavailable.');
  const s=row.state,swap=n=>n===null||n===undefined?n:side===1?1-n:n;
- if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,phase:row.status==='waiting'?'waiting':'preparing'};
+ if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,15000-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
  const players=side===1?[row.identities[1],row.identities[0]]:row.identities;
- return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,round:s.round,starter:swap(s.starter),players,
+ return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',round:s.round,starter:swap(s.starter),players,
   results:s.results.map(r=>side===1?[r[1],r[0]]:r),game:perspectiveGame(s.game,side),ready:side===1?[s.ready[1],s.ready[0]]:s.ready,
   ownChoice:s.choices[side],opponentChosen:Boolean(s.choices[1-side]),attempt:s.attempt,rpsWinner:swap(s.rpsWinner),
   lastRps:s.lastRps?{choices:side===1?[s.lastRps.choices[1],s.lastRps.choices[0]]:s.lastRps.choices,winner:swap(s.lastRps.winner)}:null,

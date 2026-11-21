@@ -1,4 +1,5 @@
 import {createPvp90,advancePvp90,expirePvp90,projectPvp90} from './pvp90.mjs';
+import {BOT_WAIT_MS96,createBot96,armBot96,stepBot96} from './bot96.mjs';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=()=>crypto.getRandomValues(new Uint32Array(1))[0],requestId=()=>crypto.randomUUID()}){
  const base=env('SUPABASE_URL')||'https://vnwvwwukqlbwzqroaqeu.supabase.co',key=env('SUPABASE_SERVICE_ROLE_KEY');
@@ -24,18 +25,21 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
   const commit=(state,version=row.version,rid=requestId())=>rpc('dv_match_commit90',{p_user:uid,p_id:row.id,p_version:version,p_request:rid,p_state:state});
   if(input.op==='poll'){
    try{
-    if(row.status==='matched'&&!row.state)row=await commit(createPvp90([row.host_deck,row.guest_deck],seed(),now()));
-    else if(row.status==='matched'){const expired=expirePvp90(row.state,now());if(expired)row=await commit(expired);}
+    if(row.status==='waiting'&&row.kind==='random'&&now()-Date.parse(row.created_at)>=BOT_WAIT_MS96){
+     const bot=createBot96(seed());row=await rpc('dv_match_fill_ai96',{p_user:uid,p_id:row.id,p_deck:bot.deck,p_identity:bot.identity});
+    }
+    if(row.status==='matched'&&!row.state){let initial=createPvp90([row.host_deck,row.guest_deck],seed(),now());if(row.ai_opponent96){initial.bot96={seed:seed(),nextAt:null};initial=armBot96(initial,now());}row=await commit(initial);}
+    else if(row.status==='matched'){const expired=expirePvp90(row.state,now());const next=expired?armBot96(expired,now()):stepBot96(row.state,now());if(next)row=await commit(next);}
    }catch(e){if(e.status!==409)throw e;row=await rpc('dv_match_get90',{p_user:uid,p_id:input.id});}
    if(Number.isInteger(input.version)&&input.version===row.version&&row.state)return reply({unchanged:true,remainingMs:row.state.deadline?Math.max(0,row.state.deadline-now()):null,wallet:row.wallet});
    return reply(projectPvp90(row,uid,now()));
   }
   if(input.op!=='move'||!Number.isInteger(input.version)||!UUID.test(input.requestId)||!row.state)fail('Invalid turn request.');
   if(input.version!==row.version){row=await commit(row.state,input.version,input.requestId);return reply(projectPvp90(row,uid,now()));}
-  const expired=expirePvp90(row.state,now());if(expired){await commit(expired);fail('Turn time expired. Restore the current board.',409);}
+  const expired=expirePvp90(row.state,now());if(expired){await commit(armBot96(expired,now()));fail('Turn time expired. Restore the current board.',409);}
   const side=row.host_id===uid?0:1,move={...input.move};
   // The browser uses its own side as 0; only the server maps it to the shared board.
   if(move.kind==='starter'){if(![0,1].includes(move.side))fail('Invalid starter.');move.side=side===1?1-move.side:move.side;}
-  const next=advancePvp90(row.state,side,move,now());row=await commit(next,input.version,input.requestId);return reply(projectPvp90(row,uid,now()));
+  const next=armBot96(advancePvp90(row.state,side,move,now()),now());row=await commit(next,input.version,input.requestId);return reply(projectPvp90(row,uid,now()));
  }catch(e){return reply({error:e.message||'Online duel unavailable.'},e.status??400);}};
 }
