@@ -1,7 +1,11 @@
-/* Opposing, free-standing portraits. Keep real profile nodes as the intro-flight targets. */
-.game-table.player-dock-layout97 #stage{container-type:inline-size}
-.player-dock97{position:absolute;inset:0;z-index:4;pointer-events:none}
-.game-table .player-dock97 .team{position:absolute;left:clamp(18px,calc(50% - 410px),540px);width:180px;--dock-avatar:96px;--duel-light:85,237,148;display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:5px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;text-align:center;min-width:0;color:#d9cde7;filter:drop-shadow(0 3px 6px #020413b3)}
+/* A separate, non-zooming rail: arena geometry can never cover player identities. */
+.player-dock97{position:relative;min-width:0;min-height:0;z-index:4;pointer-events:none}
+@media(min-width:760px){
+ .game-table.player-dock-layout97 main.game-layout{grid-template-columns:minmax(0,1fr) 136px clamp(220px,17vw,260px);gap:8px}
+ .game-table.player-dock-layout97 .player-dock97{grid-column:2;grid-row:1}
+ .game-table.player-dock-layout97 .game-sidebar{grid-column:3}
+}
+.game-table .player-dock97 .team{position:absolute;left:0;width:100%;--dock-avatar:96px;--duel-light:85,237,148;display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:5px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;text-align:center;min-width:0;color:#d9cde7;filter:drop-shadow(0 3px 6px #020413b3)}
 .game-table .player-dock97 .team.rust{top:clamp(44px,12vh,124px);--duel-light:255,93,114}
 .game-table .player-dock97 .team.cobalt{bottom:clamp(30px,6vh,64px)}
 .game-table .player-dock97 .identity-portrait85{--portrait-size:96px!important}
@@ -21,21 +25,27 @@
 .game-table.player-dock-layout97 .game-sidebar>.scorebar{display:block;min-height:0;height:auto;padding:12px}
 .game-table.player-dock-layout97 .game-sidebar .scorebar>.turn{padding:0;border-top:0;max-width:none}
 .game-table[data-portrait-stage86=opening] .player-dock97,.game-table[data-portrait-stage86=flying] .player-dock97{visibility:hidden}
-@container (max-width:1000px){
- .game-table .player-dock97 .team{left:clamp(12px,calc(50% - 330px),100px);width:142px;gap:4px;--dock-avatar:76px}
- .game-table .player-dock97 .team.rust{top:44px}
- .game-table .player-dock97 .team.cobalt{bottom:30px}
- .game-table .player-dock97 .identity-portrait85{--portrait-size:76px!important}
+@media(min-width:760px) and (max-width:1199px){
+ .game-table.player-dock-layout97 main.game-layout{grid-template-columns:minmax(0,1fr) 96px 200px;gap:6px}
+ .game-table .player-dock97 .team{gap:4px;--dock-avatar:72px}
+ .game-table .player-dock97 .team.rust{top:52px}
+ .game-table .player-dock97 .team.cobalt{bottom:40px}
+ .game-table .player-dock97 .identity-portrait85{--portrait-size:72px!important}
  .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:15px!important}
- .game-table .player-dock97 .team b{top:49px;left:calc(50% + 23px);min-width:30px;height:30px;font-size:22px}
+ .game-table .player-dock97 .team b{top:45px;left:calc(50% + 20px);min-width:28px;height:28px;font-size:21px}
+ .game-table .player-dock97 .team small{font-size:11px!important}
 }
-@container (max-width:700px){
- .game-table .player-dock97 .team{left:8px;width:116px;--dock-avatar:68px}
- .game-table .player-dock97 .team.rust{top:16px}
- .game-table .player-dock97 .team.cobalt{bottom:180px}
- .game-table .player-dock97 .identity-portrait85{--portrait-size:68px!important}
+@media(max-width:759px){
+ .game-table.player-dock-layout97 main.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 86px;gap:8px}
+ .game-table.player-dock-layout97 .game-layout>#stage[data-arena]{grid-column:1;grid-row:1;height:calc(100dvh - 130px);min-height:480px}
+ .game-table.player-dock-layout97 .player-dock97{grid-column:2;grid-row:1}
+ .game-table.player-dock-layout97 .game-sidebar{display:flex;grid-column:1/-1;grid-row:2;overflow:visible}
+ .game-table .player-dock97 .team{--dock-avatar:64px}
+ .game-table .player-dock97 .team.rust{top:20px}
+ .game-table .player-dock97 .team.cobalt{bottom:40px}
+ .game-table .player-dock97 .identity-portrait85{--portrait-size:64px!important}
  .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{font-size:14px!important}
- .game-table .player-dock97 .team b{top:43px;left:calc(50% + 20px);min-width:28px;height:28px;font-size:21px}
+ .game-table .player-dock97 .team b{top:39px;left:calc(50% + 17px);min-width:26px;height:26px;font-size:20px}
 }
 
 /* Soft arena light and a shallow circular footprint, never an enclosing panel. */
