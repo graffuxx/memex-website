@@ -1,3 +1,4 @@
+import {originalCards116,originalInventory116} from '../../../public/game/platform/catalog.mjs';
 import {supabase} from '@/lib/supabaseClient';
 import {boosterHistoryFilter} from '../../../public/game/platform/player-area49.mjs';
 import {loadAllInventory} from '../../../public/game/platform/inventory54.mjs';
@@ -17,7 +18,7 @@ export async function loadPlayer():Promise<PlayerState>{
   supabase.from('dv_wallets').select('earned,premium,echoes').single()
  ]);
  if([decks,wallet].some(r=>r.error))throw new Error('Your collection could not be loaded. Please try again.');
- return {displayName:identity.displayName,identity,inventory,decks:(decks.data??[]) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
+ return {displayName:identity.displayName,identity,inventory:originalInventory116(inventory),decks:(decks.data??[]).map(d=>({...d,cards:originalCards116(d.cards)})) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
 }
 export async function saveDeck(id:string|null,name:string,cards:string[]){
  const {data,error}=await supabase.rpc('dv_save_deck',{p_id:id,p_name:name,p_cards:cards});

@@ -1,6 +1,6 @@
 import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from '../../public/game/platform/ai-pool107.mjs';
-import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
 import {ELEMENT_IDS} from '../../public/game/platform/elements53.mjs';
+import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
 import {chooseTactic} from '../../public/game/src/tactics-ai.mjs';
 import {advancePvp90} from './pvp90.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
@@ -13,8 +13,8 @@ function shuffle(list,r){const a=[...list];for(let i=a.length-1;i>0;i--){const j
 export function createBot96(seed){
  const r=random96(seed),first=['Pixel','Void','Salty','Turbo','Meme','Neon','Cosmic','Sleepy','Crystal','Chaos','Quantum','Glitch'],last=['Goblin','Doge','Wizard','Potato','Gremlin','Wombat','Ninja','Pickle','Raccoon','Toast','Panda','Gecko'];
  const identity={displayName:pick(first,r)+pick(last,r)+String(Math.floor(r()*90)+10),avatarId:pick(PORTRAITS85,r).id,frameId:'starter',titleId:'',xp:0,isAi:true};
- const motifs=shuffle(DEFINITIONS,r).slice(0,15),elements=shuffle(ELEMENT_IDS.flatMap(e=>[e,e,e]),r);
- const cards=motifs.map((c,i)=>{const roll=r(),rarity=roll<.5?'common':roll<.8?'rare':roll<.95?'epic':roll<.99?'legendary':'mythic';return VARIANTS.find(v=>v.edition==='alpha'&&v.definitionId===c.id&&v.element===elements[i]&&v.rarity===rarity).id;});
+ const motifs=shuffle(ELEMENT_IDS.flatMap(element=>shuffle(DEFINITIONS.filter(c=>c.element===element),r).slice(0,3)),r);
+ const cards=motifs.map((c,i)=>{const roll=r(),rarity=roll<.5?'common':roll<.8?'rare':roll<.95?'epic':roll<.99?'legendary':'mythic';return VARIANTS.find(v=>v.edition==='alpha'&&v.definitionId===c.id&&v.rarity===rarity).id;});
  return {identity,deck:{name:'Random AI deck',cards},seed:seed>>>0};
 }
 function needed(s){return s.phase==='rps'&&s.choices[1]===null||s.phase==='initiative'&&s.rpsWinner===1||s.phase==='play'&&s.game?.turn===1||s.phase==='between'&&!s.ready[1];}

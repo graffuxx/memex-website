@@ -1,0 +1,48 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
+import {DEFINITIONS,VARIANTS,getVariant,originalCards116,originalInventory116,originalVariantId116,starterDeck,validateDeck,countCards} from '../public/game/platform/catalog.mjs';
+import {readTestCollection,TEST_COLLECTION_KEY,fullTestDeckInventory,elementTestDeck,drawTestPack} from '../public/game/platform/booster-test.mjs';
+import {readPlayDeck,PLAY_DECK_KEY} from '../public/game/platform/deck-bridge.mjs';
+import {readDeckLibrary} from '../public/game/platform/deck-library28.mjs';
+const u='11611611-6116-4116-8116-116116116116',v='11611611-6116-4116-8116-116116116117',req='11611611-6116-4116-8116-000000000001';
+const migration=new URL('../supabase/migrations/202611220004_original_card_elements116.sql',import.meta.url);
+async function setup(){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id,email_confirmed_at,email) values('${u}',now(),'one116@example.test'),('${v}',now(),'two116@example.test');`);for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')&&f<'202611220004').sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));for(const id of[u,v])await db.exec(`set request.jwt.claim.sub='${id}';select public.dv_initialize_account();`);return db;}
+const canonical=id=>originalVariantId116(id)===id;
+test('native catalogs, rehearsals and local drafts retain finishes and copies without retired element choices',()=>{
+ assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,425);assert.equal(VARIANTS.length,427);
+ for(const d of DEFINITIONS){const variants=VARIANTS.filter(v=>v.definitionId===d.id&&v.edition==='alpha');assert.equal(variants.length,5);assert.ok(variants.every(v=>v.element===d.element&&v.id===d.id+':'+v.rarity));}
+ const old=['doge:common:water','doge:rare:air','doge:epic:storm'],current=['doge:common','doge:rare','doge:epic'];assert.deepEqual(originalCards116(old),current);assert.equal(getVariant(old[0]).element,'water'); // Frozen prior matches remain compatible.
+ const inventory=originalInventory116({'doge:common':2,'doge:common:water':3,'doge:rare:air':1,'pepe:mythic:storm:recruiter':1});assert.deepEqual(inventory,{'doge:common':5,'doge:rare':1,'pepe:mythic:storm:recruiter':1});assert.deepEqual(originalInventory116(inventory),inventory);
+ assert.equal(validateDeck(starterDeck().slice(0,14).concat(old[0]),{...fullTestDeckInventory(),[old[0]]:1}).valid,false);
+ assert.ok(validateDeck(elementTestDeck(),fullTestDeckInventory()).valid);
+ for(let n=0;n<80;n++)assert.ok(drawTestPack(()=>n/81).every(canonical));
+ const cards=starterDeck().map(id=>id==='doge:common'?old[0]:id),owned=countCards(cards),data=new Map([[PLAY_DECK_KEY,JSON.stringify({version:1,cards,inventory:owned})],['library',JSON.stringify({version:1,selectedId:'x',decks:[{id:'x',name:'Old deck',cards,saved:{name:'Old deck',cards}}]})],[TEST_COLLECTION_KEY,JSON.stringify({version:1,openedPacks:1,inventory:owned,lastPack:{id:'p',cards:old.concat(old.slice(0,2)),newIds:old},singleDrawsUsed:1,lastDraw:{id:'d',card:old[0],isNew:true}})]]),storage={getItem:key=>data.get(key)};
+ const read=readPlayDeck(storage);assert.deepEqual(read.cards,originalCards116(cards));const library=readDeckLibrary(storage,'library');assert.deepEqual(library.decks[0].cards,originalCards116(cards));assert.deepEqual(library.decks[0].saved.cards,originalCards116(cards));
+ const testCollection=readTestCollection(storage);assert.ok(Object.keys(testCollection.inventory).every(canonical));assert.equal(Object.values(testCollection.inventory).reduce((a,b)=>a+b,0),15);assert.ok(testCollection.lastPack.cards.every(canonical));assert.equal(testCollection.lastDraw.card,'doge:common');
+});
+test('live migration conserves inventory, rarity, duplicate history and money, converts decks/packs, preserves active matches, and is retry-safe',async()=>{const db=await setup();try{
+ await db.exec(`set request.jwt.claim.sub='${u}';update public.dv_wallets set earned=10000,echoes=10000 where user_id='${u}';select public.dv_trade_card('${req}','craft','doge:epic:water');`);
+ await db.exec(`insert into public.dv_inventory(user_id,variant_id,quantity) values('${u}','doge:common:water',2),('${u}','doge:rare:air',2),('${u}','doge:rare',1),('${u}','doge:legendary:earth',1),('${u}','doge:mythic:storm',1),('${v}','pepe:common:fire',3) on conflict(user_id,variant_id) do update set quantity=excluded.quantity;`);
+ await db.exec(`update public.dv_card_acquired36 set quantity=9 where user_id='${u}' and variant_id='doge:rare:air';`);
+ const oldDeck=starterDeck().map(id=>id==='doge:common'?'doge:common:water':id);oldDeck[oldDeck.indexOf('doge:common:water')]='doge:common';
+ await db.query('update public.dv_decks set cards=$1 where user_id=$2',[oldDeck,u]);
+ const oldPack=['doge:common:water','doge:rare:air','doge:rare','doge:legendary:earth','doge:mythic:storm'];
+ const pack=(await db.query(`insert into public.dv_booster_purchases36(user_id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots) values($1,gen_random_uuid(),'alpha','pixels',100,$2,$2,array[0,2]) returning id`,[u,oldPack])).rows[0].id;
+ const waiting=(await db.query("insert into public.dv_pvp90(kind,host_id,host_deck) values('private',$1,$2) returning id",[u,JSON.stringify({name:'Old',cards:oldDeck})])).rows[0].id;
+ const matched=(await db.query("insert into public.dv_pvp90(kind,status,host_id,guest_id,host_deck,guest_deck,state) values('private','matched',$1,$2,$3,$3,$4) returning *",[u,v,JSON.stringify({name:'Frozen',cards:oldDeck}),JSON.stringify({frozen:true,element:'water'})])).rows[0];
+ const totals=async table=>(await db.query('select user_id,sum(quantity)::text n from public.'+table+' group by user_id order by user_id')).rows;
+ const totalBefore=await totals('dv_inventory'),acquiredBefore=await totals('dv_card_acquired36'),walletBefore=(await db.query('select * from public.dv_wallets order by user_id')).rows;
+ const sql=await fs.readFile(migration,'utf8');await db.exec(sql);
+ assert.deepEqual(await totals('dv_inventory'),totalBefore);assert.deepEqual(await totals('dv_card_acquired36'),acquiredBefore);assert.deepEqual((await db.query('select * from public.dv_wallets order by user_id')).rows,walletBefore);
+ assert.equal((await db.query("select quantity from public.dv_inventory where user_id=$1 and variant_id='doge:rare'",[u])).rows[0].quantity,3);
+ assert.equal(Number((await db.query("select quantity from public.dv_card_acquired36 where user_id=$1 and variant_id='doge:rare'",[u])).rows[0].quantity),10);
+ assert.deepEqual((await db.query('select cards from public.dv_decks where user_id=$1',[u])).rows[0].cards,originalCards116(oldDeck));
+ const purchase=(await db.query('select * from public.dv_booster_purchases36 where id=$1',[pack])).rows[0];assert.deepEqual(purchase.cards,originalCards116(oldPack));assert.deepEqual(purchase.revealed_slots,[0,2]);assert.equal(purchase.cost,100);assert.ok(purchase.new_variants.every(canonical));
+ assert.deepEqual((await db.query('select * from public.dv_pvp90 where id=$1',[matched.id])).rows[0],matched);assert.deepEqual((await db.query('select host_deck from public.dv_pvp90 where id=$1',[waiting])).rows[0].host_deck.cards,originalCards116(oldDeck));
+ const snapshot=async()=>JSON.stringify({inventory:(await db.query('select * from public.dv_inventory order by user_id,variant_id')).rows,acquired:(await db.query('select * from public.dv_card_acquired36 order by user_id,variant_id')).rows,audit:(await db.query('select * from dv_private.element_backup116 order by kind,row_key')).rows});const once=await snapshot();await db.exec(sql);assert.equal(await snapshot(),once);
+ await db.exec(`set request.jwt.claim.sub='${u}';set role authenticated;`);assert.equal((await db.query('select count(*)::integer n from public.dv_card_variants')).rows[0].n,427);await assert.rejects(db.query('select * from dv_private.element_backup116'),/permission denied/);
+ const replay=(await db.query(`select public.dv_trade_card('${req}','craft','doge:epic:water') data`)).rows[0].data;assert.equal(replay.replayed,true);
+ await assert.rejects(db.query("select public.dv_trade_card(gen_random_uuid(),'craft','doge:rare:water')"),/retired/);
+ await db.query('select public.dv_save_deck(null,$1,$2)',['Stale editor',oldDeck]);
+ const bought=(await db.query("select public.dv_buy_alpha_booster(gen_random_uuid(),'pixels') id")).rows[0].id;const drawn=(await db.query('select cards from public.dv_booster_purchases36 where id=$1',[bought])).rows[0].cards;assert.equal(drawn.length,5);assert.ok(drawn.every(canonical));assert.ok(drawn.some(id=>getVariant(id).rarity!=='common'));
+ await db.exec('reset role');const inventory=(await db.query('select variant_id,quantity from public.dv_inventory where user_id=$1',[u])).rows;assert.ok(inventory.filter(r=>r.quantity>0).every(r=>canonical(r.variant_id)));
+ }finally{await db.close();}});

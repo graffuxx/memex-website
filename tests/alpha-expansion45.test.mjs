@@ -9,7 +9,7 @@ import {protectedCandidates} from '../public/game/platform/alpha-booster36.mjs';
 
 test('all 12 approved value sets have five distinct artworks, cosmetic-only stats and Alpha membership',async()=>{
  const approved=JSON.parse(await fs.readFile(new URL('./fixtures/alpha-values45.json',import.meta.url),'utf8'));
- assert.equal(NEW_ALPHA_CARDS.length,12);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,2125);
+ assert.equal(NEW_ALPHA_CARDS.length,12);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,425);
  for(const c of NEW_ALPHA_CARDS){
   assert.deepEqual(c.values,approved.find(a=>a.id==='draft-'+c.id).values);assert.equal(c.ability,null);
   const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.id===`${c.id}:${v.rarity}`),hashes=[];assert.equal(variants.length,5);

@@ -1,6 +1,6 @@
 import {validateDeck,countCards,starterDeck} from './catalog.mjs';
-import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from './ai-pool107.mjs';
 import {ELEMENT_IDS} from './elements53.mjs';
+import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from './ai-pool107.mjs';
 export const SOLO_LEVELS84=Object.freeze([
  {id:'easy',name:'Easy',description:'Focuses on immediate captures.'},
  {id:'standard',name:'Standard',description:'Balances captures and board position.'},
@@ -25,9 +25,9 @@ export function soloOpponent84(style,cards,seed=1){
  let state=seed>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
  const base=['pepe','doge','roll-safe'],pool=DEFINITIONS.filter(c=>!base.includes(c.id)&&(style!=='pressure'||Math.max(...c.values)>=6));
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
- const motifs=[...base,...pool.slice(0,2).map(c=>c.id)];
+ const motifs=ELEMENT_IDS.map(element=>DEFINITIONS.find(c=>base.includes(c.id)&&c.element===element)??pool.find(c=>c.element===element)).filter(Boolean).map(c=>c.id);
  if(motifs.length!==5)return starterDeck();
- return Array.from({length:15},(_,i)=>VARIANTS.find(v=>v.definitionId===motifs[Math.floor(i/3)]&&v.element===ELEMENT_IDS[i%5]&&v.rarity==='common').id);
+ return Array.from({length:15},(_,i)=>VARIANTS.find(v=>v.definitionId===motifs[Math.floor(i/3)]&&v.rarity==='common').id);
 }
 // All solo practice is local and cannot be used as a currency reward claim.
 export const localSolo84=deck=>Boolean(soloSettings84(deck?.practice));

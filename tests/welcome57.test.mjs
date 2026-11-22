@@ -1,3 +1,4 @@
+import {originalCards116} from '../public/game/platform/catalog.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
 const uid=n=>'57575757-5757-4575-8575-'+String(n).padStart(12,'0');
 test('verified email cannot claim twice after account deletion, recreation, case changes or simultaneous accounts; existing gifts survive migration',async()=>{
@@ -10,7 +11,7 @@ test('verified email cannot claim twice after account deletion, recreation, case
   const count=async()=>Number((await db.query('select count(*) n from public.dv_booster_purchases36')).rows[0].n);
   await account(1,'First@Example.test');await asUser(1);await db.query('select public.dv_initialize_account()');assert.equal(await count(),10);const before=(await db.query('select id,cards from public.dv_booster_purchases36 order by id')).rows;
   await db.exec('reset role');for(const f of files.filter(f=>f>='202611200005'))await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
-  await asUser(1);await db.query('select public.dv_initialize_account()');assert.deepEqual((await db.query('select id,cards from public.dv_booster_purchases36 order by id')).rows,before);
+  await asUser(1);await db.query('select public.dv_initialize_account()');assert.deepEqual((await db.query('select id,cards from public.dv_booster_purchases36 order by id')).rows,before.map(p=>({...p,cards:originalCards116(p.cards)})));
   await db.exec('reset role');assert.equal((await db.query('select count(*)::int n from dv_private.welcome_emails57')).rows[0].n,1);await db.query('delete from auth.users where id=$1',[uid(1)]);
   await account(2,' first@EXAMPLE.TEST ');await asUser(2);await Promise.all(Array.from({length:5},()=>db.query('select public.dv_initialize_account()')));assert.equal(await count(),0);assert.equal((await db.query('select count(*)::int n from public.dv_welcome_grants56')).rows[0].n,0);assert.equal((await db.query('select sum(quantity)::int n from public.dv_inventory')).rows[0].n,18);
   for(const role of ['anon','authenticated','service_role']){await db.exec('reset role;set role '+role);await assert.rejects(db.query('select * from dv_private.welcome_emails57'),/permission denied/);await assert.rejects(db.query('select * from dv_private.welcome_key57'),/permission denied/);}

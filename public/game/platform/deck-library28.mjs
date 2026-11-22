@@ -1,20 +1,20 @@
 import {ELEMENT_IDS} from './elements53.mjs';
-import {DECK_SIZE,MAX_MOTIF_COPIES,countMotifs,DEFINITIONS,RARITIES,getVariant,starterDeck,countCards} from './catalog.mjs';
+import {DECK_SIZE,MAX_MOTIF_COPIES,countMotifs,DEFINITIONS,RARITIES,getVariant,originalVariantId116,originalCards116,starterDeck,countCards} from './catalog.mjs';
 export const DECK_LIBRARY_LIMIT=10;
 export const LEGACY_GUEST_DECK_KEY='duelverse.guest-deck.v1';
 export const libraryKey=(source,userId='')=>`duelverse.deck-library.v1.${source==='account'?'account.'+userId:source}`;
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const knownCards=cards=>Array.isArray(cards)&&cards.length<=DECK_SIZE&&cards.every(id=>typeof id==='string'&&Boolean(getVariant(id)));
-function snapshot(value){return value&&typeof value.name==='string'&&value.name.length<=40&&knownCards(value.cards)?{name:value.name,cards:[...value.cards]}:null;}
+function snapshot(value){return value&&typeof value.name==='string'&&value.name.length<=40&&knownCards(value.cards)?{name:value.name,cards:originalCards116(value.cards)}:null;}
 /** @param {string} name @param {string[]} [cards] @param {{id?:string,cloudId?:string|null,saved?:boolean}} [options] */
 export function makeEditorDeck(name,cards=[],{id='local:'+globalThis.crypto.randomUUID(),cloudId=null,saved=false}={}){
  if(!knownCards(cards)||typeof name!=='string'||name.length>40)throw Error('Invalid deck.');
- return {id,cloudId,name,cards:[...cards],saved:saved?{name,cards:[...cards]}:null};
+ return {id,cloudId,name,cards:originalCards116(cards),saved:saved?{name,cards:originalCards116(cards)}:null};
 }
 export const deckIsDirty=deck=>!deck.saved||!same({name:deck.name,cards:deck.cards},deck.saved);
 function cleanRecord(value){
  if(!value||typeof value.id!=='string'||!value.id||value.id.length>100||!knownCards(value.cards)||typeof value.name!=='string'||value.name.length>40)return null;
- return {id:value.id,cloudId:typeof value.cloudId==='string'?value.cloudId:null,name:value.name,cards:[...value.cards],saved:snapshot(value.saved)};
+ return {id:value.id,cloudId:typeof value.cloudId==='string'?value.cloudId:null,name:value.name,cards:originalCards116(value.cards),saved:snapshot(value.saved)};
 }
 // Working drafts are cached separately per account/test/guest; only Save writes to the account.
 /** @param {{getItem:(key:string)=>string|null}} storage @param {string} key @param {{serverDecks?:Array<{id:string,name:string,cards:string[],active?:boolean}>|null,legacyKey?:string|null,fallbackName?:string,fallbackCards?:string[],requestedId?:string|null}} [options] */
@@ -51,8 +51,9 @@ export function commitEditorDeck(library,id,cloudId=null){
 }
 export function addDeckCard(cards,id,inventory){
  if(!getVariant(id))throw Error('Unknown card.');
+ if(originalVariantId116(id)!==id)throw Error('This element variant has retired. Use the original card.');
  if(cards.length>=DECK_SIZE)throw Error('Your deck is full. Remove a card first.');
- if((countMotifs(cards)[getVariant(id).definitionId]??0)>=MAX_MOTIF_COPIES)throw Error('Maximum 3 copies of this meme per deck, including all elements and finishes.');
+ if((countMotifs(cards)[getVariant(id).definitionId]??0)>=MAX_MOTIF_COPIES)throw Error('Maximum 3 copies of this meme per deck, across all finishes.');
  if((countCards(cards)[id]??0)>=(inventory[id]??0))throw Error('All available copies are already in this deck.');
  return [...cards,id];
 }

@@ -7,7 +7,7 @@ import {previewEffect,placeEffect} from '../public/game/src/table-demo-rules.mjs
 import {createAccountDuel,advanceAccountDuel} from '../server/game/engine50.mjs';
 function scenario(av,dv,ae,de,dir=0,rarity='common'){
  const game=createTacticsMatch({seed:11,starter:1});game.events=[];game.demoFields=[];game.block='-2,2';game.turn=0;game.placements=1;
- const make=(value,edge,element,side,uid)=>{const motif=DEFINITIONS.find(c=>c.values[edge]===value);assert.ok(motif,`value ${value} on ${edge}`);const v=VARIANTS.find(v=>v.definitionId===motif.id&&v.element===element&&v.rarity===rarity);return {...expandGameDeck([v.id],side)[0],uid};};
+ const make=(value,edge,element,side,uid)=>{const motif=DEFINITIONS.find(c=>c.values[edge]===value&&c.element===element);assert.ok(motif,`value ${value} on ${edge}`);const v=VARIANTS.find(v=>v.definitionId===motif.id&&v.element===element&&v.rarity===rarity);return {...expandGameDeck([v.id],side)[0],uid};};
  const a=make(av,dir,ae,0,game.players[0].hand[0].uid),oldDef=game.players[1].hand.shift(),b=make(dv,(dir+3)%6,de,1,oldDef.uid),cell=DIRECTIONS[dir].join(',');
  game.players[0].hand[0]=a;game.board={[cell]:{...b,controller:1,rotation:0,flips:0}};const action={uid:a.uid,cell:'0,0',rotation:0,abilityDirection:dir};
  return {game,action,cell};

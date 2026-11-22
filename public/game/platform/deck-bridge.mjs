@@ -1,12 +1,12 @@
-import {validateDeck,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
+import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
 import {soloSettings84} from './solo84.mjs';
 export const PLAY_DECK_KEY='duelverse.play-deck.v1';
 export function readPlayDeck(storage){
  try{const saved=JSON.parse(storage.getItem(PLAY_DECK_KEY));if(saved?.version!==1)return null;
  // This is an unranked local alpha snapshot, never proof of ownership or a reward claim.
- const result=validateDeck(saved.cards,saved.inventory??{});
+ const cards=originalCards116(saved.cards),result=validateDeck(cards,originalInventory116(saved.inventory??{}));
  const practice=soloSettings84(saved.practice);if(saved.practice&&!practice)return null;
- return result.valid?{cards:saved.cards,deckId:typeof saved.deckId==='string'?saved.deckId:null,name:typeof saved.name==='string'?saved.name.slice(0,40):'My deck',source:saved.source==='sandbox'?'sandbox':saved.source==='account'?'account':'guest',...(practice?{practice}:{})}:null;
+ return result.valid?{cards,deckId:typeof saved.deckId==='string'?saved.deckId:null,name:typeof saved.name==='string'?saved.name.slice(0,40):'My deck',source:saved.source==='sandbox'?'sandbox':saved.source==='account'?'account':'guest',...(practice?{practice}:{})}:null;
  }catch{return null;}
 }
 export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null}={}){

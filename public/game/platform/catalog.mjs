@@ -8,7 +8,7 @@ import {RECRUITER_VARIANTS95} from './quests95.mjs';
 export const DECK_SIZE = 15;
 export const MAX_MOTIF_COPIES = 3;
 export const STARTER_COPIES = 3;
-export const CATALOG_VERSION = 8;
+export const CATALOG_VERSION = 9;
 export const RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id,m])=>Object.freeze({id,name:m.name,color:m.color})));
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',short:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},
@@ -25,9 +25,21 @@ const UNSORTED_VARIANTS = DEFINITIONS.flatMap(card=>ELEMENT_IDS.flatMap(element=
 const definitionOrder=new Map(DEFINITIONS.map((c,i)=>[c.id,i]));
 const nativeElement=new Map(DEFINITIONS.map(c=>[c.id,c.element]));
 const rarityOrder=new Map(RARITIES.map((r,i)=>[r.id,i]));
-// Browse motifs before repeats; explicit element/finish filters expose every combination.
-export const VARIANTS=Object.freeze([...UNSORTED_VARIANTS,...RECRUITER_VARIANTS95].sort((a,b)=>rarityOrder.get(a.rarity)-rarityOrder.get(b.rarity)||Number(a.element!==nativeElement.get(a.definitionId))-Number(b.element!==nativeElement.get(b.definitionId))||definitionOrder.get(a.definitionId)-definitionOrder.get(b.definitionId)||ELEMENT_IDS.indexOf(a.element)-ELEMENT_IDS.indexOf(b.element)));
-const VARIANT_INDEX=new Map(VARIANTS.map(v=>[v.id,v]));
+// One original element per motif; finishes remain cosmetic.
+export const VARIANTS=Object.freeze([...UNSORTED_VARIANTS.filter(v=>v.element===nativeElement.get(v.definitionId)),...RECRUITER_VARIANTS95].sort((a,b)=>rarityOrder.get(a.rarity)-rarityOrder.get(b.rarity)||Number(a.element!==nativeElement.get(a.definitionId))-Number(b.element!==nativeElement.get(b.definitionId))||definitionOrder.get(a.definitionId)-definitionOrder.get(b.definitionId)||ELEMENT_IDS.indexOf(a.element)-ELEMENT_IDS.indexOf(b.element)));
+// Old frozen matches may finish with their original rules. Retired IDs never enter
+// a new catalog, booster or deck; storage boundaries migrate them to native IDs.
+const VARIANT_INDEX=new Map([...UNSORTED_VARIANTS,...RECRUITER_VARIANTS95].map(v=>[v.id,v]));
+const ACTIVE_IDS116=new Set(VARIANTS.map(v=>v.id));
+export function originalVariantId116(id){const v=VARIANT_INDEX.get(id);return v&&!ACTIVE_IDS116.has(id)?`${v.definitionId}:${v.rarity}`:id;}
+export function originalCards116(cards){return Array.isArray(cards)?cards.map(originalVariantId116):cards;}
+export function originalInventory116(inventory){
+ /** @type {Record<string,number>} */ const next={};for(const [id,count] of Object.entries(inventory??{})){
+  if(!Number.isSafeInteger(count)||count<0)throw Error('Invalid collection copies.');
+  const original=originalVariantId116(id);if(!count&&original!==id)continue;
+  next[original]=(next[original]??0)+count;if(!Number.isSafeInteger(next[original]))throw Error('Invalid collection copies.');
+ }return next;
+}
 export function getVariant(id){return VARIANT_INDEX.get(id);}
 export function starterInventory(){return Object.fromEntries(STARTER_IDS.map(id=>[`${id}:common`,STARTER_COPIES]));}
 export function starterDeck(){return STARTER_IDS.flatMap((id,i)=>Array(i<3?3:2).fill(`${id}:common`));}
@@ -37,9 +49,10 @@ export function validateDeck(cards,inventory){
  const errors=[];
  if(!Array.isArray(cards)||cards.length!==DECK_SIZE)errors.push(`Your deck needs exactly ${DECK_SIZE} cards.`);
  if(!Array.isArray(cards))return {valid:false,errors};
- for(const [id,count] of Object.entries(countMotifs(cards)))if(count>MAX_MOTIF_COPIES)errors.push(`${DEFINITIONS.find(c=>c.id===id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, including all elements and finishes.`);
+ for(const [id,count] of Object.entries(countMotifs(cards)))if(count>MAX_MOTIF_COPIES)errors.push(`${DEFINITIONS.find(c=>c.id===id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, across all finishes.`);
  for(const [id,count] of Object.entries(countCards(cards))){
   if(!getVariant(id))errors.push('This deck contains an unknown card.');
+  else if(!ACTIVE_IDS116.has(id))errors.push('This element variant has retired. Reload to use the original card.');
   else if(!Number.isInteger(inventory[id])||inventory[id]<count)errors.push(`Not enough copies of ${DEFINITIONS.find(c=>c.id===getVariant(id).definitionId).name} (${getVariant(id).rarity}).`);
  }
  return {valid:errors.length===0,errors};

@@ -11,7 +11,7 @@ for(let seed=0;seed<128;seed++)for(const starter of [0,1]){
  let r=seed+4501;const random=()=>{r=(Math.imul(r,1664525)+1013904223)>>>0;return r/4294967296;};
  const gameSeed=Math.floor(random()*4294967296);let game=createTacticsMatch({seed:gameSeed,starter});game.rotationLocked=true;
  game.players=game.players.map((p,side)=>{const motifs=[...ELEMENT_CARDS];for(let i=motifs.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[motifs[i],motifs[j]]=[motifs[j],motifs[i]];}
-  const cards=motifs.slice(0,15).map((c,i)=>{const element=ELEMENT_IDS[(i+seed+side)%5];elementGames[element]++;return nativeVariant.get(`${c.id}/common/${element}`);}),deck=expandGameDeck(cards,side);return {...p,hand:deck.slice(0,5),deck:deck.slice(5)};
+  const cards=motifs.slice(0,15).map((c,i)=>{const element=c.element;elementGames[element]++;return nativeVariant.get(`${c.id}/common/${element}`);}),deck=expandGameDeck(cards,side);return {...p,hand:deck.slice(0,5),deck:deck.slice(5)};
  });
  while(!game.finished){const at=performance.now(),choice=chooseTactic(game,{random}).chosen;if(!choice)throw Error('No legal action');maxDecisionMs=Math.max(maxDecisionMs,performance.now()-at);decisions++;game=placeEffect(game,choice.action);}
  if(game.placements!==18)throw Error('Incomplete round');if(game.winner===null)draws++;else wins[game.winner]++;

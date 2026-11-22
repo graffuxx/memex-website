@@ -12,20 +12,20 @@ import {createAccountDuel,advanceAccountDuel} from '../server/game/engine50.mjs'
 test('five elements: exactly two wins/two losses, no mutual advantages; bonuses compare values, not automatic wins',()=>{
  assert.equal(ELEMENT_IDS.length,5);
  for(const a of ELEMENT_IDS){assert.equal(ELEMENTS[a].beats.length,2);assert.equal(ELEMENT_IDS.filter(b=>elementAdvantage(b,a)).length,2);assert.equal(elementAdvantage(a,a),false);for(const b of ELEMENT_IDS)if(a!==b)assert.notEqual(elementAdvantage(a,b),elementAdvantage(b,a));}
- for(const a of ELEMENT_IDS)for(const b of ELEMENT_IDS){const game=createTacticsMatch({seed:11});game.demoFields=[];const card=expandGameDeck([VARIANTS.find(v=>v.definitionId==='doge'&&v.rarity==='common'&&v.element===a).id],0)[0],other=expandGameDeck([VARIANTS.find(v=>v.definitionId==='doge'&&v.rarity==='common'&&v.element===b).id],1)[0];assert.equal(cardOf(card).element,a);assert.equal(effectStrength(game,card,'0,0',0,other).element,Number(elementAdvantage(a,b)));}
+ for(const a of ELEMENT_IDS)for(const b of ELEMENT_IDS){const game=createTacticsMatch({seed:11});game.demoFields=[];const card=expandGameDeck([VARIANTS.find(v=>v.rarity==='common'&&v.element===a).id],0)[0],other=expandGameDeck([VARIANTS.find(v=>v.rarity==='common'&&v.element===b).id],1)[0];assert.equal(cardOf(card).element,a);assert.equal(effectStrength(game,card,'0,0',0,other).element,Number(elementAdvantage(a,b)));}
 });
-test('50 new motifs, ten native per element, every motif has 25 variants; old IDs stay valid and cap is shared',()=>{
- assert.equal(ELEMENT_CARDS.length,50);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,2125);assert.equal(new Set(VARIANTS.map(v=>v.id)).size,VARIANTS.length);
+test('50 new motifs, ten native per element, every motif keeps its native element and five finishes; cap is shared',()=>{
+ assert.equal(ELEMENT_CARDS.length,50);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,425);assert.equal(new Set(VARIANTS.map(v=>v.id)).size,VARIANTS.length);
  for(const e of ELEMENT_IDS)assert.equal(ELEMENT_CARDS.filter(c=>c.element===e).length,10);
- for(const c of DEFINITIONS){const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha');assert.equal(variants.length,25);for(const e of ELEMENT_IDS)assert.equal(variants.filter(v=>v.element===e).length,5);assert.ok(getVariant(c.id+':common'));}
+ for(const c of DEFINITIONS){const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha');assert.equal(variants.length,5);assert.ok(variants.every(v=>v.element===c.element));assert.ok(getVariant(c.id+':common'));}
  assert.ok(validateDeck(starterDeck(),starterInventory()).valid);
- const variants=['doge:common','doge:rare:water','doge:epic:air'],inventory=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));assert.throws(()=>addDeckCard(variants,'doge:mythic:earth',inventory),/Maximum 3/);
- assert.deepEqual(summarizeDeck(variants).elements,{fire:1,water:1,earth:0,air:1,storm:0});
+ const variants=['doge:common','doge:rare','doge:epic'],inventory=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));assert.throws(()=>addDeckCard(variants,'doge:mythic',inventory),/Maximum 3/);
+ assert.deepEqual(summarizeDeck(variants).elements,{fire:3,water:0,earth:0,air:0,storm:0});
  for(const c of ELEMENT_CARDS){assert.equal(c.values.reduce((a,b)=>a+b,0),24);assert.ok(c.values.every(n=>Number.isInteger(n)&&n>=2&&n<=7));}
 });
 test('resonance can reach all five elements; mixed-element rounds finish legally and server resolves the same action',()=>{
  assert.deepEqual(new Set(Array.from({length:30},(_,seed)=>eventFields(createTacticsMatch({seed})).filter(f=>f.type==='resonance').map(f=>f.element)).flat()),new Set(ELEMENT_IDS));
- const deck=ELEMENT_CARDS.slice(0,15).map((c,i)=>VARIANTS.find(v=>v.definitionId===c.id&&v.rarity==='common'&&v.element===ELEMENT_IDS[i%5]).id),inventory=Object.fromEntries(deck.map(id=>[id,1]));
+ const deck=ELEMENT_IDS.flatMap(e=>ELEMENT_CARDS.filter(c=>c.element===e).slice(0,3)).map(c=>c.id+':common'),inventory=Object.fromEntries(deck.map(id=>[id,1]));
  for(const starter of [0,1]){let game=applyPortalDecks(createTacticsMatch({seed:91,starter}),deck,[LOADOUTS['hype-guard'],LOADOUTS['hype-twist']]);game.rotationLocked=true;
   for(let i=0;i<18;i++){const action=demoAction(game);assert.ok(action);game=placeEffect(game,action);}assert.ok(game.finished);assert.equal(scores(game).reduce((a,b)=>a+b),18);
  }
@@ -45,7 +45,7 @@ test('additive database upgrade preserves accounts and matches all 2125 variants
   await assert.rejects(db.query(`select public.dv_trade_card('53535353-0000-4000-8000-000000000002','craft','capybara-chill:mythic:air')`),/booster exclusive/);
   await db.exec('reset role');
   // Leave a Water variant available in every finish: the rarity roll itself is intentionally random.
-  const targets=VARIANTS.filter(v=>v.definitionId==='nyan-cat'&&v.element==='water').map(v=>v.id);await db.exec(`insert into public.dv_card_acquired36(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants where id<>all(array[${targets.map(id=>"'"+id+"'").join(',')}]) on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);
+  const targets=['common','rare','epic','legendary','mythic'].map(r=>'nyan-cat:'+r+':water');await db.exec(`insert into public.dv_card_acquired36(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants where id<>all(array[${targets.map(id=>"'"+id+"'").join(',')}]) on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);
   const id=(await db.query(`select public.dv_buy_alpha_booster('53535353-0000-4000-8000-000000000003','pixels') id`)).rows[0].id;const pack=(await db.query('select cards from public.dv_booster_purchases36 where id=$1',[id])).rows[0].cards;assert.ok(pack.some(id=>targets.includes(id)));assert.equal(pack.length,5);
   await db.exec('reset role');await db.exec(`insert into public.dv_inventory(user_id,variant_id,quantity) select '${u}',id,3 from public.dv_card_variants on conflict(user_id,variant_id) do update set quantity=3;set role authenticated;`);
   const illegal=starterDeck().slice(0,11).concat(['doge:rare:water','doge:epic:air','doge:rare:earth','doge:rare:storm']);await assert.rejects(db.query('select public.dv_save_deck(null,$1,$2)',['Four elements same meme',illegal]),/Maximum 3/);
