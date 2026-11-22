@@ -1,5 +1,6 @@
 import * as T from '../vendor/three.module.min.js';
-import {CATALOG,ELEMENTS,sideValue} from './rules.mjs';
+import {elementSvg} from '../platform/elements53.mjs';
+import {CATALOG,sideValue} from './rules.mjs';
 
 export {CARD_PROFILES} from './card-profiles27.mjs';
 import {CARD_PROFILES} from './card-profiles27.mjs';
@@ -61,7 +62,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe'}
  const socketFloor=geo(new T.ShapeGeometry(cardShape(.118)));
  for(const side of [-1,1]){const rim=add(socketGeometry,gold,.049);rim.position.y=side*CARD_SPEC.socketY;const well=add(socketFloor,dark,.058);well.position.y=side*CARD_SPEC.socketY;}
  // The upper well is intentionally empty: reserved for a later ability, without implying a rule.
- const stormTexture=tex(canvasTexture((ctx,w)=>{ctx.fillStyle=ELEMENTS[p.element].color;ctx.beginPath();if(p.element==='fire'){ctx.moveTo(w*.53,w*.08);ctx.bezierCurveTo(w*.46,w*.4,w*.9,w*.45,w*.76,w*.75);ctx.bezierCurveTo(w*.62,w*.98,w*.2,w*.98,w*.2,w*.63);ctx.bezierCurveTo(w*.2,w*.44,w*.38,w*.32,w*.53,w*.08);}else if(p.element==='stone'){ctx.moveTo(w*.5,w*.09);ctx.lineTo(w*.84,w*.5);ctx.lineTo(w*.5,w*.91);ctx.lineTo(w*.16,w*.5);}else{ctx.moveTo(w*.55,w*.1);ctx.lineTo(w*.21,w*.55);ctx.lineTo(w*.47,w*.55);ctx.lineTo(w*.36,w*.91);ctx.lineTo(w*.8,w*.4);ctx.lineTo(w*.52,w*.4);}ctx.closePath();ctx.fill();},128));
+ const stormTexture=tex(await new T.TextureLoader().loadAsync('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(p.element))));stormTexture.colorSpace=T.SRGBColorSpace;stormTexture.anisotropy=4;
  const storm=add(geo(new T.PlaneGeometry(CARD_SPEC.symbolSize,CARD_SPEC.symbolSize)),mat(new T.MeshBasicMaterial({map:stormTexture,transparent:true,depthWrite:false})),.08);storm.position.y=-CARD_SPEC.socketY;
  // Six small inset cuts make the frame read as one manufactured object from oblique views.
  for(let i=0;i<6;i++){const a=(i*60+30)*Math.PI/180;const cut=add(geo(new T.BoxGeometry(.045,.009,.009)),dark,.05);cut.position.set(Math.cos(a)*.946,Math.sin(a)*.946,.05);cut.rotation.z=a+Math.PI/2;}

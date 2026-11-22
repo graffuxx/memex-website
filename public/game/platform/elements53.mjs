@@ -3,7 +3,7 @@ export const ELEMENT_IDS=Object.freeze(['fire','water','earth','air','storm']);
 export const normalizeElement=id=>id==='stone'?'earth':id;
 /** @type {Record<string,{name:string,symbol:string,color:string,from:string,to:string,path:string,beats:string[],stroke?:boolean}>} */
 const raw={
- fire:{name:'Fire',symbol:'♨',color:'#ff9d62',from:'#fff07a',to:'#ff8d12',path:'M138 20 C113 102 220 108 195 184 C156 248 56 251 54 166 C51 118 102 84 138 20 Z',beats:['earth','air']},
+ fire:{name:'Fire',symbol:'🔥',color:'#ff9d62',from:'#fff07a',to:'#ff8d12',path:'M128 16 C139 48 153 67 141 98 C156 91 172 76 177 59 C176 105 208 130 208 166 C208 211 174 241 128 241 C78 241 48 210 48 170 C48 135 72 111 78 85 C78 120 95 138 93 103 C91 75 113 44 128 16 Z M128 218 C136 220 145 218 153 214 C168 203 169 183 149 159 C151 171 147 182 137 190 C137 172 117 168 119 142 C116 157 99 168 96 184 C93 203 104 218 128 218 Z',beats:['earth','air']},
  water:{name:'Water',symbol:'≈',color:'#65cfff',from:'#d4fbff',to:'#2284e4',path:'M128 18 C112 68 49 120 49 167 C49 266 207 266 207 167 C207 120 144 68 128 18 Z',beats:['fire','earth']},
  earth:{name:'Earth',symbol:'◆',color:'#d6bc78',from:'#f7e7ae',to:'#a9853a',path:'M128 26 L210 128 L128 230 L46 128 Z',beats:['air','storm']},
  air:{name:'Air',symbol:'≋',color:'#a9eee1',from:'#edfff9',to:'#57bbaa',path:'M28 82 H157 C217 82 218 17 177 25 C156 28 153 47 168 56 M28 126 H207 C252 126 246 184 216 182 C197 180 191 165 201 154 M28 170 H119 C166 170 169 230 133 230 C113 230 105 215 117 203',beats:['storm','water'],stroke:true},
