@@ -1,10 +1,12 @@
+import {bindDuelExit112} from './duel-exit112.mjs';
+import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {bindPortraitIntro86} from './portrait-intro86.mjs';
 import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs';
 import {soloAction84} from './solo-ai84.mjs';
 import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {connectAccountGame} from '../platform/account-client50.mjs?v=identity-85';
+import {connectAccountGame,leaveStoredAccount112} from '../platform/account-client50.mjs?v=identity-85';
 import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=solo-84';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=portrait-intro-86';
 import {roundStarter} from './start-duel18.mjs';
@@ -39,6 +41,7 @@ function unlockSound(e){if(e.isTrusted&&soundWanted&&!audio.running)void audio.s
 document.addEventListener('pointerdown',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
 let accountGame=null,accountSnapshot=null,accountResume=null,accountFailed=false;
+bindDuelExit112({leave:async()=>{if(accountGame)await accountGame.leave();else if(portalDeck.source==='account'&&!practice)await leaveStoredAccount112();}});
 function accountWallet(wallet){if(!wallet)return;for(const c of ['pixels','shards','echoes'])$('game'+c).textContent=wallet[c].toLocaleString('en-US');}
 function acceptAccount(data){accountSnapshot=data;portalDeck={...data.state.deck,deckId:data.state.deck.id,source:'account'};round=data.state.round;roundResults=data.state.results;firstStarter=data.state.starter;matchSeed=data.state.seed;accountWallet(data.wallet);if(data.award>0)void refreshPresence85();$('accountDeckName').textContent=data.state.deck.name;}
 function accountProblem(error){accountFailed=true;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=error.message;busy=true;phase='connection';render();}
@@ -203,8 +206,8 @@ $('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>{const o=doc
 $('motion').checked=!matchMedia('(prefers-reduced-motion:reduce)').matches;atmosphere.setMotion($('motion').checked);$('motion').onchange=()=>{atmosphere.setMotion($('motion').checked);view?.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';};
 let arenaRequest=0,currentArena='voidforge';
 function arenaLabel(id){return ILLUSTRATED_ARENAS[id]?.name??({voidforge:'Voidforge',painted:'Void-Kluft',grove:'Resonanzhain',rift:'Glutkluft',void:'Void-Sanktuarium'})[id];}
-try{const saved=localStorage.getItem('duelverse.arena.v77');if(saved==='voidforge'||Object.hasOwn(ILLUSTRATED_ARENAS,saved)||saved==='painted')$('arenaTheme').value=currentArena=saved;}catch{}
-$('arenaTheme').onchange=async()=>{const id=$('arenaTheme').value,request=++arenaRequest;$('arenaTheme').setAttribute('aria-busy','true');$('arenaLoadState').textContent='Arena lädt …';try{const ready=await view?.setArena(id);if(request!==arenaRequest||!ready)return;currentArena=id;audio.setArena(id);$('arenaName').textContent=arenaLabel(id);try{localStorage.setItem('duelverse.arena.v77',id);}catch{}}catch{if(request===arenaRequest){$('arenaTheme').value=currentArena;announce('Arena konnte nicht geladen werden. Bitte erneut versuchen.');}}finally{if(request===arenaRequest){$('arenaTheme').removeAttribute('aria-busy');$('arenaLoadState').textContent='';}}};
+lockArenaSelection112($('arenaTheme'));currentArena='voidforge';
+$('arenaTheme').onchange=async()=>{const id=lockArenaSelection112($('arenaTheme')),request=++arenaRequest;$('arenaTheme').setAttribute('aria-busy','true');$('arenaLoadState').textContent='Arena lädt …';try{const ready=await view?.setArena(id);if(request!==arenaRequest||!ready)return;currentArena=id;audio.setArena(id);$('arenaName').textContent=arenaLabel(id);try{localStorage.setItem('duelverse.arena.v77',id);}catch{}}catch{if(request===arenaRequest){$('arenaTheme').value=currentArena;announce('Arena konnte nicht geladen werden. Bitte erneut versuchen.');}}finally{if(request===arenaRequest){$('arenaTheme').removeAttribute('aria-busy');$('arenaLoadState').textContent='';}}};
 async function setSound(value){soundWanted=Boolean(value);try{localStorage.setItem('duelverse.arena-sound.v42',soundWanted?'on':'off');}catch{}renderSound();const ok=await audio.setEnabled(soundWanted);if(ok)audio.play('select');}
 $('arenaSound').onclick=()=>setSound(!soundWanted);$('soundEnabled').onchange=()=>setSound($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('soundTest').onclick=async()=>{await setSound(true);if(audio.running){audio.test();}};
 try{

@@ -6,6 +6,7 @@ import {socialInbox111,useSocialInbox111,type InboxItem111} from '@/lib/duelvers
 import {type SavedDeck} from '@/lib/duelverse/account';
 import {portrait85} from '../../../public/game/platform/identity85.mjs';
 import './social-bubble111.css';
+import CurrentDuel112 from './CurrentDuel112';
 type DeckState={owner:string;decks:SavedDeck[]};
 const ChatIcon=()=> <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.4c0 4.1-3.6 7.4-8 7.4a9.3 9.3 0 0 1-3.2-.6L4 20l1.3-4.5A6.8 6.8 0 0 1 4 11.4C4 7.3 7.6 4 12 4s8 3.3 8 7.4Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="8" cy="11" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="16" cy="11" r="1" fill="currentColor"/></svg>;
 export default function SocialBubble111({embedded=false}:{embedded?:boolean}){
@@ -46,7 +47,7 @@ export default function SocialBubble111({embedded=false}:{embedded?:boolean}){
   {open&&<section ref={panel} id="social111-inbox" className="social111-panel" role="region" aria-label="Friends and invitations">
    <header><div><small>YOUR DUELVERSE</small><h2>Friends & duels</h2></div><button className="social111-close" onClick={close} aria-label="Close friends inbox">×</button></header>
    <div className="social111-counts"><span>{requests} friend request{requests!==1?'s':''}</span><span>{duels} duel invite{duels!==1?'s':''}</span><button onClick={()=>void socialInbox111.refresh()} aria-label="Refresh requests">↻</button></div>
-   <div className="social111-scroll">
+   <div className="social111-scroll"><CurrentDuel112 userId={inbox.userId} embedded={embedded}/>
     {(error||inbox.error)&&<p className="social111-error" role="alert">{error||inbox.error}</p>}
     {notice&&<p className="social111-notice" role="status">{notice}</p>}
     {!inbox.ready&&!inbox.error&&<p className="social111-empty" role="status">Checking your requests…</p>}

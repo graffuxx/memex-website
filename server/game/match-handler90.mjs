@@ -15,11 +15,14 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
   if(!auth.ok||!UUID.test(u?.id)||u.is_anonymous||!u.email_confirmed_at)fail('Sign in with a verified email address to play online.',401);
   const raw=await req.text();if(raw.length>3000)fail('Request too large.',413);let input;try{input=JSON.parse(raw);}catch{fail('Invalid match request.');}if(!input||Array.isArray(input))fail('Invalid match request.');
   const uid=u.id;
+  if(input.op==='active')return reply(await rpc('dv_match_active112',{p_user:uid}));
   if(input.op==='join'){
    if(!UUID.test(input.deckId)||!['random','private'].includes(input.kind)||input.code!=null&&!/^[a-f0-9]{64}$/.test(input.code))fail('Choose Random or Private with a saved deck. Ranked is coming soon.');
    const id=await rpc('dv_match_join90',{p_user:uid,p_kind:input.kind,p_deck:input.deckId,p_code:input.code??null});const row=await rpc('dv_match_get90',{p_user:uid,p_id:id});return reply(projectPvp90(row,uid,now()));
   }
   if(!UUID.test(input.id))fail('Invalid duel.');
+  if(input.op==='leave')return reply(await rpc('dv_match_leave112',{p_user:uid,p_id:input.id}));
+  if(input.op==='move'&&input.move?.kind==='resign'){await rpc('dv_match_leave112',{p_user:uid,p_id:input.id});return reply(projectPvp90(await rpc('dv_match_get90',{p_user:uid,p_id:input.id}),uid,now()));}
   if(input.op==='cancel'){await rpc('dv_match_cancel90',{p_user:uid,p_id:input.id});return reply({cancelled:true});}
   let row=await rpc('dv_match_get90',{p_user:uid,p_id:input.id});
   const commit=(state,version=row.version,rid=requestId())=>rpc('dv_match_commit90',{p_user:uid,p_id:row.id,p_version:version,p_request:rid,p_state:state});

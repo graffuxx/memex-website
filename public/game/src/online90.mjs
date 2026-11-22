@@ -1,3 +1,5 @@
+import {bindDuelExit112} from './duel-exit112.mjs';
+import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=online-90';
 import {createTableView} from './table-demo-view-hand17.mjs?v=hand-foreground-105';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
@@ -10,11 +12,13 @@ import {bindPortraitIntro86} from './portrait-intro86.mjs';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),id=new URLSearchParams(location.search).get('match'),stage=$('stage'),svg=$('interaction');
 let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=true,identityKey='',polling=false,moveEpoch=0;
+let leaving112=false;
+lockArenaSelection112($('arenaTheme'));
 const atmosphere=createVoidAtmosphere(),audio=createTableAudio(),portraitIntro=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
 bindTableMusic107(audio);
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(data?.phase==='between')void move({kind:'ready'});else location.assign('/play');return true;}});
 const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
-const locked=()=>working||animating||!game||data.phase!=='play'||game.turn!==0;
+const locked=()=>leaving112||working||animating||!game||data.phase!=='play'||game.turn!==0;
 function clear(){if(selected)view?.release(selected);selected=target=hover=twistCell=null;mode='card';abilityDirection=0;}
 function action(){return {uid:selected,cell:target,rotation:0,abilityDirection,twistCell};}
 function plan(){if(!selected||!target||!game||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
@@ -66,7 +70,7 @@ async function accept(next){
  if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}
  if(next.forfeit!==undefined){ceremony.cancel();notice=(next.forfeit===0?'You conceded.':'Your opponent conceded.')+' Return to matchmaking.';render();$('nextRound').hidden=false;$('nextRound').disabled=false;$('nextRound').textContent='Back to matchmaking';}
 }
-async function move(input){if(working||animating||!client||!data)return;working=true;moveEpoch++;notice='Saving…';render();rps();try{await accept(await client.move(data.version,input));$('gameAccountError').hidden=true;}catch(e){notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
+async function move(input){if(leaving112||working||animating||!client||!data)return;working=true;moveEpoch++;notice='Saving…';render();rps();try{await accept(await client.move(data.version,input));$('gameAccountError').hidden=true;}catch(e){notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
 async function poll(){if(working||animating||stopped||!client||polling)return;polling=true;const epoch=moveEpoch;try{const next=await client.poll(data?.version);if(epoch!==moveEpoch||working)return;await accept(next);$('gameAccountError').hidden=true;}catch(e){if(epoch===moveEpoch){$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}}finally{polling=false;render();rps();}}
 function choose(uid){if(locked())return;clear();selected=uid;audio.play('select');render();}
 function field(cell){if(locked())return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;}else if(selected&&!game.board[cell]&&game.block!==cell){target=cell;twistCell=null;}render();}
@@ -75,7 +79,7 @@ $('confirm').onclick=confirm;$('cancel').onclick=()=>{if(!locked()){clear();rend
 $('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>new Option(n,String(i))));$('abilityDirection').onchange=()=>{abilityDirection=Number($('abilityDirection').value);render();};$('twistTarget').onchange=()=>{twistCell=$('twistTarget').value||null;render();};
 $('nextRound').onclick=()=>{if(data.phase==='between')void move({kind:'ready'});else location.assign('/play');};$('gameAccountRetry').onclick=()=>void poll();$('showRules').onclick=()=>{$('rulesPanel').open=!$('rulesPanel').open;};
 for(const b of $('startDuel').querySelectorAll('[data-gesture]'))b.onclick=()=>void move({kind:'gesture',value:b.dataset.gesture});for(const b of $('startDuel').querySelectorAll('[data-starter]'))b.onclick=()=>void move({kind:'starter',side:Number(b.dataset.starter)});$('startDuel').addEventListener('cancel',e=>e.preventDefault());
-$('resign90').onclick=()=>{$('resignConfirm90').hidden=false;};$('resignNo90').onclick=()=>{$('resignConfirm90').hidden=true;};$('resignYes90').onclick=()=>{$('resignConfirm90').hidden=true;void move({kind:'resign'});};
+bindDuelExit112({leave:async()=>{if(!client)throw Error('Open the match lobby to leave while sign-in is loading.');leaving112=true;stopped=true;try{await client.leave();}catch(e){leaving112=false;stopped=false;throw e;}}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)field(c.dataset.cell);});svg.addEventListener('keydown',e=>{if(!['Enter','Space'].includes(e.code))return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();h?choose(h.dataset.hand):field(c.dataset.cell);}});
 svg.addEventListener('pointermove',e=>{if(locked())return;if(drag){if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){const d=drag;choose(d.uid);drag=d;drag.moved=true;}if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const cell=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-cell]')?.dataset.cell;target=cell&&!game.board[cell]&&cell!==game.block?cell:null;render();}return;}const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(uid!==hover){hover=uid;render();}});
 svg.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-hand]');if(!h||locked()||e.button!==0)return;drag={uid:h.dataset.hand,id:e.pointerId,node:h,x:e.clientX,y:e.clientY,moved:false};h.setPointerCapture(e.pointerId);});
@@ -84,7 +88,7 @@ svg.addEventListener('pointerup',e=>release(e));svg.addEventListener('pointercan
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Escape'){if(!ceremony.dismiss()&&!locked()){e.preventDefault();clear();render();}return;}if(e.target.matches('input,select,button'))return;if(e.code==='Enter')confirm();});
 async function soundOn(value){sound=value;$('arenaSound').textContent=sound?'♪ Sound on':'♪ Sound off';$('soundEnabled').checked=sound;await audio.setEnabled(sound);}
 document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.running)void audio.setEnabled(true);},{capture:true});$('arenaSound').onclick=()=>void soundOn(!sound);$('soundEnabled').onchange=()=>void soundOn($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('motion').onchange=()=>{view.setMotion($('motion').checked);atmosphere.setMotion($('motion').checked);};
-$('arenaTheme').onchange=async()=>{const select=$('arenaTheme');select.disabled=true;try{await view.setArena(select.value);audio.setArena(select.value);}finally{select.disabled=false;}};
+$('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
 try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
  client=await connectOnline90(id);view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient(true);void audio.preloadAnnouncements();

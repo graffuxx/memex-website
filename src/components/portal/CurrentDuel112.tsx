@@ -1,0 +1,12 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import {activeDuel112,leaveDuel112,type Lobby90} from '@/lib/duelverse/matchmaking90';
+import './current-duel112.css';
+export default function CurrentDuel112({userId,embedded=false}:{userId:string;embedded?:boolean}){
+ const [room,setRoom]=useState<Lobby90|null>(null),[confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const scope=useRef(userId),lock=useRef(false);scope.current=userId;
+ useEffect(()=>{let alive=true,ticket=0;setRoom(null);setConfirm(false);setError('');setBusy(false);lock.current=false;const refresh=async()=>{const n=++ticket;try{const next=await activeDuel112();if(alive&&scope.current===userId&&ticket===n)setRoom(next);}catch{if(alive&&ticket===n)setError('Duel status unavailable. Open the match lobby to retry.');}};void refresh();const focus=()=>{if(!document.hidden)void refresh();};window.addEventListener('focus',focus);window.addEventListener('duelverse-match112',focus);return()=>{alive=false;ticket++;window.removeEventListener('focus',focus);window.removeEventListener('duelverse-match112',focus);};},[userId]);
+ async function leave(){if(!room||lock.current)return;lock.current=true;setBusy(true);setError('');const owner=userId;try{await leaveDuel112(room.id,owner);if(scope.current===owner){setRoom(null);setConfirm(false);}}catch(e){if(scope.current===owner)setError(e instanceof Error?e.message:'Could not leave. Try again.');}finally{if(scope.current===owner){lock.current=false;setBusy(false);}}}
+ if(!room&&!error)return null;
+ return <aside className="current-duel112" aria-label="Current duel">{room&&<><strong>{room.status==='waiting'?'Invitation or search still open':'You have an unfinished duel'}</strong><div className="current-duel112-actions"><a href={room.status==='waiting'?'/play':'/game/online.html?match='+room.id} target={embedded?'_top':undefined}>{room.status==='waiting'?'Open lobby':'Resume duel'}</a><button disabled={busy} onClick={()=>setConfirm(true)}>Leave duel</button></div>{confirm&&<div className="current-duel112-confirm"><p>Leave this duel? Unfinished rounds give no rewards.</p><button disabled={busy} onClick={()=>void leave()}>{busy?'Leaving…':'Leave now'}</button><button disabled={busy} onClick={()=>setConfirm(false)}>Keep playing</button></div>}</>}{error&&<p role="alert">{error}</p>}</aside>;
+}
