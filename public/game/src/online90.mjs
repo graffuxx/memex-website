@@ -1,8 +1,9 @@
+import {onlineInput117,boardCellAt117} from './online-input117.mjs';
 import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=online-90';
-import {createTableView} from './table-demo-view-hand17.mjs?v=hand-foreground-105';
+import {createTableView} from './table-demo-view-hand17.mjs?v=online-input-117';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
@@ -19,7 +20,8 @@ const atmosphere=createVoidAtmosphere(),audio=createTableAudio(),portraitIntro=b
 bindTableMusic107(audio);
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(data?.phase==='between')void move({kind:'ready'});else location.assign('/play');return true;}});
 const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
-const locked=()=>leaving112||working||animating||!game||data.phase!=='play'||game.turn!==0;
+const inputState=()=>onlineInput117({game,phase:data?.phase,working,animating,leaving:leaving112});
+const locked=()=>!inputState().play;
 function clear(){if(selected)view?.release(selected);selected=target=hover=twistCell=null;mode='card';abilityDirection=0;}
 function action(){return {uid:selected,cell:target,rotation:0,abilityDirection,twistCell};}
 function plan(){if(!selected||!target||!game||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
@@ -35,12 +37,12 @@ function render(){
  const series=series113(data.results);$('seriesStatus').textContent='Round wins '+series.wins[0]+' : '+series.wins[1]+' · First to 2';$('firstMove').textContent='First move: '+(game.starter===0?'you':'opponent');
  $('confirm').disabled=busy||!(p||mode==='shift'&&moveTargets(game).includes(target));$('confirm').textContent=mode==='shift'?'Move blockade':'Play card';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent='◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
  $('nextRound').hidden=data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Waiting for opponent…':'Ready for next round';
- $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?'Choose a free field. Escape cancels.':game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
+ $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?(game.turn===0?'Choose a free field. Escape cancels.':'Inspect your hand while your opponent plays.'):game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
  $('previewText').textContent=p?p.comparisons.map(c=>c.attack.total+' vs '+c.defend.total+(c.flip?' ✓':'')).join(' · '):'';
  $('abilityOptions').hidden=!card?.ability||mode==='shift';$('abilityLabel').textContent=card?.ability?ABILITIES[card.ability].name:'';$('abilityHint').textContent=card?.ability?ABILITIES[card.ability].description:'';$('directionLabel').hidden=!['hype','guard'].includes(card?.ability);$('twistLabel').hidden=card?.ability!=='twist';
  if(card?.ability==='twist'){const opts=target?twistTargets(game,target):[];$('twistTarget').replaceChildren(new Option('No rotation',''),...opts.map(c=>new Option(c,c)));$('twistTarget').value=twistCell??'';}
  $('fieldLegend').replaceChildren(...eventFields(game).map(f=>{const e=document.createElement('span');e.textContent=fieldText(f);return e;}));const next=nextEvent(game);$('eventShort').textContent=next?'Change in '+next.remaining+' turns':'Final phase';$('eventCountdown').textContent='';
- $('controls').dataset.context='active';view.update(game,{selected,target,hover,inspect:null,mode,busy,plan:p,abilityDirection,twistCell});clock();
+ $('controls').dataset.context='active';view.update(game,{selected,target,hover,inspect:null,mode,busy,inspectable:inputState().inspect,cameraBusy:!inputState().camera,plan:p,abilityDirection,twistCell});clock();
 }
 function rps(){
  if(!data)return;
@@ -74,7 +76,7 @@ async function accept(next){
 }
 async function move(input){if(leaving112||working||animating||!client||!data)return;working=true;moveEpoch++;notice='Saving…';render();rps();try{await accept(await client.move(data.version,input));$('gameAccountError').hidden=true;}catch(e){notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
 async function poll(){if(working||animating||stopped||!client||polling)return;polling=true;const epoch=moveEpoch;try{const next=await client.poll(data?.version);if(epoch!==moveEpoch||working)return;await accept(next);$('gameAccountError').hidden=true;}catch(e){if(epoch===moveEpoch){$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}}finally{polling=false;render();rps();}}
-function choose(uid){if(locked())return;clear();selected=uid;audio.play('select');render();}
+function choose(uid){if(!inputState().inspect||!game.players[0].hand.some(c=>c.uid===uid))return;const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;audio.play('select');render();}
 function field(cell){if(locked())return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;}else if(selected&&!game.board[cell]&&game.block!==cell){target=cell;twistCell=null;}render();}
 function confirm(){if(locked())return;if(mode==='shift'){if(moveTargets(game).includes(target))void move({kind:'shift',cell:target});}else if(plan())void move({kind:'place',action:action()});}
 $('confirm').onclick=confirm;$('cancel').onclick=()=>{if(!locked()){clear();render();}};$('shiftBlock').onclick=()=>{if(locked())return;const old=mode;clear();mode=old==='shift'?'card':'shift';render();};
@@ -83,11 +85,29 @@ $('nextRound').onclick=()=>{if(data.phase==='between')void move({kind:'ready'});
 for(const b of $('startDuel').querySelectorAll('[data-gesture]'))b.onclick=()=>void move({kind:'gesture',value:b.dataset.gesture});for(const b of $('startDuel').querySelectorAll('[data-starter]'))b.onclick=()=>void move({kind:'starter',side:Number(b.dataset.starter)});$('startDuel').addEventListener('cancel',e=>e.preventDefault());
 bindDuelExit112({leave:async()=>{if(!client)throw Error('Open the match lobby to leave while sign-in is loading.');leaving112=true;stopped=true;try{await client.leave();}catch(e){leaving112=false;stopped=false;throw e;}}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)field(c.dataset.cell);});svg.addEventListener('keydown',e=>{if(!['Enter','Space'].includes(e.code))return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();h?choose(h.dataset.hand):field(c.dataset.cell);}});
-svg.addEventListener('pointermove',e=>{if(locked())return;if(drag){if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){const d=drag;choose(d.uid);drag=d;drag.moved=true;}if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const cell=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-cell]')?.dataset.cell;target=cell&&!game.board[cell]&&cell!==game.block?cell:null;render();}return;}const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(uid!==hover){hover=uid;render();}});
-svg.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-hand]');if(!h||locked()||e.button!==0)return;drag={uid:h.dataset.hand,id:e.pointerId,node:h,x:e.clientX,y:e.clientY,moved:false};h.setPointerCapture(e.pointerId);});
-function release(e,cancelled=false){if(!drag||drag.id!==e.pointerId)return;const d=drag;drag=null;try{d.node.releasePointerCapture(e.pointerId);}catch{}if(cancelled){clear();render();return;}if(!d.moved){choose(d.uid);return;}view.release(d.uid);if(plan())confirm();else{clear();render();}}
-svg.addEventListener('pointerup',e=>release(e));svg.addEventListener('pointercancel',e=>release(e,true));svg.addEventListener('pointerleave',()=>{if(!drag){hover=null;render();}});
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Escape'){if(!ceremony.dismiss()&&!locked()){e.preventDefault();clear();render();}return;}if(e.target.matches('input,select,button'))return;if(e.code==='Enter')confirm();});
+svg.addEventListener('focusin',e=>{const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(inputState().inspect&&uid!==hover){hover=uid;render();}});
+svg.addEventListener('focusout',e=>{if(!drag&&hover&&e.target.closest('[data-hand]')){hover=null;render();}});
+svg.addEventListener('pointermove',e=>{
+ if(!inputState().inspect)return;
+ if(drag&&e.pointerId===drag.id){
+  if(locked())return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){const d=drag;choose(d.uid);drag=d;drag.moved=true;drag.node.classList.add('dragging');}
+  if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const cell=boardCellAt117(svg,e.clientX,e.clientY);target=cell&&!game.board[cell]&&cell!==game.block?cell:null;twistCell=null;render();}return;
+ }
+ const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(uid!==hover){hover=uid;render();}
+});
+svg.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-hand]');if(!h||!inputState().inspect||e.button!==0)return;drag={uid:h.dataset.hand,id:e.pointerId,node:h,x:e.clientX,y:e.clientY,moved:false};h.setPointerCapture(e.pointerId);});
+function release(e,cancelled=false){
+ if(!drag||drag.id!==e.pointerId)return;
+ const d=drag,cell=cancelled?null:boardCellAt117(svg,e.clientX,e.clientY);drag=null;
+ d.node.classList.remove('dragging');try{d.node.releasePointerCapture(e.pointerId);}catch{}
+ if(cancelled){view.release(d.uid);clear();render();return;}
+ if(!d.moved){choose(d.uid);return;}
+ view.release(d.uid);target=cell&&!game.board[cell]&&cell!==game.block?cell:null;twistCell=null;
+ if(!locked()&&plan())confirm();else{clear();render();}
+}
+svg.addEventListener('pointerup',e=>release(e));svg.addEventListener('pointercancel',e=>release(e,true));svg.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=null;render();}});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Escape'){if(!ceremony.dismiss()&&inputState().inspect){e.preventDefault();clear();render();}return;}if(e.target.matches('input,select,button'))return;if(e.code==='Enter')confirm();});
 async function soundOn(value){sound=value;$('arenaSound').textContent=sound?'♪ Sound on':'♪ Sound off';$('soundEnabled').checked=sound;await audio.setEnabled(sound);}
 document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.running)void audio.setEnabled(true);},{capture:true});$('arenaSound').onclick=()=>void soundOn(!sound);$('soundEnabled').onchange=()=>void soundOn($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('motion').onchange=()=>{view.setMotion($('motion').checked);atmosphere.setMotion($('motion').checked);};
 $('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};

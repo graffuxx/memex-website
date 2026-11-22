@@ -9,6 +9,14 @@ if(process.argv.includes('--presence114')){
  for(const target of[users.b,users.c]){await db.exec(`set request.jwt.claim.sub='${users.a}';set role authenticated`);await rpc('dv_social_action92',{p_other:target,p_action:'request'});await db.exec(`reset role;set request.jwt.claim.sub='${target}';set role authenticated`);await rpc('dv_social_action92',{p_other:users.a,p_action:'accept'});await db.exec('reset role');}
 }
 
+if(process.argv.includes('--input117')){
+ const {createPvp90,advancePvp90}=await import('../server/game/pvp90.mjs');
+ const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));await db.exec('set role service_role');const id=await rpc('dv_match_join90',{p_user:users.a,p_kind:'random',p_deck:decks[users.a]});await rpc('dv_match_join90',{p_user:users.b,p_kind:'random',p_deck:decks[users.b]});const row=await rpc('dv_match_get90',{p_user:users.a,p_id:id}),now=Date.now();
+ let state=createPvp90([row.host_deck,row.guest_deck],117,now);await rpc('dv_match_commit90',{p_user:users.a,p_id:id,p_version:0,p_request:crypto.randomUUID(),p_state:state});state=advancePvp90(advancePvp90(advancePvp90(state,0,{kind:'gesture',value:'rock'},now),1,{kind:'gesture',value:'scissors'},now),0,{kind:'starter',side:0},now);
+ await rpc('dv_match_commit90',{p_user:users.a,p_id:id,p_version:1,p_request:crypto.randomUUID(),p_state:state});await db.exec('reset role');
+ console.log(JSON.stringify({playerA:'http://127.0.0.1:4239/game/online.html?tester=a&match='+id,playerB:'http://127.0.0.1:4239/game/online.html?tester=b&match='+id}));
+}
+
 if(process.argv.includes('--series113')){
  const {createPvp90,advancePvp90}=await import('../server/game/pvp90.mjs'),{chooseTactic}=await import('../public/game/src/tactics-ai.mjs'),{series113}=await import('../public/game/platform/series113.mjs');
  const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));await db.exec('set role service_role');const id=await rpc('dv_match_join90',{p_user:users.a,p_kind:'random',p_deck:decks[users.a]});await rpc('dv_match_join90',{p_user:users.b,p_kind:'random',p_deck:decks[users.b]});const row=await rpc('dv_match_get90',{p_user:users.a,p_id:id});let initial,first,before,finalAction;
