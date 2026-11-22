@@ -1718,18 +1718,7 @@ function expandGameDeck(cards, side) {
 // public/game/src/rules.mjs
 var ELEMENTS3 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
-var CATALOG = [
-  { id: "oracle", name: "Overthinker", element: "storm", values: [7, 6, 3, 2, 3, 3], face: "hood", quote: "Ich habe 14 Z\xFCge vorausgedacht. Leider die falschen." },
-  { id: "rage", name: "Rage Quit", element: "fire", values: [7, 2, 2, 7, 3, 3], face: "cat", quote: "Das war nat\xFCrlich alles Lag." },
-  { id: "mage", name: "404 Mage", element: "water", values: [4, 4, 4, 4, 4, 4], face: "robot", quote: "Zauber gefunden. Kompetenz nicht." },
-  { id: "moon", name: "Moonbound", element: "storm", values: [6, 2, 6, 2, 6, 2], face: "astronaut", quote: "Zum Mond. \xDCber den Umweg." },
-  { id: "trust", name: "Trust Me", element: "stone", values: [5, 5, 5, 3, 3, 3], face: "frog", quote: "Quelle: Vertrau mir, Bruder." },
-  { id: "reset", name: "Hard Reset", element: "stone", values: [6, 5, 4, 4, 3, 2], face: "robot", quote: "Schon mal aus- und wieder angezweifelt?" },
-  { id: "grass", name: "Touch Grass", element: "water", values: [2, 5, 6, 5, 2, 4], face: "frog", quote: "Die Au\xDFenwelt ist auch nur ein anderer Server." },
-  { id: "fine", name: "Fine. Actually.", element: "fire", values: [3, 6, 3, 6, 3, 3], face: "hood", quote: "Alles unter Kontrolle. Ignoriere das Feuer." },
-  { id: "brain", name: "Last Braincell", element: "fire", values: [5, 2, 5, 2, 5, 5], face: "cat", quote: "Heute bin ich allein im Dienst." },
-  ...EXPANSION_CARDS
-];
+var CATALOG = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
 var CELLS = [];
 for (let r = -2; r <= 2; r++) for (let q = -2; q <= 2; q++) if (Math.abs(q + r) <= 2) CELLS.push({ id: q + "," + r, q, r });
 var CARD_INDEX = new Map(CATALOG.map((c) => [c.id, Object.freeze({ ...c, element: normalizeElement(c.element) })]));
@@ -1772,19 +1761,7 @@ function createTacticsLayout(seed) {
 var VERSION = 1;
 var ELEMENTS4 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS2 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
-var CATALOG2 = [
-  { id: "oracle", name: "Overthinker", element: "storm", values: [7, 6, 3, 2, 3, 3], face: "hood", quote: "Ich habe 14 Z\xFCge vorausgedacht. Leider die falschen." },
-  { id: "rage", name: "Rage Quit", element: "fire", values: [7, 2, 2, 7, 3, 3], face: "cat", quote: "Das war nat\xFCrlich alles Lag." },
-  { id: "mage", name: "404 Mage", element: "water", values: [4, 4, 4, 4, 4, 4], face: "robot", quote: "Zauber gefunden. Kompetenz nicht." },
-  { id: "moon", name: "Moonbound", element: "storm", values: [6, 2, 6, 2, 6, 2], face: "astronaut", quote: "Zum Mond. \xDCber den Umweg." },
-  { id: "trust", name: "Trust Me", element: "stone", values: [5, 5, 5, 3, 3, 3], face: "frog", quote: "Quelle: Vertrau mir, Bruder." },
-  { id: "reset", name: "Hard Reset", element: "stone", values: [6, 5, 4, 4, 3, 2], face: "robot", quote: "Schon mal aus- und wieder angezweifelt?" },
-  { id: "grass", name: "Touch Grass", element: "water", values: [2, 5, 6, 5, 2, 4], face: "frog", quote: "Die Au\xDFenwelt ist auch nur ein anderer Server." },
-  { id: "fine", name: "Fine. Actually.", element: "fire", values: [3, 6, 3, 6, 3, 3], face: "hood", quote: "Alles unter Kontrolle. Ignoriere das Feuer." },
-  { id: "brain", name: "Last Braincell", element: "fire", values: [5, 2, 5, 2, 5, 5], face: "cat", quote: "Heute bin ich allein im Dienst." },
-  ...EXPANSION_CARDS
-];
-var LEGACY_IDS = /* @__PURE__ */ new Set(["oracle", "rage", "mage", "moon", "trust", "reset", "grass", "fine", "brain"]);
+var CATALOG2 = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
 var CELLS2 = [];
 for (let r = -2; r <= 2; r++) for (let q = -2; q <= 2; q++) if (Math.abs(q + r) <= 2) CELLS2.push({ id: q + "," + r, q, r });
 var LAYOUTS = [{ id: "core", name: "Kernbruch", block: "0,0" }, { id: "east", name: "Ostpass", block: "1,0" }, { id: "west", name: "Westpass", block: "-1,0" }];
@@ -1794,6 +1771,7 @@ function cardOf(card) {
   const base = CARD_INDEX2.get(card.id);
   if (!base) return void 0;
   const variant = card.variantId ? getVariant(card.variantId) : null;
+  if (card.variantId && (!variant || DEFINITIONS.find((c) => c.id === variant.definitionId)?.ruleId !== card.id)) return void 0;
   const element = variant?.element ?? normalizeElement(card.element ?? base.element);
   if (!Object.hasOwn(ELEMENTS, element)) return void 0;
   if (element === base.element) return base;
@@ -1818,8 +1796,8 @@ function shuffle(a, rng) {
 }
 function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
   if (![0, 1].includes(starter) || !LAYOUTS.some((l) => l.id === layout)) throw Error("Ung\xFCltige Partieauswahl.");
-  const rng = random(seed), players = [0, 1].map((p) => {
-    const cards = shuffle(CATALOG2.filter((c) => LEGACY_IDS.has(c.id)).map((c) => ({ id: c.id, uid: p + ":" + c.id, origin: p })), rng);
+  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).slice(0, 9), players = [0, 1].map((p) => {
+    const cards = shuffle(pool.map((c) => ({ id: c.ruleId, variantId: `${c.id}:common`, rarity: "common", uid: p + ":" + c.id, origin: p })), rng);
     return { hand: cards.slice(0, 5), deck: cards.slice(5), shifts: 1, flips: 0 };
   });
   return { version: VERSION, elementRules: 5, seed, layout, starter, turn: starter, placements: 0, board: {}, block: LAYOUTS.find((l) => l.id === layout).block, players, events: [{ cell: "-1,1", element: "storm" }, { cell: "1,-1", element: "water" }], history: [], last: null, winner: null, finished: false };
@@ -2033,6 +2011,11 @@ function createTacticsMatch({ loadouts = ["hype-guard", "hype-twist"], seed = 20
   if (swap) game.players.reverse();
   return game;
 }
+
+// public/game/platform/ai-pool107.mjs
+var AI_DEFINITIONS107 = Object.freeze(DEFINITIONS.filter((c) => c.edition === "alpha"));
+var ids = new Set(AI_DEFINITIONS107.map((c) => c.id));
+var AI_VARIANTS107 = Object.freeze(VARIANTS.filter((v) => v.edition === "alpha" && ids.has(v.definitionId)));
 
 // public/game/platform/solo84.mjs
 var SOLO_LEVELS84 = Object.freeze([

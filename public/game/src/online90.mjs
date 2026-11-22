@@ -3,13 +3,15 @@ import {createTableView} from './table-demo-view-hand17.mjs?v=hand-foreground-10
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=rounds-42';
+import {createTableAudio} from './table-audio.mjs?v=hex-pulse-107';
+import {bindTableMusic107} from './table-music107.mjs';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),id=new URLSearchParams(location.search).get('match'),stage=$('stage'),svg=$('interaction');
 let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=true,identityKey='',polling=false,moveEpoch=0;
 const atmosphere=createVoidAtmosphere(),audio=createTableAudio(),portraitIntro=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
+bindTableMusic107(audio);
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(data?.phase==='between')void move({kind:'ready'});else location.assign('/play');return true;}});
 const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
 const locked=()=>working||animating||!game||data.phase!=='play'||game.turn!==0;

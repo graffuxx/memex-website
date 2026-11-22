@@ -1,4 +1,4 @@
-import {DEFINITIONS,VARIANTS} from '../../public/game/platform/catalog.mjs';
+import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from '../../public/game/platform/ai-pool107.mjs';
 import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
 import {ELEMENT_IDS} from '../../public/game/platform/elements53.mjs';
 import {chooseTactic} from '../../public/game/src/tactics-ai.mjs';

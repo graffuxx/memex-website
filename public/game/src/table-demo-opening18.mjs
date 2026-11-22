@@ -12,7 +12,8 @@ import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-1
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=rounds-42';
+import {createTableAudio} from './table-audio.mjs?v=hex-pulse-107';
+import {bindTableMusic107} from './table-music107.mjs';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {createTableView} from './table-demo-view-hand17.mjs?v=hand-foreground-105';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
@@ -33,7 +34,7 @@ let soundWanted=true;try{soundWanted=localStorage.getItem('duelverse.arena-sound
 function renderSound(){const button=$('arenaSound');button.textContent=soundWanted?'♪ Ton an':'♪ Ton aus';button.setAttribute('aria-pressed',String(soundWanted));button.setAttribute('aria-label',soundWanted?'Spielton ausschalten':'Spielton einschalten');$('soundEnabled').checked=soundWanted;}
 const audio=createTableAudio({onState:({available,running})=>{renderSound();$('soundStatus').textContent=!available?'Ton hier nicht verfügbar':soundWanted&&running?'Sounds & Ansagen aktiv':soundWanted?'Ton startet mit deiner ersten Eingabe':'Stumm';}});
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:advanceRound});
-void audio.preloadAnnouncements();renderSound();
+bindTableMusic107(audio);void audio.preloadAnnouncements();renderSound();
 function unlockSound(e){if(e.isTrusted&&soundWanted&&!audio.running)void audio.setEnabled(true);}
 document.addEventListener('pointerdown',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
