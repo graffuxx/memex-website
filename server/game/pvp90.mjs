@@ -1,3 +1,4 @@
+import {series113,seriesStarter113} from '../../public/game/platform/series113.mjs';
 import {createTacticsMatch} from '../../public/game/src/table-demo-state.mjs';
 import {applyPortalDecks} from '../../public/game/platform/deck-bridge.mjs';
 import {LOADOUTS,placeEffect} from '../../public/game/src/table-demo-rules.mjs';
@@ -14,7 +15,7 @@ export function createPvp90(decks,seed,now=Date.now()){
 }
 function newRound(s,now){
  const loadouts=[LOADOUTS['hype-guard'],LOADOUTS['hype-guard']];
- let g=createTacticsMatch({seed:s.seed,starter:s.round===1?s.starter:1-s.starter,loadouts:['hype-guard','hype-guard']});
+ let g=createTacticsMatch({seed:s.seed,starter:seriesStarter113(s.starter,s.round),loadouts:['hype-guard','hype-guard']});
  g=applyPortalDecks(g,s.decks[0].cards,loadouts,{round:s.round,opponentCards:s.decks[1].cards});
  g.elementRules=5;g.rotationLocked=true;g.resonanceOffset=s.seed%5;
  // Opaque per-round card tokens never reveal a hidden motif or rarity.
@@ -31,7 +32,7 @@ function resolveRps(s,now){
 }
 function place(s,action,now){
  const before=s.game;s.game=placeEffect(before,action);s.step={kind:'place',action,before:structuredClone(before),after:structuredClone(s.game)};
- if(s.game.finished){s.results[s.round-1]=scores(s.game);s.phase=s.round===1?'between':'ended';s.deadline=null;}else s.deadline=due(now);
+ if(s.game.finished){s.results[s.round-1]=scores(s.game);s.phase=series113(s.results).finished?'ended':'between';s.deadline=null;}else s.deadline=due(now);
 }
 export function advancePvp90(state,side,input,now=Date.now()){
  if(state.ruleset!==PVP_RULE90||![0,1].includes(side))throw Error('Invalid online duel.');
@@ -47,8 +48,8 @@ export function advancePvp90(state,side,input,now=Date.now()){
   s.starter=input.side;newRound(s,now);return s;
  }
  if(input.kind==='ready'){
-  if(s.phase!=='between')throw Error('Finish round one first.');s.ready[side]=true;
-  if(s.ready.every(Boolean)){s.round=2;newRound(s,now);}return s;
+  if(s.phase!=='between')throw Error('Finish this round first.');s.ready[side]=true;
+  if(s.ready.every(Boolean)){s.round++;newRound(s,now);}return s;
  }
  if(s.phase!=='play'||s.game.turn!==side)throw Error('It is not your turn.');
  if(input.kind==='shift'){const before=s.game;s.game=shiftBlock(s.game,input.cell);s.step={kind:'shift',cell:input.cell,before:structuredClone(before),after:structuredClone(s.game)};return s;}
@@ -78,7 +79,7 @@ export function projectPvp90(row,uid,now=Date.now()){
  const s=row.state,swap=n=>n===null||n===undefined?n:side===1?1-n:n;
  if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,RANDOM_AI_WAIT_MS98-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
  const players=side===1?[row.identities[1],row.identities[0]]:row.identities;
- return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',round:s.round,starter:swap(s.starter),players,
+ return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',round:s.round,starter:swap(s.starter),players,series:series113(s.results.map(r=>side===1?[r[1],r[0]]:r)),winner:s.forfeit!=null?swap(1-s.forfeit):swap(series113(s.results).winner),rated:row.kind==='random',
   results:s.results.map(r=>side===1?[r[1],r[0]]:r),game:perspectiveGame(s.game,side),ready:side===1?[s.ready[1],s.ready[0]]:s.ready,
   ownChoice:s.choices[side],opponentChosen:Boolean(s.choices[1-side]),attempt:s.attempt,rpsWinner:swap(s.rpsWinner),
   lastRps:s.lastRps?{choices:side===1?[s.lastRps.choices[1],s.lastRps.choices[0]]:s.lastRps.choices,winner:swap(s.lastRps.winner)}:null,

@@ -1,6 +1,6 @@
 export function bindDuelExit112({leave,navigate=url=>location.assign(url)}){
  const dialog=document.createElement('dialog');dialog.className='duel-exit112';dialog.setAttribute('aria-labelledby','exitTitle112');
- dialog.innerHTML='<h2 id="exitTitle112">Leave this duel?</h2><p>You concede this duel. Unfinished rounds give no rewards.</p><p id="exitError112" role="alert" hidden></p><div><button id="exitYes112" type="button">Leave now</button><button id="exitNo112" type="button">Keep playing</button></div><a href="/play">Open match lobby</a>';document.body.append(dialog);
+ dialog.innerHTML='<h2 id="exitTitle112">Leave this duel?</h2><p>Leaving a Random duel counts as a defeat. Private and solo exits are unranked. Unfinished rounds give no rewards.</p><p id="exitError112" role="alert" hidden></p><div><button id="exitYes112" type="button">Leave now</button><button id="exitNo112" type="button">Keep playing</button></div><a href="/play">Open match lobby</a>';document.body.append(dialog);
  const yes=dialog.querySelector('#exitYes112'),no=dialog.querySelector('#exitNo112'),error=dialog.querySelector('#exitError112');let leaving=false;
  const ask=()=>{if(!dialog.open)dialog.showModal();};
  for(const id of['leaveDuel112','startLeave112','resign90']){const button=document.getElementById(id);if(button)button.onclick=ask;}

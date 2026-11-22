@@ -1,3 +1,4 @@
+import {series113,seriesStarter113} from '../public/game/platform/series113.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
 import {createPvp90,advancePvp90,expirePvp90,projectPvp90} from '../server/game/pvp90.mjs';
 import {createMatchHandler90} from '../server/game/match-handler90.mjs';
@@ -14,7 +15,7 @@ test('two-player rules hide hands and future draws, enforce turns and preserve t
  assert.throws(()=>advancePvp90(s,1,{kind:'place',action:chooseTactic(s.game).chosen.action},4),/not your turn/);
  const deadline=s.deadline,cell=moveTargets(s.game)[0];s=advancePvp90(s,0,{kind:'shift',cell},4);assert.equal(s.deadline,deadline);assert.equal(expirePvp90(s,deadline-1),null);const timed=expirePvp90(s,deadline);assert.equal(timed.game.placements,1);assert.equal(timed.game.turn,1);assert.equal(timed.deadline,deadline+90000);
 });
-test('random pairing, invitations, permissions, two complete rounds and idempotent rewards stay server-authoritative',async()=>{
+test('random pairing, invitations, permissions, first-to-two rounds and idempotent rewards stay server-authoritative',async()=>{
  const db=await db90();try{
   const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));
   await db.exec('set role authenticated');await assert.rejects(rpc(db,'dv_match_join90',{p_user:a,p_kind:'random',p_deck:decks[a]}),/permission denied/);for(const table of ['dv_pvp90','dv_pvp_seats90','dv_pvp_rounds90','dv_random_skills90'])await assert.rejects(db.query('select * from public.'+table),/permission denied/);
@@ -23,18 +24,18 @@ test('random pairing, invitations, permissions, two complete rounds and idempote
   let row=await rpc(db,'dv_match_get90',{p_user:a,p_id:id}),s=createPvp90([row.host_deck,row.guest_deck],3,0),version=0,n=100;
   async function commit(next,u=a,request=uid(n++),v=version){const out=await rpc(db,'dv_match_commit90',{p_user:u,p_id:id,p_version:v,p_request:request,p_state:next});version=out.version;s=out.state;return out;}
   await commit(s);await commit(advancePvp90(s,0,{kind:'gesture',value:'rock'},1));await commit(advancePvp90(s,1,{kind:'gesture',value:'scissors'},1),b);await commit(advancePvp90(s,0,{kind:'starter',side:0},1));
-  let expected=[0,0];for(let round=1;round<=2;round++){
+  let expected=[0,0],completedRounds=0;for(let round=1;!series113(s.results).finished&&round<20;round++){
    while(!s.game.finished){const side=s.game.turn,next=advancePvp90(s,side,{kind:'place',action:chooseTactic(s.game).chosen.action},2);await commit(next,side===0?a:b);}
-   for(const side of [0,1])expected[side]+=s.game.winner===side?5:2;
+   completedRounds++;for(const side of [0,1])expected[side]+=s.game.winner===side?5:2;
    const request=uid(n-1),v=version-1,owner=s.game.last.side===0?a:b;
    const duplicate=await rpc(db,'dv_match_commit90',{p_user:owner,p_id:id,p_version:v,p_request:request,p_state:s});assert.equal(duplicate.version,version);
-   if(round===1){await commit(advancePvp90(s,0,{kind:'ready'},3));assert.equal(s.round,1);await commit(advancePvp90(s,1,{kind:'ready'},3),b);assert.equal(s.round,2);assert.equal(s.game.starter,1);}
+   if(!series113(s.results).finished){await commit(advancePvp90(s,0,{kind:'ready'},3));assert.equal(s.round,round);await commit(advancePvp90(s,1,{kind:'ready'},3),b);assert.equal(s.round,round+1);assert.equal(s.game.starter,seriesStarter113(s.starter,round+1));}
   }
-  await db.exec('reset role');const wallets=(await db.query('select user_id,earned from public.dv_wallets where user_id in ($1,$2) order by user_id',[a,b])).rows;assert.deepEqual(wallets.map(r=>Number(r.earned)),expected);assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_rounds90')).rows[0].n),4);assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_seats90')).rows[0].n),0);
+  assert.equal(s.phase,'ended');await db.exec('reset role');const wallets=(await db.query('select user_id,earned from public.dv_wallets where user_id in ($1,$2) order by user_id',[a,b])).rows;assert.deepEqual(wallets.map(r=>Number(r.earned)),expected);assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_rounds90')).rows[0].n),completedRounds*2);assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_seats90')).rows[0].n),0);
   for(const u of [a,b]){await db.exec(`set request.jwt.claim.sub='${u}';set role authenticated`);const identity=await rpc(db,'dv_identity85',{});assert.ok(identity.skills.total_flips>0);await db.exec('reset role');}
   // Private invitation round: no currency, XP or feat events are ever inserted.
   await db.exec('set role service_role');const privateId=await rpc(db,'dv_match_join90',{p_user:a,p_kind:'private',p_deck:decks[a]});row=await rpc(db,'dv_match_get90',{p_user:a,p_id:privateId});assert.match(row.invite_code,/^[a-f0-9]{64}$/);assert.equal(await rpc(db,'dv_match_join90',{p_user:b,p_kind:'private',p_deck:decks[b],p_code:row.invite_code}),privateId);row=await rpc(db,'dv_match_get90',{p_user:a,p_id:privateId});let ps=createPvp90([row.host_deck,row.guest_deck],3,0),pv=0;async function savePrivate(next){const result=await rpc(db,'dv_match_commit90',{p_user:a,p_id:privateId,p_version:pv,p_request:uid(n++),p_state:next});pv=result.version;ps=result.state;}
-  await savePrivate(ps);await savePrivate(opening(ps));while(!ps.game.finished)await savePrivate(advancePvp90(ps,ps.game.turn,{kind:'place',action:chooseTactic(ps.game).chosen.action},2));await db.exec('reset role');assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_rounds90')).rows[0].n),4);assert.deepEqual((await db.query('select user_id,earned from public.dv_wallets where user_id in ($1,$2) order by user_id',[a,b])).rows.map(r=>Number(r.earned)),expected);
+  await savePrivate(ps);await savePrivate(opening(ps));while(!ps.game.finished)await savePrivate(advancePvp90(ps,ps.game.turn,{kind:'place',action:chooseTactic(ps.game).chosen.action},2));await db.exec('reset role');assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_rounds90')).rows[0].n),completedRounds*2);assert.deepEqual((await db.query('select user_id,earned from public.dv_wallets where user_id in ($1,$2) order by user_id',[a,b])).rows.map(r=>Number(r.earned)),expected);
   await db.exec('set role service_role');await rpc(db,'dv_match_commit90',{p_user:a,p_id:privateId,p_version:pv,p_request:uid(n++),p_state:advancePvp90(ps,0,{kind:'resign'},4)});const wait=await rpc(db,'dv_match_join90',{p_user:c,p_kind:'random',p_deck:decks[c]});await rpc(db,'dv_match_cancel90',{p_user:c,p_id:wait});await db.exec('reset role');assert.equal(Number((await db.query('select count(*) n from public.dv_pvp_seats90')).rows[0].n),0);
  }finally{await db.close();}
 });

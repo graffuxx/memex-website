@@ -10,15 +10,15 @@ export function readPlayDeck(storage){
  }catch{return null;}
 }
 export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null}={}){
- if(![1,2].includes(round))throw Error('Invalid round.');
+ if(!Number.isSafeInteger(round)||round<1)throw Error('Invalid round.');
  const next=structuredClone(game);
  next.players=next.players.map((p,side)=>{
   let state=(next.seed*53+side*8017+111)>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
   const deck=expandGameDeck(side===0?cards:opponentCards??starterDeck(),side);
   // Preserve the current prototype's maximum of two ability cards per side.
   for(const ability of loadouts[side].abilities){const candidates=deck.filter(c=>({oracle:'guard',brain:'hype',trust:'twist'})[c.id]===ability);if(candidates.length)candidates[Math.floor(random()*candidates.length)].ability=ability;}
-  // Keep the physical cards/abilities and arena, but reshuffle both decks for the return round.
-  if(round===2)state=(state^0x9e3779b9)>>>0;
+  // Keep the physical cards/abilities and arena, but reshuffle both decks for each subsequent round.
+  if(round>1)state=(state^Math.imul(round-1,0x9e3779b9))>>>0;
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
   return {...p,hand:deck.slice(0,5),deck:deck.slice(5)};
  });

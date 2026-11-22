@@ -4,7 +4,7 @@ import {createTableAudio} from '../public/game/src/table-audio.mjs';
 
 function fixture(){
  const sources=[];let created=0,decodes=0,release;
- const param=()=>({value:0,setTargetAtTime(){}}),node=()=>({gain:param(),threshold:param(),knee:param(),ratio:param(),attack:param(),release:param(),connect(n){return n;},disconnect(){this.disconnected=true;}});
+ const param=()=>({value:0,setTargetAtTime(){},cancelScheduledValues(){}}),node=()=>({gain:param(),threshold:param(),knee:param(),ratio:param(),attack:param(),release:param(),connect(n){return n;},disconnect(){this.disconnected=true;}});
  class Context{constructor(){created++;this.state='suspended';this.sampleRate=8000;this.currentTime=0;this.destination=node();}createGain(){return node();}createDynamicsCompressor(){return node();}createBuffer(c,n){return {getChannelData:()=>new Float32Array(n)};}resume(){this.state='running';return Promise.resolve();}close(){this.state='closed';}decodeAudioData(){decodes++;return Promise.resolve({duration:2});}createBufferSource(){const n={...node(),start(){this.started=true;},stop(){this.stopped=true;}};sources.push(n);return n;}}
  globalThis.window={AudioContext:Context};globalThis.document={hidden:false,addEventListener(){},removeEventListener(){}};
  globalThis.fetch=()=>new Promise(r=>release=()=>r({ok:true,arrayBuffer:async()=>new ArrayBuffer(4)}));

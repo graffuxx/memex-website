@@ -1,6 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
 const URL='https://vnwvwwukqlbwzqroaqeu.supabase.co',PUBLIC_KEY='sb_publishable_Nz664DzwUuBcOpLzCXgB_Q_4SzenMlV';
-const auth=createClient(URL,PUBLIC_KEY),ENDPOINT=URL+'/functions/v1/duelverse-game50';
+const auth=createClient(URL,PUBLIC_KEY),ENDPOINT='/api/solo';
 async function leaveDuelRequest112(id,userId){const {data:{session}}=await auth.auth.getSession();if(!session||session.user.id!==userId)throw Error('Sign in with the same player account to leave.');const response=await fetch('/api/duel',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({op:'leave',id})});const data=await response.json();if(!response.ok)throw Error(data.error??'Could not leave. Try again.');return data;}
 export async function leaveStoredAccount112(){const {data:{session}}=await auth.auth.getSession();if(!session)throw Error('Sign in to leave your saved duel.');const key='duelverse.account-game.v50.'+session.user.id;let stored={};try{stored=JSON.parse(localStorage.getItem(key)??'{}');}catch{}const id=stored.pending?.op==='start'?stored.pending.id:stored.id;if(id)await leaveDuelRequest112(id,session.user.id);localStorage.removeItem(key);}
 export async function readPlayerIdentity85(){const {data:{session},error}=await auth.auth.getSession();if(error)throw Error('Player profile unavailable.');if(!session)return null;const result=await auth.rpc('dv_identity85');if(result.error)throw Error('Player profile unavailable.');return result.data;}

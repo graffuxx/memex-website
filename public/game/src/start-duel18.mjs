@@ -10,8 +10,8 @@ export function gestureWinner(player,opponent){
  return player===opponent?null:beats[player]===opponent?0:1;
 }
 export function roundStarter(first,round){
- if(![0,1].includes(first)||![1,2].includes(round))throw Error('Ungültiges Startrecht.');
- return round===1?first:1-first;
+ if(![0,1].includes(first)||(!Number.isSafeInteger(round)||round<1))throw Error('Ungültiges Startrecht.');
+ return (round-1)%2===0?first:1-first;
 }
 // The opponent commits before the player's selection. The pending choice is
 // deliberately absent from every public snapshot until the player also commits.

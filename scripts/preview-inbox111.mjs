@@ -5,6 +5,20 @@ await db.exec(`create role anon;create role authenticated;create role service_ro
 for(const f of (await fs.readdir(path.join(root,'supabase/migrations'))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(path.join(root,'supabase/migrations',f),'utf8'));
 async function rpc(name,args={}){const p=Object.entries(args);return (await db.query('select public.'+name+'('+p.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') data',p.map(([,v])=>v&&typeof v==='object'?JSON.stringify(v):v))).rows[0].data;}
 for(const [key,id]of Object.entries(users)){await db.query('insert into auth.users(id,email_confirmed_at,email) values($1,now(),$2)',[id,key+'92@example.test']);await db.exec(`set request.jwt.claim.sub='${id}';`);await rpc('dv_initialize_account');await rpc('dv_claim_player_name87',{p_name:({a:'Alpha92',b:'Beta92',c:'Gamma92'})[key]});}
+if(process.argv.includes('--series113')){
+ const {createPvp90,advancePvp90}=await import('../server/game/pvp90.mjs'),{chooseTactic}=await import('../public/game/src/tactics-ai.mjs'),{series113}=await import('../public/game/platform/series113.mjs');
+ const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));await db.exec('set role service_role');const id=await rpc('dv_match_join90',{p_user:users.a,p_kind:'random',p_deck:decks[users.a]});await rpc('dv_match_join90',{p_user:users.b,p_kind:'random',p_deck:decks[users.b]});const row=await rpc('dv_match_get90',{p_user:users.a,p_id:id});let initial,first,before,finalAction;
+ for(let seed=1;seed<50;seed++){
+  const now=Date.now();initial=createPvp90([row.host_deck,row.guest_deck],seed,now);let state=advancePvp90(advancePvp90(advancePvp90(initial,0,{kind:'gesture',value:'rock'},now),1,{kind:'gesture',value:'scissors'},now),0,{kind:'starter',side:0},now);
+  while(!state.game.finished)state=advancePvp90(state,state.game.turn,{kind:'place',action:chooseTactic(state.game).chosen.action},now);first=state;
+  state=advancePvp90(advancePvp90(state,0,{kind:'ready'},now),1,{kind:'ready'},now);
+  while(!state.game.finished){before=state;finalAction=chooseTactic(state.game).chosen.action;state=advancePvp90(state,state.game.turn,{kind:'place',action:finalAction},now);}
+  if(series113(state.results).wins.every(n=>n===1))break;
+ }
+ let version=0;for(const state of[initial,first,before]){const saved=await rpc('dv_match_commit90',{p_user:users.a,p_id:id,p_version:version,p_request:crypto.randomUUID(),p_state:state});version=saved.version;}
+ console.log(JSON.stringify({match:id,lastMove:finalAction,playerA:'http://127.0.0.1:4239/game/online.html?tester=a&match='+id,playerB:'http://127.0.0.1:4239/game/online.html?tester=b&match='+id}));await db.exec('reset role');
+}
+
 let serial=Promise.resolve();function exclusive(fn){const promise=serial.then(fn,fn);serial=promise.catch(()=>{});return promise;}
 const who=`function tester(){const p=new URLSearchParams(location.search).get('tester');if(p)sessionStorage.setItem('qa111-account',p);return sessionStorage.getItem('qa111-account')||'a';}`;
 const mockClient=`${who} const session=()=>({access_token:tester(),user:{id:({a:'${users.a}',b:'${users.b}',c:'${users.c}'})[tester()],email_confirmed_at:'2026-11-22',is_anonymous:false}});export const supabase={auth:{getSession:async()=>({data:{session:session()}}),onAuthStateChange:callback=>{let alive=true;queueMicrotask(()=>{if(alive)callback('INITIAL_SESSION',session());});return{data:{subscription:{unsubscribe(){alive=false;}}}};}},from:()=>({select:()=>({order:async()=>{const data=await(await fetch('/api/bootstrap92?tester='+tester())).json();return{data:data.player.decks,error:null};}})}),rpc:async(name,args={})=>{const r=await fetch('/api/social-qa111',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tester:tester(),name,args})});return r.json();}};`;

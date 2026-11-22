@@ -1,3 +1,4 @@
+import {series113} from '../public/game/platform/series113.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {PGlite} from '@electric-sql/pglite';import fs from 'node:fs/promises';
 import {createAccountDuel,beginAccountRound,advanceAccountDuel} from '../server/game/engine50.mjs';
 import {createGameHandler} from '../server/game/handler50.mjs';
@@ -10,7 +11,7 @@ test('account duels use owned 15-card snapshots, fixed facing, the same field/ab
  for(const starter of [0,1]){const initial=fresh(42,starter);let {state}=beginAccountRound(initial);const old=structuredClone(state);assert.throws(()=>advanceAccountDuel(state,{kind:'place',action:{uid:'fake',cell:'0,0',rotation:0}}));assert.deepEqual(state,old);
   const shift=moveTargets(state.game)[0];if(shift){const next=advanceAccountDuel(state,{kind:'shift',cell:shift});assert.equal(next.state.game.placements,state.game.placements);assert.equal(next.award,0);state=next.state;assert.throws(()=>advanceAccountDuel(state,{kind:'shift',cell:shift}));}
   const r1=finish(state);assert.equal(r1.state.game.placements,18);assert.deepEqual(r1.state.results[0],scores(r1.state.game));assert.equal(r1.award,r1.state.game.winner===0?5:2);assert.equal(r1.state.awards[0],r1.award);assert.throws(()=>advanceAccountDuel(r1.state,{kind:'timeout'}));
-  const back=advanceAccountDuel(r1.state,{kind:'next'});assert.equal(back.award,0);assert.equal(back.state.game.starter,1-starter);assert.equal(back.state.round,2);const r2=finish(back.state);assert.equal(r2.state.awards.length,2);assert.deepEqual(r2.state.awards,[r1.award,r2.award]);assert.throws(()=>advanceAccountDuel(r2.state,{kind:'next'}));
+  const back=advanceAccountDuel(r1.state,{kind:'next'});assert.equal(back.award,0);assert.equal(back.state.game.starter,1-starter);assert.equal(back.state.round,2);const r2=finish(back.state);assert.equal(r2.state.awards.length,2);assert.deepEqual(r2.state.awards,[r1.award,r2.award]);if(series113(r2.state.results).finished)assert.throws(()=>advanceAccountDuel(r2.state,{kind:'next'}));else{let current=r2.state;for(let guard=0;!series113(current.results).finished&&guard<10;guard++)current=finish(advanceAccountDuel(current,{kind:'next'}).state).state;assert.equal(series113(current.results).finished,true);assert.throws(()=>advanceAccountDuel(current,{kind:'next'}));}
  }
 });
 test('service authentication rejects missing/invalid sessions, unknown origins and forged outcomes before touching a wallet',async()=>{
