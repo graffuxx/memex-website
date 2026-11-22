@@ -1,13 +1,15 @@
 import {supabase} from '@/lib/supabaseClient';
 import {DEFAULT_IDENTITY85} from '../../../public/game/platform/identity85.mjs';
 import type {PlayerIdentity85} from './account';
-export type Friend92={id:string;identity:PlayerIdentity85;relationship:'friend'|'incoming'|'outgoing'|'none'};
+export type Friend92={id:string;identity:PlayerIdentity85;relationship:'friend'|'incoming'|'outgoing'|'none';presence?:'online'|'away'|'offline'|'unknown'};
 export type DuelInvite92={id:string;direction:'incoming'|'outgoing';identity:PlayerIdentity85;status:'waiting'|'matched';createdAt:string};
 export type Social92={people:Friend92[];blocked:Friend92[];invites:DuelInvite92[]};
 const known=/^(Sign in with a verified email address|Enter the exact player name|Choose another player|Player unavailable|Choose your permanent player name first|Wait before sending|Daily friend request limit reached|Friend list is full|No incoming friend request|Request unavailable|Accept the friend request first|Finish or leave your current duel first|Cancel your existing invitation|Invitation expired or unavailable|Invitation unavailable|Choose a saved 15-card deck|Saved deck contains unavailable copies|A match was found)/;
 async function rpc92(name:string,args:Record<string,unknown>={}){const {data,error}=await supabase.rpc(name,args);if(error)throw Error(known.test(error.message)?error.message:'The action could not be confirmed. Refresh and try again.');return data;}
 const identity92=(value:Partial<PlayerIdentity85>)=>({...DEFAULT_IDENTITY85,...value,nameClaimed:true,owned:[],wins:value?.wins??0}) as PlayerIdentity85;
-export async function socialList92():Promise<Social92>{const data=await rpc92('dv_social_list92');return {people:(data.people??[]).map((p:Friend92)=>({...p,identity:identity92(p.identity)})),blocked:(data.blocked??[]).map((p:Friend92)=>({...p,identity:identity92(p.identity)})),invites:(data.invites??[]).map((p:DuelInvite92)=>({...p,identity:identity92(p.identity)}))};}
+function readSocial114(data:Social92):Social92{return {people:(data.people??[]).map((p:Friend92)=>({...p,identity:identity92(p.identity)})),blocked:(data.blocked??[]).map((p:Friend92)=>({...p,identity:identity92(p.identity)})),invites:(data.invites??[]).map((p:DuelInvite92)=>({...p,identity:identity92(p.identity)}))};}
+export async function socialList92():Promise<Social92>{return readSocial114(await rpc92('dv_social_list92'));}
+export async function socialList114():Promise<Social92>{return readSocial114(await rpc92('dv_social_list114'));}
 export async function socialSearch92(name:string):Promise<Friend92|null>{const p=await rpc92('dv_social_search92',{p_name:name});return p?{...p,identity:identity92(p.identity)}:null;}
 export async function socialAction92(id:string,action:string){await rpc92('dv_social_action92',{p_other:id,p_action:action});window.dispatchEvent(new Event('duelverse-social92'));}
 export async function friendInvite92(friendId:string,deckId:string):Promise<{id:string;friendName:string}>{return rpc92('dv_friend_invite92',{p_friend:friendId,p_deck:deckId});}
