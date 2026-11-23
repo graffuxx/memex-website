@@ -5,7 +5,7 @@ import {starterDeck} from '../public/game/platform/catalog.mjs';
 
 test('player summaries count known owned copies and cosmetics without inventing progress',()=>{
  assert.deepEqual(collectionSummary({'pepe:common':3,'pepe:epic':1,'doge:common':2,'fake:mythic':999,'roll-safe:common':-1,'harold:common':1.5}),{copies:6,variants:3,motifs:2,totalMotifs:120});
- assert.equal(playerAreaRoute('/account/private'),'/account/private');assert.equal(playerAreaRoute('/account/private/boosters'),'/account/private/boosters');assert.equal(playerAreaRoute('/account'),null);
+ assert.equal(playerAreaRoute('/account/private'),'/account/private');assert.equal(playerAreaRoute('/account/private/boosters'),'/account/private/boosters');assert.equal(playerAreaRoute('/account/private/friends'),null);assert.equal(playerAreaRoute('/account'),null);
  assert.deepEqual(boosterProgress({revealed_slots:[0,0,2,9,-1]}),{revealed:2,state:'partial',label:'In progress',action:'Continue opening'});
  assert.equal(boosterProgress({revealed_slots:[]}).action,'Open booster');assert.equal(boosterProgress({revealed_slots:[4,3,2,1,0]}).action,'View cards');
  const id='49494949-4949-4949-8949-494949494949';assert.equal(requestedBooster(boosterLink(id).split('?')[1]),id);assert.equal(requestedBooster('?booster=https://evil.example'),null);assert.equal(requestedBooster('?booster=bad'),null);

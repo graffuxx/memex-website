@@ -6,8 +6,6 @@ import {eligibleDecks131,validateMatchDeck131} from '../../../public/game/platfo
 import './matchmaking90.css';
 import {chooseOnlineDeck106} from '../../../public/game/platform/deck-selection106.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../../public/game/platform/matchmaking98.mjs';
-import FriendsNotice92 from './FriendsNotice92';
-import './friends92.css';
 import './current-duel112.css';
 export default function Matchmaking90(){
  const {ready,userId,player,inventory,error:accountError}=usePlayerCollection();
@@ -22,7 +20,7 @@ export default function Matchmaking90(){
  async function leave(){if(!room||busy||!userId)return;const owner=userId,matchId=room.id;autoEnter.current=false;searchGeneration.current++;setBusy(true);try{await leaveDuel112(matchId,owner);if(active.current&&scope.current===owner){searchGeneration.current++;setRoom(null);setLeaving(false);setError('');}}catch(e){if(scope.current===owner)setError(e instanceof Error?e.message:'Could not leave. Try again.');}finally{if(scope.current===owner)setBusy(false);}}
  async function cancel(){if(!room||busy)return;searchGeneration.current++;setBusy(true);try{await matchRequest90({op:'cancel',id:room.id});searchGeneration.current++;localStorage.removeItem('duelverse.match90.'+userId);setRoom(null);setError('');}catch(e){setError(e instanceof Error?e.message:'Resume your saved duel.');}finally{setBusy(false);}}
  function inviteCode(value:string){const input=value.trim();try{const u=new URL(input);setCode(u.searchParams.get('invite')??'');}catch{setCode(input);}setCopied(false);}
- return <section className="portal-section top-space matchmaking90"><header><span>YOUR DECK. YOUR NEXT RIVAL.</span><h1>Choose your duel</h1><p>Human opponents first. AI backup when the queue is quiet.</p></header><FriendsNotice92/>
+ return <section className="portal-section top-space matchmaking90"><header><span>YOUR DECK. YOUR NEXT RIVAL.</span><h1>Choose your duel</h1><p>Human opponents first. AI backup when the queue is quiet.</p></header>
  <div className="match-modes90" role="group" aria-label="Match type"><button aria-pressed={kind==='random'} disabled={Boolean(waiting||matched)} onClick={()=>{setKind('random');setError('');}}><span className="match-symbol90" aria-hidden="true">⚔</span><strong>Random</strong><small>Human first · AI after 35 seconds</small></button><button aria-pressed={kind==='private'} disabled={Boolean(waiting||matched)} onClick={()=>{setKind('private');setError('');}}><span className="match-symbol90" aria-hidden="true">◇</span><strong>Private duel</strong><small>Arrange a match · invite a friend</small></button><button disabled aria-label="Ranked · Coming soon"><span className="match-symbol90" aria-hidden="true">♜</span><strong>Ranked</strong><small>Coming soon</small></button></div>
  <div className="match-setup90"><div><h2>{waiting?'Waiting for your opponent':kind==='random'?'Ready for someone new?':'Settle it on the board.'}</h2>
  {!ready||restoring?<p role="status">Checking your current duel…</p>:!userId?<p><a className="button gold" href="/account">Sign in to play online</a> <a href="/register">Create an account</a></p>:<>

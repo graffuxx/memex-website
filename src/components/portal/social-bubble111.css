@@ -2,3 +2,26 @@
 .social114-tabs{display:flex;gap:8px;padding:12px 16px 0;pointer-events:auto}.social114-tabs button{flex:1;border:1px solid #b495d433;border-radius:10px;background:#ffffff03;color:#b6a2cd;padding:9px 12px;min-height:40px}.social114-tabs button[aria-pressed=true]{background:linear-gradient(120deg,#6d409845,#a278b92b);border-color:#bf8ef47a;color:#f1e1ff}.social114-tabs b{font-size:12px;margin-left:4px;color:#efd89c}.social114-friends{padding:0 16px 12px}.social114-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 2px 9px;color:#bfadd2;font-size:13px}.social114-summary small{font-size:10px;letter-spacing:.65px;color:#8f7caa;font-weight:normal}.social114-friend{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid #c8a4fa16}.social114-friend:last-child{border-bottom:0}.social114-avatar{display:block;width:43px;height:43px;position:relative;flex-shrink:0}.social114-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:1px solid #c5a8f14d}.social114-avatar i{position:absolute;bottom:0;right:0;border:2px solid #1b122a;width:12px;height:12px;border-radius:50%;background:#777287}.social114-avatar i[data-presence=online]{background:#6be8a7;box-shadow:0 0 9px #65e9a54d}.social114-avatar i[data-presence=away]{background:#edbe64}.social114-avatar i[data-presence=unknown]{background:#776489}.social114-friend>div{min-width:0}.social114-friend strong{font-size:15px;display:block;color:#eee3fa;overflow-wrap:anywhere}.social114-friend div>span{display:block;font-size:12px;color:#9385a5;margin-top:2px}.social114-friend div>span[data-presence=online]{color:#85d9ad}.social114-friend div>span[data-presence=away]{color:#d2b77c}
 
 .social114-friend{display:block}.social115-friend-row{display:flex;align-items:center;gap:12px}.social115-identity{min-width:0;flex:1}.social115-invite{flex-shrink:0;border:1px solid #c8a0f270;background:#8051b52d;color:#eddbff;border-radius:9px;padding:8px 11px;min-height:38px}.social115-invite:not(:disabled):hover{background:#9464c34f;border-color:#d4b0fa}.social115-invite:disabled{cursor:default}.social115-invite-setup{padding:0 0 4px}.social115-invite-setup .social111-deck{margin-top:12px}
+
+.social145-header-actions,.social145-own,.social145-blocked-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.social145-tools{padding:14px 16px 0}
+.social145-own{font-size:13px;color:#baa9d0}
+.social145-own strong{color:#f3e5fd;overflow-wrap:anywhere}
+.social145-own button,.social145-blocked-row button{background:none;border:0;color:#e7cef9;padding:6px;white-space:nowrap}
+.social145-search{display:flex;align-items:stretch;gap:8px;margin-top:8px}
+.social145-search input{min-width:0;flex:1;background:#150f23;color:#f3e8fc;border:1px solid #bb9ee661;border-radius:9px;padding:8px 10px;font:inherit}
+.social145-search input:focus-visible,.social145-options summary:focus-visible,.social145-blocked summary:focus-visible{outline:2px solid #efcc8b;outline-offset:2px}
+.social145-search button{flex-shrink:0;border:1px solid #c8a0f270;background:#8051b52d;color:#eddbff;border-radius:9px;padding:7px 9px;min-height:38px}
+.social145-options{position:relative;flex-shrink:0}
+.social145-options summary{list-style:none;cursor:pointer;text-align:center;border:1px solid #ae8fd14f;border-radius:9px;color:#dec5f3;font-size:19px;line-height:36px;width:36px}
+.social145-options summary::-webkit-details-marker{display:none}
+.social145-options[open]>div{position:absolute;z-index:2;right:0;top:42px;display:grid;padding:4px;min-width:145px;border:1px solid #a98ac875;border-radius:10px;background:#251832;box-shadow:0 8px 22px #0008}
+.social145-options button{background:none;border:0;color:#eeddef;text-align:left;white-space:nowrap;padding:8px}
+.social145-options button:hover:not(:disabled){background:#aa76ce33}
+.social145-confirm{margin:12px 16px;padding:12px;border:1px solid #c59fea70;border-radius:10px;background:#2b1a40}
+.social145-confirm p{margin:0 0 2px}
+.social145-confirm span{color:#d0bce4;font-size:12px}
+.social145-blocked{margin:0 16px 14px;padding-top:10px;border-top:1px solid #ae8fd14f}
+.social145-blocked summary{cursor:pointer;color:#d1b7e6}
+.social145-blocked-row{padding:5px 0}
+.social111-actions>a{align-self:center;padding:7px}

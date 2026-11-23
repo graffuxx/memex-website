@@ -1,4 +1,7 @@
-import BrandPage from '@/components/portal/BrandPage';
-import Friends92 from '@/components/portal/Friends92';
-export const metadata={title:'Friends'};
-export default function Page(){return <BrandPage video="/memex-accountlogin.mp4"><Friends92/></BrandPage>}
+import {redirect} from 'next/navigation';
+
+export default async function Page({searchParams}:{searchParams:Promise<{tab?:string}>}){
+ const {tab}=await searchParams;
+ const section=tab==='duels'||tab==='requests'?tab:'friends';
+ redirect('/play?friends='+section);
+}

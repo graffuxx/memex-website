@@ -6,3 +6,20 @@ test('only incoming actionable requests trigger bubbles; declining and expiry cl
 test('late network responses cannot leak notifications after logout or into another account',async()=>{const pending=[];const inbox=createInbox111({load:()=>new Promise(resolve=>pending.push(resolve))});inbox.setUser('one');const first=inbox.refresh();inbox.setUser(null);pending.shift()({people:[friend('private')],invites:[]});await first;assert.equal(inbox.getSnapshot().userId,null);assert.equal(inbox.getSnapshot().items.length,0);inbox.setUser('two');const old=inbox.refresh(),newer=inbox.refresh();pending[1]({people:[friend('new')],invites:[]});await newer;pending[0]({people:[friend('old')],invites:[]});await old;assert.equal(inbox.getSnapshot().items[0].id,'new');});
 test('dismissed bubbles survive a page change and remain account scoped without losing pending requests',async()=>{const saved=new Map(),options={load:async()=>({people:[friend('a')],invites:[]}),readSeen:id=>saved.get(id),writeSeen:(id,keys)=>saved.set(id,keys)};const first=createInbox111(options);first.setUser('one');await first.refresh();assert.ok(first.getSnapshot().toast);first.dismiss();const next=createInbox111(options);next.setUser('one');await next.refresh();assert.equal(next.getSnapshot().toast,null);assert.equal(next.getSnapshot().items.length,1);next.setUser('two');await next.refresh();assert.ok(next.getSnapshot().toast);});
 test('offline refresh preserves pending requests, recovers, and unsubscribed listeners stop receiving updates',async()=>{let fail=false,calls=0;const inbox=createInbox111({load:async()=>{if(fail)throw Error('offline');return{people:[friend('a')],invites:[]};}});const unsubscribe=inbox.subscribe(()=>calls++);inbox.setUser('one');await inbox.refresh();fail=true;await inbox.refresh();assert.equal(inbox.getSnapshot().items.length,1);assert.ok(inbox.getSnapshot().error);fail=false;await inbox.refresh();assert.equal(inbox.getSnapshot().error,'');unsubscribe();const before=calls;inbox.dismiss();inbox.setUser(null);assert.equal(calls,before);});
+test('sent requests, blocked players and resumable duels stay in the account inbox without notification badges',async()=>{
+ const outgoing={...friend('sent'),relationship:'outgoing'};
+ const blocked={...friend('blocked'),relationship:'none'};
+ const waiting=invite('waiting',{direction:'outgoing'});
+ const matched=invite('matched',{status:'matched'});
+ const inbox=createInbox111({load:async()=>({people:[outgoing],blocked:[blocked],invites:[waiting,matched]})});
+ inbox.setUser('one');
+ await inbox.refresh();
+ const state=inbox.getSnapshot();
+ assert.deepEqual(state.outgoing,[outgoing]);
+ assert.deepEqual(state.blocked,[blocked]);
+ assert.deepEqual(state.invites,[waiting,matched]);
+ assert.equal(state.items.length,0);
+ assert.equal(state.toast,null);
+ inbox.setUser('another-account');
+ for(const key of ['outgoing','blocked','invites'])assert.deepEqual(inbox.getSnapshot()[key],[]);
+});

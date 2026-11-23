@@ -1,98 +1,392 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+
+import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {supabase} from '@/lib/supabaseClient';
-import {socialAction92,friendReply92,friendInvite92,type Friend92} from '@/lib/duelverse/friends92';
-import {socialInbox111,useSocialInbox111,type InboxItem111} from '@/lib/duelverse/socialInbox111';
-import {type SavedDeck} from '@/lib/duelverse/account';
+import {socialAction92,socialSearch92,friendReply92,friendInvite92,type Friend92} from '@/lib/duelverse/friends92';
+import {socialInbox111,useSocialInbox111,type InboxItem111,type InboxState111} from '@/lib/duelverse/socialInbox111';
+import {matchRequest90} from '@/lib/duelverse/matchmaking90';
+import {loadIdentity85,type PlayerIdentity85,type SavedDeck} from '@/lib/duelverse/account';
 import {portrait85} from '../../../public/game/platform/identity85.mjs';
-import './social-bubble111.css';
 import CurrentDuel112 from './CurrentDuel112';
-type DeckState={owner:string;decks:SavedDeck[]};
+import './social-bubble111.css';
+
+type Tab='friends'|'requests'|'duels';
+type FriendAction='request'|'accept'|'decline'|'cancel'|'remove'|'block'|'unblock';
+type FriendIdentity=Pick<Friend92,'id'|'identity'>;
+type ConfirmAction={person:FriendIdentity;action:'remove'|'block'};
+const tabs=[['friends','Friends'],['requests','Requests'],['duels','Duels']] as const;
+const sentMessages:Record<FriendAction,string>={
+ request:'Friend request sent.',accept:'Friend added.',decline:'Request declined.',cancel:'Request cancelled.',
+ remove:'Friend removed.',block:'Player blocked.',unblock:'Player unblocked.'
+};
+const presenceLabels={online:'Online',away:'Away',offline:'Offline',unknown:'Status unavailable'};
 const ChatIcon=()=> <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.4c0 4.1-3.6 7.4-8 7.4a9.3 9.3 0 0 1-3.2-.6L4 20l1.3-4.5A6.8 6.8 0 0 1 4 11.4C4 7.3 7.6 4 12 4s8 3.3 8 7.4Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="8" cy="11" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="16" cy="11" r="1" fill="currentColor"/></svg>;
+
+function Person({identity,label}:{identity:PlayerIdentity85;label:string}){
+ return <div className="social111-person">
+  <img src={portrait85(identity.avatarId).image} alt=""/>
+  <div><strong>{identity.displayName}</strong><span>{label}</span></div>
+ </div>;
+}
+
 export default function SocialBubble111({embedded=false,hidden=false}:{embedded?:boolean;hidden?:boolean}){
- const inbox=useSocialInbox111(),[tab,setTab]=useState<'friends'|'requests'>('friends'),[open,setOpen]=useState(false),[selected,setSelected]=useState<string|null>(null),[decks,setDecks]=useState<DeckState|null>(null),[deck,setDeck]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const scope=useRef(inbox.userId),lock=useRef(false),panel=useRef<HTMLElement>(null),launcher=useRef<HTMLButtonElement>(null),root=useRef<HTMLDivElement>(null);scope.current=inbox.userId;
- useEffect(()=>{setOpen(false);setTab('friends');setSelected(null);setDecks(null);setDeck('');setError('');setNotice('');setBusy(false);lock.current=false;},[inbox.userId]);
- useEffect(()=>{if(!inbox.toast)return;const timer=setTimeout(()=>socialInbox111.dismiss(),9000);return()=>clearTimeout(timer);},[inbox.toast]);
- useEffect(()=>{if(!open)return;const outside=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(false);};document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside);},[open]);
- useEffect(()=>{if(!embedded)return;const send=()=>{window.parent.postMessage({type:'duelverse-social111-size',width:inbox.userId?(open||inbox.toast?390:160):0,height:inbox.userId?(open?640:inbox.toast?190:90):0},location.origin);};send();const closeMessage=(e:MessageEvent)=>{if(e.origin===location.origin&&e.source===window.parent&&e.data?.type==='duelverse-social111-close')setOpen(false);};window.addEventListener('message',closeMessage);return()=>window.removeEventListener('message',closeMessage);},[embedded,open,inbox.toast,inbox.userId]);
+ const inbox=useSocialInbox111();
+ return <FriendsPanel key={inbox.userId} inbox={inbox} embedded={embedded} hidden={hidden}/>;
+}
+
+function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:boolean;hidden:boolean}){
+ const owner=inbox.userId;
+ const [tab,setTab]=useState<Tab>('friends');
+ const [open,setOpen]=useState(false);
+ const [selected,setSelected]=useState<string|null>(null);
+ const [decks,setDecks]=useState<SavedDeck[]|null>(null);
+ const [deck,setDeck]=useState('');
+ const [busy,setBusy]=useState(false);
+ const [error,setError]=useState('');
+ const [notice,setNotice]=useState('');
+ const [identity,setIdentity]=useState<PlayerIdentity85|null>(null);
+ const [name,setName]=useState('');
+ const [result,setResult]=useState<Friend92|null|undefined>(undefined);
+ const [confirmation,setConfirmation]=useState<ConfirmAction|null>(null);
+ const scope=useRef(owner);
+ const lock=useRef(false);
+ const launcher=useRef<HTMLButtonElement>(null);
+ const root=useRef<HTMLDivElement>(null);
+ const confirmationPanel=useRef<HTMLDivElement>(null);
+ scope.current=owner;
+
+ useEffect(()=>{
+  scope.current=owner;
+  const requested=embedded?null:new URLSearchParams(location.search).get('friends');
+  const preferred=tabs.find(([id])=>id===requested)?.[0];
+  setOpen(Boolean(owner&&preferred));
+  setTab(preferred??'friends');
+  return()=>{scope.current=null;};
+ },[owner,embedded]);
+
+ useEffect(()=>{
+  if(!open||tab!=='friends'||!owner||identity)return;
+  let alive=true;
+  void loadIdentity85().then(value=>{
+   if(alive&&scope.current===owner)setIdentity(value);
+  }).catch(()=>{});
+  return()=>{alive=false;};
+ },[open,tab,owner,identity]);
+
+ useEffect(()=>{
+  if(!inbox.toast)return;
+  const timer=setTimeout(()=>socialInbox111.dismiss(),9000);
+  return()=>clearTimeout(timer);
+ },[inbox.toast]);
+
+ useEffect(()=>{
+  if(!open)return;
+  const outside=(event:PointerEvent)=>{
+   if(!root.current?.contains(event.target as Node))setOpen(false);
+  };
+  document.addEventListener('pointerdown',outside);
+  return()=>document.removeEventListener('pointerdown',outside);
+ },[open]);
+
+ useEffect(()=>{
+  if(!embedded)return;
+  const onMessage=(event:MessageEvent)=>{
+   if(event.origin!==location.origin||event.source!==window.parent)return;
+   if(event.data?.type==='duelverse-social111-close')setOpen(false);
+   if(event.data?.type==='duelverse-social111-open'&&owner){
+    setTab('friends');
+    socialInbox111.dismiss();
+    setOpen(true);
+    void socialInbox111.refresh();
+   }
+  };
+  window.addEventListener('message',onMessage);
+  return()=>window.removeEventListener('message',onMessage);
+ },[embedded,owner]);
+
+ useEffect(()=>{
+  if(!embedded)return;
+  window.parent.postMessage({
+   type:'duelverse-social111-size',
+   width:owner?(open||inbox.toast?390:160):0,
+   height:owner?(open?640:inbox.toast?190:90):0
+  },location.origin);
+ },[embedded,open,inbox.toast,owner]);
+
  useEffect(()=>{if(hidden)setOpen(false);},[hidden]);
- function show(requests=false){setTab(requests?'requests':'friends');setError('');setNotice('');socialInbox111.dismiss();setOpen(true);void socialInbox111.refresh();}
- function close(){setOpen(false);launcher.current?.focus();}
- async function loadDecks(owner:string){
-  const {data,error:loadError}=await supabase.from('dv_decks').select('id,name,cards,active,format').order('created_at');
-  if(loadError)throw Error('Your saved decks could not be loaded. Try again.');
-  if(scope.current!==owner)return;
+ useEffect(()=>{if(confirmation)confirmationPanel.current?.focus();},[confirmation]);
+
+ function show(section:Tab='friends'){
+  setTab(section);
+  setSelected(null);
+  setDecks(null);
+  setDeck('');
+  setConfirmation(null);
+  setError('');
+  setNotice('');
+  socialInbox111.dismiss();
+  setOpen(true);
+  void socialInbox111.refresh();
+ }
+
+ function close(){
+  setOpen(false);
+  launcher.current?.focus();
+ }
+
+ async function run(work:(account:string)=>Promise<void>){
+  if(lock.current||!owner)return;
+  lock.current=true;
+  setBusy(true);
+  setError('');
+  setNotice('');
+  try{
+   const {data:{session}}=await supabase.auth.getSession();
+   if(session?.user.id!==owner)throw Error('Your sign-in changed. Refresh and try again.');
+   if(scope.current===owner)await work(owner);
+  }catch(error){
+   if(scope.current===owner){
+    setError(error instanceof Error?error.message:'Please try again.');
+    void socialInbox111.refresh();
+   }
+  }finally{
+   if(scope.current===owner){lock.current=false;setBusy(false);}
+  }
+ }
+
+ function search(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  const query=name.trim();
+  if(query.length<3)return;
+  void run(async account=>{
+   const player=await socialSearch92(query);
+   if(scope.current===account)setResult(player);
+  });
+ }
+
+ function manage(person:FriendIdentity,action:FriendAction){
+  void run(async account=>{
+   await socialAction92(person.id,action);
+   if(scope.current!==account)return;
+   setConfirmation(null);
+   if(result?.id===person.id)setResult(undefined);
+   if(action==='request')setTab('requests');
+   if(action==='accept')setTab('friends');
+   if(action==='accept'||action==='decline'||action==='block')socialInbox111.remove('friend:'+person.id);
+   setNotice(sentMessages[action]);
+  });
+ }
+
+ async function chooseDeck(account:string,key:string){
+  if(decks){
+   setSelected(key);
+   return;
+  }
+  const {data,error}=await supabase.from('dv_decks').select('id,name,cards,active,format').order('created_at');
+  if(error)throw Error('Your saved decks could not be loaded. Try again.');
+  if(scope.current!==account)return;
   const available=(data??[]).filter(d=>Array.isArray(d.cards)&&d.cards.length===15) as SavedDeck[];
-  setDecks({owner,decks:available});setDeck(available.find(d=>d.active)?.id??available[0]?.id??'');
+  setDecks(available);
+  setDeck(available.find(d=>d.active)?.id??available[0]?.id??'');
+  setSelected(key);
  }
- async function invite(friend:Friend92,send=false){
-  if(lock.current||!inbox.userId||!['online','away'].includes(friend.presence??''))return;
-  lock.current=true;setBusy(true);setError('');setNotice('');const owner=inbox.userId,key='invite:'+friend.id;
-  try{
-   const {data:{session}}=await supabase.auth.getSession();if(session?.user.id!==owner)throw Error('Your sign-in changed. Refresh and try again.');if(scope.current!==owner)return;
-   if(!send){setSelected(key);setDecks(null);setDeck('');await loadDecks(owner);}
-   else{
-    if(selected!==key||!deck||decks?.owner!==owner||!decks.decks.some(d=>d.id===deck))throw Error('Choose a saved 15-card deck first.');
-    const sent=await friendInvite92(friend.id,deck);if(scope.current!==owner)return;
-    try{localStorage.setItem('duelverse.match90.'+owner,sent.id);}catch{}
-    window.dispatchEvent(new Event('duelverse-social92'));
-    if(embedded)window.parent.postMessage({type:'duelverse-social115-lobby',id:sent.id,friendName:sent.friendName},location.origin);
-    else location.assign('/play?friend='+encodeURIComponent(sent.friendName));
-   }
-  }catch(e){if(scope.current===owner){setError(e instanceof Error?e.message:'Invitation could not be sent. Try again.');void socialInbox111.refresh();}}
-  finally{if(scope.current===owner){lock.current=false;setBusy(false);}}
+
+ function joinDuel(id:string,account:string){
+  try{localStorage.setItem('duelverse.match90.'+account,id);}catch{}
+  if(embedded)window.parent.postMessage({type:'duelverse-social111-join',id},location.origin);
+  else location.assign('/game/online.html?match='+encodeURIComponent(id));
  }
- function deckPicker(id:string){return <div className="social111-deck"><label htmlFor={'social-deck-'+id}>Your 15-card deck</label><select id={'social-deck-'+id} value={deck} disabled={busy} onChange={e=>setDeck(e.target.value)}>{decks?.owner!==inbox.userId?<option value="">Loading decks…</option>:!decks.decks.length?<option value="">No saved 15-card decks</option>:decks.decks.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select>{decks?.owner===inbox.userId&&!decks.decks.length&&<a href="/decks" target={embedded?'_top':undefined}>Build a deck</a>}</div>;}
- async function act(item:InboxItem111,action:'accept'|'decline'){
-  if(lock.current||!inbox.userId)return;lock.current=true;setBusy(true);setError('');setNotice('');const owner=inbox.userId;
-  try{
-   // Recheck the live session; a previous account's bubble must never act for a new account.
-   const {data:{session}}=await supabase.auth.getSession();if(session?.user.id!==owner)throw Error('Your sign-in changed. Refresh and try again.');if(scope.current!==owner)return;
-   if(item.kind==='friend'){await socialAction92(item.id,action);if(scope.current!==owner)return;socialInbox111.remove(item.key);setNotice(action==='accept'?'Friend added.':'Request declined.');}
-   else if(action==='decline'){await friendReply92(item.id,'decline',null);if(scope.current!==owner)return;socialInbox111.remove(item.key);setSelected(null);setNotice('Invitation declined.');}
-   else if(selected!==item.key){
-    setSelected(item.key);
-    setDecks(null);setDeck('');await loadDecks(owner);
-   }else{
-    if(!deck||decks?.owner!==owner||!decks.decks.some(d=>d.id===deck))throw Error('Choose a saved 15-card deck first.');
-    const id=await friendReply92(item.id,'accept',deck);if(scope.current!==owner)return;
+
+ function invite(friend:Friend92){
+  const key='invite:'+friend.id;
+  void run(async account=>{
+   if(selected!==key){await chooseDeck(account,key);return;}
+   if(!decks?.some(d=>d.id===deck))throw Error('Choose a saved 15-card deck first.');
+   const sent=await friendInvite92(friend.id,deck);
+   if(scope.current!==account)return;
+   try{localStorage.setItem('duelverse.match90.'+account,sent.id);}catch{}
+   window.dispatchEvent(new Event('duelverse-social92'));
+   if(embedded)window.parent.postMessage({type:'duelverse-social115-lobby',id:sent.id,friendName:sent.friendName},location.origin);
+   else location.assign('/play?friend='+encodeURIComponent(sent.friendName));
+  });
+ }
+
+ function reply(item:InboxItem111,action:'accept'|'decline'){
+  void run(async account=>{
+   if(action==='accept'&&selected!==item.key){await chooseDeck(account,item.key);return;}
+   if(action==='accept'&&!decks?.some(d=>d.id===deck))throw Error('Choose a saved 15-card deck first.');
+   const id=await friendReply92(item.id,action,action==='accept'?deck:null);
+   if(scope.current!==account)return;
+   if(action==='accept'){
     if(!id)throw Error('The invitation is no longer available.');
-    try{localStorage.setItem('duelverse.match90.'+owner,id);}catch{}
-    const url='/game/online.html?match='+encodeURIComponent(id);if(embedded)window.parent.postMessage({type:'duelverse-social111-join',id},location.origin);else location.assign(url);
+    joinDuel(id,account);
+   }else{
+    socialInbox111.remove(item.key);
+    setSelected(null);
+    setNotice('Invitation declined.');
    }
-   if(scope.current===owner)await socialInbox111.refresh();
-  }catch(e){if(scope.current===owner){setError(e instanceof Error?e.message:'Please try again.');void socialInbox111.refresh();}}
-  finally{if(scope.current===owner){lock.current=false;setBusy(false);}}
+  });
  }
- if(!inbox.userId||hidden)return null;
- const requests=inbox.items.filter(i=>i.kind==='friend').length,duels=inbox.items.length-requests;
- return <div ref={root} className={'social111'+(embedded?' social111-embedded':'')} onKeyDown={e=>{if(e.key==='Escape'&&open){e.preventDefault();e.stopPropagation();close();}}}>
-  {!open&&inbox.toast&&<aside className="social111-toast" aria-label="New request"><button className="social111-toast-body" onClick={()=>show(true)}><img src={portrait85(inbox.toast.identity.avatarId).image} alt=""/><span><small>{inbox.toast.kind==='duel'?'DUEL INVITATION':'FRIEND REQUEST'}</small><strong>{inbox.toast.identity.displayName}</strong><span>{inbox.toast.kind==='duel'?'Ready for a duel?':'Wants to add you.'}</span></span></button><button className="social111-dismiss" aria-label="Dismiss notification" onClick={()=>socialInbox111.dismiss()}>×</button></aside>}
-  {open&&<section ref={panel} id="social111-inbox" className="social111-panel" role="region" aria-label="Friends and invitations">
-   <header><div><small>YOUR DUELVERSE</small><h2>Friends & duels</h2></div><button className="social111-close" onClick={close} aria-label="Close friends inbox">×</button></header>
-   <div className="social111-counts"><span>{requests} friend request{requests!==1?'s':''}</span><span>{duels} duel invite{duels!==1?'s':''}</span><button onClick={()=>void socialInbox111.refresh()} aria-label="Refresh requests">↻</button></div>
-   <nav className="social114-tabs" aria-label="Friends inbox sections"><button type="button" aria-pressed={tab==='friends'} onClick={()=>setTab('friends')}>Friends <b>{inbox.friends.length}</b></button><button type="button" aria-pressed={tab==='requests'} onClick={()=>setTab('requests')}>Requests {inbox.items.length>0&&<b>{inbox.items.length}</b>}</button></nav>
-   <div className="social111-scroll"><CurrentDuel112 userId={inbox.userId} embedded={embedded}/>
+
+ function cancelInvite(id:string){
+  void run(async account=>{
+   await matchRequest90({op:'cancel',id});
+   if(scope.current!==account)return;
+   try{
+    const key='duelverse.match90.'+account;
+    if(localStorage.getItem(key)===id)localStorage.removeItem(key);
+   }catch{}
+   window.dispatchEvent(new Event('duelverse-match112'));
+   window.dispatchEvent(new Event('duelverse-social92'));
+   setNotice('Duel invitation cancelled.');
+  });
+ }
+
+ function deckPicker(key:string){
+  return <div className="social111-deck">
+   <label htmlFor={'social-deck-'+key}>Your saved 15-card deck</label>
+   <select id={'social-deck-'+key} value={deck} disabled={busy||!decks?.length} onChange={event=>setDeck(event.target.value)}>
+    {!decks?.length?<option value="">No saved 15-card decks</option>:decks.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+   </select>
+   {!decks?.length&&<a href="/decks" target={embedded?'_top':undefined}>Build a deck</a>}
+  </div>;
+ }
+
+ function confirmAction(person:FriendIdentity,action:ConfirmAction['action']){
+  setConfirmation({person,action});
+  setError('');
+  setNotice('');
+ }
+
+ function friendOptions(friend:Friend92){
+  return <details className="social145-options">
+   <summary aria-label={'Options for '+friend.identity.displayName}>⋯</summary>
+   <div>
+    <button type="button" disabled={busy} onClick={()=>confirmAction(friend,'remove')}>Remove friend</button>
+    <button type="button" disabled={busy} onClick={()=>confirmAction(friend,'block')}>Block player</button>
+   </div>
+  </details>;
+ }
+
+ function requestActions(person:FriendIdentity,relationship:'incoming'|'outgoing'|'none'){
+  return <div className="social111-actions">
+   {relationship==='incoming'?<>
+    <button className="social111-primary" disabled={busy} onClick={()=>manage(person,'accept')}>Accept</button>
+    <button disabled={busy} onClick={()=>manage(person,'decline')}>Decline</button>
+    <button disabled={busy} onClick={()=>confirmAction(person,'block')}>Block</button>
+   </>:relationship==='outgoing'?
+    <button disabled={busy} onClick={()=>manage(person,'cancel')}>Cancel request</button>:
+    <button className="social111-primary" disabled={busy||identity?.nameClaimed===false} onClick={()=>manage(person,'request')}>Add friend</button>}
+  </div>;
+ }
+
+ if(!owner||hidden)return null;
+ const incoming=inbox.items.filter(item=>item.kind==='friend');
+ const incomingDuels=inbox.items.filter(item=>item.kind==='duel');
+ const counts={friends:inbox.friends.length,requests:incoming.length,duels:incomingDuels.length};
+ const target=embedded?'_top':undefined;
+ return <div ref={root} className={'social111'+(embedded?' social111-embedded':'')} onKeyDown={event=>{
+  if(event.key==='Escape'&&open){event.preventDefault();event.stopPropagation();close();}
+ }}>
+  {!open&&inbox.toast&&<aside className="social111-toast" aria-label="New request">
+   <button className="social111-toast-body" onClick={()=>show(inbox.toast?.kind==='duel'?'duels':'requests')}>
+    <img src={portrait85(inbox.toast.identity.avatarId).image} alt=""/>
+    <span><small>{inbox.toast.kind==='duel'?'DUEL INVITATION':'FRIEND REQUEST'}</small><strong>{inbox.toast.identity.displayName}</strong><span>{inbox.toast.kind==='duel'?'Ready for a duel?':'Wants to add you.'}</span></span>
+   </button>
+   <button className="social111-dismiss" aria-label="Dismiss notification" onClick={()=>socialInbox111.dismiss()}>×</button>
+  </aside>}
+  {open&&<section id="social111-inbox" className="social111-panel" role="region" aria-label="Friends and invitations">
+   <header><h2>Friends & duels</h2><div className="social145-header-actions"><button className="social111-close" disabled={busy} onClick={()=>void socialInbox111.refresh()} aria-label="Refresh friends and invitations">↻</button><button className="social111-close" onClick={close} aria-label="Close friends inbox">×</button></div></header>
+   <nav className="social114-tabs" aria-label="Friends inbox sections">
+    {tabs.map(([id,label])=><button key={id} type="button" aria-pressed={tab===id} onClick={()=>{setTab(id);setConfirmation(null);}}>{label}{counts[id]>0&&<> <b>{counts[id]}</b></>}</button>)}
+   </nav>
+   <div className="social111-scroll">
     {(error||inbox.error)&&<p className="social111-error" role="alert">{error||inbox.error}</p>}
     {notice&&<p className="social111-notice" role="status">{notice}</p>}
-    {!inbox.ready&&!inbox.error&&<p className="social111-empty" role="status">Checking your requests…</p>}
-    {tab==='requests'&&inbox.ready&&!inbox.items.length&&!inbox.error&&<div className="social111-empty"><ChatIcon/><strong>All caught up.</strong><p>Friend requests and duel invitations<br/>will pop up right here.</p></div>}
-    {tab==='friends'&&inbox.ready&&<section className="social114-friends" aria-label="Your friends"><div className="social114-summary"><span>{inbox.friends.filter(f=>f.presence==='online').length} online</span><small title="Active game or website tab: Online. Background tab: Away. Status expires within 90 seconds without a heartbeat.">Live status</small></div>{inbox.friends.length?inbox.friends.map(friend=>{
-     const choosing=selected==='invite:'+friend.id,available=friend.presence==='online'||friend.presence==='away';
-     const status=friend.presence==='online'?'Online':friend.presence==='away'?'Away':friend.presence==='offline'?'Offline':'Status unavailable';
-     return <article className="social114-friend" key={friend.id} aria-label={`${friend.identity.displayName}, ${status}`}>
-      <div className="social115-friend-row"><span className="social114-avatar"><img src={portrait85(friend.identity.avatarId).image} alt=""/><i data-presence={friend.presence??'unknown'} aria-hidden="true"/></span><div className="social115-identity"><strong>{friend.identity.displayName}</strong><span data-presence={friend.presence??'unknown'}>{status}</span></div><button type="button" className="social115-invite" disabled={busy||!available} aria-label={`Invite ${friend.identity.displayName} to duel`} aria-expanded={choosing} onClick={()=>{if(choosing){setSelected(null);setError('');}else void invite(friend);}}>Invite</button></div>
-      {choosing&&<div className="social115-invite-setup">{deckPicker('invite-'+friend.id)}<div className="social111-actions"><button className="social111-primary" disabled={busy||!available||!deck||decks?.owner!==inbox.userId} onClick={()=>void invite(friend,true)}>{busy?'Please wait…':'Send invite'}</button><button disabled={busy} onClick={()=>{setSelected(null);setError('');}}>Cancel</button></div></div>}
-     </article>;
-    }):<div className="social111-empty"><ChatIcon/><strong>Your next rival is waiting.</strong><p>Add friends by their player name.</p></div>}</section>}
-    {tab==='requests'&&inbox.items.map(item=><article className="social111-request" key={item.key} aria-label={`${item.kind==='duel'?'Duel invitation':'Friend request'} from ${item.identity.displayName}`}>
-     <div className="social111-person"><img src={portrait85(item.identity.avatarId).image} alt=""/><div><small>{item.kind==='duel'?'DUEL INVITATION':'FRIEND REQUEST'}</small><strong>{item.identity.displayName}</strong><span>{item.kind==='duel'?'Invites you to a private duel.':'Wants to join your friends.'}</span></div></div>
-     {item.kind==='duel'&&selected===item.key&&deckPicker(item.id)}
-     <div className="social111-actions"><button className="social111-primary" disabled={busy||item.kind==='duel'&&selected===item.key&&!deck} onClick={()=>void act(item,'accept')}>{busy?'Please wait…':item.kind==='friend'?'Accept':selected===item.key?'Join duel':'Choose deck'}</button><button disabled={busy} onClick={()=>void act(item,'decline')}>Decline</button></div>
-    </article>)}
-   </div><footer><a href="/account/private/friends" target={embedded?'_top':undefined}>Open friend list</a></footer>
+    {confirmation&&<div ref={confirmationPanel} tabIndex={-1} className="social145-confirm" role="group" aria-label="Confirm friend action">
+     <p>{confirmation.action==='remove'?'Remove':'Block'} <strong>{confirmation.person.identity.displayName}</strong>?</p>
+     {confirmation.action==='block'&&<span>This ends the friendship and stops new requests.</span>}
+     <div className="social111-actions"><button disabled={busy} onClick={()=>setConfirmation(null)}>Cancel</button><button disabled={busy} className="social111-primary" onClick={()=>manage(confirmation.person,confirmation.action)}>{confirmation.action==='block'?'Block player':'Remove friend'}</button></div>
+    </div>}
+    {!inbox.ready&&!inbox.error&&<p className="social111-empty" role="status">Loading friends and invitations…</p>}
+
+    {tab==='friends'&&<>
+     <div className="social145-tools">
+      {identity?.nameClaimed?<div className="social145-own">
+       <span>You · <strong>{identity.displayName}</strong></span>
+       <button type="button" onClick={()=>void navigator.clipboard.writeText(identity.displayName).then(()=>{
+        if(scope.current===owner)setNotice('Player name copied.');
+       }).catch(()=>{if(scope.current===owner)setError('Select and copy your player name.');})}>Copy name</button>
+      </div>:identity&&<a href="/account/private/profile" target={target}>Choose your player name</a>}
+      <form className="social145-search" onSubmit={search}>
+       <input aria-label="Exact player name" placeholder="Exact player name" value={name} onChange={event=>{setName(event.target.value);setResult(undefined);}} maxLength={24} autoComplete="off" disabled={busy}/>
+       <button type="submit" disabled={busy||name.trim().length<3}>Find player</button>
+      </form>
+     </div>
+     {result===null&&<p className="social111-notice" role="status">No player found. Check the exact name.</p>}
+     {result&&<article className="social111-request" aria-label={'Search result for '+result.identity.displayName}>
+      <Person identity={result.identity} label={result.relationship==='friend'?'Already friends':result.relationship==='incoming'?'Incoming request':result.relationship==='outgoing'?'Request sent':'Search result'}/>
+      {result.relationship!=='friend'&&requestActions(result,result.relationship)}
+     </article>}
+     {inbox.ready&&<section className="social114-friends" aria-label="Your friends">
+      <div className="social114-summary"><span>{inbox.friends.filter(f=>f.presence==='online').length} online</span></div>
+      {inbox.friends.length?inbox.friends.map(friend=>{
+       const key='invite:'+friend.id;
+       const choosing=selected===key;
+       const presence=friend.presence??'unknown';
+       return <article className="social114-friend" key={friend.id} aria-label={`${friend.identity.displayName}, ${presenceLabels[presence]}`}>
+        <div className="social115-friend-row">
+         <span className="social114-avatar"><img src={portrait85(friend.identity.avatarId).image} alt=""/><i data-presence={presence} aria-hidden="true"/></span>
+         <div className="social115-identity"><strong>{friend.identity.displayName}</strong><span data-presence={presence}>{presenceLabels[presence]}</span></div>
+         <button type="button" className="social115-invite" disabled={busy} aria-label={'Invite '+friend.identity.displayName+' to duel'} aria-expanded={choosing} onClick={()=>choosing?setSelected(null):invite(friend)}>Invite</button>
+         {friendOptions(friend)}
+        </div>
+        {choosing&&<div className="social115-invite-setup">{deckPicker(key)}<div className="social111-actions"><button className="social111-primary" disabled={busy||!deck} onClick={()=>invite(friend)}>Send invite</button><button disabled={busy} onClick={()=>setSelected(null)}>Cancel</button></div></div>}
+       </article>;
+      }):<p className="social111-empty">Find a player by name to add your first friend.</p>}
+     </section>}
+     {inbox.blocked.length>0&&<details className="social145-blocked"><summary>Blocked players · {inbox.blocked.length}</summary>
+      {inbox.blocked.map(person=><div className="social145-blocked-row" key={person.id}><span>{person.identity.displayName}</span><button disabled={busy} onClick={()=>manage(person,'unblock')}>Unblock</button></div>)}
+     </details>}
+    </>}
+
+    {tab==='requests'&&<>
+     {incoming.map(item=><article className="social111-request" key={item.key} aria-label={'Friend request from '+item.identity.displayName}>
+      <Person identity={item.identity} label="Incoming friend request"/>
+      {requestActions(item,'incoming')}
+     </article>)}
+     {inbox.outgoing.map(person=><article className="social111-request" key={person.id} aria-label={'Friend request to '+person.identity.displayName}>
+      <Person identity={person.identity} label="Friend request sent"/>
+      {requestActions(person,'outgoing')}
+     </article>)}
+     {inbox.ready&&!incoming.length&&!inbox.outgoing.length&&!inbox.error&&<p className="social111-empty">No pending friend requests.</p>}
+    </>}
+
+    {tab==='duels'&&<>
+     <CurrentDuel112 userId={owner} embedded={embedded}/>
+     {incomingDuels.map(item=><article className="social111-request" key={item.key} aria-label={'Duel invitation from '+item.identity.displayName}>
+      <Person identity={item.identity} label="Invites you to a private duel"/>
+      {selected===item.key&&deckPicker(item.key)}
+      <div className="social111-actions"><button className="social111-primary" disabled={busy||(selected===item.key&&!deck)} onClick={()=>reply(item,'accept')}>{selected===item.key?'Join duel':'Choose deck'}</button><button disabled={busy} onClick={()=>reply(item,'decline')}>Decline</button></div>
+     </article>)}
+     {inbox.invites.map(item=><article className="social111-request" key={item.id} aria-label={`Duel with ${item.identity.displayName}`}>
+      <Person identity={item.identity} label={item.status==='matched'?'Your duel is ready':'Waiting for your friend'}/>
+      <div className="social111-actions">{item.status==='matched'?
+       <button className="social111-primary" disabled={busy} onClick={()=>joinDuel(item.id,owner)}>Enter duel</button>:<>
+        <a href="/play" target={target}>Open waiting room</a>
+        <button disabled={busy} onClick={()=>cancelInvite(item.id)}>Cancel invitation</button>
+       </>}
+      </div>
+     </article>)}
+     {inbox.ready&&!incomingDuels.length&&!inbox.invites.length&&!inbox.error&&<p className="social111-empty">No private invitations right now.</p>}
+    </>}
+   </div>
   </section>}
-  <div className="social111-launcher-row"><span className="social111-live" role="status" aria-live="polite">{inbox.toast?`${inbox.toast.kind==='duel'?'Duel invitation':'Friend request'} from ${inbox.toast.identity.displayName}`:''}</span><button ref={launcher} className="social111-launcher" aria-label={`Friends and duels${inbox.items.length?`, ${inbox.items.length} pending`:''}`} aria-expanded={open} aria-controls="social111-inbox" onClick={()=>open?close():show()}><ChatIcon/><span>Friends</span>{inbox.items.length>0&&<b>{inbox.items.length>99?'99+':inbox.items.length}</b>}</button></div>
+  <div className="social111-launcher-row">
+   <span className="social111-live" role="status" aria-live="polite">{inbox.toast?`${inbox.toast.kind==='duel'?'Duel invitation':'Friend request'} from ${inbox.toast.identity.displayName}`:''}</span>
+   <button ref={launcher} className="social111-launcher" aria-label={`Friends and duels${inbox.items.length?`, ${inbox.items.length} pending`:''}`} aria-expanded={open} aria-controls="social111-inbox" onClick={()=>open?close():show()}>
+    <ChatIcon/><span>Friends</span>{inbox.items.length>0&&<b>{inbox.items.length>99?'99+':inbox.items.length}</b>}
+   </button>
+  </div>
  </div>;
 }
