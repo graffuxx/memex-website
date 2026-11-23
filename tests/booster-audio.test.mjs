@@ -4,7 +4,7 @@ import {boosterCue,createBoosterAudio} from '../public/game/src/booster-audio41.
 class Param{constructor(value=0){this.value=value;this.events=[];}record(type,v,t){assert.ok(Number.isFinite(v)&&Number.isFinite(t));if(type==='exponential')assert.ok(v>0);this.events.push({type,v,t});}setValueAtTime(v,t){this.record('set',v,t);}exponentialRampToValueAtTime(v,t){this.record('exponential',v,t);}setTargetAtTime(v,t){this.record('target',v,t);}cancelScheduledValues(){}}
 class Node{constructor(kind){this.kind=kind;this.links=[];this.frequency=new Param();this.gain=new Param();this.Q=new Param();this.pan=new Param();this.delayTime=new Param();this.threshold=new Param();this.knee=new Param();this.ratio=new Param();this.attack=new Param();this.release=new Param();if(['oscillator','buffer'].includes(kind)){this.start=(t)=>{this.started=t;};this.stop=(t=0)=>{this.stopped=t;};}}connect(node){this.links.push(node);return node;}disconnect(){this.links=[];this.disconnected=true;}}
 class Context{constructor(){this.state='suspended';this.sampleRate=8000;this.currentTime=10;this.destination=new Node('destination');this.nodes=[];}make(kind){const n=new Node(kind);this.nodes.push(n);return n;}createGain(){return this.make('gain');}createDynamicsCompressor(){return this.make('compressor');}createOscillator(){if(this.failTone)throw Error('audio unavailable');return this.make('oscillator');}createBufferSource(){return this.make('buffer');}createStereoPanner(){return this.make('pan');}createBiquadFilter(){return this.make('filter');}createDelay(){return this.make('delay');}createBuffer(channels,length){const data=Array.from({length:channels},()=>new Float32Array(length));return {getChannelData:i=>data[i]};}resume(){this.state='running';return Promise.resolve();}suspend(){this.state='suspended';return Promise.resolve();}close(){this.state='closed';this.closed=(this.closed??0)+1;return Promise.resolve();}}
-function rig(){let created=0;const ctx=new Context(),states=[],timers=new Map();let serial=0;const audio=createBoosterAudio({contextFactory:()=>{created++;return ctx;},onState:s=>states.push(s),setTimer:fn=>{timers.set(++serial,fn);return serial;},clearTimer:id=>timers.delete(id)});return {audio,ctx,states,timers,get created(){return created;}};}
+function rig(options={}){let created=0;const ctx=new Context(),states=[],timers=new Map();let serial=0;const audio=createBoosterAudio({...options,contextFactory:()=>{created++;return ctx;},onState:s=>states.push(s),setTimer:fn=>{timers.set(++serial,fn);return serial;},clearTimer:id=>timers.delete(id)});return {audio,ctx,states,timers,get created(){return created;}};}
 test('pack and rarity sounds have bounded gain/pitch and progressively richer, longer stingers',()=>{
  let previous=0;for(const key of ['common','rare','epic','legendary','mythic']){const cue=boosterCue(key);assert.ok(cue.duration>previous);previous=cue.duration;assert.ok(cue.duration<=5.3);for(const p of [...cue.tones,...cue.noises]){assert.ok(p.at>=0&&p.d>0&&p.at+p.d<=cue.duration);assert.ok(p.g>0&&p.g<=.4);assert.ok(p.attack>0&&p.attack<p.d);if(p.f)assert.ok(Math.min(p.f,p.to)>=20&&Math.max(p.f,p.to)<8000);}}
  assert.ok(boosterCue('tear').noises.length>=8);assert.ok(boosterCue('mythic').tones.some(p=>p.to<40));assert.ok(boosterCue('mythic').tones.some(p=>p.mod>0));assert.equal(boosterCue('unknown'),null);
@@ -19,4 +19,23 @@ test('muting cancels future notes and tails; suspend/dispose leave no timers or 
 });
 test('audio failures are contained and cannot interrupt a card reveal',()=>{
  const r=rig();r.audio.unlock();r.ctx.failTone=true;assert.equal(r.audio.play('epic'),false);assert.equal(r.timers.size,0);assert.equal(r.states.at(-1).playCount,0);r.audio.dispose();assert.ok(r.ctx.nodes.every(n=>n.disconnected));
+});
+test('preloaded foil recording plays once without the synthesized cue and obeys mute',async()=>{
+ const clip={duration:1.06};
+ let loads=0;
+ const r=rig({loadTearSample:async()=>{loads++;return clip;}});
+ await Promise.all([r.audio.preloadTear(),r.audio.preloadTear()]);
+ assert.equal(loads,1);
+ assert.equal(r.created,0);
+ assert.equal(r.audio.play('tear'),false);
+ r.audio.unlock();
+ assert.equal(r.audio.play('tear'),true);
+ const sources=r.ctx.nodes.filter(n=>n.kind==='buffer');
+ assert.equal(sources.length,1);
+ assert.equal(sources[0].buffer,clip);
+ assert.equal(r.ctx.nodes.some(n=>n.kind==='oscillator'),false);
+ r.audio.setEnabled(false);
+ assert.ok(sources[0].stopped<=r.ctx.currentTime+.025);
+ assert.equal(r.audio.play('tear'),false);
+ r.audio.dispose();
 });

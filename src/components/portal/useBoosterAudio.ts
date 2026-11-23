@@ -6,7 +6,7 @@ type State={enabled:boolean;available:boolean;running:boolean;lastCue:string;pla
 export default function useBoosterAudio(){
  const audio=useRef<ReturnType<typeof createBoosterAudio>|null>(null);
  const [state,setState]=useState<State>({enabled:true,available:true,running:false,lastCue:'',playCount:0});
- useEffect(()=>{let alive=true;const engine=createBoosterAudio({onState:(next:State)=>{if(alive)setState(next);}});audio.current=engine;let enabled=true;try{enabled=localStorage.getItem(KEY)!=='off';}catch{}engine.setEnabled(enabled);
+ useEffect(()=>{let alive=true;const engine=createBoosterAudio({onState:(next:State)=>{if(alive)setState(next);}});audio.current=engine;let enabled=true;try{enabled=localStorage.getItem(KEY)!=='off';}catch{}engine.setEnabled(enabled);void engine.preloadTear();
   const visibility=()=>{if(document.hidden)engine.suspend();};document.addEventListener('visibilitychange',visibility);
   return()=>{alive=false;document.removeEventListener('visibilitychange',visibility);engine.dispose();if(audio.current===engine)audio.current=null;};
  },[]);

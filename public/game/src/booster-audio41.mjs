@@ -1,8 +1,16 @@
-// Original procedural pack Foley and rarity stingers: no external samples or requests.
+// The foil clip is edited from a CC0 field recording by rodrigocswm.
+// https://freesound.org/people/rodrigocswm/sounds/573824/
+async function loadFoilRip(){
+ const Offline=globalThis.OfflineAudioContext||globalThis.webkitOfflineAudioContext;
+ if(!Offline)return null;
+ const response=await fetch('/game/assets/audio/alpha-foil-rip.wav');
+ if(!response.ok)return null;
+ return new Offline(1,1,24000).decodeAudioData(await response.arrayBuffer());
+}
 const tone=(at,f,to,d,g=.1,type='sine',attack=.008,pan=0,mod=0)=>({at,f,to,d,g,type,attack,pan,mod});
 const noise=(at,d,g,hz,end=hz,attack=.008,type='bandpass',pan=0)=>({at,d,g,hz,end,attack,type,pan});
 export function boosterCue(kind){
- if(kind==='tear')return {duration:1.55,echo:false,tones:[tone(.68,155,72,.32,.14,'triangle')],noises:[...Array.from({length:7},(_,i)=>noise(i*.045,.055+(i%3)*.018,.20+(i%2)*.10,2800+i*330,1800,.004,'highpass',i%2?.15:-.15)),noise(.20,.53,.30,4100,1300,.035),noise(.74,.45,.16,3200,700,.02)]};
+ if(kind==='tear')return {duration:1.08,echo:false,tones:[],noises:[...Array.from({length:8},(_,i)=>noise(.19+i*.033,.032+(i%3)*.012,.10+i*.025,2100+i*490,4800,.002,'bandpass',(i-3.5)*.06)),noise(.44,.10,.37,5350,1900,.003,'bandpass'),noise(.57,.22,.105,2950,1400,.008,'bandpass')]};
  if(!['common','rare','epic','legendary','mythic'].includes(kind))return null;
  const base={duration:.32,echo:false,tones:[tone(.065,610,320,.09,.075,'sine')],noises:[noise(0,.12,.17,2700,1100)]};
  if(kind==='common')return base;
@@ -11,10 +19,16 @@ export function boosterCue(kind){
  if(kind==='legendary')return {...base,duration:2.6,echo:true,tones:[...base.tones,...[1174.66,1567.98,1975.53,2349.32,1567.98,3135.96,2349.32].flatMap((f,i)=>[tone(.38+i*.095,f,f*.999,1.2,.065,'sine',.005,(i%3-1)*.52),tone(.38+i*.095,f*1.501,f*1.50,.65,.018,'sine',.004)])],noises:[...base.noises,noise(.22,.8,.07,5200,3100,.24,'highpass')]};
  return {...base,duration:5.25,echo:true,tones:[...base.tones,tone(.20,72,43,1.0,.17,'sine',.34),tone(.78,80,31,.82,.28,'sine',.008),tone(.80,155,63,.75,.095,'triangle',.015),...[[73.42,.10],[110,.075],[155.56,.055]].map(([f,g],i)=>tone(.84+i*.045,f,f*.986,3.45,g,'triangle',.3,(i-1)*.34,i===1?5:0)),tone(.74,680,125,1.8,.06,'sine',.035,-.3),tone(1.05,392,196,2.1,.045,'sine',.07,.4)],noises:[...base.noises,noise(.08,1.1,.25,3400,180,.57,'lowpass'),noise(.78,.52,.36,310,75,.012,'lowpass'),noise(1.0,3.6,.095,900,140,.2,'bandpass')]};
 }
-/** @param {{contextFactory?:()=>AudioContext,onState?:(state:{enabled:boolean,available:boolean,running:boolean,lastCue:string,playCount:number})=>void,setTimer?:typeof setTimeout,clearTimer?:typeof clearTimeout}} [options] */
-export function createBoosterAudio({contextFactory,onState=()=>{},setTimer=setTimeout,clearTimer=clearTimeout}={}){
+/** @param {{contextFactory?:()=>AudioContext,onState?:(state:{enabled:boolean,available:boolean,running:boolean,lastCue:string,playCount:number})=>void,setTimer?:typeof setTimeout,clearTimer?:typeof clearTimeout,loadTearSample?:()=>Promise<AudioBuffer|null>}} [options] */
+export function createBoosterAudio({contextFactory,onState=()=>{},setTimer=setTimeout,clearTimer=clearTimeout,loadTearSample=loadFoilRip}={}){
  let ctx=null,master=null,compressor=null,buffer=null,enabled=true,disposed=false,lastCue='',playCount=0;
+ let foil=null,foilLoad=null;
  const voices=new Set();
+ function preloadTear(){
+  if(disposed)return Promise.resolve();
+  foilLoad??=Promise.resolve().then(loadTearSample).then(sample=>{if(!disposed)foil=sample;}).catch(()=>{});
+  return foilLoad;
+ }
  const available=()=>Boolean(contextFactory||globalThis.AudioContext||globalThis.webkitAudioContext);
  const notify=()=>onState({enabled,available:available(),running:ctx?.state==='running',lastCue,playCount});
  function ensure(){if(ctx)return;const Audio=globalThis.AudioContext||globalThis.webkitAudioContext;ctx=contextFactory?contextFactory():new Audio({latencyHint:'interactive'});master=ctx.createGain();master.gain.value=.24;compressor=ctx.createDynamicsCompressor();compressor.threshold.value=-14;compressor.knee.value=10;compressor.ratio.value=8;compressor.attack.value=.003;compressor.release.value=.16;master.connect(compressor).connect(ctx.destination);
@@ -29,6 +43,10 @@ export function createBoosterAudio({contextFactory,onState=()=>{},setTimer=setTi
   if(kind==='mythic')stop();if(voices.size>=4)remove(voices.values().next().value);
   const bus=ctx.createGain();bus.gain.value=1;bus.connect(master);voice={bus,nodes:[bus],sources:[],timer:null,removed:false};voices.add(voice);
   const add=node=>(voice.nodes.push(node),node),source=node=>(voice.sources.push(node),add(node));const now=ctx.currentTime+.008;
+  if(kind==='tear'&&foil){
+   const take=source(ctx.createBufferSource());take.buffer=foil;take.connect(bus);take.start(now);
+   voice.timer=setTimer(()=>remove(voice),(foil.duration+.08)*1000);lastCue=kind;playCount++;notify();return true;
+  }
   if(cue.echo){const delay=add(ctx.createDelay(.5)),feedback=add(ctx.createGain()),wet=add(ctx.createGain());delay.delayTime.value=kind==='mythic'?.225:.145;feedback.gain.value=kind==='mythic'?.22:.15;wet.gain.value=.16;bus.connect(delay);delay.connect(feedback).connect(delay);delay.connect(wet).connect(master);}
   function envelope(amp,p){const t=now+p.at;const attack=Math.min(p.attack,p.d*.8);amp.gain.setValueAtTime(.0001,t);amp.gain.exponentialRampToValueAtTime(p.g,t+attack);amp.gain.exponentialRampToValueAtTime(.0001,t+p.d);}
   function pan(input,value){if(!ctx.createStereoPanner){input.connect(bus);return;}const p=add(ctx.createStereoPanner());p.pan.value=value;input.connect(p).connect(bus);}
@@ -39,6 +57,6 @@ export function createBoosterAudio({contextFactory,onState=()=>{},setTimer=setTi
   voice.timer=setTimer(()=>remove(voice),(cue.duration+.15)*1000);lastCue=kind;playCount++;notify();return true;}catch{if(voice)remove(voice);return false;}
  }
  function suspend(){stop();if(ctx&&ctx.state!=='closed')Promise.resolve(ctx.suspend()).catch(()=>{});}
- function dispose(){if(disposed)return;disposed=true;for(const voice of [...voices])remove(voice);try{master?.disconnect();compressor?.disconnect();if(ctx?.state!=='closed')Promise.resolve(ctx?.close()).catch(()=>{});}catch{}buffer=null;}
- return {unlock,play,stop,setEnabled,suspend,dispose,get available(){return available();}};
+ function dispose(){if(disposed)return;disposed=true;for(const voice of [...voices])remove(voice);try{master?.disconnect();compressor?.disconnect();if(ctx?.state!=='closed')Promise.resolve(ctx?.close()).catch(()=>{});}catch{}buffer=foil=null;foilLoad=null;}
+ return {preloadTear,unlock,play,stop,setEnabled,suspend,dispose,get available(){return available();}};
 }

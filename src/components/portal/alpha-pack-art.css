@@ -1,0 +1,6 @@
+.dv-portal .alpha-pack-art{display:block;width:min(100%,360px);aspect-ratio:2/3;position:relative;filter:drop-shadow(0 14px 24px #0008);transform:rotate(-4deg);margin:auto}
+.dv-portal .alpha-pack-art__wrapper{width:100%;height:100%;object-fit:contain;display:block}
+.dv-portal .alpha-pack-art__logo{position:absolute;width:61%;left:19.5%;top:11.3%;height:auto;filter:drop-shadow(0 4px 4px #040512a8)}
+.dv-portal .alpha-pack-art__name{position:absolute;bottom:15.4%;left:25%;right:25%;text-align:center;font:500 18px/1.2 Georgia,serif;letter-spacing:.13em;color:#f6dcaa;text-shadow:0 2px 5px #000}
+.dv-portal .alpha-pack-art--compact{width:140px;margin:10px auto}
+.dv-portal .alpha-pack-art--compact .alpha-pack-art__name{font-size:9px}

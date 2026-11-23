@@ -16,18 +16,18 @@
 .dv-portal .alpha-tear-fan img{position:absolute;width:150px;height:150px;object-fit:contain;top:30%;left:calc(50% - 75px);opacity:0;transform:translateY(60px);filter:drop-shadow(0 12px 18px #0008)}
 .dv-portal .alpha-foil-bits{position:absolute;left:50%;top:16%;pointer-events:none;z-index:4}
 .dv-portal .alpha-foil-bits i{position:absolute;display:block;width:7px;height:15px;background:linear-gradient(45deg,#533ec0,#d6b4ff,#d0a358);clip-path:polygon(0 0,100% 18%,66% 100%,15% 73%);opacity:0}
-.dv-portal .is-tearing .alpha-wrapper-top{animation:alpha-strip-tear 1.6s cubic-bezier(.2,.7,.2,1) both}
-.dv-portal .is-tearing .alpha-wrapper-body{animation:alpha-wrapper-drop 1.6s ease-in both}
-.dv-portal .is-tearing .alpha-tear-seam{animation:alpha-seam-rip .6s ease-out both}
-.dv-portal .is-tearing .alpha-tear-halo{animation:alpha-pack-light 1.65s ease-out both}
-.dv-portal .is-tearing .alpha-tear-fan img{animation:alpha-pack-fan 1.65s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--fan)*.025s)}
-.dv-portal .is-tearing .alpha-foil-bits i{animation:alpha-foil-fly 1.1s ease-out .18s both}
+.dv-portal .is-tearing .alpha-wrapper-top{animation:alpha-strip-tear 1.35s cubic-bezier(.2,.7,.2,1) both}
+.dv-portal .is-tearing .alpha-wrapper-body{animation:alpha-wrapper-drop 1.35s ease-in both}
+.dv-portal .is-tearing .alpha-tear-seam{animation:alpha-seam-rip .6s ease-out .08s both}
+.dv-portal .is-tearing .alpha-tear-halo{animation:alpha-pack-light 1.35s ease-out both}
+.dv-portal .is-tearing .alpha-tear-fan img{animation:alpha-pack-fan 1.35s cubic-bezier(.2,.75,.18,1) both;animation-delay:calc((var(--fan) + 2)*.022s)}
+.dv-portal .is-tearing .alpha-foil-bits i{animation:alpha-foil-fly .9s ease-out calc(.36s + var(--bit)*.011s) both}
 @keyframes alpha-seam-ready{50%{opacity:1;transform:scaleX(1)}}
-@keyframes alpha-strip-tear{0%,8%{transform:translate(0,0) rotate(0);opacity:1}25%{transform:translate(-16px,-12px) rotate(-8deg)}65%{transform:translate(105px,-55px) rotate(32deg);opacity:1}100%{transform:translate(250px,-130px) rotate(55deg);opacity:0}}
-@keyframes alpha-wrapper-drop{0%,28%{transform:translateY(0) rotate(0);opacity:1}55%{transform:translateY(30px) rotate(-4deg);opacity:1}100%{transform:translateY(250px) rotate(-12deg);opacity:0}}
-@keyframes alpha-seam-rip{0%{transform:scaleX(.05);opacity:0}30%{opacity:1}100%{transform:scaleX(1.15);opacity:0}}
-@keyframes alpha-pack-light{0%,12%{opacity:0;transform:scale(.7)}45%{opacity:1;transform:scale(1.7);background:radial-gradient(ellipse,#d5b7ff88,#8452cf33 35%,transparent 65%)}100%{opacity:0;transform:scale(2.1)}}
-@keyframes alpha-pack-fan{0%,32%{opacity:0;transform:translateY(60px) scale(.7)}65%{opacity:1;transform:translate(calc(var(--fan)*65px),-20px) rotate(calc(var(--fan)*12deg)) scale(1)}100%{opacity:0;transform:translate(calc(var(--fan)*90px),-55px) rotate(calc(var(--fan)*14deg)) scale(.8)}}
+@keyframes alpha-strip-tear{0%{transform:none;opacity:1}19%{transform:translate(-5px,2px) rotate(-3deg)}31%{transform:translate(7px,-12px) rotate(-12deg)}62%{transform:translate(128px,-62px) rotate(30deg);opacity:1}100%{transform:translate(230px,-130px) rotate(68deg) scale(.85);opacity:0}}
+@keyframes alpha-wrapper-drop{0%{transform:none;opacity:1}19%{transform:skewX(-3deg) scaleY(.98);opacity:1}42%{transform:translateY(10px) rotate(-3deg);opacity:1}78%{opacity:.2}100%{transform:translate(-24px,210px) rotate(-18deg) scale(.83);opacity:0}}
+@keyframes alpha-seam-rip{0%{transform:scaleX(.03);opacity:0}41%{opacity:1}64%{transform:scaleX(1.08);opacity:.88}100%{transform:scaleX(1.2);opacity:0}}
+@keyframes alpha-pack-light{0%,18%{opacity:.15;transform:scale(.6)}47%{opacity:1;transform:scale(1.35)}100%{opacity:0;transform:scale(1.95)}}
+@keyframes alpha-pack-fan{0%,26%{opacity:0;transform:translateY(70px) scale(.55)}44%{opacity:1;transform:translate(calc(var(--fan)*28px),-64px) rotate(calc(var(--fan)*7deg)) scale(.84)}72%{opacity:1;transform:translate(calc(var(--fan)*86px),-14px) rotate(calc(var(--fan)*10deg)) scale(1)}100%{opacity:0;transform:translate(calc(var(--fan)*117px),18px) rotate(calc(var(--fan)*3deg)) scale(.93)}}
 @keyframes alpha-foil-fly{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(calc(var(--bit)*57deg))}}
 
 /* Both faces share one 3D flip; special finishes celebrate only a new reveal. */
@@ -105,3 +105,302 @@
 .dv-portal .alpha-sound-toggle[aria-pressed="true"]{border-color:#c295f08c;color:#efd8ff;background:#41205680}
 .dv-portal .alpha-sound-toggle:focus-visible{outline:2px solid #e6bcff;outline-offset:4px}
 @media(max-width:700px){.dv-portal .alpha-shop-controls{width:100%;justify-content:flex-start;gap:10px}.dv-portal .alpha-sound-toggle{padding:9px 12px;font-size:13px}}
+
+.dv-portal .alpha-opening--guided {
+ background:radial-gradient(ellipse at 50% 42%,#4f267269,transparent 63%),
+  linear-gradient(#11091dec,#090619ee),url('/game/assets/arenas/home-rift-v25/void-backdrop.webp') center/cover;
+}
+.dv-portal .alpha-tear-halo {
+ background:radial-gradient(ellipse,#eed4ff70 0%,#9952d755 30%,#6735b921 50%,transparent 69%);
+ opacity:.68;
+}
+.dv-portal .alpha-tear-seam {transform-origin:left center}
+.dv-portal .alpha-tear-wake {
+ position:absolute;
+ z-index:2;
+ left:50%;
+ top:41%;
+ width:min(78%,460px);
+ aspect-ratio:2.65;
+ transform:translate(-50%,-50%);
+ pointer-events:none;
+}
+.dv-portal .alpha-tear-wake>i {
+ position:absolute;
+ inset:16%;
+ border:1px solid #b684f0;
+ border-radius:50%;
+ opacity:0;
+ box-shadow:0 0 20px #b161ff88,inset 0 0 15px #ab6af955;
+}
+.dv-portal .alpha-tear-wake>i:nth-child(2) {inset:7%;border-color:#ffc588}
+.dv-portal .alpha-tear-wake>i:nth-child(3) {inset:0;border-color:#aa82ef55}
+.dv-portal .is-tearing .alpha-tear-wake>i {animation:alpha-wake-sweep .75s ease-out .35s both}
+.dv-portal .is-tearing .alpha-tear-wake>i:nth-child(2) {animation-delay:.44s}
+.dv-portal .is-tearing .alpha-tear-wake>i:nth-child(3) {animation-delay:.52s}
+.dv-portal .is-tearing .alpha-tear-pack {animation:alpha-wrapper-tension .45s ease-out both}
+.dv-portal .alpha-tear-seam {z-index:4}
+.dv-portal .alpha-reveal-stage {position:relative;isolation:isolate;padding:1px 0}
+.dv-portal .alpha-stage-surge {
+ position:absolute;
+ z-index:-1;
+ inset:-16% -8% -10%;
+ pointer-events:none;
+ opacity:0;
+ animation:alpha-stage-light 1.35s ease-out .24s both;
+ background:radial-gradient(ellipse at 50% 51%,var(--stage-glow),transparent 67%);
+}
+.dv-portal .alpha-stage-surge[data-finish=epic] {--stage-glow:#e1a33d78}
+.dv-portal .alpha-stage-surge[data-finish=legendary] {--stage-glow:#75cfff90}
+.dv-portal .alpha-stage-surge[data-finish=mythic] {--stage-glow:#9656ecaa;animation-duration:2.65s}
+.dv-portal .alpha-reveal-slot {min-width:0}
+.dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-reveal-art {
+ animation:alpha-deal-in .42s cubic-bezier(.2,.7,.2,1) calc(var(--deal-order)*.09s) both;
+}
+.dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-card-flipper {transition:transform .28s ease}
+.dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-card-reveal:is(:hover,:focus-visible):not(:disabled) .alpha-card-flipper {
+ transform:translateY(-7px) rotateX(6deg) rotateY(-8deg) scale(1.045);
+}
+.dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-card-reveal:is(:hover,:focus-visible):not(:disabled) img {
+ filter:drop-shadow(0 4px 18px #ad83fa80);
+}
+.dv-portal .alpha-reveal-slot.is-celebrating {z-index:2}
+.dv-portal .alpha-finish-title {
+ position:absolute;
+ left:0;
+ right:0;
+ top:-5%;
+ color:var(--burst-core);
+ font:800 clamp(11px,1.55vw,18px)/1 Arial,sans-serif;
+ letter-spacing:.24em;
+ text-transform:uppercase;
+ text-align:center;
+ text-shadow:0 0 15px var(--burst);
+ opacity:0;
+ animation:alpha-finish-title 1.8s ease-out .37s both;
+}
+@keyframes alpha-wrapper-tension{
+ 0%{transform:none}
+ 41%{transform:translateY(4px) rotate(-4deg) scale(.98)}
+ 100%{transform:translateY(-5px) rotate(2deg) scale(1.025)}
+}
+@keyframes alpha-wake-sweep{
+ 0%{opacity:0;transform:scale(.4)}
+ 19%{opacity:.86}
+ 100%{opacity:0;transform:scale(1.85)}
+}
+@keyframes alpha-deal-in{
+ 0%{opacity:0;transform:translateY(17px) scale(.87)}
+ 100%{opacity:1;transform:none}
+}
+@keyframes alpha-stage-light{
+ 0%,100%{opacity:0;transform:scale(.84)}
+ 25%{opacity:.7;transform:scale(1.08)}
+}
+@keyframes alpha-finish-title{
+ 0%,100%{opacity:0;transform:translateY(6px)}
+ 20%,60%{opacity:1;transform:translateY(-4px)}
+}
+@media(max-width:700px){.dv-portal .alpha-tear-fan img{animation-duration:1.15s}}
+@media(prefers-reduced-motion:reduce){
+ .dv-portal .alpha-stage-surge{display:none}
+ .dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-reveal-art{animation:none}
+ .dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-card-flipper{transition:none}
+ .dv-portal .alpha-reveal-slot:not(.is-revealed) .alpha-card-reveal:is(:hover,:focus-visible):not(:disabled) .alpha-card-flipper{transform:none}
+}
+
+.dv-portal dialog.alpha-opening--guided {
+ inset:0;
+ width:100%;
+ max-width:none;
+ height:100dvh;
+ max-height:none;
+ margin:0;
+ padding:0 clamp(16px,4vw,56px) clamp(16px,4dvh,42px);
+ overflow:auto;
+ overscroll-behavior:contain;
+ border:0;
+ border-radius:0;
+ color:#f4ebff;
+ box-sizing:border-box;
+ isolation:isolate;
+ background:radial-gradient(ellipse at 50% 61%,transparent 17%,#070517ae 79%),
+  url('/game/assets/arenas/home-rift-v25/void-backdrop.webp') center/cover #0b061d;
+}
+.dv-portal dialog.alpha-opening--guided[open]{
+ display:grid;
+ grid-template-rows:auto auto minmax(280px,1fr) auto;
+ align-items:center;
+}
+.dv-portal dialog.alpha-opening--guided:has(.alpha-opening-status){grid-template-rows:auto auto auto minmax(280px,1fr) auto}
+.dv-portal dialog.alpha-opening--guided::backdrop{background:#080613}
+.dv-portal .alpha-opening-toolbar{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ padding-block:clamp(12px,3dvh,28px);
+}
+.dv-portal .alpha-opening-toolbar .alpha-sound-toggle{border-radius:8px}
+.dv-portal .alpha-opening-exit{
+ display:inline-flex;
+ align-items:center;
+ gap:10px;
+ padding:10px 12px;
+ background:#110c22c9;
+ border:1px solid #c7a0ed52;
+ border-radius:8px;
+ color:#e7d6f8;
+ cursor:pointer;
+ font:600 13px/1.3 Arial,sans-serif;
+}
+.dv-portal .alpha-opening-exit>span{font-size:18px;color:#e4c595}
+.dv-portal .alpha-opening-exit:focus-visible,.dv-portal .alpha-card-reveal:focus-visible{outline:2px solid #f0d5ff;outline-offset:4px}
+.dv-portal dialog.alpha-opening--guided .alpha-opening-heading{
+ display:grid;
+ justify-content:center;
+ justify-items:center;
+ gap:5px;
+ text-align:center;
+ z-index:1;
+}
+.dv-portal dialog.alpha-opening--guided .alpha-opening-heading h2{
+ margin:0;
+ font-size:clamp(32px,5vw,60px);
+ text-shadow:0 4px 35px #0a021d,0 0 28px #9b60c35e;
+}
+.dv-portal dialog.alpha-opening--guided .alpha-reveal-count{padding:9px 0 0}
+.dv-portal dialog.alpha-opening--guided .alpha-opening-status{margin:8px auto;max-width:48ch}
+.dv-portal .alpha-opening-viewport{
+ width:100%;
+ min-width:0;
+ position:relative;
+ isolation:isolate;
+ display:grid;
+ align-items:center;
+ justify-items:center;
+}
+.dv-portal .alpha-forge{
+ position:absolute;
+ z-index:-2;
+ width:min(76vw,710px);
+ height:min(43dvh,310px);
+ bottom:-18px;
+ left:50%;
+ transform:translateX(-50%);
+ background:url('/game/assets/props/deck-plinth-v01/void-deck-plinth.webp') center bottom / 100% 100% no-repeat;
+ filter:brightness(.66) saturate(1.48) drop-shadow(0 15px 26px #03020bbe);
+ opacity:.8;
+ pointer-events:none;
+}
+.dv-portal dialog[data-revealing=true] .alpha-forge{width:min(90vw,1060px);opacity:.56}
+.dv-portal .alpha-forge-halo{
+ position:absolute;
+ inset:-18% 5% 18%;
+ background:radial-gradient(ellipse at 50% 58%,#f3ccff6b 1%,#a95bea3d 27%,transparent 66%);
+ opacity:.55;
+}
+.dv-portal .alpha-opening-viewport:has(.is-tearing) .alpha-forge-halo{animation:alpha-forge-pulse 1.18s ease-out both}
+.dv-portal dialog.alpha-opening--guided .alpha-tear-stage{
+ width:min(100%,960px);
+ min-height:clamp(285px,52dvh,450px);
+ padding:0 0 12px;
+}
+.dv-portal dialog.alpha-opening--guided .alpha-tear-pack{width:clamp(158px,31dvh,253px);margin:0 auto}
+.dv-portal .alpha-tear-controls{font:600 13px/1.4 Arial,sans-serif;color:#e9d4f6;text-shadow:0 2px 7px #0e021c}
+.dv-portal .alpha-tear-stage:not(.is-tearing) .alpha-tear-pack{animation:alpha-foil-suspend 4.5s ease-in-out infinite}
+.dv-portal .alpha-rip-flare{
+ position:absolute;
+ z-index:4;
+ left:50%;
+ top:23%;
+ width:min(56%,420px);
+ height:9px;
+ border-radius:50%;
+ background:linear-gradient(90deg,transparent,#9266ff7a,#fff4d1,#a371ff91,transparent);
+ box-shadow:0 0 26px #b277ff;
+ opacity:0;
+ pointer-events:none;
+}
+.dv-portal .is-tearing .alpha-rip-flare{animation:alpha-foil-flash .52s ease-out .37s both}
+.dv-portal dialog.alpha-opening--guided .alpha-reveal-stage{width:min(100%,1040px)}
+.dv-portal dialog.alpha-opening--guided .alpha-reveal-grid{
+ min-height:0;
+ align-items:start;
+ gap:clamp(7px,2vw,34px);
+ margin:0;
+ padding:16px 12px;
+}
+.dv-portal dialog.alpha-opening--guided .alpha-reveal-slot{position:relative;transform:translateY(calc(var(--orbit-depth)*12px))}
+.dv-portal dialog.alpha-opening--guided .alpha-reveal-meta{min-height:52px;margin-top:10px}
+.dv-portal dialog.alpha-opening--guided .alpha-card-number{display:none}
+.dv-portal dialog.alpha-opening--guided .alpha-pack-finish{
+ margin:0;
+ padding:12px 0 0;
+ min-height:60px;
+ border:0;
+ background:none;
+ justify-content:center;
+}
+.dv-portal dialog.alpha-opening--guided .alpha-opening-actions{justify-content:center;flex-wrap:wrap}
+.dv-portal dialog.alpha-opening--guided .alpha-opening-actions:empty{display:none}
+.dv-portal .alpha-reveal-slot[data-teaser=rare]{--edge-light:#b9cde9;--edge-glow:#9fc1ed40;--edge-opacity:.68}
+.dv-portal .alpha-reveal-slot[data-teaser=epic]{--edge-light:#ffe2a0;--edge-glow:#ffb9477c;--edge-opacity:.80}
+.dv-portal .alpha-reveal-slot[data-teaser=legendary]{--edge-light:#d4faff;--edge-glow:#5fdfff9c;--edge-opacity:.91}
+.dv-portal .alpha-reveal-slot[data-teaser=mythic]{--edge-light:#ecc8ff;--edge-glow:#9d42ffc0;--edge-opacity:.9}
+.dv-portal .alpha-back-shimmer{
+ position:absolute;
+ inset:5%;
+ pointer-events:none;
+ color:var(--edge-light);
+ opacity:var(--edge-opacity);
+ transition:opacity .2s,filter .25s;
+ filter:drop-shadow(0 0 7px var(--edge-glow));
+}
+.dv-portal .alpha-back-shimmer::before,.dv-portal .alpha-back-shimmer::after{
+ content:'';
+ position:absolute;
+ inset:0;
+ clip-path:polygon(50% 0,96% 25%,96% 75%,50% 100%,4% 75%,4% 25%,50% 0,50% 2%,6% 26%,6% 74%,50% 98%,94% 74%,94% 26%,50% 2%);
+ background:linear-gradient(136deg,var(--edge-glow) 10%,currentColor 38%,var(--edge-glow) 60%,currentColor 86%,var(--edge-glow));
+ background-size:240% 240%;
+}
+.dv-portal .alpha-back-shimmer::after{inset:3%;opacity:.55}
+.dv-portal .alpha-reveal-slot[data-teaser] .alpha-card-back>img{filter:drop-shadow(0 0 12px var(--edge-glow)) drop-shadow(0 9px 14px #03020c9a)}
+.dv-portal .alpha-reveal-slot[data-teaser] .alpha-card-reveal:is(:hover,:focus-visible) .alpha-back-shimmer{opacity:1;filter:drop-shadow(0 0 11px var(--edge-light))}
+.dv-portal .alpha-reveal-slot[data-teaser] .alpha-card-reveal:is(:hover,:focus-visible) .alpha-back-shimmer::before{animation:alpha-back-glint .8s ease-out both}
+.dv-portal :is([data-teaser=legendary],[data-teaser=mythic]) .alpha-back-shimmer>i{
+ position:absolute;
+ top:27%;
+ left:7%;
+ width:10px;
+ height:10px;
+ background:currentColor;
+ clip-path:polygon(50% 0,63% 37%,100% 50%,63% 63%,50% 100%,37% 63%,0 50%,37% 37%);
+ animation:alpha-back-star 2.4s ease-in-out infinite;
+}
+.dv-portal :is([data-teaser=legendary],[data-teaser=mythic]) .alpha-back-shimmer>i:nth-child(2){top:18%;left:75%;animation-delay:.35s}
+.dv-portal :is([data-teaser=legendary],[data-teaser=mythic]) .alpha-back-shimmer>i:nth-child(3){top:78%;left:73%;animation-delay:.7s}
+.dv-portal [data-teaser=mythic] .alpha-back-shimmer>i{clip-path:circle(38%);animation-name:alpha-back-ember}
+.dv-portal .alpha-reveal-meta .alpha-teaser-name{color:var(--edge-light);opacity:0;transition:opacity .2s}
+.dv-portal .alpha-reveal-slot:is(:hover,:focus-within) .alpha-teaser-name{opacity:1}
+@keyframes alpha-foil-suspend{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(-1deg) translateY(-9px)}}
+@keyframes alpha-foil-flash{0%{opacity:0;transform:translateX(-50%) scaleX(.22)}30%{opacity:.9}100%{opacity:0;transform:translateX(-50%) scaleX(1.5)}}
+@keyframes alpha-forge-pulse{0%,27%{opacity:.45;transform:scale(.83)}49%{opacity:1;transform:scale(1.22)}100%{opacity:.52;transform:scale(1)}}
+@keyframes alpha-back-glint{from{background-position:0% 90%}to{background-position:100% 30%}}
+@keyframes alpha-back-star{0%,100%{opacity:.14;transform:scale(.55) rotate(0)}55%{opacity:.85;transform:scale(1.2) rotate(35deg)}}
+@keyframes alpha-back-ember{0%,100%{opacity:.17;transform:translateY(6px) scale(.5)}57%{opacity:.8;transform:translateY(-6px) scale(1)}}
+@media(max-width:700px){
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-stage{max-width:450px}
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 6px;padding:10px 0}
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-slot{grid-column:span 2;transform:none}
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-slot:nth-child(4){grid-column:2/span 2}
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-meta{min-height:48px;margin-top:5px}
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-meta strong{font-size:13px}
+ .dv-portal dialog.alpha-opening--guided .alpha-reveal-meta :is(span,small){font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .dv-portal .alpha-tear-stage:not(.is-tearing) .alpha-tear-pack,.dv-portal .alpha-opening-viewport:has(.is-tearing) .alpha-forge-halo{animation:none}
+ .dv-portal .alpha-back-shimmer,.dv-portal .alpha-reveal-meta .alpha-teaser-name{transition:none}
+ .dv-portal .alpha-reveal-slot[data-teaser] .alpha-card-reveal:is(:hover,:focus-visible) .alpha-back-shimmer::before,.dv-portal :is([data-teaser=legendary],[data-teaser=mythic]) .alpha-back-shimmer>i{animation:none}
+}
