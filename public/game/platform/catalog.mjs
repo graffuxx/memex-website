@@ -10,7 +10,7 @@ import {RECRUITER_VARIANTS95} from './quests95.mjs';
 export const DECK_SIZE = 15;
 export const MAX_MOTIF_COPIES = 1;
 export const STARTER_COPIES = 1;
-export const CATALOG_VERSION = 11;
+export const CATALOG_VERSION = 12;
 export const RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id,m])=>Object.freeze({id,name:m.name,color:m.color})));
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',short:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},
@@ -23,7 +23,7 @@ assertSetCatalog131(DEFINITIONS);
 export const STARTER_IDS=Object.freeze(['pepe','doge','roll-safe','harold','disaster-girl','confused','side-eye','success-kid','grumpy-cat','aliens-guy','smudge','bad-luck-brian','gigachad','stonks','trollface']);
 const UNSORTED_VARIANTS = DEFINITIONS.flatMap(card=>ELEMENT_IDS.flatMap(element=>RARITIES.map(rarity=>Object.freeze({
  id:`${card.id}:${rarity.id}${element===card.element?'':':'+element}`,definitionId:card.id,element,rarity:rarity.id,edition:card.edition,
- image:card.prime?`/game/assets/cards/primes-v126/${card.id}-${rarity.id}.webp`:card.artAtlas?card.image+'?finish='+rarity.id:rarity.id==='common'?card.image:EXPANSION_CARDS.some(c=>c.id===card.id)?`/game/assets/cards/${card.artDirectory??'memes-v27'}/${card.id}-${rarity.id}.webp`:`/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+ image:card.prime?`/game/assets/cards/${card.artDirectory??'primes-v126'}/${card.id}-${rarity.id}.webp`:card.artAtlas?card.image+'?finish='+rarity.id:rarity.id==='common'?card.image:EXPANSION_CARDS.some(c=>c.id===card.id)?`/game/assets/cards/${card.artDirectory??'memes-v27'}/${card.id}-${rarity.id}.webp`:`/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
  artOffsetY:card.artOffsetY??0,artRegion:card.artRegion??(card.artAtlas?Object.freeze({x:RARITIES.findIndex(r=>r.id===rarity.id)/5,...ATLAS_REGIONS[card.id]}):null)
 }))));
 const definitionOrder=new Map(DEFINITIONS.map((c,i)=>[c.id,i]));

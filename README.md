@@ -168,3 +168,21 @@ dismantling, and cannot enter Random or rewarded AI. Both purposes share ten sav
 decks, exact 15-motif singleton rules and at most one Prime. All private rows remain
 owner-only. Ranked remains one disabled Coming soon entry; future current-edition
 and open formats are configuration only. No new Iconic rules or cards are released.
+
+
+## Alpha Prime completion (132)
+
+Five approved motifs fill slots 096–100: Idiot Sandwich (Fire), Crying Jordan
+(Water), Disappointed Fan (Earth), Blinking Guy (Air), Overly Attached (Storm).
+Alpha now releases 100/120 motifs, 15 Primes (three per element), 500 standard
+finishes plus two earned recruiter artworks. Twenty Iconic slots remain reserved.
+New portraits use their own primes-v132 directory; all five finishes are cosmetic.
+Budgets are one S + 23 numeric points, different directional profiles, no strict
+same-element side dominance. The design audit completed 11,360 legal simulated
+rounds across same-element controls, all existing Primes, regular controls and
+three policies; these are bot diagnostics, not human win rates.
+Apply 202611230006_prime_completion132.sql before publishing. It only inserts
+five definitions and 25 variants; it never grants inventory, wallet credit or packs.
+Existing motif values, ownership, saved decks and active matches stay unchanged.
+Balance patch alpha-2026-11-23.3 separates telemetry from the prior roster.
+Booster rarity weights and lifetime one-copy protection per finish are unchanged.

@@ -1,3 +1,4 @@
+import {PRIME_ADDITIONS132} from './primes132.mjs';
 // Approved Prime artwork. A finish changes cosmetics only; 10 encodes the printed S rank.
 export const PRIME_CARDS=Object.freeze([
   {
@@ -260,4 +261,4 @@ export const PRIME_CARDS=Object.freeze([
       "h": 1.2
     }
   }
-].map(c=>Object.freeze({...c,values:Object.freeze(c.values),artRegion:Object.freeze(c.artRegion)})));
+,...PRIME_ADDITIONS132].map(c=>Object.freeze({...c,values:Object.freeze(c.values),artRegion:Object.freeze(c.artRegion)})));

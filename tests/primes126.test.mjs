@@ -7,8 +7,8 @@ import {rankedStrength126,printedValue126} from '../public/game/platform/card-ra
 import {protectedCandidates} from '../public/game/platform/alpha-booster36.mjs';
 import {createBot96} from '../server/game/bot96.mjs';
 import {createTacticsMatch} from '../public/game/src/table-demo-state.mjs';import {previewEffect} from '../public/game/src/table-demo-rules.mjs';
-test('ten Primes retain their approved sides, two per element and five distinct released artworks each',()=>{
- assert.equal(PRIME_CARDS.length,10);for(const e of ELEMENT_IDS)assert.equal(PRIME_CARDS.filter(c=>c.element===e).length,2);
+test('fifteen Primes retain their approved sides, three per element and five distinct released artworks each',()=>{
+ assert.equal(PRIME_CARDS.length,15);for(const e of ELEMENT_IDS)assert.equal(PRIME_CARDS.filter(c=>c.element===e).length,3);
  for(const c of PRIME_CARDS){assert.equal(c.values.filter(v=>v===10).length,1);assert.equal(c.values.filter(v=>v!==10).reduce((a,b)=>a+b,0),23);const variants=VARIANTS.filter(v=>v.definitionId===c.id);assert.equal(variants.length,5);assert.equal(new Set(variants.map(v=>v.image)).size,5);for(const v of variants){assert.equal(v.element,c.element);assert.equal(v.edition,'alpha');assert.ok(existsSync(new URL('../public'+v.image,import.meta.url)));}}
  assert.deepEqual(PRIME_CARDS.find(c=>c.id==='nuck-chorris').values,[3,10,7,6,5,2]);assert.deepEqual(PRIME_CARDS.find(c=>c.id==='evil-ernie').values,[10,5,2,3,6,7]);assert.equal(printedValue126(10),'S');
 });
@@ -28,7 +28,7 @@ test('S is immune to all numeric bonuses; only a stronger-element S captures an 
  game.players[0].hand[0]=nuck;game.board={'0,1':{...ernie,rotation:4,controller:1}};const strong=previewEffect(game,{uid:nuck.uid,cell:'0,0',rotation:0});assert.equal(strong.comparisons[0].flip,true);
 });
 test('booster history protects one per finish; bots use legal singleton decks and at most one Prime',()=>{
- const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,1]));acquired['evil-ernie:mythic']=0;assert.deepEqual(protectedCandidates('mythic',acquired).map(v=>v.id),['evil-ernie:mythic']);acquired['evil-ernie:mythic']=1;assert.equal(protectedCandidates('mythic',acquired).length,95);
+ const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,1]));acquired['evil-ernie:mythic']=0;assert.deepEqual(protectedCandidates('mythic',acquired).map(v=>v.id),['evil-ernie:mythic']);acquired['evil-ernie:mythic']=1;assert.equal(protectedCandidates('mythic',acquired).length,100);
  for(let seed=0;seed<100;seed++){const b=createBot96(seed),inventory=Object.fromEntries(b.deck.cards.map(id=>[id,1]));assert.ok(validateDeck(b.deck.cards,inventory).valid,`seed ${seed}`);assert.ok(countPrimes(b.deck.cards)<=1);}
 });
 test('live-schema migration preserves ownership and decks, enforces server limits, grants legal starters and changes duplicate protection atomically',async()=>{

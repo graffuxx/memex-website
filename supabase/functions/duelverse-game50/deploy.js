@@ -52,7 +52,7 @@ function attackWins(attack, defend, rules = 5) {
 
 // public/game/platform/set-manifest131.mjs
 var ALPHA_REGULAR_IDS131 = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "distracted", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "confused", "bad-luck-brian", "gigachad", "this-is-fine", "trollface", "stonks", "press-f", "git-gud", "rage-quit", "lag-spike", "hodl", "diamond-hands", "to-the-moon", "rug-pull", "crying-cat", "keyboard-cat", "coffin-dance", "galaxy-brain", "npc", "leeroy-jenkins", "touch-grass", "copium", "paper-hands", "buy-the-dip", "angry-wojak", "screaming-marmot", "table-flip", "triggered", "salt-bae", "floor-is-lava", "hot-take", "headshot", "rage-hamster", "burning-toast", "capybara-chill", "sad-keanu", "crying-wojak", "tears-of-joy", "duck-float", "seal-of-approval", "sink-or-swim", "stay-hydrated", "pool-noodle", "wet-cat", "bonk", "cheems", "walter", "absolute-unit", "couch-potato", "monke", "banana-for-scale", "turtle-stack", "stone-face", "rock-solid", "nyan-cat", "dramatic-chipmunk", "spinning-seal", "longcat", "ceiling-cat", "hover-cat", "bird-is-word", "flying-spaghetti", "airhorn", "yeet", "error-404", "blue-screen", "cat-jam", "shocked-monkey", "math-lady", "surprised-rat", "plot-twist", "big-brain-time", "rickroll", "uno-reverse"]);
-var ALPHA_PRIME_IDS131 = Object.freeze(["evil-ernie", "nuck-chorris", "sparta-kick", "emotional-damage", "pablo-waiting", "here-we-go-again", "one-does-not-simply", "sanic", "numa-numa", "keyboard-crusher"]);
+var ALPHA_PRIME_IDS131 = Object.freeze(["evil-ernie", "nuck-chorris", "sparta-kick", "emotional-damage", "pablo-waiting", "here-we-go-again", "one-does-not-simply", "sanic", "numa-numa", "keyboard-crusher", "idiot-sandwich", "crying-jordan", "disappointed-fan", "blinking-guy", "overly-attached"]);
 var ALPHA_SLOTS131 = Object.freeze([
   ...ALPHA_REGULAR_IDS131.map((id, i) => ({ number: i + 1, id, category: "regular" })),
   ...Array.from({ length: 15 }, (_, i) => ({ number: 86 + i, id: ALPHA_PRIME_IDS131[i] ?? null, category: "prime" })),
@@ -76,6 +76,140 @@ function assertSetCatalog131(cards) {
   }
   return true;
 }
+
+// public/game/platform/primes132.mjs
+var PRIME_ADDITIONS132 = Object.freeze([
+  {
+    "id": "idiot-sandwich",
+    "name": "IDIOT SANDWICH",
+    "short": "IDIOT SANDWICH",
+    "element": "fire",
+    "values": [
+      10,
+      7,
+      3,
+      2,
+      7,
+      4
+    ],
+    "quote": "The bread is doing all the heavy lifting.",
+    "ruleId": "prime-idiot-sandwich",
+    "prime": true,
+    "ability": null,
+    "artDirectory": "primes-v132",
+    "image": "/game/assets/cards/primes-v132/idiot-sandwich-common.webp",
+    "artRegion": {
+      "x": -0.08,
+      "y": -0.12,
+      "w": 1.16,
+      "h": 1.16
+    }
+  },
+  {
+    "id": "crying-jordan",
+    "name": "CRYING JORDAN",
+    "short": "CRYING JORDAN",
+    "element": "water",
+    "values": [
+      2,
+      6,
+      10,
+      4,
+      7,
+      4
+    ],
+    "quote": "One flip away from another tear.",
+    "ruleId": "prime-crying-jordan",
+    "prime": true,
+    "ability": null,
+    "artDirectory": "primes-v132",
+    "image": "/game/assets/cards/primes-v132/crying-jordan-common.webp",
+    "artRegion": {
+      "x": -0.08,
+      "y": -0.12,
+      "w": 1.16,
+      "h": 1.16
+    }
+  },
+  {
+    "id": "disappointed-fan",
+    "name": "DISAPPOINTED FAN",
+    "short": "DISAP. FAN",
+    "element": "earth",
+    "values": [
+      6,
+      4,
+      3,
+      7,
+      10,
+      3
+    ],
+    "quote": "I expected nothing. Still disappointed.",
+    "ruleId": "prime-disappointed-fan",
+    "prime": true,
+    "ability": null,
+    "artDirectory": "primes-v132",
+    "image": "/game/assets/cards/primes-v132/disappointed-fan-common.webp",
+    "artRegion": {
+      "x": -0.08,
+      "y": -0.12,
+      "w": 1.16,
+      "h": 1.16
+    }
+  },
+  {
+    "id": "blinking-guy",
+    "name": "BLINKING GUY",
+    "short": "BLINKING GUY",
+    "element": "air",
+    "values": [
+      5,
+      4,
+      7,
+      2,
+      5,
+      10
+    ],
+    "quote": "Sorry. You placed WHAT there?",
+    "ruleId": "prime-blinking-guy",
+    "prime": true,
+    "ability": null,
+    "artDirectory": "primes-v132",
+    "image": "/game/assets/cards/primes-v132/blinking-guy-common.webp",
+    "artRegion": {
+      "x": -0.08,
+      "y": -0.12,
+      "w": 1.16,
+      "h": 1.16
+    }
+  },
+  {
+    "id": "overly-attached",
+    "name": "OVERLY ATTACHED",
+    "short": "OVERLY ATT.",
+    "element": "storm",
+    "values": [
+      7,
+      3,
+      2,
+      10,
+      6,
+      5
+    ],
+    "quote": "I already planned our rematch.",
+    "ruleId": "prime-overly-attached",
+    "prime": true,
+    "ability": null,
+    "artDirectory": "primes-v132",
+    "image": "/game/assets/cards/primes-v132/overly-attached-common.webp",
+    "artRegion": {
+      "x": -0.08,
+      "y": -0.12,
+      "w": 1.16,
+      "h": 1.16
+    }
+  }
+].map((c) => Object.freeze({ ...c, values: Object.freeze(c.values), artRegion: Object.freeze(c.artRegion) })));
 
 // public/game/platform/primes126.mjs
 var PRIME_CARDS = Object.freeze([
@@ -338,7 +472,8 @@ var PRIME_CARDS = Object.freeze([
       "w": 1.2,
       "h": 1.2
     }
-  }
+  },
+  ...PRIME_ADDITIONS132
 ].map((c) => Object.freeze({ ...c, values: Object.freeze(c.values), artRegion: Object.freeze(c.artRegion) })));
 
 // public/game/platform/art-atlases53.mjs
@@ -1976,7 +2111,7 @@ var REFERRAL_RULES95 = Object.freeze({ rounds: 10, opponents: 2, days: 3 });
 // public/game/platform/catalog.mjs
 var DECK_SIZE = 15;
 var MAX_MOTIF_COPIES = 1;
-var CATALOG_VERSION = 11;
+var CATALOG_VERSION = 12;
 var RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
 var DEFINITIONS = Object.freeze([
   { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
@@ -1993,7 +2128,7 @@ var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((elem
   element,
   rarity: rarity.id,
   edition: card.edition,
-  image: card.prime ? `/game/assets/cards/primes-v126/${card.id}-${rarity.id}.webp` : card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+  image: card.prime ? `/game/assets/cards/${card.artDirectory ?? "primes-v126"}/${card.id}-${rarity.id}.webp` : card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
   artOffsetY: card.artOffsetY ?? 0,
   artRegion: card.artRegion ?? (card.artAtlas ? Object.freeze({ x: RARITIES.findIndex((r) => r.id === rarity.id) / 5, ...ATLAS_REGIONS[card.id] }) : null)
 }))));
@@ -2666,10 +2801,10 @@ function timeoutAction(game) {
 }
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.2";
+var BALANCE_PATCH94 = "alpha-2026-11-23.3";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 2,
+  revision: 3,
   catalog: CATALOG_VERSION,
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
   nativeElementsOnly: true,
