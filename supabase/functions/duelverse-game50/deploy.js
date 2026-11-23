@@ -50,6 +50,33 @@ function attackWins(attack, defend, rules = 5) {
   return attack.total > defend.total || rules !== 3 && attack.total === defend.total && attack.element > defend.element;
 }
 
+// public/game/platform/set-manifest131.mjs
+var ALPHA_REGULAR_IDS131 = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "distracted", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "confused", "bad-luck-brian", "gigachad", "this-is-fine", "trollface", "stonks", "press-f", "git-gud", "rage-quit", "lag-spike", "hodl", "diamond-hands", "to-the-moon", "rug-pull", "crying-cat", "keyboard-cat", "coffin-dance", "galaxy-brain", "npc", "leeroy-jenkins", "touch-grass", "copium", "paper-hands", "buy-the-dip", "angry-wojak", "screaming-marmot", "table-flip", "triggered", "salt-bae", "floor-is-lava", "hot-take", "headshot", "rage-hamster", "burning-toast", "capybara-chill", "sad-keanu", "crying-wojak", "tears-of-joy", "duck-float", "seal-of-approval", "sink-or-swim", "stay-hydrated", "pool-noodle", "wet-cat", "bonk", "cheems", "walter", "absolute-unit", "couch-potato", "monke", "banana-for-scale", "turtle-stack", "stone-face", "rock-solid", "nyan-cat", "dramatic-chipmunk", "spinning-seal", "longcat", "ceiling-cat", "hover-cat", "bird-is-word", "flying-spaghetti", "airhorn", "yeet", "error-404", "blue-screen", "cat-jam", "shocked-monkey", "math-lady", "surprised-rat", "plot-twist", "big-brain-time", "rickroll", "uno-reverse"]);
+var ALPHA_PRIME_IDS131 = Object.freeze(["evil-ernie", "nuck-chorris", "sparta-kick", "emotional-damage", "pablo-waiting", "here-we-go-again", "one-does-not-simply", "sanic", "numa-numa", "keyboard-crusher"]);
+var ALPHA_SLOTS131 = Object.freeze([
+  ...ALPHA_REGULAR_IDS131.map((id, i) => ({ number: i + 1, id, category: "regular" })),
+  ...Array.from({ length: 15 }, (_, i) => ({ number: 86 + i, id: ALPHA_PRIME_IDS131[i] ?? null, category: "prime" })),
+  ...Array.from({ length: 20 }, (_, i) => ({ number: 101 + i, id: null, category: "iconic" }))
+].map((s) => Object.freeze(s)));
+var SETS131 = Object.freeze([{ id: "alpha", name: "Alpha", mark: "\u03B1", size: 120, current: true, limits: Object.freeze({ regular: 85, prime: 15, iconic: 20 }), slots: ALPHA_SLOTS131 }].map((s) => Object.freeze(s)));
+var ALPHA_IDS131 = Object.freeze(ALPHA_SLOTS131.filter((s) => s.id).map((s) => s.id));
+var membership = new Map(SETS131.flatMap((set) => set.slots.filter((s) => s.id).map((slot) => [slot.id, { edition: set.id, ...slot }])));
+var setSlot131 = (id) => membership.get(id) ?? null;
+var cardCategory131 = (id) => setSlot131(id)?.category ?? null;
+function assertSetCatalog131(cards) {
+  const seen = /* @__PURE__ */ new Set();
+  for (const c of cards) {
+    const slot = setSlot131(c.id);
+    if (!slot || seen.has(c.id) || Boolean(c.prime) !== (slot.category === "prime")) throw Error("Card requires a unique, matching edition slot: " + c.id);
+    seen.add(c.id);
+  }
+  for (const s of SETS131) {
+    if (s.slots.length !== s.size || new Set(s.slots.map((x) => x.number)).size !== s.size) throw Error("Invalid edition capacity");
+    for (const [kind, size] of Object.entries(s.limits)) if (s.slots.filter((x) => x.category === kind).length !== size) throw Error("Invalid category capacity");
+  }
+  return true;
+}
+
 // public/game/platform/primes126.mjs
 var PRIME_CARDS = Object.freeze([
   {
@@ -1913,7 +1940,7 @@ var EXPANSION_CARDS = Object.freeze([
 ].map((c) => Object.freeze({ ...c, ruleId: c.id, ability: null, artOffsetY: c.artOffsetY ?? 0, values: Object.freeze(c.values), image: c.image ?? `/game/assets/cards/memes-v27/${c.id}-common.webp` })));
 
 // public/game/platform/edition36.mjs
-var ALPHA_IDS = Object.freeze(["pepe", "doge", "roll-safe", ...EXPANSION_CARDS.map((c) => c.id), ...PRIME_CARDS.map((c) => c.id)]);
+var ALPHA_IDS = ALPHA_IDS131;
 var ALPHA_MARK = Object.freeze({ x: 0.405, titleOffset: 4e-3, glyphY: -9e-3 });
 var symbol = `<path d="M0 -.058L.05 -.029V.029L0 .058L-.05 .029V-.029Z" fill="#e0b754" stroke="#70501f" stroke-width=".006"/><text x="0" y="${ALPHA_MARK.glyphY}" font-family="Georgia,serif" font-style="italic" font-size=".088" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#35230e">\u03B1</text>`;
 
@@ -1930,7 +1957,7 @@ var CARD_MATERIALS = Object.freeze({
 var COLLECTION_QUESTS129 = Object.freeze([
   { id: "collected-25", family: "collected", goal: 50, packs: 0, card: null, portrait: "collector-gold", title: "meme-collector", portraitName: "Golden Collector", titleName: "Meme Collector", image: "/game/assets/cards/rarity-v16/doge-epic.webp" },
   { id: "collected-50", family: "collected", goal: 75, packs: 0, card: null, portrait: "collector-diamond", title: "gallery-curator", portraitName: "Diamond Curator", titleName: "Gallery Curator", image: "/game/assets/cards/memes-v48/galaxy-brain-legendary.webp" },
-  { id: "collected-95", family: "collected", goal: 95, packs: 0, card: null, portrait: "collector-void", title: "archive-overlord", portraitName: "Void Archivist", titleName: "Archive Overlord", image: "/game/assets/cards/rarity-v16/pepe-mythic.webp" }
+  { id: "collected-95", family: "collected", goal: 120, packs: 0, card: null, portrait: "collector-void", title: "archive-overlord", portraitName: "Void Archivist", titleName: "Archive Overlord", image: "/game/assets/cards/rarity-v16/pepe-mythic.webp" }
 ].map((q) => Object.freeze(q)));
 
 // public/game/platform/quests95.mjs
@@ -1957,7 +1984,8 @@ var DEFINITIONS = Object.freeze([
   { id: "roll-safe", name: "Roll Safe", short: "Roll Safe", ruleId: "trust", element: "stone", values: [5, 5, 5, 3, 3, 3], ability: "twist", quote: "Can\u2019t lose if you think ahead.", image: "/game/assets/cards/v04/roll-safe.webp" },
   ...EXPANSION_CARDS,
   ...PRIME_CARDS
-].map((c) => Object.freeze({ ...c, prime: "prime" in c ? Boolean(c.prime) : false, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
+].map((c) => Object.freeze({ ...c, category: cardCategory131(c.id), prime: "prime" in c ? Boolean(c.prime) : false, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
+assertSetCatalog131(DEFINITIONS);
 var STARTER_IDS = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "confused", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "bad-luck-brian", "gigachad", "stonks", "trollface"]);
 var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((element) => RARITIES.map((rarity) => Object.freeze({
   id: `${card.id}:${rarity.id}${element === card.element ? "" : ":" + element}`,
@@ -2767,14 +2795,14 @@ function createGameHandler({ env, fetcher = fetch, randomSeed = () => crypto.get
       };
       if (input.op === "profile") {
         await rest("rpc/dv_initialize_account", { method: "POST", headers: { Authorization: bearer }, body: "{}" });
-        const decks = await rest("dv_decks?user_id=eq." + uid + "&select=id,name,cards,active&order=created_at.asc");
+        const decks = (await rest("dv_decks?user_id=eq." + uid + "&select=id,name,cards,active,format&order=created_at.asc")).filter((d) => d.format !== "friendly");
         return reply({ decks, wallet: await wallet() });
       }
       if (input.op === "start") {
         if (!uuid(input.id) || input.deckId != null && !uuid(input.deckId)) throw Error("Invalid duel request.");
         const existing = await rest("dv_game_sessions50?id=eq." + input.id + "&user_id=eq." + uid + "&active=eq.true&select=id,state,version");
         if (existing[0]) return reply({ ...existing[0], steps: [], award: 0, wallet: await wallet() });
-        const decks = await rest("dv_decks?user_id=eq." + uid + "&select=id,name,cards,active&order=created_at.asc"), deck = input.deckId ? decks.find((d) => d.id === input.deckId) : decks.find((d) => d.active) ?? decks[0];
+        const decks = (await rest("dv_decks?user_id=eq." + uid + "&select=id,name,cards,active,format&order=created_at.asc")).filter((d) => d.format !== "friendly"), deck = input.deckId ? decks.find((d) => d.id === input.deckId) : decks.find((d) => d.active) ?? decks[0];
         if (!Array.isArray(deck?.cards) || deck.cards.length !== DECK_SIZE || deck.cards.some((id) => !getVariant(id))) throw Error("Saved deck is not playable.");
         const params = new URLSearchParams({ user_id: "eq." + uid, select: "variant_id,quantity", variant_id: "in.(" + [...new Set(deck.cards)].join(",") + ")" });
         const rows2 = await rest("dv_inventory?" + params), inventory = Object.fromEntries(rows2.map((r) => [r.variant_id, r.quantity]));

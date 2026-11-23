@@ -1,3 +1,4 @@
+import {assertSetCatalog131,cardCategory131} from './set-manifest131.mjs';
 import {PRIME_CARDS} from './primes126.mjs';
 import {ATLAS_REGIONS} from './art-atlases53.mjs';
 import {ELEMENT_IDS,normalizeElement} from './elements53.mjs';
@@ -17,7 +18,8 @@ export const DEFINITIONS = Object.freeze([
  {id:'roll-safe',name:'Roll Safe',short:'Roll Safe',ruleId:'trust',element:'stone',values:[5,5,5,3,3,3],ability:'twist',quote:'Can’t lose if you think ahead.',image:'/game/assets/cards/v04/roll-safe.webp'},
  ...EXPANSION_CARDS,
  ...PRIME_CARDS
-].map(c=>Object.freeze({...c,prime:'prime' in c?Boolean(c.prime):false,element:normalizeElement(c.element),edition:ALPHA_IDS.includes(c.id)?'alpha':null})));
+].map(c=>Object.freeze({...c,category:cardCategory131(c.id),prime:'prime' in c?Boolean(c.prime):false,element:normalizeElement(c.element),edition:ALPHA_IDS.includes(c.id)?'alpha':null})));
+assertSetCatalog131(DEFINITIONS);
 export const STARTER_IDS=Object.freeze(['pepe','doge','roll-safe','harold','disaster-girl','confused','side-eye','success-kid','grumpy-cat','aliens-guy','smudge','bad-luck-brian','gigachad','stonks','trollface']);
 const UNSORTED_VARIANTS = DEFINITIONS.flatMap(card=>ELEMENT_IDS.flatMap(element=>RARITIES.map(rarity=>Object.freeze({
  id:`${card.id}:${rarity.id}${element===card.element?'':':'+element}`,definitionId:card.id,element,rarity:rarity.id,edition:card.edition,

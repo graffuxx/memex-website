@@ -20,7 +20,7 @@ export default function SocialBubble111({embedded=false,hidden=false}:{embedded?
  function show(requests=false){setTab(requests?'requests':'friends');setError('');setNotice('');socialInbox111.dismiss();setOpen(true);void socialInbox111.refresh();}
  function close(){setOpen(false);launcher.current?.focus();}
  async function loadDecks(owner:string){
-  const {data,error:loadError}=await supabase.from('dv_decks').select('id,name,cards,active').order('created_at');
+  const {data,error:loadError}=await supabase.from('dv_decks').select('id,name,cards,active,format').order('created_at');
   if(loadError)throw Error('Your saved decks could not be loaded. Try again.');
   if(scope.current!==owner)return;
   const available=(data??[]).filter(d=>Array.isArray(d.cards)&&d.cards.length===15) as SavedDeck[];

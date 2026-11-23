@@ -7,13 +7,13 @@ export const CRAFT_COST=Object.freeze({common:100,rare:400,epic:1600});
 export const DISMANTLE_VALUE=Object.freeze({common:10,rare:25,epic:60,legendary:150,mythic:400});
 export const ROUND_PIXELS=Object.freeze({win:5,loss:2,draw:2});
 export function roundPixels(result){if(!Object.hasOwn(ROUND_PIXELS,result))throw Error('Unknown round result.');return ROUND_PIXELS[result];}
-/** @param {string} variantId @param {{cards:string[]}[]} [decks] */
+/** @param {string} variantId @param {{cards:string[],format?:string}[]} [decks] */
 export function protectedCopies(variantId,decks=[]){
  const variant=getVariant(variantId);if(!variant)throw Error('Unknown card.');
  const starter=variant.rarity==='common'&&STARTER_IDS.includes(variant.definitionId)?STARTER_COPIES:0;
- return Math.min(1,Math.max(starter,...decks.map(deck=>countCards(deck.cards)[variantId]??0)));
+ return Math.min(1,Math.max(starter,...decks.filter(deck=>deck.format!=='friendly').map(deck=>countCards(deck.cards)[variantId]??0)));
 }
-/** @param {'craft'|'dismantle'} kind @param {string} variantId @param {{inventory?:Record<string,number>,echoes?:number,decks?:{cards:string[]}[]}} [options] */
+/** @param {'craft'|'dismantle'} kind @param {string} variantId @param {{inventory?:Record<string,number>,echoes?:number,decks?:{cards:string[],format?:string}[]}} [options] */
 export function tradeQuote(kind,variantId,{inventory={},echoes=0,decks=[]}={}){
  const variant=getVariant(variantId);if(!variant)throw Error('Unknown card.');
  const owned=inventory[variantId]??0,reserved=protectedCopies(variantId,decks);

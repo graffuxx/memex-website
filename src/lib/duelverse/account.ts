@@ -2,7 +2,7 @@ import {originalCards116,originalInventory116} from '../../../public/game/platfo
 import {supabase} from '@/lib/supabaseClient';
 import {boosterHistoryFilter} from '../../../public/game/platform/player-area49.mjs';
 import {loadAllInventory} from '../../../public/game/platform/inventory54.mjs';
-export type SavedDeck={id:string;name:string;cards:string[];active:boolean};
+export type SavedDeck={id:string;name:string;cards:string[];active:boolean;format?:'owned'|'friendly'};
 export type PlayerIdentity85={displayName:string;nameClaimed:boolean;avatarId:string;frameId:string;titleId:string;xp:number;wins:number;skills?:Record<string,number>;owned:string[]};
 export type PlayerState={displayName:string;identity:PlayerIdentity85;inventory:Record<string,number>;decks:SavedDeck[];pixels:number;shards:number;echoes:number};
 export async function loadIdentity85():Promise<PlayerIdentity85>{const {data,error}=await supabase.rpc('dv_identity85');if(error||!data)throw Error('Your player profile could not be loaded. Please retry.');return data as PlayerIdentity85;}
@@ -14,15 +14,15 @@ export async function loadPlayer():Promise<PlayerState>{
  const [identity,inventory,decks,wallet]=await Promise.all([
   loadIdentity85(),
   loadAllInventory(async(cursor,size)=>{let query=supabase.from('dv_inventory').select('variant_id,quantity').order('variant_id').limit(size);if(cursor!==null)query=query.gt('variant_id',cursor);const {data,error}=await query;if(error)throw new Error('Your complete collection could not be loaded. Please try again.');return data??[];}),
-  supabase.from('dv_decks').select('id,name,cards,active').order('created_at'),
+  supabase.from('dv_decks').select('id,name,cards,active,format').order('created_at'),
   supabase.from('dv_wallets').select('earned,premium,echoes').single()
  ]);
  if([decks,wallet].some(r=>r.error))throw new Error('Your collection could not be loaded. Please try again.');
  return {displayName:identity.displayName,identity,inventory:originalInventory116(inventory),decks:(decks.data??[]).map(d=>({...d,cards:originalCards116(d.cards)})) as SavedDeck[],pixels:wallet.data?.earned??0,shards:wallet.data?.premium??0,echoes:wallet.data?.echoes??0};
 }
-export async function saveDeck(id:string|null,name:string,cards:string[]){
- const {data,error}=await supabase.rpc('dv_save_deck',{p_id:id,p_name:name,p_cards:cards});
- if(error)throw new Error('Deck could not be saved. Check your connection and owned copies, then try again.');
+export async function saveDeck(id:string|null,name:string,cards:string[],format:'owned'|'friendly'='owned'){
+ const {data,error}=await supabase.rpc(format==='friendly'?'dv_save_friendly_deck131':'dv_save_deck',{p_id:id,p_name:name,p_cards:cards});
+ if(error)throw new Error(error.message==='Deck limit reached'?'Your account can hold 10 decks across both deck types.':format==='friendly'?'Private deck could not be saved. Verify your email and check the 15-card limits.':'Deck could not be saved. Check your connection and owned copies, then try again.');
  return data as string;
 }
 export async function tradeCard(requestId:string,kind:'craft'|'dismantle',variantId:string){

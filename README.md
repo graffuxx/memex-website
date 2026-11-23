@@ -148,3 +148,23 @@ examples, plus a screenshot from the actual Alpha renderer. Native elements rema
 fixed. Apply `202611230004_collection_goals130.sql` for collection goals 50/75/95.
 Stable reward IDs preserve all previous claims and cosmetics; no reward can be
 claimed again. The isolated guide capture fixture lives under `tests/fixtures/`.
+
+
+## Fixed Alpha edition and private loan decks (131)
+
+Alpha is permanently capped at 120 distinct motifs: 85 regular, 15 Prime and 20
+Iconic slots. The explicit manifest currently releases 85 regular and 10 Prime;
+five Prime and twenty Iconic slots remain reserved, never drawable placeholders.
+Rarity finishes and recruiter artwork do not increase the motif count. Collection,
+deck builder, guide and booster details share this definition and display progress.
+The final collection quest is 120; stable reward IDs preserve prior claims.
+
+Apply `202611230005_editions_private131.sql` before deploying the frontend. It adds
+server-enforced edition slots and separate private loan decks. Existing owned decks
+keep their identities and active status. Loans allow all released standard finishes
+in private friend duels only; exclusive recruiter art still requires ownership.
+They grant no inventory, wallet, XP or quest progress, do not protect cards against
+dismantling, and cannot enter Random or rewarded AI. Both purposes share ten saved
+decks, exact 15-motif singleton rules and at most one Prime. All private rows remain
+owner-only. Ranked remains one disabled Coming soon entry; future current-edition
+and open formats are configuration only. No new Iconic rules or cards are released.

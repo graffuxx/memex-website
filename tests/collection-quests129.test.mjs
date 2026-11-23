@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
 import {COLLECTION_QUESTS129} from '../public/game/platform/collection-quests129.mjs';import {PORTRAITS85,TITLES85,unlocked85} from '../public/game/platform/identity85.mjs';
-test('collection rewards begin at fifty distinct motifs and progress to seventy-five and the complete Alpha catalog',()=>assert.deepEqual(COLLECTION_QUESTS129.map(q=>q.goal),[50,75,95]));
+test('collection rewards begin at fifty distinct motifs and progress to seventy-five and the fixed 120-card Alpha set',()=>assert.deepEqual(COLLECTION_QUESTS129.map(q=>q.goal),[50,75,120]));
 const owner='12912912-9129-4129-8129-129129129129',other='12912912-9129-4129-8129-129129129130';
 test('collection cosmetics cannot be unlocked through XP, wins or unclaimed progress',()=>{for(const q of COLLECTION_QUESTS129){for(const [kind,id,list]of [['portrait',q.portrait,PORTRAITS85],['title',q.title,TITLES85]]){const item=list.find(i=>i.id===id);assert.equal(unlocked85(item,{xp:99999999,wins:999999,owned:[]}),false);assert.equal(unlocked85(item,{owned:[kind+':'+id]}),true);}}});
 test('collection milestones count lifetime motifs once, grant cosmetics exactly once and preserve wallets, boosters and account isolation',async()=>{

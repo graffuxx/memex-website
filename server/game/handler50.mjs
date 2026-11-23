@@ -18,12 +18,12 @@ export function createGameHandler({env,fetcher=fetch,randomSeed=()=>crypto.getRa
    const wallet=async()=>{const rows=await rest('dv_wallets?user_id=eq.'+uid+'&select=earned,premium,echoes');if(!rows[0])throw Error('Initialize your player account first.');return {pixels:rows[0].earned,shards:rows[0].premium,echoes:rows[0].echoes};};
    if(input.op==='profile'){
     await rest('rpc/dv_initialize_account',{method:'POST',headers:{Authorization:bearer},body:'{}'});
-    const decks=await rest('dv_decks?user_id=eq.'+uid+'&select=id,name,cards,active&order=created_at.asc');return reply({decks,wallet:await wallet()});
+    const decks=(await rest('dv_decks?user_id=eq.'+uid+'&select=id,name,cards,active,format&order=created_at.asc')).filter(d=>d.format!=='friendly');return reply({decks,wallet:await wallet()});
    }
    if(input.op==='start'){
     if(!uuid(input.id)||(input.deckId!=null&&!uuid(input.deckId)))throw Error('Invalid duel request.');
     const existing=await rest('dv_game_sessions50?id=eq.'+input.id+'&user_id=eq.'+uid+'&active=eq.true&select=id,state,version');if(existing[0])return reply({...existing[0],steps:[],award:0,wallet:await wallet()});
-    const decks=await rest('dv_decks?user_id=eq.'+uid+'&select=id,name,cards,active&order=created_at.asc'),deck=input.deckId?decks.find(d=>d.id===input.deckId):decks.find(d=>d.active)??decks[0];
+    const decks=(await rest('dv_decks?user_id=eq.'+uid+'&select=id,name,cards,active,format&order=created_at.asc')).filter(d=>d.format!=='friendly'),deck=input.deckId?decks.find(d=>d.id===input.deckId):decks.find(d=>d.active)??decks[0];
     if(!Array.isArray(deck?.cards)||deck.cards.length!==DECK_SIZE||deck.cards.some(id=>!getVariant(id)))throw Error('Saved deck is not playable.');
     // Ask for ownership of the saved deck's cards directly. A large collection
     // must not hide a required card behind the database's default 1,000-row cap.

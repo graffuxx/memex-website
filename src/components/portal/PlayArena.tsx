@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useState,useMemo} from 'react';
 import BrandPage from './BrandPage';
 import RewardedDuelLauncher from './RewardedDuelLauncher';
 import Matchmaking90 from './Matchmaking90';
@@ -21,7 +21,8 @@ export default function PlayArena(){
  return <BrandPage><SoloHub initialMode={route.mode} requestedDeck={route.deck}/></BrandPage>;
 }
 function SoloHub({initialMode,requestedDeck}:{initialMode:Mode;requestedDeck:string|null}){
- const {ready,userId,player,inventory,error:accountError}=usePlayerCollection();
+ const {ready,userId,player:loadedPlayer,inventory,error:accountError}=usePlayerCollection();
+ const player=useMemo(()=>loadedPlayer?{...loadedPlayer,decks:loadedPlayer.decks.filter(d=>d.format!=='friendly')}:null,[loadedPlayer]);
  const [mode,setMode]=useState<Mode>(initialMode),[chosen,setChosen]=useState(''),[difficulty,setDifficulty]=useState('standard'),[opponent,setOpponent]=useState('balanced'),[timed,setTimed]=useState(false),[testDeck,setTestDeck]=useState<Selection|null>(null),[guestDeck,setGuestDeck]=useState<Selection>({cards:starterDeck(),name:'Starter deck',source:'guest'}),[error,setError]=useState(''),[launching,setLaunching]=useState(false);
  useEffect(()=>{try{const previous=readPlayDeck(localStorage);if(previous&&(previous.source==='sandbox'||previous.practice?.mode==='deck-test'))setTestDeck(previous);const draft=JSON.parse(localStorage.getItem('duelverse.guest-deck.v1')??'null');if(draft?.version===1&&validateDeck(draft.cards,starterInventory()).valid)setGuestDeck({cards:draft.cards,name:typeof draft.name==='string'?draft.name:'Guest deck',source:'guest'});}catch{}},[]);
  useEffect(()=>{if(!player)return;setChosen(old=>player.decks.some(d=>d.id===old)?old:player.decks.find(d=>d.id===requestedDeck)?.id??player.decks.find(d=>d.active)?.id??player.decks[0]?.id??'');},[player,requestedDeck]);

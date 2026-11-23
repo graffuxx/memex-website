@@ -5,7 +5,7 @@ import usePlayerCollection from './usePlayerCollection';
 import PlayerPortrait85,{PlayerSignature85} from './PlayerPortrait85';
 import {socialList92,socialSearch92,socialAction92,friendInvite92,friendReply92,type Friend92,type Social92} from '@/lib/duelverse/friends92';
 import {matchRequest90} from '@/lib/duelverse/matchmaking90';
-import {validateDeck} from '../../../public/game/platform/catalog.mjs';
+import {validateMatchDeck131} from '../../../public/game/platform/edition-catalog131.mjs';
 import './friends92.css';
 import CurrentDuel112 from './CurrentDuel112';
 type Tab='friends'|'requests'|'duels';
@@ -16,7 +16,7 @@ function FriendsEditor92(){
  async function refresh(force=false){if(refreshing.current&&!force)return;const ticket=++refreshTicket.current;refreshing.current=true;const owner=userId;try{const next=await socialList92();if(live.current&&scope.current===owner&&ticket===refreshTicket.current)setData(next);}finally{if(ticket===refreshTicket.current)refreshing.current=false;}}
  useEffect(()=>{live.current=true;const option=new URLSearchParams(location.search).get('tab');if(option==='requests'||option==='duels')setTab(option);setLoading(true);setData({people:[],blocked:[],invites:[]});void refresh(true).catch(()=>{if(live.current)setError('Your friend list could not be loaded. Try refresh.');}).finally(()=>{if(live.current)setLoading(false);});const tick=()=>{if(!document.hidden)void refresh().catch(()=>{});};const timer=setInterval(tick,15000);window.addEventListener('focus',tick);window.addEventListener('duelverse-social92',tick);return()=>{live.current=false;clearInterval(timer);window.removeEventListener('focus',tick);window.removeEventListener('duelverse-social92',tick);};},[userId]);
  useEffect(()=>{if(player)setDeck(old=>player.decks.some(d=>d.id===old)?old:player.decks.find(d=>d.active)?.id??player.decks[0]?.id??'');},[player]);
- const chosen=player!.decks.find(d=>d.id===deck),valid=Boolean(chosen&&validateDeck(chosen.cards,inventory).valid),friends=data.people.filter(p=>p.relationship==='friend'),requests=data.people.filter(p=>p.relationship!=='friend');
+ const chosen=player!.decks.find(d=>d.id===deck),valid=Boolean(chosen&&validateMatchDeck131(chosen.cards,inventory,'private',chosen.format).valid),friends=data.people.filter(p=>p.relationship==='friend'),requests=data.people.filter(p=>p.relationship!=='friend');
  async function run(work:()=>Promise<void>){if(busy)return;setBusy(true);setError('');setMessage('');try{await work();await refresh(true);window.dispatchEvent(new Event('duelverse-social92'));}catch(e){setError(e instanceof Error?e.message:'Please refresh and try again.');}finally{if(live.current)setBusy(false);}}
  function action(person:Friend92,kind:string){void run(async()=>{await socialAction92(person.id,kind);setConfirm(null);setResult(null);setSearched(false);if(kind==='request'){setTab('requests');setMessage('Friend request sent.');}else if(kind==='accept'){setTab('friends');setMessage('Friend added.');}else setMessage(kind==='block'?'Player blocked.':kind==='unblock'?'Player unblocked.':'Saved.');});}
  async function search(event:FormEvent){event.preventDefault();if(busy||!name.trim())return;setBusy(true);setError('');setMessage('');try{const found=await socialSearch92(name);if(live.current){setResult(found);setSearched(true);}}catch(e){setError(e instanceof Error?e.message:'Search unavailable.');}finally{setBusy(false);}}

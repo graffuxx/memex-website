@@ -1,0 +1,15 @@
+// Alpha membership is explicit. New releases fill reserved slots; they never grow the set.
+export const ALPHA_REGULAR_IDS131=Object.freeze(["pepe","doge","roll-safe","harold","disaster-girl","distracted","side-eye","success-kid","grumpy-cat","aliens-guy","smudge","confused","bad-luck-brian","gigachad","this-is-fine","trollface","stonks","press-f","git-gud","rage-quit","lag-spike","hodl","diamond-hands","to-the-moon","rug-pull","crying-cat","keyboard-cat","coffin-dance","galaxy-brain","npc","leeroy-jenkins","touch-grass","copium","paper-hands","buy-the-dip","angry-wojak","screaming-marmot","table-flip","triggered","salt-bae","floor-is-lava","hot-take","headshot","rage-hamster","burning-toast","capybara-chill","sad-keanu","crying-wojak","tears-of-joy","duck-float","seal-of-approval","sink-or-swim","stay-hydrated","pool-noodle","wet-cat","bonk","cheems","walter","absolute-unit","couch-potato","monke","banana-for-scale","turtle-stack","stone-face","rock-solid","nyan-cat","dramatic-chipmunk","spinning-seal","longcat","ceiling-cat","hover-cat","bird-is-word","flying-spaghetti","airhorn","yeet","error-404","blue-screen","cat-jam","shocked-monkey","math-lady","surprised-rat","plot-twist","big-brain-time","rickroll","uno-reverse"]);
+export const ALPHA_PRIME_IDS131=Object.freeze(["evil-ernie","nuck-chorris","sparta-kick","emotional-damage","pablo-waiting","here-we-go-again","one-does-not-simply","sanic","numa-numa","keyboard-crusher"]);
+export const ALPHA_SLOTS131=Object.freeze([
+ ...ALPHA_REGULAR_IDS131.map((id,i)=>({number:i+1,id,category:'regular'})),
+ ...Array.from({length:15},(_,i)=>({number:86+i,id:ALPHA_PRIME_IDS131[i]??null,category:'prime'})),
+ ...Array.from({length:20},(_,i)=>({number:101+i,id:null,category:'iconic'}))
+].map(s=>Object.freeze(s)));
+export const SETS131=Object.freeze([{id:'alpha',name:'Alpha',mark:'α',size:120,current:true,limits:Object.freeze({regular:85,prime:15,iconic:20}),slots:ALPHA_SLOTS131}].map(s=>Object.freeze(s)));
+export const ALPHA_IDS131=Object.freeze(ALPHA_SLOTS131.filter(s=>s.id).map(s=>s.id));
+const membership=new Map(SETS131.flatMap(set=>set.slots.filter(s=>s.id).map(slot=>[slot.id,{edition:set.id,...slot}])));
+export const setSlot131=id=>membership.get(id)??null;
+export const editionOf131=id=>setSlot131(id)?.edition??null;
+export const cardCategory131=id=>setSlot131(id)?.category??null;
+export function assertSetCatalog131(cards){const seen=new Set();for(const c of cards){const slot=setSlot131(c.id);if(!slot||seen.has(c.id)||Boolean(c.prime)!==(slot.category==='prime'))throw Error('Card requires a unique, matching edition slot: '+c.id);seen.add(c.id);}for(const s of SETS131){if(s.slots.length!==s.size||new Set(s.slots.map(x=>x.number)).size!==s.size)throw Error('Invalid edition capacity');for(const [kind,size]of Object.entries(s.limits))if(s.slots.filter(x=>x.category===kind).length!==size)throw Error('Invalid category capacity');}return true;}
