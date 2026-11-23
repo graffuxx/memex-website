@@ -140,3 +140,11 @@ XP cannot bypass those locks; retries cannot multiply rewards. Apply
 unchanged values/element and five replacement artworks). Existing ownership is retained.
 Validation: 186 automated tests; isolated two-client browser round, automatic next
 round, surrender and automatic lobby return; production build.
+
+## How to play update (130)
+
+The guide uses the shared card faces and capture resolver for five interactive
+examples, plus a screenshot from the actual Alpha renderer. Native elements remain
+fixed. Apply `202611230004_collection_goals130.sql` for collection goals 50/75/95.
+Stable reward IDs preserve all previous claims and cosmetics; no reward can be
+claimed again. The isolated guide capture fixture lives under `tests/fixtures/`.

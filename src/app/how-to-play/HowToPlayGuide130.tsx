@@ -1,0 +1,64 @@
+'use client';
+import Link from 'next/link';
+import {useState,type CSSProperties} from 'react';
+import GameCardFace from '@/components/portal/GameCardFace';
+import {DEFINITIONS,getVariant,RARITIES} from '../../../public/game/platform/catalog.mjs';
+import {GUIDE_EXAMPLES130} from '../../../public/game/platform/guide-examples130.mjs';
+import {ELEMENT_LIST,ELEMENTS} from '../../../public/game/platform/elements53.mjs';
+import {printedValue126} from '../../../public/game/platform/card-ranks126.mjs';
+import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
+import {COLLECTION_QUESTS129} from '../../../public/game/platform/collection-quests129.mjs';
+import styles from './HowToPlay.module.css';
+type Comparison={attack:{base:number};defend:{base:number};flip:boolean};
+const HEX='50,2 92,26 92,74 50,98 8,74 8,26';
+function ElementIcon({id}:{id:string}){const e=ELEMENTS[id];return <svg viewBox="0 0 256 256" aria-hidden="true"><path d={e.path} fill={e.stroke?'none':e.color} stroke={e.color} strokeWidth={e.stroke?16:0} strokeLinecap="round" strokeLinejoin="round"/></svg>;}
+function TutorialCard({id,rarity='common',owner,edges=[],captured=false}:{id:string;rarity?:string;owner?:number;edges?:number[];captured?:boolean}){const card=DEFINITIONS.find(c=>c.id===id)!,variant=getVariant(id+':'+rarity)!;return <div className={`${styles.tutorialCard} ${captured?styles.captured:''}`} data-owner={owner}>
+ <GameCardFace card={card} variant={variant} color={RARITIES.find(r=>r.id===rarity)!.color}/>
+ {owner!==undefined&&<svg className={styles.ownerRing} viewBox="0 0 100 100" aria-hidden="true"><polygon points={HEX}/></svg>}
+ {edges.map(dir=>{const [x,y]=FRAME_LAYOUT.values[dir];return <i key={dir} className={styles.edgeMarker} style={{left:50+x/2.096*100+'%',top:50-y/2.096*100+'%'}} aria-hidden="true"/>;})}
+ </div>;}
+export default function HowToPlayGuide130(){
+ const [active,setActive]=useState('stronger'),[played,setPlayed]=useState(false),[element,setElement]=useState('fire');
+ const example=GUIDE_EXAMPLES130.find(e=>e.id===active)!,selected=ELEMENTS[element],enemyCount=example.defenders.length;
+ const selectExample=(id:string)=>{setActive(id);setPlayed(false);};
+ return <div className={styles.guide}>
+  <section className={styles.hero} aria-labelledby="guide-title">
+   <div className={styles.heroCopy}><span className={styles.eyebrow}>THE DUELVERSE FIELD GUIDE</span><h1 id="guide-title">Your first flip<br/><em>starts here.</em></h1><p>Place a meme. Win the touching edge.<br/>Turn their card into yours.</p><div className={styles.actions}><a className="button gold" href="#try-a-flip">Try a move</a><Link className="button glass" href="/play?mode=training">Play training</Link></div><div className={styles.heroFacts}><span><b>15</b> cards in your deck</span><span><b>1</b> Prime at most</span><span><b>2</b> round wins to victory</span></div></div>
+   <figure className={styles.heroVisual}><img src="/game/assets/guide-v130/arena-gameplay.webp" alt="Actual Duelverse Alpha gameplay: meme cards on the fractured Voidforge hex arena, with your hand in the foreground"/><figcaption><i/> Actual Alpha gameplay <span>Green is yours. Red is theirs.</span></figcaption></figure>
+  </section>
+  <nav className={styles.chapterNav} aria-label="Guide sections"><a href="#the-basics">The basics</a><a href="#try-a-flip">Try a flip</a><a href="#elements">Elements</a><a href="#your-deck">Your deck</a><a href="#duel-rules">Duel rules</a></nav>
+  <section id="the-basics" className={styles.basics} aria-label="The basics">
+   <article><span className={styles.stepIcon}>15</span><div><h2>Bring your deck.</h2><p>15 different memes. Each motif once, across all finishes. Start with five cards in hand.</p></div></article>
+   <article><span className={styles.stepIcon}>6</span><div><h2>Read the edges.</h2><p>Six values, six directions. Only the edges touching an adjacent enemy are compared.</p></div></article>
+   <article><span className={styles.stepIcon}>2</span><div><h2>Win the duel.</h2><p>Own more cards when a round ends. The first player to win two rounds takes the duel.</p></div></article>
+  </section>
+  <section id="try-a-flip" className={styles.flipSection} aria-labelledby="flip-title">
+   <header className={styles.sectionHeading}><div><span className={styles.eyebrow}>REAL CARDS. REAL RULES.</span><h2 id="flip-title">See the move. <em>Get the game.</em></h2></div><p>Choose a situation, then play the card.<br/>These examples use the game’s capture rules.</p></header>
+   <div className={styles.exampleTabs} role="group" aria-label="Capture examples">{GUIDE_EXAMPLES130.map(e=><button key={e.id} aria-pressed={e.id===active} onClick={()=>selectExample(e.id)}>{e.tab}</button>)}</div>
+   <div className={styles.exampleLayout}>
+    <div className={styles.boardScene} data-example={active} data-played={played} role="group" aria-label="Example hex board">
+     <div className={styles.boardGlow}/><svg className={styles.boardSurface} viewBox="0 0 700 450" aria-hidden="true"><defs><pattern id="guide-stone" width="700" height="450" patternUnits="userSpaceOnUse"><image href="/game/assets/arenas/voidforge-v77/slab-painted.webp" width="700" height="450" preserveAspectRatio="xMidYMid slice"/></pattern></defs><path d="M120 40 580 40 690 225 580 410 120 410 10 225Z" fill="url(#guide-stone)" stroke="#9a785e" strokeWidth="3"/><path d="M120 40 580 40 690 225 580 410 120 410 10 225Z" fill="#11102b88"/></svg>
+     <div className={styles.ownershipKey}><span><i/>Your card</span><span><i/>Opponent’s card</span></div>
+     <div className={`${styles.attackingTile} ${!played?styles.waiting:''}`}><TutorialCard id={example.attacker.definition.id} owner={0} edges={example.directions}/><small>{played?'YOUR PLACEMENT':'YOUR CARD · PLAY IT'}</small></div>
+     {example.defenders.map((c,index)=>{const comparison=example.comparisons[index],captured=played&&comparison.flip;return <div key={active+'-'+c.definition.id} className={`${styles.defendingTile} ${index===1?styles.secondTarget:''}`}><TutorialCard id={c.definition.id} owner={captured?0:1} captured={captured} edges={[(example.directions[index]+3)%6]}/><small>{captured?'CAPTURED':played?'DEFENDER HOLDS':'OPPONENT'}</small></div>;})}
+     <div className={styles.sceneCaption}>{enemyCount===2?'Each touching enemy is checked.':'Highlighted edges are the ones that meet.'}</div>
+    </div>
+    <div className={styles.explanation}><span className={styles.eyebrow}>{example.tab}</span><h3>{example.title}</h3><p>{example.text}</p><div className={styles.comparisonList}>{example.comparisons.map((c:Comparison,index:number)=><div key={index} className={styles.comparison}><span><ElementIcon id={example.attacker.definition.element}/><strong>{printedValue126(c.attack.base)}</strong></span><i>vs</i><span><strong>{printedValue126(c.defend.base)}</strong><ElementIcon id={example.defenders[index].definition.element}/></span></div>)}</div><div className={styles.exampleResult} role="status" aria-live="polite" data-capture={example.flips.length>0}>{played?(example.flips.length?`${example.flips.length} ${example.flips.length===1?'card captured':'cards captured'}. Now yours.`:'No capture. The opponent keeps this card.'):'Your move. What will happen?'}</div><button className="button gold" onClick={()=>setPlayed(!played)}>{played?'Reset example':'Play this card'}</button><small>Learning example. No account or rewards needed.</small></div>
+   </div>
+  </section>
+  <section id="elements" className={styles.elementSection} aria-labelledby="elements-title">
+   <header className={styles.sectionHeading}><div><span className={styles.eyebrow}>THE TIEBREAKER</span><h2 id="elements-title">Five elements.<br/><em>One per meme.</em></h2></div><p>Each card has one fixed element, shown at the bottom.<br/>It stays the same in every rarity. Elements only decide ties.</p></header>
+   <div className={styles.elementLayout}><div className={styles.elementPicker} role="group" aria-label="Choose an element">{ELEMENT_LIST.map(e=><button key={e.id} style={{'--element':e.color} as CSSProperties} aria-pressed={element===e.id} onClick={()=>setElement(e.id)}><ElementIcon id={e.id}/><span>{e.name}</span></button>)}</div><div className={styles.elementDetail} style={{'--element':selected.color} as CSSProperties}><div className={styles.selectedElement}><ElementIcon id={element}/><strong>{selected.name}</strong></div><div><h3>Wins equal-value attacks against</h3><div className={styles.matchupChips}>{selected.beats.map(id=><span key={id}><ElementIcon id={id}/>{ELEMENTS[id].name}</span>)}</div></div><div><h3>Loses equal-value defence against</h3><div className={styles.matchupChips}>{ELEMENT_LIST.filter(e=>e.beats.includes(element)).map(e=><span key={e.id}><ElementIcon id={e.id}/>{e.name}</span>)}</div></div><p><b>No extra point.</b> A higher number still wins. Equal numbers need the attacker’s advantage.</p></div></div>
+  </section>
+  <section id="your-deck" className={styles.deckSection} aria-labelledby="deck-title"><div className={styles.deckText}><span className={styles.eyebrow}>BUILD FOR THE BOARD</span><h2 id="deck-title">Better decisions.<br/><em>Not rarer stats.</em></h2><p>Normal, Silver, Gold, Diamond and Void change the art and finish. The same meme keeps the same values and element.</p><ul><li><b>Exactly 15 cards.</b> Every motif at most once, even across different finishes.</li><li><b>At most one Prime.</b> Prime cards have an S side. Only a stronger-element S can capture an S.</li><li><b>Fixed direction.</b> You cannot rotate a card in your hand. Position is the strategy.</li></ul><Link className="button glass" href="/decks?test=1">Explore the test deck builder</Link></div><div className={styles.rarityGallery} aria-label="The same Doge card in five cosmetic finishes">{RARITIES.map(r=><figure key={r.id}><TutorialCard id="doge" rarity={r.id}/><figcaption style={{color:r.color}}>{r.name}</figcaption></figure>)}<p>Same Doge. Same Fire. Same six values.</p></div></section>
+  <section id="duel-rules" className={styles.rulesSection} aria-labelledby="duel-title"><header className={styles.sectionHeading}><div><span className={styles.eyebrow}>BEFORE YOU QUEUE</span><h2 id="duel-title">The rest, <em>without the rulebook.</em></h2></div></header><div className={styles.ruleGrid}>
+   <details><summary>How does a round work?</summary><p>Rock-paper-scissors decides who chooses the first player. There are 19 hexes and one movable blockade, so each player places nine cards. Draw after each placement while cards remain in your deck. The player controlling more cards at the end wins the round.</p></details>
+   <details><summary>What happens after a round?</summary><p>The next round starts automatically after eight seconds. Both decks are reshuffled and the starting player alternates. Draws give neither player a round win. First to two round wins takes the duel. The result appears, then you return to matchmaking after five seconds.</p></details>
+   <details><summary>What about the timer and leaving?</summary><p>Normally you have 90 seconds per turn. After two consecutive missed own turns, your turns allow three seconds until you actively play a card. A timeout makes an automatic legal placement. Use Surrender to concede; leaving a Random duel counts as a defeat. Private exits award no currencies, XP or quest progress.</p></details>
+   <details><summary>Are special fields and abilities active?</summary><p>Random event fields and their changing bonuses are currently disabled. The movable blockade still blocks a cell and can be shifted once per player each round. Card abilities, when enabled for a match, are shown in the top slot of the card.</p></details>
+   <details><summary>What do I earn by playing?</summary><p>Completed Random rounds against humans or AI grant 5 Pixels for a win and 2 for a loss or draw. A win also grants 100 XP. Training and private matches give no rewards. Skill titles and referral qualification require human opponents.</p></details>
+   <details><summary>How do collection rewards work?</summary><p>Collect {COLLECTION_QUESTS129.map(q=>q.goal).join(', ')} different motifs to unlock the three portrait-and-title rewards. Finishes do not count as additional motifs. Milestones and already claimed rewards stay recorded, even after dismantling a card.</p><Link href="/account/private/quests">View collection quests</Link></details>
+  </div></section>
+  <section className={styles.finalCta}><span className={styles.eyebrow}>LESS THEORY. MORE MEMES.</span><h2>Ready to steal <em>your first card?</em></h2><p>Start in training, then bring your deck to a duel.</p><div className={styles.actions}><Link className="button gold" href="/play?mode=training">Start training</Link><Link className="button glass" href="/play">Find a duel</Link></div></section>
+ </div>;
+}
