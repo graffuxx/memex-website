@@ -8,9 +8,9 @@ import {newGame} from '../public/game/src/rules.mjs';
 import {LOADOUTS,placeEffect} from '../public/game/src/table-demo-rules.mjs';
 import {applyPortalDecks} from '../public/game/platform/deck-bridge.mjs';
 import {testInventory,blankTestCollection,expansionTestDeck,drawTestPack} from '../public/game/platform/booster-test.mjs';
-test('85 identities and 425 native-element/finish variants have matching rule, portrait, short title and owner-independent profiles',()=>{
- assert.equal(DEFINITIONS.length,100);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,500);assert.equal(EXPANSION_CARDS.length,82);
- for(const c of DEFINITIONS){assert.equal(DEMO_PROFILES[c.ruleId],c.id);assert.equal(CARD_PROFILES[c.id].ruleId,c.ruleId);assert.ok(CARD_PROFILES[c.id].name.length<=14);const art=Object.values(CARD_ART[c.id]);assert.equal(art.length,5);assert.equal(new Set(art).size,5);for(const v of VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha')){assert.equal(v.image.replace('/game/','../'),CARD_ART[c.id][v.rarity]);assert.equal(v.artOffsetY,c.artOffsetY??0);assert.equal(expandGameDeck([v.id],0)[0].id,c.ruleId);}}
+test('120 identities and 600 native-element/finish variants have matching rule, portrait, short title and owner-independent profiles',()=>{
+ assert.equal(DEFINITIONS.length,120);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,600);assert.equal(EXPANSION_CARDS.length,82);
+ for(const c of DEFINITIONS){assert.equal(DEMO_PROFILES[c.ruleId],c.id);assert.equal(CARD_PROFILES[c.id].ruleId,c.ruleId);assert.ok(CARD_PROFILES[c.id].name.length<=16);const art=Object.values(CARD_ART[c.id]);assert.equal(art.length,5);assert.equal(new Set(art).size,5);for(const v of VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha')){assert.equal(v.image.replace('/game/','../'),CARD_ART[c.id][v.rarity]);assert.equal(v.artOffsetY,c.artOffsetY??0);assert.equal(expandGameDeck([v.id],0)[0].id,c.ruleId);}}
  assert.equal(starterDeck().length,15);assert.equal(Object.values(starterInventory()).reduce((a,b)=>a+b,0),15);
  assert.equal(newGame().players[0].hand.length+newGame().players[0].deck.length,9);
 });

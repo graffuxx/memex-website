@@ -8,7 +8,7 @@ import {alphaNameplateMarkup} from '../../../public/game/platform/edition36.mjs'
 import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 
 type Props={
- card:{name:string;short?:string;prime?:boolean;element:string;values:readonly number[]};
+ card:{name:string;short?:string;prime?:boolean;iconic?:boolean;element:string;values:readonly number[]};
  variant:{element?:string;image:string;rarity:string;edition?:string|null;artOffsetY?:number;artRegion?:{x:number;y:number;w:number;h:number}|null};
  color:string;
  compact?:boolean;
@@ -47,7 +47,7 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
     {variant.rarity!=='common'&&<rect className="duelverse-card__foil" style={{animationPlayState:effectsVisible?'running':'paused'}} x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
-   {card.prime&&<text x="0" y="-.748" textAnchor="middle" dominantBaseline="central" fontFamily="Arial,sans-serif" fontSize=".06" fontWeight="800" fill="#f6d7a0">PRIME</text>}
+   {(card.prime||card.iconic)&&<text x="0" y="-.748" textAnchor="middle" dominantBaseline="central" fontFamily="Arial,sans-serif" fontSize=".06" fontWeight="800" fill="#f6d7a0">{card.iconic?'ICONIC':'PRIME'}</text>}
    <polygon className="duelverse-card__rarity" points={hex(.983)} fill="none" stroke={color} strokeWidth=".009"/>
    <g fill="#17150d" fontFamily="Arial,sans-serif" fontWeight="800" textAnchor="middle" dominantBaseline="central">
     {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{printedValue126(card.values[i])}</text>)}

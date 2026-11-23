@@ -18,7 +18,7 @@ test('sandbox grants one editor copy of every finish without modifying collectio
 test('custom sandbox decks save independently, launch all finishes and complete both rounds',()=>{
  const inventory=fullTestDeckInventory(),data=new Map(),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value)};
  for(const rarity of RARITIES){
-  let cards=[];for(const card of [...DEFINITIONS.filter(c=>!c.prime).slice(-14),DEFINITIONS.find(c=>c.prime)])cards=addDeckCard(cards,`${card.id}:${rarity.id}`,inventory);
+  let cards=[];for(const card of [...DEFINITIONS.filter(c=>!c.prime&&!c.iconic).slice(-14),DEFINITIONS.find(c=>c.prime)])cards=addDeckCard(cards,`${card.id}:${rarity.id}`,inventory);
   assert.equal(validateDeck(cards,inventory).valid,true);
   const deck=makeEditorDeck('Test '+rarity.name,cards),library=commitEditorDeck({version:1,selectedId:deck.id,decks:[deck]},deck.id);
   persistDeckLibrary(storage,libraryKey('sandbox'),library);

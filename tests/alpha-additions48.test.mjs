@@ -10,7 +10,7 @@ import {protectedCandidates,validAlphaPack} from '../public/game/platform/alpha-
 
 test('ten approved motifs have fifty unique rarity artworks, exact tested values and unlocked sandbox copies',async()=>{
  const approved=JSON.parse(await fs.readFile(new URL('./fixtures/alpha-values48.json',import.meta.url),'utf8'));
- assert.equal(ALPHA_ADDITIONS.length,10);assert.equal(DEFINITIONS.length,100);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,500);
+ assert.equal(ALPHA_ADDITIONS.length,10);assert.equal(DEFINITIONS.length,120);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,600);
  const inventory=fullTestDeckInventory();
  for(const c of ALPHA_ADDITIONS){
   assert.deepEqual(c.values,approved.find(a=>a.id==='draft-'+c.id).values);assert.equal(c.ability,null);

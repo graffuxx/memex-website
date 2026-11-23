@@ -29,7 +29,7 @@ export function determinize135(observation,{observer,ownDeck,random}){
  const g=observeGame135(observation,observer);g.history=[];g.last=null;
  for(const side of[0,1]){
   const revealed=Object.values(g.board).filter(c=>c.origin===side),visible=side===observer?[...revealed,...g.players[side].hand]:revealed;
-  const used=new Set(visible.map(definitionId)),alreadyPrime=visible.some(c=>definitions.get(definitionId(c))?.prime);
+  const used=new Set(visible.map(definitionId)),alreadyPrime=visible.some(c=>definitions.get(definitionId(c))?.prime),alreadyIconic=visible.some(c=>definitions.get(definitionId(c))?.iconic);
   const slots=side===observer?g.players[side].deck:[...g.players[side].hand,...g.players[side].deck];let cards;
   if(side===observer){
    // The player knows their own saved deck's composition, never its shuffled order.
@@ -38,8 +38,8 @@ export function determinize135(observation,{observer,ownDeck,random}){
    if(ids.length!==slots.length)throw Error('Inconsistent own deck observation.');
    cards=shuffle(expandGameDeck(ids,side),random);
   }else{
-   let prime=alreadyPrime;
-   const pool=shuffle(AI_DEFINITIONS107.filter(c=>!used.has(c.id)),random).filter(c=>{if(!c.prime)return true;if(prime)return false;prime=true;return true;});
+   let prime=alreadyPrime,iconic=alreadyIconic;
+   const pool=shuffle(AI_DEFINITIONS107.filter(c=>!used.has(c.id)),random).filter(c=>{if(c.prime){if(prime)return false;prime=true;}if(c.iconic){if(iconic)return false;iconic=true;}return true;});
    if(pool.length<slots.length)throw Error('Insufficient legal hidden cards.');
    cards=expandGameDeck(pool.slice(0,slots.length).map(c=>c.id+':common'),side);
   }

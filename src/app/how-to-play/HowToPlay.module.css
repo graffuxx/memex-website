@@ -5,3 +5,5 @@
 .boardScene[data-example=double] .attackingTile small,.boardScene[data-example=double] .defendingTile small,.boardScene[data-example=double] .sceneCaption{display:none}
 
 .basics p,.deckText li,.ruleGrid p,.elementDetail>p{font-size:16px}
+
+.specialCards136{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:24px 0}.specialCards136 figure{margin:0;text-align:center}.specialCards136 figcaption{font-size:13px;line-height:1.5;color:var(--muted);margin-top:8px}.specialCards136 figure>div{max-width:225px;margin:auto}
