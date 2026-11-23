@@ -4,11 +4,35 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
+// public/game/platform/series113.mjs
+var SERIES_TARGET113 = 2;
+function series113(results = []) {
+  const wins = [0, 0];
+  let draws = 0;
+  for (const score of results) {
+    if (!Array.isArray(score) || score.length !== 2 || !score.every(Number.isFinite)) continue;
+    if (score[0] === score[1]) draws++;
+    else wins[score[0] > score[1] ? 0 : 1]++;
+  }
+  const winner = wins[0] >= SERIES_TARGET113 ? 0 : wins[1] >= SERIES_TARGET113 ? 1 : null;
+  return { wins, draws, winner, finished: winner !== null, target: SERIES_TARGET113 };
+}
+function seriesStarter113(first, round) {
+  return (round - 1) % 2 === 0 ? first : 1 - first;
+}
+
+// public/game/platform/card-ranks126.mjs
+var S_RANK126 = 10;
+var isSRank126 = (value) => value === S_RANK126 || value === "S";
+function rankedStrength126(base, bonus = 0) {
+  return isSRank126(base) ? { base: S_RANK126, rank: "S", total: S_RANK126 } : { base, total: base + bonus };
+}
+
 // public/game/platform/elements53.mjs?v=tie-break-63
 var ELEMENT_IDS = Object.freeze(["fire", "water", "earth", "air", "storm"]);
 var normalizeElement = (id) => id === "stone" ? "earth" : id;
 var raw = {
-  fire: { name: "Fire", symbol: "\u2668", color: "#ff9d62", from: "#fff07a", to: "#ff8d12", path: "M138 20 C113 102 220 108 195 184 C156 248 56 251 54 166 C51 118 102 84 138 20 Z", beats: ["earth", "air"] },
+  fire: { name: "Fire", symbol: "\u{1F525}", color: "#ff9d62", from: "#fff07a", to: "#ff8d12", path: "M128 16 C139 48 153 67 141 98 C156 91 172 76 177 59 C176 105 208 130 208 166 C208 211 174 241 128 241 C78 241 48 210 48 170 C48 135 72 111 78 85 C78 120 95 138 93 103 C91 75 113 44 128 16 Z M128 218 C136 220 145 218 153 214 C168 203 169 183 149 159 C151 171 147 182 137 190 C137 172 117 168 119 142 C116 157 99 168 96 184 C93 203 104 218 128 218 Z", beats: ["earth", "air"] },
   water: { name: "Water", symbol: "\u2248", color: "#65cfff", from: "#d4fbff", to: "#2284e4", path: "M128 18 C112 68 49 120 49 167 C49 266 207 266 207 167 C207 120 144 68 128 18 Z", beats: ["fire", "earth"] },
   earth: { name: "Earth", symbol: "\u25C6", color: "#d6bc78", from: "#f7e7ae", to: "#a9853a", path: "M128 26 L210 128 L128 230 L46 128 Z", beats: ["air", "storm"] },
   air: { name: "Air", symbol: "\u224B", color: "#a9eee1", from: "#edfff9", to: "#57bbaa", path: "M28 82 H157 C217 82 218 17 177 25 C156 28 153 47 168 56 M28 126 H207 C252 126 246 184 216 182 C197 180 191 165 201 154 M28 170 H119 C166 170 169 230 133 230 C113 230 105 215 117 203", beats: ["storm", "water"], stroke: true },
@@ -22,8 +46,273 @@ function elementAdvantage(attacker, defender, rules = 5) {
   return ELEMENTS[a]?.beats.includes(b) ?? false;
 }
 function attackWins(attack, defend, rules = 5) {
+  if (attack.rank === "S" || defend.rank === "S") return attack.rank === "S" && (defend.rank !== "S" || attack.element > defend.element);
   return attack.total > defend.total || rules !== 3 && attack.total === defend.total && attack.element > defend.element;
 }
+
+// public/game/platform/primes126.mjs
+var PRIME_CARDS = Object.freeze([
+  {
+    "id": "evil-ernie",
+    "name": "EVIL ERNIE",
+    "short": "EVIL ERNIE",
+    "ruleId": "prime-evil-ernie",
+    "element": "fire",
+    "values": [
+      10,
+      5,
+      2,
+      3,
+      6,
+      7
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "Not every angel comes from above.",
+    "image": "/game/assets/cards/primes-v126/evil-ernie-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.125,
+      "y": -0.23,
+      "w": 1.25,
+      "h": 1.25
+    }
+  },
+  {
+    "id": "nuck-chorris",
+    "name": "Nuck Chorris",
+    "short": "Nuck Chorris",
+    "ruleId": "prime-nuck-chorris",
+    "element": "storm",
+    "values": [
+      3,
+      10,
+      7,
+      6,
+      5,
+      2
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "Business casual. Meme critical.",
+    "image": "/game/assets/cards/primes-v126/nuck-chorris-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.025,
+      "y": -0.025,
+      "w": 1.05,
+      "h": 1.05
+    }
+  },
+  {
+    "id": "sparta-kick",
+    "name": "THIS IS SPARTA",
+    "short": "THIS IS SPARTA",
+    "ruleId": "prime-sparta-kick",
+    "element": "fire",
+    "values": [
+      7,
+      10,
+      3,
+      5,
+      6,
+      2
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "",
+    "image": "/game/assets/cards/primes-v126/sparta-kick-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "emotional-damage",
+    "name": "EMOTIONAL DAMAGE",
+    "short": "EMOT. DAMAGE",
+    "ruleId": "prime-emotional-damage",
+    "element": "water",
+    "values": [
+      10,
+      2,
+      6,
+      5,
+      3,
+      7
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "",
+    "image": "/game/assets/cards/primes-v126/emotional-damage-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "pablo-waiting",
+    "name": "PABLO WAITING",
+    "short": "PABLO WAITING",
+    "ruleId": "prime-pablo-waiting",
+    "element": "water",
+    "values": [
+      5,
+      3,
+      7,
+      2,
+      10,
+      6
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "Still waiting for your turn.",
+    "image": "/game/assets/cards/primes-v126/pablo-waiting-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "here-we-go-again",
+    "name": "HERE WE GO AGAIN",
+    "short": "HERE WE GO",
+    "ruleId": "prime-here-we-go-again",
+    "element": "earth",
+    "values": [
+      2,
+      7,
+      6,
+      10,
+      3,
+      5
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "",
+    "image": "/game/assets/cards/primes-v126/here-we-go-again-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "one-does-not-simply",
+    "name": "ONE DOES NOT SIMPLY",
+    "short": "NOT SIMPLY",
+    "ruleId": "prime-one-does-not-simply",
+    "element": "earth",
+    "values": [
+      6,
+      3,
+      10,
+      7,
+      5,
+      2
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "",
+    "image": "/game/assets/cards/primes-v126/one-does-not-simply-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "sanic",
+    "name": "SANIC",
+    "short": "SANIC",
+    "ruleId": "prime-sanic",
+    "element": "air",
+    "values": [
+      3,
+      5,
+      2,
+      6,
+      7,
+      10
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "",
+    "image": "/game/assets/cards/primes-v126/sanic-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "numa-numa",
+    "name": "NUMA NUMA",
+    "short": "NUMA NUMA",
+    "ruleId": "prime-numa-numa",
+    "element": "air",
+    "values": [
+      7,
+      2,
+      5,
+      10,
+      6,
+      3
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "",
+    "image": "/game/assets/cards/primes-v126/numa-numa-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  },
+  {
+    "id": "keyboard-crusher",
+    "name": "KEYBOARD CRUSHER",
+    "short": "ANGRY KID",
+    "ruleId": "prime-keyboard-crusher",
+    "element": "storm",
+    "values": [
+      6,
+      7,
+      10,
+      3,
+      2,
+      5
+    ],
+    "prime": true,
+    "ability": null,
+    "quote": "The keyboard had one job.",
+    "image": "/game/assets/cards/primes-v126/keyboard-crusher-common.webp",
+    "artDirectory": "primes-v126",
+    "artRegion": {
+      "x": -0.1,
+      "y": -0.16,
+      "w": 1.2,
+      "h": 1.2
+    }
+  }
+].map((c) => Object.freeze({ ...c, values: Object.freeze(c.values), artRegion: Object.freeze(c.artRegion) })));
 
 // public/game/platform/art-atlases53.mjs
 var ATLAS_REGIONS = {
@@ -283,7 +572,7 @@ var ATLAS_REGIONS = {
 var ELEMENT_IDS2 = Object.freeze(["fire", "water", "earth", "air", "storm"]);
 var normalizeElement2 = (id) => id === "stone" ? "earth" : id;
 var raw2 = {
-  fire: { name: "Fire", symbol: "\u2668", color: "#ff9d62", from: "#fff07a", to: "#ff8d12", path: "M138 20 C113 102 220 108 195 184 C156 248 56 251 54 166 C51 118 102 84 138 20 Z", beats: ["earth", "air"] },
+  fire: { name: "Fire", symbol: "\u{1F525}", color: "#ff9d62", from: "#fff07a", to: "#ff8d12", path: "M128 16 C139 48 153 67 141 98 C156 91 172 76 177 59 C176 105 208 130 208 166 C208 211 174 241 128 241 C78 241 48 210 48 170 C48 135 72 111 78 85 C78 120 95 138 93 103 C91 75 113 44 128 16 Z M128 218 C136 220 145 218 153 214 C168 203 169 183 149 159 C151 171 147 182 137 190 C137 172 117 168 119 142 C116 157 99 168 96 184 C93 203 104 218 128 218 Z", beats: ["earth", "air"] },
   water: { name: "Water", symbol: "\u2248", color: "#65cfff", from: "#d4fbff", to: "#2284e4", path: "M128 18 C112 68 49 120 49 167 C49 266 207 266 207 167 C207 120 144 68 128 18 Z", beats: ["fire", "earth"] },
   earth: { name: "Earth", symbol: "\u25C6", color: "#d6bc78", from: "#f7e7ae", to: "#a9853a", path: "M128 26 L210 128 L128 230 L46 128 Z", beats: ["air", "storm"] },
   air: { name: "Air", symbol: "\u224B", color: "#a9eee1", from: "#edfff9", to: "#57bbaa", path: "M28 82 H157 C217 82 218 17 177 25 C156 28 153 47 168 56 M28 126 H207 C252 126 246 184 216 182 C197 180 191 165 201 154 M28 170 H119 C166 170 169 230 133 230 C113 230 105 215 117 203", beats: ["storm", "water"], stroke: true },
@@ -1624,7 +1913,7 @@ var EXPANSION_CARDS = Object.freeze([
 ].map((c) => Object.freeze({ ...c, ruleId: c.id, ability: null, artOffsetY: c.artOffsetY ?? 0, values: Object.freeze(c.values), image: c.image ?? `/game/assets/cards/memes-v27/${c.id}-common.webp` })));
 
 // public/game/platform/edition36.mjs
-var ALPHA_IDS = Object.freeze(["pepe", "doge", "roll-safe", ...EXPANSION_CARDS.map((c) => c.id)]);
+var ALPHA_IDS = Object.freeze(["pepe", "doge", "roll-safe", ...EXPANSION_CARDS.map((c) => c.id), ...PRIME_CARDS.map((c) => c.id)]);
 var ALPHA_MARK = Object.freeze({ x: 0.405, titleOffset: 4e-3, glyphY: -9e-3 });
 var symbol = `<path d="M0 -.058L.05 -.029V.029L0 .058L-.05 .029V-.029Z" fill="#e0b754" stroke="#70501f" stroke-width=".006"/><text x="0" y="${ALPHA_MARK.glyphY}" font-family="Georgia,serif" font-style="italic" font-size=".088" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#35230e">\u03B1</text>`;
 
@@ -1651,36 +1940,42 @@ var REFERRAL_RULES95 = Object.freeze({ rounds: 10, opponents: 2, days: 3 });
 
 // public/game/platform/catalog.mjs
 var DECK_SIZE = 15;
-var MAX_MOTIF_COPIES = 3;
-var CATALOG_VERSION = 8;
+var MAX_MOTIF_COPIES = 1;
+var CATALOG_VERSION = 10;
 var RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
 var DEFINITIONS = Object.freeze([
   { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
   { id: "doge", name: "Doge", short: "Doge", ruleId: "brain", element: "fire", values: [5, 2, 5, 2, 5, 5], ability: "hype", quote: "Such strategy. Much wow.", image: "/game/assets/cards/frame-v21/swollen-doge.webp" },
   { id: "roll-safe", name: "Roll Safe", short: "Roll Safe", ruleId: "trust", element: "stone", values: [5, 5, 5, 3, 3, 3], ability: "twist", quote: "Can\u2019t lose if you think ahead.", image: "/game/assets/cards/v04/roll-safe.webp" },
-  ...EXPANSION_CARDS
-].map((c) => Object.freeze({ ...c, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
-var STARTER_IDS = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "confused"]);
+  ...EXPANSION_CARDS,
+  ...PRIME_CARDS
+].map((c) => Object.freeze({ ...c, prime: "prime" in c ? Boolean(c.prime) : false, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
+var STARTER_IDS = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "confused", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "bad-luck-brian", "gigachad", "stonks", "trollface"]);
 var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((element) => RARITIES.map((rarity) => Object.freeze({
   id: `${card.id}:${rarity.id}${element === card.element ? "" : ":" + element}`,
   definitionId: card.id,
   element,
   rarity: rarity.id,
   edition: card.edition,
-  image: card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+  image: card.prime ? `/game/assets/cards/primes-v126/${card.id}-${rarity.id}.webp` : card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
   artOffsetY: card.artOffsetY ?? 0,
-  artRegion: card.artAtlas ? Object.freeze({ x: RARITIES.findIndex((r) => r.id === rarity.id) / 5, ...ATLAS_REGIONS[card.id] }) : null
+  artRegion: card.artRegion ?? (card.artAtlas ? Object.freeze({ x: RARITIES.findIndex((r) => r.id === rarity.id) / 5, ...ATLAS_REGIONS[card.id] }) : null)
 }))));
 var definitionOrder = new Map(DEFINITIONS.map((c, i) => [c.id, i]));
 var nativeElement = new Map(DEFINITIONS.map((c) => [c.id, c.element]));
 var rarityOrder = new Map(RARITIES.map((r, i) => [r.id, i]));
-var VARIANTS = Object.freeze([...UNSORTED_VARIANTS, ...RECRUITER_VARIANTS95].sort((a, b) => rarityOrder.get(a.rarity) - rarityOrder.get(b.rarity) || Number(a.element !== nativeElement.get(a.definitionId)) - Number(b.element !== nativeElement.get(b.definitionId)) || definitionOrder.get(a.definitionId) - definitionOrder.get(b.definitionId) || ELEMENT_IDS2.indexOf(a.element) - ELEMENT_IDS2.indexOf(b.element)));
-var VARIANT_INDEX = new Map(VARIANTS.map((v) => [v.id, v]));
+var VARIANTS = Object.freeze([...UNSORTED_VARIANTS.filter((v) => v.element === nativeElement.get(v.definitionId)), ...RECRUITER_VARIANTS95].sort((a, b) => rarityOrder.get(a.rarity) - rarityOrder.get(b.rarity) || Number(a.element !== nativeElement.get(a.definitionId)) - Number(b.element !== nativeElement.get(b.definitionId)) || definitionOrder.get(a.definitionId) - definitionOrder.get(b.definitionId) || ELEMENT_IDS2.indexOf(a.element) - ELEMENT_IDS2.indexOf(b.element)));
+var VARIANT_INDEX = new Map([...UNSORTED_VARIANTS, ...RECRUITER_VARIANTS95].map((v) => [v.id, v]));
+var ACTIVE_IDS116 = new Set(VARIANTS.map((v) => v.id));
 function getVariant(id) {
   return VARIANT_INDEX.get(id);
 }
 function starterDeck() {
-  return STARTER_IDS.flatMap((id, i) => Array(i < 3 ? 3 : 2).fill(`${id}:common`));
+  return STARTER_IDS.map((id) => `${id}:common`);
+}
+var MAX_PRIMES = 1;
+function countPrimes(cards) {
+  return cards.filter((id) => DEFINITIONS.find((c) => c.id === getVariant(id)?.definitionId)?.prime).length;
 }
 function countCards(cards) {
   const counts = {};
@@ -1699,9 +1994,11 @@ function validateDeck(cards, inventory) {
   const errors = [];
   if (!Array.isArray(cards) || cards.length !== DECK_SIZE) errors.push(`Your deck needs exactly ${DECK_SIZE} cards.`);
   if (!Array.isArray(cards)) return { valid: false, errors };
-  for (const [id, count] of Object.entries(countMotifs(cards))) if (count > MAX_MOTIF_COPIES) errors.push(`${DEFINITIONS.find((c) => c.id === id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, including all elements and finishes.`);
+  if (countPrimes(cards) > MAX_PRIMES) errors.push("Maximum 1 Prime per deck, across all finishes.");
+  for (const [id, count] of Object.entries(countMotifs(cards))) if (count > MAX_MOTIF_COPIES) errors.push(`${DEFINITIONS.find((c) => c.id === id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, across all finishes.`);
   for (const [id, count] of Object.entries(countCards(cards))) {
     if (!getVariant(id)) errors.push("This deck contains an unknown card.");
+    else if (!ACTIVE_IDS116.has(id)) errors.push("This element variant has retired. Reload to use the original card.");
     else if (!Number.isInteger(inventory[id]) || inventory[id] < count) errors.push(`Not enough copies of ${DEFINITIONS.find((c) => c.id === getVariant(id).definitionId).name} (${getVariant(id).rarity}).`);
   }
   return { valid: errors.length === 0, errors };
@@ -1796,7 +2093,8 @@ function shuffle(a, rng) {
 }
 function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
   if (![0, 1].includes(starter) || !LAYOUTS.some((l) => l.id === layout)) throw Error("Ung\xFCltige Partieauswahl.");
-  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).slice(0, 9), players = [0, 1].map((p) => {
+  let primeCount = 0;
+  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).filter((c) => !c.prime || primeCount++ < 1).slice(0, 9), players = [0, 1].map((p) => {
     const cards = shuffle(pool.map((c) => ({ id: c.ruleId, variantId: `${c.id}:common`, rarity: "common", uid: p + ":" + c.id, origin: p })), rng);
     return { hand: cards.slice(0, 5), deck: cards.slice(5), shifts: 1, flips: 0 };
   });
@@ -1820,7 +2118,7 @@ function sideValue(card, dir, rotation = card.rotation ?? 0) {
 }
 function strength(g, card, cell, dir, opponent) {
   const base = sideValue(card, dir), field = fieldAt(g, cell), fieldBonus = field?.element === cardOf(card).element ? field.bonus : 0, advantage = elementAdvantage(cardOf(card).element, cardOf(opponent).element, g.elementRules ?? 3) ? 1 : 0;
-  return { base, field: fieldBonus, element: advantage, total: base + fieldBonus + ((g.elementRules ?? 3) === 3 ? advantage : 0) };
+  return { base, field: fieldBonus, element: advantage, ...rankedStrength126(base, fieldBonus + ((g.elementRules ?? 3) === 3 ? advantage : 0)) };
 }
 function preview(g, { uid, cell, rotation = 0 }) {
   if (g.finished) throw Error("Die Runde ist beendet.");
@@ -1914,7 +2212,7 @@ function effectStrength(game, card, cell, dir, opponent, { attacking = false, ab
   const f = eventFieldAt(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
   const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const ability = attacking ? abilityAt(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS : 0;
-  return { base, field, element, ability, total: base + field + ability + ((game.elementRules ?? 3) === 3 ? element : 0) };
+  return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
 }
 function previewEffect(game, action) {
   const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
@@ -2031,7 +2329,7 @@ var SOLO_OPPONENTS84 = Object.freeze([
 
 // public/game/platform/deck-bridge.mjs
 function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = null } = {}) {
-  if (![1, 2].includes(round)) throw Error("Invalid round.");
+  if (!Number.isSafeInteger(round) || round < 1) throw Error("Invalid round.");
   const next = structuredClone(game);
   next.players = next.players.map((p, side) => {
     let state = next.seed * 53 + side * 8017 + 111 >>> 0;
@@ -2044,7 +2342,7 @@ function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = nu
       const candidates = deck.filter((c) => ({ oracle: "guard", brain: "hype", trust: "twist" })[c.id] === ability);
       if (candidates.length) candidates[Math.floor(random2() * candidates.length)].ability = ability;
     }
-    if (round === 2) state = (state ^ 2654435769) >>> 0;
+    if (round > 1) state = (state ^ Math.imul(round - 1, 2654435769)) >>> 0;
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(random2() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -2094,7 +2392,7 @@ function effectStrength2(game, card, cell, dir, opponent, { attacking = false, a
   const f = eventFieldAt2(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
   const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const ability = attacking ? abilityAt2(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive2(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS2 : 0;
-  return { base, field, element, ability, total: base + field + ability + ((game.elementRules ?? 3) === 3 ? element : 0) };
+  return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
 }
 function previewEffect2(game, action) {
   const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
@@ -2276,7 +2574,7 @@ function effectStrength3(game, card, cell, dir, opponent, { attacking = false, a
   const f = eventFieldAt3(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
   const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const ability = attacking ? abilityAt3(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive3(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS3 : 0;
-  return { base, field, element, ability, total: base + field + ability + ((game.elementRules ?? 3) === 3 ? element : 0) };
+  return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
 }
 function previewEffect3(game, action) {
   const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
@@ -2326,20 +2624,23 @@ function timeoutAction(game) {
 }
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-21.2";
+var BALANCE_PATCH94 = "alpha-2026-11-23.1";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
   revision: 1,
   catalog: CATALOG_VERSION,
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
+  nativeElementsOnly: true,
   elementTiesOnly: true,
   rotationLocked: true,
   turnMs: 9e4,
   handSize: 5,
   deckSize: 15,
-  maxMotifCopies: 3,
+  maxMotifCopies: 1,
+  maxPrimes: 1,
+  sRankElementOnly: true,
   abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60 },
-  cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null }))
+  cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);
 var hash = 0xcbf29ce484222325n;
@@ -2360,7 +2661,7 @@ function createAccountDuel({ deck, inventory, seed, starter, loadouts = ["hype-g
   return state;
 }
 function roundGame(state) {
-  const starter = state.round === 1 ? state.starter : 1 - state.starter;
+  const starter = seriesStarter113(state.starter, state.round);
   let game = createTacticsMatch({ seed: state.seed, starter, loadouts: state.loadouts });
   game = applyPortalDecks(game, state.deck.cards, state.loadouts.map((id) => LOADOUTS2[id]), { round: state.round });
   game.elementRules = state.elementRules ?? state.game?.elementRules ?? 3;
@@ -2397,8 +2698,8 @@ function advanceAccountDuel(state, input) {
     next.balance.current = balanceVersion94();
   }
   if (input.kind === "next") {
-    if (!next.game.finished || next.round !== 1) throw Error("Finish round one before the return round.");
-    next.round = 2;
+    if (!next.game.finished || series113(next.results).finished) throw Error("Finish this round before continuing, or start a new duel after two round wins.");
+    next.round++;
     if (next.balance) next.balance.roundStartedAt = Date.now();
     next.game = roundGame(next);
     return beginAccountRound(next);

@@ -1,3 +1,4 @@
+import {printedValue126} from '../platform/card-ranks126.mjs';
 import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import * as T from '../vendor/three.module.min.js';
 import {ALPHA_MARK,alphaSymbolSvg} from '../platform/edition36.mjs';
@@ -26,6 +27,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
  const add=(geometry,material,z=0)=>{const mesh=new T.Mesh(geometry,material);mesh.position.z=z;group.add(mesh);return mesh;};
  const load=async path=>{const texture=await new T.TextureLoader().loadAsync(new URL(path,import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return tex(texture);};
  const [image,back]=await Promise.all([load(p.asset),load('../assets/cards/frame-v21/memex-back.webp')]);
+ if(p.artRegion){const {x,y,w,h}=p.artRegion;image.repeat.set(w,h);image.offset.set(x,1-y-h);}
  if(p.artAtlas){const h=image.image.width/5/image.image.height;image.repeat.set(.2,h);image.offset.set(0,.6-h/2);}
  const frame=frames?.get('common')??await load('../assets/cards/frame-v21/navy-gold-frame.webp');
  const metal=mat(new T.MeshStandardMaterial({color:'#142a43',metalness:.65,roughness:.3}));
@@ -40,7 +42,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
  const numberTexture=n=>{
   if(!numberTextures.has(n))numberTextures.set(n,tex(canvasTexture((ctx,w)=>{
    ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${w*.86}px Arial,sans-serif`;
-   ctx.shadowColor='#fff0a0';ctx.shadowOffsetY=1;ctx.fillStyle='#17150d';ctx.fillText(String(n),w/2,w*.54);
+   ctx.shadowColor='#fff0a0';ctx.shadowOffsetY=1;ctx.fillStyle='#17150d';ctx.fillText(printedValue126(n),w/2,w*.54);
   })));
   return numberTextures.get(n);
  };
@@ -59,6 +61,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
   edition.position.set(ALPHA_MARK.x,FRAME_LAYOUT.titleY-ALPHA_MARK.titleOffset,.066);
  }
 
+ if(p.prime){const primeTexture=tex(canvasTexture((ctx,w)=>{ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='800 52px Arial';ctx.fillStyle='#f6d7a0';ctx.fillText('PRIME',w/2,w/2);},256));const prime=add(geo(new T.PlaneGeometry(.29,.29)),mat(new T.MeshBasicMaterial({map:primeTexture,transparent:true,depthWrite:false,toneMapped:false})),.067);prime.position.y=CARD_SPEC.socketY;}
  const elementTexture=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(p.element)));
  const element=add(geo(new T.PlaneGeometry(.245,.245)),mat(new T.MeshBasicMaterial({map:elementTexture,transparent:true,depthWrite:false,toneMapped:false})),.065);element.position.y=FRAME_LAYOUT.elementY;
  const accent=new T.LineLoop(geo(new T.BufferGeometry().setFromPoints(cardShape(1.007).getPoints().map(v=>new T.Vector3(v.x,v.y,.048)))),mat(new T.LineBasicMaterial({color:owner===1?'#ff5d72':'#55ed94',toneMapped:false})));accent.visible=owner!==null;group.add(accent);

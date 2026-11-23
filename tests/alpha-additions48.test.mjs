@@ -10,12 +10,12 @@ import {protectedCandidates,validAlphaPack} from '../public/game/platform/alpha-
 
 test('ten approved motifs have fifty unique rarity artworks, exact tested values and unlocked sandbox copies',async()=>{
  const approved=JSON.parse(await fs.readFile(new URL('./fixtures/alpha-values48.json',import.meta.url),'utf8'));
- assert.equal(ALPHA_ADDITIONS.length,10);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,425);
+ assert.equal(ALPHA_ADDITIONS.length,10);assert.equal(DEFINITIONS.length,95);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,475);
  const inventory=fullTestDeckInventory();
  for(const c of ALPHA_ADDITIONS){
   assert.deepEqual(c.values,approved.find(a=>a.id==='draft-'+c.id).values);assert.equal(c.ability,null);
   const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.id===`${c.id}:${v.rarity}`),hashes=[];assert.equal(variants.length,5);
-  for(const v of variants){assert.equal(v.edition,'alpha');assert.equal(inventory[v.id],3);assert.ok(protectedCandidates(v.rarity).some(p=>p.id===v.id));const image=await fs.readFile(new URL('../public'+v.image,import.meta.url));assert.ok(image.length>10000);hashes.push(createHash('sha256').update(image).digest('hex'));}
+  for(const v of variants){assert.equal(v.edition,'alpha');assert.equal(inventory[v.id],1);assert.ok(protectedCandidates(v.rarity).some(p=>p.id===v.id));const image=await fs.readFile(new URL('../public'+v.image,import.meta.url));assert.ok(image.length>10000);hashes.push(createHash('sha256').update(image).digest('hex'));}
   assert.equal(new Set(hashes).size,5,c.id+' needs five distinct artworks');
  }
  const deck=expansionTestDeck();assert.equal(deck.length,15);assert.equal(new Set(deck).size,15);assert.ok(ALPHA_ADDITIONS.every(c=>deck.includes(c.id+':common')));assert.ok(validateDeck(deck,inventory).valid);
@@ -41,7 +41,7 @@ test('Alpha catalog migration preserves account data; server boosters and crafti
   assert.ok(validAlphaPack(pack));assert.ok(pack.every(id=>ALPHA_ADDITIONS.some(c=>id.startsWith(c.id+':'))));
   await db.query("select public.dv_trade_card('99999999-9999-4999-8999-999999994802','craft','crying-cat:epic')");
   await assert.rejects(db.query("select public.dv_trade_card('99999999-9999-4999-8999-999999994803','craft','crying-cat:mythic')"),/booster exclusive/);
-  const deck=starterDeck().slice(1).concat('crying-cat:epic'),saved=(await db.query('select id from public.dv_decks limit 1')).rows[0].id;
+  const deck=['pepe','doge','roll-safe','harold','disaster-girl','confused'].flatMap(id=>Array(3).fill(id+':common')).slice(0,15).slice(1).concat('crying-cat:epic'),saved=(await db.query('select id from public.dv_decks limit 1')).rows[0].id;
   await db.query('select public.dv_save_deck($1,$2,$3)',[saved,'New Alpha deck',deck]);assert.deepEqual((await db.query('select cards from public.dv_decks where id=$1',[saved])).rows[0].cards,deck);
   await db.exec('reset role;set role anon');await assert.rejects(db.query("insert into public.dv_card_definitions(id,rule_id,name,element,edge_values) values('fake','fake','Fake','fire',array[7,7,7,7,7,7])"));
  }finally{await db.close();}

@@ -4,12 +4,12 @@ import {ALPHA_BOOSTER,ALPHA_ODDS,protectedCandidates,validAlphaPack,revealedSlot
 import {ALPHA_MARK,UNIVERSAL_CARD_BACK,alphaNameplateMarkup} from '../public/game/platform/edition36.mjs';
 const A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222',C='33333333-3333-4333-8333-333333333333';
 const request=n=>`99999999-9999-4999-8999-${String(n).padStart(12,'0')}`;
-test('Alpha pack rules: five cards, Silver minimum, three-copy lifetime protection and universal X back',()=>{
+test('Alpha pack rules: five cards, Silver minimum, one-copy lifetime protection and universal X back',()=>{
  assert.equal(ALPHA_BOOSTER.cards,5);assert.deepEqual(ALPHA_BOOSTER.prices,{pixels:100,shards:150});
- assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,425);assert.equal(VARIANTS.filter(v=>v.edition==='recruiter').length,2);assert.ok(DEFINITIONS.every(c=>c.edition==='alpha'));
+ assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,475);assert.equal(VARIANTS.filter(v=>v.edition==='recruiter').length,2);assert.ok(DEFINITIONS.every(c=>c.edition==='alpha'));
  for(const odds of Object.values(ALPHA_ODDS))assert.equal(odds.reduce((n,[,weight])=>n+weight,0),10000);
- const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));acquired['smudge:rare']=2;
- assert.deepEqual(protectedCandidates('rare',acquired).map(v=>v.id),['smudge:rare']);acquired['smudge:rare']=3;assert.equal(protectedCandidates('rare',acquired).length,85);
+ const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));acquired['smudge:rare']=0;
+ assert.deepEqual(protectedCandidates('rare',acquired).map(v=>v.id),['smudge:rare']);acquired['smudge:rare']=3;assert.equal(protectedCandidates('rare',acquired).length,95);
  assert.equal(validAlphaPack(['pepe:common','doge:common','smudge:common','confused:common','harold:rare']),true);
  assert.equal(validAlphaPack(Array(5).fill('pepe:common')),false);assert.equal(validAlphaPack(['fake']),false);
  assert.deepEqual(revealedSlots([4,2,2,0,9,-1,'1']),[0,2,4]);

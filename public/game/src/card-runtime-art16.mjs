@@ -13,7 +13,7 @@ import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prot
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.
 export async function createCardRuntime(renderer,{variants=null}={}){
  const elementTextures=new Map(await Promise.all(ELEMENT_IDS.map(async id=>{const t=await new T.TextureLoader().loadAsync('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(id)));t.colorSpace=T.SRGBColorSpace;return [id,t];})));
- const finishTexture=(t,profile,tier)=>{if(PROFILES[profile].artAtlas){const i=Object.keys(CARD_MATERIALS).indexOf(tier);const h=t.image.width/5/t.image.height;t.repeat.set(.2,h);t.offset.set(i/5,.6-h/2);}return t;};
+ const finishTexture=(t,profile,tier)=>{if(PROFILES[profile].artAtlas){const i=Object.keys(CARD_MATERIALS).indexOf(tier);const h=t.image.width/5/t.image.height;t.repeat.set(.2,h);t.offset.set(i/5,.6-h/2);}else if(PROFILES[profile].artRegion){const {x,y,w,h}=PROFILES[profile].artRegion;t.repeat.set(w,h);t.offset.set(x,1-y-h);}return t;};
  const frames=new Map(await Promise.all(Object.keys(CARD_MATERIALS).map(async key=>{const texture=await new T.TextureLoader().loadAsync(await materialFrameUrl(key));texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return [key,texture];})));
  const requested=variants===null?null:new Set(variants.map(id=>getVariant(id)?.definitionId).filter(Boolean));
  const profiles=Object.keys(CARD_PROFILES).filter(id=>requested===null||['pepe','doge','roll-safe'].includes(id)||requested.has(id));
@@ -25,7 +25,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
  const atlasBases=new Map(templates.filter(m=>m.profile.artAtlas).map(m=>[m.profile.id,m.artworkTexture]));
  async function loadArtwork(profile,tier){
   if(PROFILES[profile].artAtlas){const base=atlasBases.get(profile);if(!base)throw Error('Portrait atlas not prepared.');const texture=base.clone();texture.needsUpdate=true;return finishTexture(texture,profile,tier);}
-  const texture=await new T.TextureLoader().loadAsync(new URL(artworkFor(profile,tier),import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;return texture;
+  const texture=await new T.TextureLoader().loadAsync(new URL(artworkFor(profile,tier),import.meta.url).href);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;return finishTexture(texture,profile,tier);
  }
 
  await Promise.all(Object.entries(CARD_ART).filter(([profile])=>profiles.includes(profile)).flatMap(([profile,tiers])=>Object.keys(tiers).filter(t=>t!=='common'&&(variants===null||['pepe','doge','roll-safe'].includes(profile)||variants.includes(`${profile}:${t}`))).map(async tier=>{

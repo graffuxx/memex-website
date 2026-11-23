@@ -6,7 +6,7 @@ import {CATALOG,newGame,loadGame,cardOf} from '../public/game/src/rules.mjs';
 import {createBot96} from '../server/game/bot96.mjs';
 import {soloOpponent84} from '../public/game/platform/solo84.mjs';
 
-test('all AI styles use the published player pool, canonical values and 15-card/three-copy limits',()=>{
+test('all AI styles use the published player pool, canonical values and 15-card/singleton/one-Prime limits',()=>{
  const allowed=new Set(AI_VARIANTS107.map(v=>v.id)),player=starterDeck();
  for(let seed=0;seed<150;seed++){
   for(const cards of [createBot96(seed).deck.cards,...['balanced','pressure','mirror'].map(style=>soloOpponent84(style,player,seed))]){

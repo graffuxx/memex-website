@@ -14,11 +14,11 @@ test('crafting stops at Gold, every craft-dismantle cycle costs Echoes, and 5/2 
 });
 test('dismantling protects starter and deck copies using highest per-deck use, not the sum across decks',()=>{
  const decks=[{cards:starterDeck()},{cards:starterDeck()}];
- assert.equal(protectedCopies('pepe:common',decks),3);
+ assert.equal(protectedCopies('pepe:common',decks),1);
  assert.equal(tradeQuote('dismantle','pepe:common',{inventory:starterInventory(),decks}).allowed,false);
  assert.equal(tradeQuote('dismantle','pepe:common',{inventory:{'pepe:common':4},decks}).allowed,true);
  const saved=[{cards:['smudge:epic','smudge:epic']},{cards:['smudge:epic','smudge:epic']}];
- assert.equal(protectedCopies('smudge:epic',saved),2);
+ assert.equal(protectedCopies('smudge:epic',saved),1);
  assert.equal(tradeQuote('dismantle','smudge:epic',{inventory:{'smudge:epic':3},decks:saved}).allowed,true);
- assert.equal(tradeQuote('dismantle','smudge:epic',{inventory:{'smudge:epic':2},decks:saved}).allowed,false);
+ assert.equal(tradeQuote('dismantle','smudge:epic',{inventory:{'smudge:epic':1},decks:saved}).allowed,false);
 });

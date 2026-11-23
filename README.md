@@ -27,17 +27,23 @@ Runtime patch baseline: Next.js 16.0.11, React/React DOM 19.1.10.
   See [payment configuration](docs/shard-payments81.md). Live payments remain gated.
 
 `public/game/platform/catalog.mjs` is the shared identity, variant and deck contract.
-The SQL seed, React collection and game adapter use the same identifiers. Starter
-allocation is provisional: six common copies per identity; default deck five each.
-Rarity is cosmetic. Only three distinct gameplay identities currently have artwork.
-The alpha deals five cards from 15 and allows nine placements per side, leaving six
-cards unused. The paired round reuses draw order and reverses initiative.
+The SQL seed, React collection and game adapter use the same identifiers. New accounts
+start with 15 unique common motifs. The alpha deals five cards from 15 and allows
+nine placements per side, leaving six cards unused. Return rounds reshuffle.
 
 ## Current game status
 
-The Alpha catalog now contains 85 motifs with five elements and five cosmetic
-finishes (2,125 variants). Decks have exactly 15 owned cards, at most three copies
-per motif. Registered players receive ten verified-email welcome boosters once.
+The Alpha catalog contains 95 motifs, each in its native element with five cosmetic
+finishes (475 Alpha variants, plus two recruiter rewards). Ten motifs are Prime cards,
+with one S-ranked side each. Decks require exactly 15 different owned motifs and at
+most one Prime, across all finishes. S beats numeric edges and only loses to a
+stronger-element S. Numeric field and ability bonuses cannot create an S rank.
+Registered players receive ten verified-email welcome boosters once. Duplicate
+protection prioritizes variants never acquired before within each rolled finish;
+only after that finish is complete can it produce duplicates. Dismantling does not
+reset acquisition history. Apply `202611230001_primes_singleton126.sql` after the
+native-element migration. Existing ownership, wallets and active matches remain;
+old duplicate decks must be explicitly rebuilt before starting a new duel.
 Account-backed AI rounds use the trusted match service for 5/2 Pixel rewards.
 Confirmed wins also grant 100 XP exactly once through the trusted reward ledger.
 Level `L` starts at `250*(L-1)+5*(L-1)*(L-2)` XP; frames unlock at levels

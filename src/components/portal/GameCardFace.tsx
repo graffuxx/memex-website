@@ -1,4 +1,5 @@
 'use client';
+import {printedValue126} from '../../../public/game/platform/card-ranks126.mjs';
 import {ELEMENTS} from '../../../public/game/platform/elements53.mjs';
 import {useId,useEffect,useState,useRef,type CSSProperties} from 'react';
 import CardParticleEffects from './CardParticleEffects';
@@ -7,7 +8,7 @@ import {alphaNameplateMarkup} from '../../../public/game/platform/edition36.mjs'
 import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 
 type Props={
- card:{name:string;short?:string;element:string;values:readonly number[]};
+ card:{name:string;short?:string;prime?:boolean;element:string;values:readonly number[]};
  variant:{element?:string;image:string;rarity:string;edition?:string|null;artOffsetY?:number;artRegion?:{x:number;y:number;w:number;h:number}|null};
  color:string;
  compact?:boolean;
@@ -34,7 +35,7 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
  const title=(card.short??card.name).toUpperCase();
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
  return <div ref={face} className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
-  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.join(', ')}${(variant.edition==='alpha'||variant.edition==='recruiter')?' · Alpha edition':''}`}>
+  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.map(printedValue126).join(', ')}${(variant.edition==='alpha'||variant.edition==='recruiter')?' · Alpha edition':''}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
     <linearGradient id={foilId} x1="0" y1="1" x2="1" y2="0"><stop offset="20%" stopColor={color} stopOpacity="0"/><stop offset="48%" stopColor={color} stopOpacity=".12"/><stop offset="52%" stopColor="#fff" stopOpacity=".22"/><stop offset="75%" stopColor={color} stopOpacity="0"/></linearGradient>
@@ -46,9 +47,10 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
     {variant.rarity!=='common'&&<rect className="duelverse-card__foil" style={{animationPlayState:effectsVisible?'running':'paused'}} x="-1" y="-1" width="2" height="2" fill={`url(#${foilId})`}/>}
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
+   {card.prime&&<text x="0" y="-.748" textAnchor="middle" dominantBaseline="central" fontFamily="Arial,sans-serif" fontSize=".06" fontWeight="800" fill="#f6d7a0">PRIME</text>}
    <polygon className="duelverse-card__rarity" points={hex(.983)} fill="none" stroke={color} strokeWidth=".009"/>
    <g fill="#17150d" fontFamily="Arial,sans-serif" fontWeight="800" textAnchor="middle" dominantBaseline="central">
-    {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{card.values[i]}</text>)}
+    {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{printedValue126(card.values[i])}</text>)}
     <text x="0" y={-FRAME_LAYOUT.titleY+.004} fontSize=".105" textLength={title.length>10?.66:undefined} lengthAdjust="spacingAndGlyphs">{title}</text>
    </g>
    {(variant.edition==='alpha'||variant.edition==='recruiter')&&<g dangerouslySetInnerHTML={{__html:alphaNameplateMarkup(FRAME_LAYOUT.titleY)}}/>}

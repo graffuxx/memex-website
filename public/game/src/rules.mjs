@@ -1,3 +1,4 @@
+import {rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENTS as FIVE_ELEMENTS,normalizeElement,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {DEFINITIONS,getVariant} from '../platform/catalog.mjs';
 export const VERSION=1;
@@ -24,7 +25,7 @@ function random(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 export function newGame({seed=12345,layout='core',starter=0}={}){
  if(![0,1].includes(starter)||!LAYOUTS.some(l=>l.id===layout))throw Error('Ungültige Partieauswahl.');
- const rng=random(seed),pool=shuffle([...DEFINITIONS.filter(c=>c.edition==='alpha')],rng).slice(0,9),players=[0,1].map(p=>{const cards=shuffle(pool.map(c=>({id:c.ruleId,variantId:`${c.id}:common`,rarity:'common',uid:p+':'+c.id,origin:p})),rng);return {hand:cards.slice(0,5),deck:cards.slice(5),shifts:1,flips:0};});
+ let primeCount=0;const rng=random(seed),pool=shuffle([...DEFINITIONS.filter(c=>c.edition==='alpha')],rng).filter(c=>!c.prime||primeCount++<1).slice(0,9),players=[0,1].map(p=>{const cards=shuffle(pool.map(c=>({id:c.ruleId,variantId:`${c.id}:common`,rarity:'common',uid:p+':'+c.id,origin:p})),rng);return {hand:cards.slice(0,5),deck:cards.slice(5),shifts:1,flips:0};});
  return {version:VERSION,elementRules:5,seed,layout,starter,turn:starter,placements:0,board:{},block:LAYOUTS.find(l=>l.id===layout).block,players,events:[{cell:'-1,1',element:'storm'},{cell:'1,-1',element:'water'}],history:[],last:null,winner:null,finished:false};
 }
 export function neighbors(id){const c=CELLS.find(c=>c.id===id);return c?DIRECTIONS.map(([q,r],dir)=>({id:(c.q+q)+','+(c.r+r),dir})).filter(n=>cellSet.has(n.id)):[];}
@@ -33,7 +34,7 @@ export const scores=g=>[0,1].map(p=>Object.values(g.board).filter(c=>c.controlle
 export const eventPhase=g=>g.placements>=12?2:g.placements>=6?1:0;
 export function fieldAt(g,cell){const f=g.events.find(f=>f.cell===cell);if(!f)return null;const phase=eventPhase(g);return {element:phase===2?({storm:'water',water:'storm'}[f.element]):f.element,bonus:phase===1?2:1};}
 export function sideValue(card,dir,rotation=card.rotation??0){return cardOf(card).values[((dir-rotation)%6+6)%6];}
-export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,total:base+fieldBonus+((g.elementRules??3)===3?advantage:0)};}
+export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,...rankedStrength126(base,fieldBonus+((g.elementRules??3)===3?advantage:0))};}
 export function preview(g,{uid,cell,rotation=0}){
  if(g.finished)throw Error('Die Runde ist beendet.');
  const card=g.players[g.turn].hand.find(c=>c.uid===uid);

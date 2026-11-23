@@ -1,3 +1,4 @@
+import {rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=tie-break-63';
 
@@ -45,7 +46,7 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
  const f=eventFieldAt(game,cell),base=sideValue(card,dir),field=f?.type==='resonance'&&f.element===cardOf(card).element?1:f?.type==='crossfire'&&f.directions.includes(dir)?1:0;
  const element=elementAdvantage(cardOf(card).element,cardOf(opponent).element,game.elementRules??3)?1:0;
  const ability=attacking?(abilityAt(game,card,cell)==='hype'&&dir===abilityDirection?1:0):(guardActive(game,card,cell)&&dir===card.guardDirection?GUARD_BONUS:0);
- return {base,field,element,ability,total:base+field+ability+((game.elementRules??3)===3?element:0)};
+ return {base,field,element,ability,...rankedStrength126(base,field+ability+((game.elementRules??3)===3?element:0))};
 }
 // All effects resolve on a copy. Merely aiming or cancelling can never alter the board.
 export function previewEffect(game,action){

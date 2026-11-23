@@ -11,7 +11,7 @@ export function roundPixels(result){if(!Object.hasOwn(ROUND_PIXELS,result))throw
 export function protectedCopies(variantId,decks=[]){
  const variant=getVariant(variantId);if(!variant)throw Error('Unknown card.');
  const starter=variant.rarity==='common'&&STARTER_IDS.includes(variant.definitionId)?STARTER_COPIES:0;
- return Math.max(starter,...decks.map(deck=>countCards(deck.cards)[variantId]??0));
+ return Math.min(1,Math.max(starter,...decks.map(deck=>countCards(deck.cards)[variantId]??0)));
 }
 /** @param {'craft'|'dismantle'} kind @param {string} variantId @param {{inventory?:Record<string,number>,echoes?:number,decks?:{cards:string[]}[]}} [options] */
 export function tradeQuote(kind,variantId,{inventory={},echoes=0,decks=[]}={}){

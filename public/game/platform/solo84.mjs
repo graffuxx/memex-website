@@ -23,11 +23,12 @@ export function prepareSolo84(deck,inventory,settings){
 export function soloOpponent84(style,cards,seed=1){
  if(style==='mirror'){if(!validateDeck(cards,countCards(cards)).valid)throw Error('Mirror opponent needs a legal 15-card deck.');return [...cards];}
  let state=seed>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
- const base=['pepe','doge','roll-safe'],pool=DEFINITIONS.filter(c=>!base.includes(c.id)&&(style!=='pressure'||Math.max(...c.values)>=6));
+ const pool=DEFINITIONS.filter(c=>!c.prime&&(style!=='pressure'||Math.max(...c.values)>=6));
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
- const motifs=ELEMENT_IDS.map(element=>DEFINITIONS.find(c=>base.includes(c.id)&&c.element===element)??pool.find(c=>c.element===element)).filter(Boolean).map(c=>c.id);
- if(motifs.length!==5)return starterDeck();
- return Array.from({length:15},(_,i)=>VARIANTS.find(v=>v.definitionId===motifs[Math.floor(i/3)]&&v.rarity==='common').id);
+ const selected=ELEMENT_IDS.flatMap(element=>pool.filter(c=>c.element===element).slice(0,3));
+ if(selected.length!==15)return starterDeck();
+ if(random()<.5){const primes=DEFINITIONS.filter(c=>c.prime);if(primes.length){const prime=primes[Math.floor(random()*primes.length)],index=selected.findIndex(c=>c.element===prime.element);selected[index]=prime;}}
+ return selected.map(c=>VARIANTS.find(v=>v.definitionId===c.id&&v.rarity==='common').id);
 }
 // All solo practice is local and cannot be used as a currency reward claim.
 export const localSolo84=deck=>Boolean(soloSettings84(deck?.practice));

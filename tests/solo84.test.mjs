@@ -19,9 +19,9 @@ test('practice snapshots validate 15 cards, survive handoff and never alter save
  assert.throws(()=>prepareSolo84({cards:cards.slice(0,14)},inventory,{mode:'training'}),/exactly 15/);assert.throws(()=>prepareSolo84({cards}, {},{mode:'training'}),/Not enough/);
  assert.equal(soloSettings84({mode:'ranked'}),null);assert.equal(localSolo84({practice:null}),false);assert.deepEqual(soloSettings84({mode:'training',difficulty:'injected',opponent:'unknown',timed:'true'}),{mode:'training',difficulty:'standard',opponent:'balanced',timed:false});
 });
-test('all opponent styles use exactly 15 legal cards, respect three-copy limits, reproduce seeds and keep mirror finishes/elements intact',()=>{
+test('all opponent styles use exactly 15 legal cards, respect singleton/one-Prime limits, reproduce seeds and keep mirror finishes/elements intact',()=>{
  const cards=starterDeck(),all=fullTestDeckInventory();
- for(const seed of [1,42,1234])for(const {id}of SOLO_OPPONENTS84){const deck=soloOpponent84(id,cards,seed);assert.equal(validateDeck(deck,all).valid,true);assert.ok(Object.values(countMotifs(deck)).every(n=>n<=3));assert.deepEqual(deck,soloOpponent84(id,cards,seed));if(id==='mirror')assert.deepEqual(deck,cards);else assert.equal(new Set(deck.map(id=>getVariant(id).element)).size,5);}
+ for(const seed of [1,42,1234])for(const {id}of SOLO_OPPONENTS84){const deck=soloOpponent84(id,cards,seed);assert.equal(validateDeck(deck,all).valid,true);assert.ok(Object.values(countMotifs(deck)).every(n=>n<=1));assert.deepEqual(deck,soloOpponent84(id,cards,seed));if(id==='mirror')assert.deepEqual(deck,cards);else assert.equal(new Set(deck.map(id=>getVariant(id).element)).size,5);}
  assert.notDeepEqual(soloOpponent84('balanced',cards,1),soloOpponent84('balanced',cards,42));
  const fancy=cards.map(id=>id.replace(':common',':mythic'));assert.deepEqual(soloOpponent84('mirror',fancy,5),fancy);
 });

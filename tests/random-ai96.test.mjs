@@ -54,7 +54,7 @@ test('empty queue fallback, human priority, cancel, reconnect, first-to-two AI r
 });
 test('a proved historic Random AI win gets quest credit and 100 XP once, never referral or skill-title credit',async()=>{
  const db=await setup(true);try{
-  const did=(await db.query('select id from public.dv_decks where user_id=$1',[a])).rows[0].id,bot=createBot96(22);await db.exec('set role service_role');const id=await rpc(db,'dv_match_join90',{p_user:a,p_kind:'random',p_deck:did});await db.exec(`reset role;update public.dv_pvp90 set created_at=now()-interval '36 seconds' where id='${id}';set role service_role`);
+  const did=(await db.query('select id from public.dv_decks where user_id=$1',[a])).rows[0].id,bot={...createBot96(0),deck:{name:'Historic AI fixture',cards:["headshot:common","spinning-seal:epic","screaming-marmot:rare","capybara-chill:common","to-the-moon:rare","success-kid:common","npc:epic","side-eye:common","grumpy-cat:common","blue-screen:common","duck-float:epic","math-lady:common","nyan-cat:epic","crying-wojak:common","flying-spaghetti:rare"]}};await db.exec('set role service_role');const id=await rpc(db,'dv_match_join90',{p_user:a,p_kind:'random',p_deck:did});await db.exec(`reset role;update public.dv_pvp90 set created_at=now()-interval '36 seconds' where id='${id}';set role service_role`);
   const row=await rpc(db,'dv_match_fill_ai96',{p_user:a,p_id:id,p_deck:bot.deck,p_identity:bot.identity});let path;
   for(let seed=1;seed<=12&&!path;seed++){
    let s=createPvp90([row.host_deck,row.guest_deck],seed,0);s.bot96={seed:22,nextAt:0};const steps=[s];for(const [side,move]of [[0,{kind:'gesture',value:'rock'}],[1,{kind:'gesture',value:'scissors'}],[0,{kind:'starter',side:0}]]){s=advancePvp90(s,side,move,0);steps.push(s);}

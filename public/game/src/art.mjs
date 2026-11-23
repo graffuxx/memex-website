@@ -1,3 +1,4 @@
+import {printedValue126} from '../platform/card-ranks126.mjs';
 import {ELEMENTS,cardOf,sideValue} from './rules.mjs';
 export const hex=(cx,cy,r)=>Array.from({length:6},(_,i)=>{const a=(i*60-30)*Math.PI/180;return `${cx+Math.cos(a)*r},${cy+Math.sin(a)*r}`;}).join(' ');
 const eye=(x,y,r=2)=>`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*1.1}" fill="#101325"/>`;
@@ -14,6 +15,6 @@ export function portrait(card){
 }
 export function cardSVG(card,{r=53,stats=true,owner=card.controller,ghost=false,unique='card'}={}){
  const c=cardOf(card),e=ELEMENTS[c.element],accent=owner===0?'#74d7ef':owner===1?'#fa997d':'#dfc48a';
- const nums=stats?Array.from({length:6},(_,dir)=>{const a=dir*Math.PI/3,x=Math.cos(a)*r*.74,y=Math.sin(a)*r*.74;return `<circle cx="${x}" cy="${y}" r="${r*.145}" fill="#101323" stroke="${accent}55" stroke-width=".8"/><text x="${x}" y="${y+.5}" dominant-baseline="middle" text-anchor="middle" fill="#f5eefc" font-family="Barlow,system-ui,sans-serif" font-weight="700" font-size="${r*.26}">${sideValue(card,dir)}</text>`;}).join(''):'';
+ const nums=stats?Array.from({length:6},(_,dir)=>{const a=dir*Math.PI/3,x=Math.cos(a)*r*.74,y=Math.sin(a)*r*.74;return `<circle cx="${x}" cy="${y}" r="${r*.145}" fill="#101323" stroke="${accent}55" stroke-width=".8"/><text x="${x}" y="${y+.5}" dominant-baseline="middle" text-anchor="middle" fill="#f5eefc" font-family="Barlow,system-ui,sans-serif" font-weight="700" font-size="${r*.26}">${printedValue126(sideValue(card,dir))}</text>`;}).join(''):'';
  return `<g${ghost?' opacity=".65"':''}><polygon points="${hex(0,3,r)}" fill="#050b18aa"/><polygon points="${hex(0,0,r)}" fill="#29283d" stroke="${accent}" stroke-width="2.5"/><polygon points="${hex(0,0,r-5)}" fill="${e.color}22" stroke="${e.color}44" stroke-width="1"/><g transform="translate(0 0) scale(${r*.0115})">${portrait(card)}</g>${nums}<circle cx="0" cy="${r*.69}" r="${r*.12}" fill="#211e35" stroke="${e.color}" stroke-width="1"/><text x="0" y="${r*.69+1}" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="${r*.2}" fill="${e.color}">${e.symbol}</text></g>`;
 }

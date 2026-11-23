@@ -9,7 +9,7 @@ import {protectedCandidates} from '../public/game/platform/alpha-booster36.mjs';
 
 test('all 12 approved value sets have five distinct artworks, cosmetic-only stats and Alpha membership',async()=>{
  const approved=JSON.parse(await fs.readFile(new URL('./fixtures/alpha-values45.json',import.meta.url),'utf8'));
- assert.equal(NEW_ALPHA_CARDS.length,12);assert.equal(DEFINITIONS.length,85);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,425);
+ assert.equal(NEW_ALPHA_CARDS.length,12);assert.equal(DEFINITIONS.length,95);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,475);
  for(const c of NEW_ALPHA_CARDS){
   assert.deepEqual(c.values,approved.find(a=>a.id==='draft-'+c.id).values);assert.equal(c.ability,null);
   const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.id===`${c.id}:${v.rarity}`),hashes=[];assert.equal(variants.length,5);
@@ -43,7 +43,7 @@ test('catalog expansion preserves accounts and old decks; server boosters and cr
   await db.query("select public.dv_trade_card('99999999-9999-4999-8999-999999994502','craft','hodl:epic')");
   assert.ok(Number((await db.query("select quantity from public.dv_inventory where variant_id='hodl:epic'")).rows[0].quantity)>=1);
   await assert.rejects(db.query("select public.dv_trade_card('99999999-9999-4999-8999-999999994503','craft','hodl:mythic')"),/booster exclusive/);
-  const deck=starterDeck().slice(1).concat('hodl:epic');const saved=(await db.query('select id from public.dv_decks limit 1')).rows[0].id;
+  const deck=['pepe','doge','roll-safe','harold','disaster-girl','confused'].flatMap(id=>Array(3).fill(id+':common')).slice(0,15).slice(1).concat('hodl:epic');const saved=(await db.query('select id from public.dv_decks limit 1')).rows[0].id;
   await db.query('select public.dv_save_deck($1,$2,$3)',[saved,'Alpha expansion deck',deck]);assert.deepEqual((await db.query('select cards from public.dv_decks where id=$1',[saved])).rows[0].cards,deck);
   await db.exec('reset role;set role anon');await assert.rejects(db.query("insert into public.dv_card_definitions(id,rule_id,name,element,edge_values) values('fake','fake','Fake','fire',array[7,7,7,7,7,7])"));
  }finally{await db.close();}

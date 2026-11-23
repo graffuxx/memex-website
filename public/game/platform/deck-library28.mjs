@@ -1,5 +1,5 @@
 import {ELEMENT_IDS} from './elements53.mjs';
-import {DECK_SIZE,MAX_MOTIF_COPIES,countMotifs,DEFINITIONS,RARITIES,getVariant,originalVariantId116,originalCards116,starterDeck,countCards} from './catalog.mjs';
+import {DECK_SIZE,MAX_MOTIF_COPIES,deckAddError126,countMotifs,DEFINITIONS,RARITIES,getVariant,originalVariantId116,originalCards116,starterDeck,countCards} from './catalog.mjs';
 export const DECK_LIBRARY_LIMIT=10;
 export const LEGACY_GUEST_DECK_KEY='duelverse.guest-deck.v1';
 export const libraryKey=(source,userId='')=>`duelverse.deck-library.v1.${source==='account'?'account.'+userId:source}`;
@@ -53,7 +53,7 @@ export function addDeckCard(cards,id,inventory){
  if(!getVariant(id))throw Error('Unknown card.');
  if(originalVariantId116(id)!==id)throw Error('This element variant has retired. Use the original card.');
  if(cards.length>=DECK_SIZE)throw Error('Your deck is full. Remove a card first.');
- if((countMotifs(cards)[getVariant(id).definitionId]??0)>=MAX_MOTIF_COPIES)throw Error('Maximum 3 copies of this meme per deck, across all finishes.');
+ const limitError=deckAddError126(cards,id);if(limitError)throw Error(limitError);
  if((countCards(cards)[id]??0)>=(inventory[id]??0))throw Error('All available copies are already in this deck.');
  return [...cards,id];
 }

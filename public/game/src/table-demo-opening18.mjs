@@ -1,3 +1,4 @@
+import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
@@ -74,7 +75,7 @@ const profile=c=>({...CARD_PROFILES[DEMO_PROFILES[c.id]],element:cardOf(c).eleme
 function selectedCard(){return game.players[0].hand.find(c=>c.uid===selected);}
 function action(){return {uid:selected,cell:target,rotation,abilityDirection,twistCell};}
 function plan(){if(mode!=='card'||!selected||!target||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
-function detailStrength(s){return `${s.total} (Basis ${s.base}${s.field?' + Feld '+s.field:''}${(game.elementRules??3)===3&&s.element?' + Element '+s.element:''}${s.ability?' + Fähigkeit '+s.ability:''})`;}
+function detailStrength(s){if(s.rank==='S')return 'S (S-Rang; Zahlenboni ohne Wirkung)';return `${s.total} (Basis ${printedValue126(s.base)}${s.field?' + Feld '+s.field:''}${(game.elementRules??3)===3&&s.element?' + Element '+s.element:''}${s.ability?' + Fähigkeit '+s.ability:''})`;}
 function render(){
  const s=scores(game),p=plan(),card=selectedCard(),shiftValid=mode==='shift'&&moveTargets(game).includes(target);
  for(const side of [0,1]){$('score'+side).textContent=s[side];$('stock'+side).textContent=game.players[side].hand.length+' Hand · '+game.players[side].deck.length+' Deck';}
@@ -98,7 +99,7 @@ function render(){
  else{$('statusTitle').textContent='Karte wählen oder aufs Feld ziehen.';$('statusDetail').textContent='';}
  const described=card??(inspect?game.board[inspect]:null)??game.players[0].hand.find(c=>c.uid===hover);$('rarityInfo').hidden=!described;if(described){const r=rarityOf(described);$('rarityInfo').style.setProperty('--rarity-color',r.color);$('rarityName').textContent=r.mark+' · '+r.label;$('rarityFinish').textContent=r.finish;}
  $('controls').dataset.context=busy||card||inspect||mode==='shift'||game.finished?'active':'idle';
- $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):inspect&&game.board[inspect]?'Basiswerte O / SO / SW / W / NW / NO: '+DIRECTION_NAMES.map((_,d)=>sideValue(game.board[inspect],d)).join(' / '):'';
+ $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.rank==='S'||c.defend.rank==='S'?(c.attack.rank===c.defend.rank?' = ':c.attack.rank==='S'?' > ':' < '):c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):inspect&&game.board[inspect]?'Basiswerte O / SO / SW / W / NW / NO: '+DIRECTION_NAMES.map((_,d)=>printedValue126(sideValue(game.board[inspect],d))).join(' / '):'';
  syncClock();
  view?.update(game,{selected,target,hover,busy,plan:p,mode,twistCell,inspect,abilityDirection});
 }
