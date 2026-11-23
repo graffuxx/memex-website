@@ -1,4 +1,4 @@
-import {validateDeck,countCards,starterDeck} from './catalog.mjs';
+import {validateDeck,countCards,starterDeck,MAX_ICONICS} from './catalog.mjs?v=booster-classes-140';
 import {ELEMENT_IDS} from './elements53.mjs';
 import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from './ai-pool107.mjs';
 export const SOLO_LEVELS84=Object.freeze([
@@ -28,7 +28,12 @@ export function soloOpponent84(style,cards,seed=1){
  const selected=ELEMENT_IDS.flatMap(element=>pool.filter(c=>c.element===element).slice(0,3));
  if(selected.length!==15)return starterDeck();
  if(random()<.5){const primes=DEFINITIONS.filter(c=>c.prime);if(primes.length){const prime=primes[Math.floor(random()*primes.length)],index=selected.findIndex(c=>c.element===prime.element);selected[index]=prime;}}
- if(random()<.8){const iconics=DEFINITIONS.filter(c=>c.iconic);if(iconics.length){const iconic=iconics[Math.floor(random()*iconics.length)],index=selected.findIndex(c=>!c.prime&&c.element===iconic.element);selected[index]=iconic;}}
+ const iconics=DEFINITIONS.filter(card=>card.iconic);
+ for(let slot=0;slot<MAX_ICONICS&&iconics.length&&random()<(slot===0?.8:.35);slot++){
+  const [iconic]=iconics.splice(Math.floor(random()*iconics.length),1);
+  const index=selected.findIndex(card=>!card.prime&&!card.iconic&&card.element===iconic.element);
+  if(index>=0)selected[index]=iconic;
+ }
  return selected.map(c=>VARIANTS.find(v=>v.definitionId===c.id&&v.rarity==='common').id);
 }
 // All solo practice is local and cannot be used as a currency reward claim.

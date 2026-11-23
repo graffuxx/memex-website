@@ -1,4 +1,4 @@
-import {STARTER_IDS,STARTER_COPIES,getVariant,countCards} from './catalog.mjs';
+import {STARTER_IDS,STARTER_COPIES,DEFINITIONS,getVariant,countCards} from './catalog.mjs';
 // Shards: purchased currency. Pixels: round rewards and boosters. Echoes: dismantling and crafting.
 export const RESOURCE_NAMES=Object.freeze({premium:'Shards',earned:'Pixels',crafting:'Echoes'});
 export const BOOSTER_OFFER=Object.freeze({cards:5,pixels:100,shards:150,minimumFinish:'rare',active:true});
@@ -19,7 +19,8 @@ export function tradeQuote(kind,variantId,{inventory={},echoes=0,decks=[]}={}){
  const owned=inventory[variantId]??0,reserved=protectedCopies(variantId,decks);
  if(variant.edition==='recruiter')return {allowed:false,echoes:null,owned,reserved:owned,reason:'Permanent referral reward'};
  if(kind==='craft'){
-  const cost=CRAFT_COST[variant.rarity];
+  const card=DEFINITIONS.find(definition=>definition.id===variant.definitionId);
+  const cost=card?.prime||card?.iconic?undefined:CRAFT_COST[variant.rarity];
   return {allowed:cost!==undefined&&echoes>=cost&&owned<100000,echoes:cost??null,owned,reserved,reason:cost===undefined?'Booster exclusive':owned>=100000?'Collection limit reached':echoes<cost?'Not enough Echoes':''};
  }
  if(kind==='dismantle')return {allowed:owned>reserved,echoes:DISMANTLE_VALUE[variant.rarity],owned,reserved,reason:owned<=reserved?(reserved?'Protected by a starter set or saved deck':'No spare copy'):''};

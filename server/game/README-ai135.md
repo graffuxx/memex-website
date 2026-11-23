@@ -7,7 +7,7 @@ integration of the approach described by Cowling, Powley and Whitehouse (2012),
 DOI `10.1109/TCIAIG.2012.2200894`; it does not import OpenSpiel or a pretrained model.
 
 Each simulation samples an unknown opponent deck from released native motifs,
-respecting revealed cards, singleton, one-Iconic and one-Prime limits. The bot knows its own
+respecting revealed cards, singleton, two-Iconic and one-Prime limits. The bot knows its own
 saved deck composition, but its draw order is independently sampled. Search nodes
 contain public board state and the observing bot's hand. Simulation moves resolve
 through the same `placeEffect` rules as authoritative moves. This release searches

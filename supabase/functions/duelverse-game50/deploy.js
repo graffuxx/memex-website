@@ -2671,7 +2671,7 @@ function starterDeck() {
   return STARTER_IDS.map((id) => `${id}:common`);
 }
 var MAX_PRIMES = 1;
-var MAX_ICONICS = 1;
+var MAX_ICONICS = 2;
 function countIconics(cards) {
   return cards.filter((id) => DEFINITIONS.find((c) => c.id === getVariant(id)?.definitionId)?.iconic).length;
 }
@@ -2696,7 +2696,7 @@ function validateDeck(cards, inventory) {
   if (!Array.isArray(cards) || cards.length !== DECK_SIZE) errors.push(`Your deck needs exactly ${DECK_SIZE} cards.`);
   if (!Array.isArray(cards)) return { valid: false, errors };
   if (countPrimes(cards) > MAX_PRIMES) errors.push("Maximum 1 Prime per deck, across all finishes.");
-  if (countIconics(cards) > MAX_ICONICS) errors.push("Maximum 1 Iconic per deck, across all finishes.");
+  if (countIconics(cards) > MAX_ICONICS) errors.push(`Maximum ${MAX_ICONICS} Iconics per deck, across all finishes.`);
   for (const [id, count] of Object.entries(countMotifs(cards))) if (count > MAX_MOTIF_COPIES) errors.push(`${DEFINITIONS.find((c) => c.id === id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, across all finishes.`);
   for (const [id, count] of Object.entries(countCards(cards))) {
     if (!getVariant(id)) errors.push("This deck contains an unknown card.");
@@ -2796,7 +2796,7 @@ function shuffle(a, rng) {
 function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
   if (![0, 1].includes(starter) || !LAYOUTS.some((l) => l.id === layout)) throw Error("Ung\xFCltige Partieauswahl.");
   let primeCount = 0, iconicCount = 0;
-  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).filter((c) => (!c.prime || primeCount++ < 1) && (!c.iconic || iconicCount++ < 1)).slice(0, 9), players = [0, 1].map((p) => {
+  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).filter((c) => (!c.prime || primeCount++ < MAX_PRIMES) && (!c.iconic || iconicCount++ < MAX_ICONICS)).slice(0, 9), players = [0, 1].map((p) => {
     const cards = shuffle(pool.map((c) => ({ id: c.ruleId, variantId: `${c.id}:common`, rarity: "common", uid: p + ":" + c.id, origin: p })), rng);
     return { hand: cards.slice(0, 5), deck: cards.slice(5), shifts: 1, flips: 0 };
   });
@@ -3015,6 +3015,35 @@ function createTacticsMatch({ loadouts = ["hype-guard", "hype-twist"], seed = 20
   if (swap) game.players.reverse();
   return game;
 }
+
+// public/game/platform/catalog.mjs?v=booster-classes-140
+var RARITIES2 = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
+var DEFINITIONS2 = Object.freeze([
+  { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
+  { id: "doge", name: "Doge", short: "Doge", ruleId: "brain", element: "fire", values: [5, 2, 5, 2, 5, 5], ability: "hype", quote: "Such strategy. Much wow.", image: "/game/assets/cards/frame-v21/swollen-doge.webp" },
+  { id: "roll-safe", name: "Roll Safe", short: "Roll Safe", ruleId: "trust", element: "stone", values: [5, 5, 5, 3, 3, 3], ability: "twist", quote: "Can\u2019t lose if you think ahead.", image: "/game/assets/cards/v04/roll-safe.webp" },
+  ...EXPANSION_CARDS,
+  ...PRIME_CARDS,
+  ...ICONIC_CARDS136
+].map((c) => Object.freeze({ ...c, category: cardCategory131(c.id), iconic: cardCategory131(c.id) === "iconic", prime: "prime" in c ? Boolean(c.prime) : false, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
+assertSetCatalog131(DEFINITIONS2);
+var STARTER_IDS2 = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "confused", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "bad-luck-brian", "gigachad", "stonks", "trollface"]);
+var UNSORTED_VARIANTS2 = DEFINITIONS2.flatMap((card) => ELEMENT_IDS2.flatMap((element) => RARITIES2.map((rarity) => Object.freeze({
+  id: `${card.id}:${rarity.id}${element === card.element ? "" : ":" + element}`,
+  definitionId: card.id,
+  element,
+  rarity: rarity.id,
+  edition: card.edition,
+  image: card.prime || card.iconic ? `/game/assets/cards/${card.artDirectory ?? "primes-v126"}/${card.id}-${rarity.id}.webp` : card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+  artOffsetY: card.artOffsetY ?? 0,
+  artRegion: card.artRegion ?? (card.artAtlas ? Object.freeze({ x: RARITIES2.findIndex((r) => r.id === rarity.id) / 5, ...ATLAS_REGIONS[card.id] }) : null)
+}))));
+var definitionOrder2 = new Map(DEFINITIONS2.map((c, i) => [c.id, i]));
+var nativeElement2 = new Map(DEFINITIONS2.map((c) => [c.id, c.element]));
+var rarityOrder2 = new Map(RARITIES2.map((r, i) => [r.id, i]));
+var VARIANTS2 = Object.freeze([...UNSORTED_VARIANTS2.filter((v) => v.element === nativeElement2.get(v.definitionId)), ...RECRUITER_VARIANTS95].sort((a, b) => rarityOrder2.get(a.rarity) - rarityOrder2.get(b.rarity) || Number(a.element !== nativeElement2.get(a.definitionId)) - Number(b.element !== nativeElement2.get(b.definitionId)) || definitionOrder2.get(a.definitionId) - definitionOrder2.get(b.definitionId) || ELEMENT_IDS2.indexOf(a.element) - ELEMENT_IDS2.indexOf(b.element)));
+var VARIANT_INDEX2 = new Map([...UNSORTED_VARIANTS2, ...RECRUITER_VARIANTS95].map((v) => [v.id, v]));
+var ACTIVE_IDS1162 = new Set(VARIANTS2.map((v) => v.id));
 
 // public/game/platform/ai-pool107.mjs
 var AI_DEFINITIONS107 = Object.freeze(DEFINITIONS.filter((c) => c.edition === "alpha"));
@@ -3350,10 +3379,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.6";
+var BALANCE_PATCH94 = "alpha-2026-11-23.7";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 6,
+  revision: 7,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -3368,8 +3397,8 @@ var BALANCE_RULES94 = Object.freeze({
   handSize: 5,
   deckSize: 15,
   maxMotifCopies: 1,
-  maxPrimes: 1,
-  maxIconics: 1,
+  maxPrimes: MAX_PRIMES,
+  maxIconics: MAX_ICONICS,
   sRankElementOnly: true,
   abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60 },
   cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))

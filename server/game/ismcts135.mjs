@@ -1,5 +1,5 @@
 import {AI_DEFINITIONS107} from '../../public/game/platform/ai-pool107.mjs';
-import {DEFINITIONS,expandGameDeck,getVariant} from '../../public/game/platform/catalog.mjs';
+import {DEFINITIONS,expandGameDeck,getVariant,MAX_ICONICS} from '../../public/game/platform/catalog.mjs';
 import {legalCandidates,positionalValue} from '../../public/game/src/tactics-ai.mjs';
 import {placeEffect} from '../../public/game/src/table-demo-rules.mjs';
 import {scores} from '../../public/game/src/rules.mjs';
@@ -29,7 +29,7 @@ export function determinize135(observation,{observer,ownDeck,random}){
  const g=observeGame135(observation,observer);g.history=[];g.last=null;
  for(const side of[0,1]){
   const revealed=Object.values(g.board).filter(c=>c.origin===side),visible=side===observer?[...revealed,...g.players[side].hand]:revealed;
-  const used=new Set(visible.map(definitionId)),alreadyPrime=visible.some(c=>definitions.get(definitionId(c))?.prime),alreadyIconic=visible.some(c=>definitions.get(definitionId(c))?.iconic);
+  const used=new Set(visible.map(definitionId)),alreadyPrime=visible.some(c=>definitions.get(definitionId(c))?.prime),revealedIconics=visible.filter(c=>definitions.get(definitionId(c))?.iconic).length;
   const slots=side===observer?g.players[side].deck:[...g.players[side].hand,...g.players[side].deck];let cards;
   if(side===observer){
    // The player knows their own saved deck's composition, never its shuffled order.
@@ -38,8 +38,8 @@ export function determinize135(observation,{observer,ownDeck,random}){
    if(ids.length!==slots.length)throw Error('Inconsistent own deck observation.');
    cards=shuffle(expandGameDeck(ids,side),random);
   }else{
-   let prime=alreadyPrime,iconic=alreadyIconic;
-   const pool=shuffle(AI_DEFINITIONS107.filter(c=>!used.has(c.id)),random).filter(c=>{if(c.prime){if(prime)return false;prime=true;}if(c.iconic){if(iconic)return false;iconic=true;}return true;});
+   let prime=alreadyPrime,iconic=revealedIconics;
+   const pool=shuffle(AI_DEFINITIONS107.filter(c=>!used.has(c.id)),random).filter(c=>{if(c.prime){if(prime)return false;prime=true;}if(c.iconic){if(iconic>=MAX_ICONICS)return false;iconic++;}return true;});
    if(pool.length<slots.length)throw Error('Insufficient legal hidden cards.');
    cards=expandGameDeck(pool.slice(0,slots.length).map(c=>c.id+':common'),side);
   }

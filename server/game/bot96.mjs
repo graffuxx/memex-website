@@ -1,3 +1,4 @@
+import {MAX_ICONICS} from '../../public/game/platform/catalog.mjs';
 import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from '../../public/game/platform/ai-pool107.mjs';
 import {ELEMENT_IDS} from '../../public/game/platform/elements53.mjs';
 import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
@@ -18,7 +19,12 @@ export function createBot96(seed){
  const identity={displayName:pick(first,r)+pick(last,r)+String(Math.floor(r()*90)+10),avatarId:pick(PORTRAITS85.filter(p=>!p.quest),r).id,frameId:'starter',titleId:'',xp:0,isAi:true};
  const motifs=shuffle(ELEMENT_IDS.flatMap(element=>shuffle(DEFINITIONS.filter(c=>!c.prime&&!c.iconic&&c.element===element),r).slice(0,3)),r);
  if(r()<.5){const primes=DEFINITIONS.filter(c=>c.prime);if(primes.length){const prime=pick(primes,r);motifs[motifs.findIndex(c=>c.element===prime.element)]=prime;}}
- if(r()<.8){const iconics=DEFINITIONS.filter(c=>c.iconic);if(iconics.length){const iconic=pick(iconics,r);motifs[motifs.findIndex(c=>!c.prime&&!c.iconic&&c.element===iconic.element)]=iconic;}}
+ const iconics=DEFINITIONS.filter(card=>card.iconic);
+ for(let slot=0;slot<MAX_ICONICS&&iconics.length&&r()<(slot===0?.8:.35);slot++){
+  const [iconic]=iconics.splice(Math.floor(r()*iconics.length),1);
+  const index=motifs.findIndex(card=>!card.prime&&!card.iconic&&card.element===iconic.element);
+  if(index>=0)motifs[index]=iconic;
+ }
  const cards=motifs.map((c,i)=>{const roll=r(),rarity=roll<.5?'common':roll<.8?'rare':roll<.95?'epic':roll<.99?'legendary':'mythic';return VARIANTS.find(v=>v.edition==='alpha'&&v.definitionId===c.id&&v.rarity===rarity).id;});
  return {identity,deck:{name:'Random AI deck',cards},seed:seed>>>0};
 }

@@ -8,7 +8,7 @@ import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
 import {createTableView} from './table-demo-view-hand17.mjs?v=void-weather-137';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
-import {scores,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
+import {scores,moveTargets,cardOf} from './rules.mjs?v=booster-classes-140';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=void-weather-137';
 import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';

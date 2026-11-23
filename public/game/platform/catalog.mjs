@@ -50,10 +50,10 @@ export function getVariant(id){return VARIANT_INDEX.get(id);}
 export function starterInventory(){return Object.fromEntries(STARTER_IDS.map(id=>[`${id}:common`,STARTER_COPIES]));}
 export function starterDeck(){return STARTER_IDS.map(id=>`${id}:common`);}
 export const MAX_PRIMES=1;
-export const MAX_ICONICS=1;
+export const MAX_ICONICS=2;
 export function countIconics(cards){return cards.filter(id=>DEFINITIONS.find(c=>c.id===getVariant(id)?.definitionId)?.iconic).length;}
 export function countPrimes(cards){return cards.filter(id=>DEFINITIONS.find(c=>c.id===getVariant(id)?.definitionId)?.prime).length;}
-export function deckAddError126(cards,id){const v=getVariant(id);if(!v)return 'Unknown card.';if((countMotifs(cards)[v.definitionId]??0)>=MAX_MOTIF_COPIES)return 'Maximum 1 copy of each meme per deck, across all finishes.';if(DEFINITIONS.find(c=>c.id===v.definitionId)?.prime&&countPrimes(cards)>=MAX_PRIMES)return 'Maximum 1 Prime per deck, across all finishes.';if(DEFINITIONS.find(c=>c.id===v.definitionId)?.iconic&&countIconics(cards)>=MAX_ICONICS)return 'Maximum 1 Iconic per deck, across all finishes.';return null;}
+export function deckAddError126(cards,id){const v=getVariant(id);if(!v)return 'Unknown card.';if((countMotifs(cards)[v.definitionId]??0)>=MAX_MOTIF_COPIES)return 'Maximum 1 copy of each meme per deck, across all finishes.';if(DEFINITIONS.find(c=>c.id===v.definitionId)?.prime&&countPrimes(cards)>=MAX_PRIMES)return 'Maximum 1 Prime per deck, across all finishes.';if(DEFINITIONS.find(c=>c.id===v.definitionId)?.iconic&&countIconics(cards)>=MAX_ICONICS)return `Maximum ${MAX_ICONICS} Iconics per deck, across all finishes.`;return null;}
 export function countCards(cards){const counts={};for(const id of cards)counts[id]=(counts[id]??0)+1;return counts;}
 export function countMotifs(cards){const counts={};for(const id of cards){const v=getVariant(id);if(v)counts[v.definitionId]=(counts[v.definitionId]??0)+1;}return counts;}
 export function validateDeck(cards,inventory){
@@ -61,7 +61,7 @@ export function validateDeck(cards,inventory){
  if(!Array.isArray(cards)||cards.length!==DECK_SIZE)errors.push(`Your deck needs exactly ${DECK_SIZE} cards.`);
  if(!Array.isArray(cards))return {valid:false,errors};
  if(countPrimes(cards)>MAX_PRIMES)errors.push('Maximum 1 Prime per deck, across all finishes.');
- if(countIconics(cards)>MAX_ICONICS)errors.push('Maximum 1 Iconic per deck, across all finishes.');
+ if(countIconics(cards)>MAX_ICONICS)errors.push(`Maximum ${MAX_ICONICS} Iconics per deck, across all finishes.`);
  for(const [id,count] of Object.entries(countMotifs(cards)))if(count>MAX_MOTIF_COPIES)errors.push(`${DEFINITIONS.find(c=>c.id===id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, across all finishes.`);
  for(const [id,count] of Object.entries(countCards(cards))){
   if(!getVariant(id))errors.push('This deck contains an unknown card.');
