@@ -5,7 +5,7 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
  const base=env('SUPABASE_URL')||'https://vnwvwwukqlbwzqroaqeu.supabase.co',key=env('SUPABASE_SERVICE_ROLE_KEY');
  const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
  const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
- async function rpc(name,input){const r=await fetcher(base+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(input),cache:'no-store'});let data;try{data=await r.json();}catch{fail('Match storage unavailable. Retry your saved duel.',503);}if(!r.ok)fail(data?.message||'Match storage unavailable.',data?.code==='40001'?409:r.status>=500?503:400);return data;}
+ async function rpc(name,input){const r=await fetcher(base+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(input),cache:'no-store'});let data;try{data=await r.json();}catch{fail('Match storage unavailable. Retry your saved duel.',503);}if(!r.ok)fail(data?.message||'Match storage unavailable.',['40001','PT409'].includes(data?.code)?409:r.status>=500?503:400);return data;}
  return async req=>{try{
   if(req.method!=='POST')return reply({error:'POST required.'},405);
   const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)fail('Request not allowed.',403);

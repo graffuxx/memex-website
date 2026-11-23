@@ -33,7 +33,7 @@ export function bindStartDuelDialog(dialog,{onOpen=()=>{},onClose=()=>{},onBefor
  $('startContinue').onclick=finish;
  dialog.addEventListener('cancel',event=>event.preventDefault());
  return {
-  open(){this.cancel();duel=createDuel();previousFocus=document.activeElement;paint();onOpen();dialog.showModal();dialog.querySelector('[data-gesture]')?.focus();return new Promise(r=>{resolve=r;});},
+  open(){this.cancel();duel=createDuel();previousFocus=document.activeElement;paint();try{onOpen();}catch{}dialog.showModal();dialog.querySelector('[data-gesture]')?.focus();return new Promise(r=>{resolve=r;});},
   cancel(){generation++;finishing=false;onCancel();if(resolve){const done=resolve;resolve=null;if(dialog.open)dialog.close();onClose();done(null);}}
  };
 }

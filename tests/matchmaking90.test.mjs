@@ -23,7 +23,12 @@ test('random pairing, invitations, permissions, first-to-two rounds and idempote
   const id=await rpc(db,'dv_match_join90',{p_user:a,p_kind:'random',p_deck:decks[a]});assert.equal(await rpc(db,'dv_match_join90',{p_user:a,p_kind:'random',p_deck:decks[a]}),id);assert.equal(await rpc(db,'dv_match_join90',{p_user:b,p_kind:'random',p_deck:decks[b]}),id);await assert.rejects(rpc(db,'dv_match_get90',{p_user:c,p_id:id}),/unavailable/);await assert.rejects(rpc(db,'dv_match_cancel90',{p_user:a,p_id:id}),/match was found/);
   let row=await rpc(db,'dv_match_get90',{p_user:a,p_id:id}),s=createPvp90([row.host_deck,row.guest_deck],3,0),version=0,n=100;
   async function commit(next,u=a,request=uid(n++),v=version){const out=await rpc(db,'dv_match_commit90',{p_user:u,p_id:id,p_version:v,p_request:request,p_state:next});version=out.version;s=out.state;return out;}
-  await commit(s);await commit(advancePvp90(s,0,{kind:'gesture',value:'rock'},1));await commit(advancePvp90(s,1,{kind:'gesture',value:'scissors'},1),b);await commit(advancePvp90(s,0,{kind:'starter',side:0},1));
+  await commit(s);
+  await assert.rejects(commit(s,a,uid(n++),0),e=>e.code==='PT409');
+  const patched=(await db.query("select count(*) n from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('dv_game_commit50','dv_game_commit_base113','dv_match_commit90','dv_match_commit_human96') and p.prosrc like '%PT409%'")).rows[0];assert.ok(Number(patched.n)>=3);
+  await db.exec(await fs.readFile(new URL('../supabase/migrations/202611230008_conflict_codes139.sql',import.meta.url),'utf8'));
+  await assert.rejects(commit(s,a,uid(n++),0),e=>e.code==='PT409');
+  await commit(advancePvp90(s,0,{kind:'gesture',value:'rock'},1));await commit(advancePvp90(s,1,{kind:'gesture',value:'scissors'},1),b);await commit(advancePvp90(s,0,{kind:'starter',side:0},1));
   let expected=[0,0],completedRounds=0;for(let round=1;!series113(s.results).finished&&round<20;round++){
    while(!s.game.finished){const side=s.game.turn,next=advancePvp90(s,side,{kind:'place',action:chooseTactic(s.game).chosen.action},2);await commit(next,side===0?a:b);}
    completedRounds++;for(const side of [0,1])expected[side]+=s.game.winner===side?5:2;
@@ -50,6 +55,7 @@ test('HTTP service authenticates both clients, rejects forged results and reproj
   assert.equal((await call('bad',{op:'join',kind:'random',deckId:decks[a]})).status,401);assert.equal((await call('a',{op:'join',kind:'ranked',deckId:decks[a]})).status,400);
   let x=(await call('a',{op:'join',kind:'random',deckId:decks[a]})).data;assert.equal(x.phase,'waiting');const id=x.id;assert.equal((await call('b',{op:'join',kind:'random',deckId:decks[b]})).data.id,id);assert.equal((await call('c',{op:'poll',id})).status,400);
   x=(await call('a',{op:'poll',id})).data;assert.equal(x.phase,'rps');const sign={op:'move',id,version:x.version,requestId:uid(sequence++),move:{kind:'gesture',value:'rock'}};x=(await call('a',sign)).data;const y=(await call('b',{op:'poll',id})).data;assert.equal(y.ownChoice,null);assert.equal(y.opponentChosen,true);assert.equal(y.lastRps,null);assert.equal((await call('a',sign)).data.version,x.version);
+  assert.equal((await call('a',{...sign,requestId:uid(sequence++)})).status,409);assert.equal((await call('a',{op:'poll',id})).data.version,x.version);
   x=(await call('b',{op:'move',id,version:y.version,requestId:uid(sequence++),move:{kind:'gesture',value:'scissors'}})).data;x=(await call('a',{op:'move',id,version:x.version,requestId:uid(sequence++),move:{kind:'starter',side:0}})).data;assert.equal(x.phase,'play');assert.equal(x.game.turn,0);assert.equal((await call('b',{op:'move',id,version:x.version,requestId:uid(sequence++),move:{kind:'place',action:{uid:'fake',cell:'0,0',rotation:0}},award:9999})).status,400);
   const beforeVersion=x.version;time=90001;const timed=(await call('b',{op:'poll',id,version:beforeVersion})).data;assert.equal(timed.game.placements,1);assert.equal(timed.game.turn,0);const restored=(await call('a',{op:'poll',id})).data;assert.equal(restored.version,timed.version);assert.equal(restored.game.turn,1);assert.deepEqual(Object.keys(restored.game.board),Object.keys(timed.game.board));assert.equal((await call('a',{op:'poll',id,version:restored.version})).data.unchanged,true);
  }finally{await db.close();}

@@ -1,10 +1,11 @@
+import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
 import {onlineInput117,boardCellAt117} from './online-input117.mjs';
 import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
-import {connectOnline90} from '../platform/account-client50.mjs?v=round-recovery-133';
+import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
 import {createTableView} from './table-demo-view-hand17.mjs?v=void-weather-137';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
@@ -12,11 +13,12 @@ import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=void-weather-137';
 import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {bindPortraitIntro86} from './portrait-intro86.mjs';
+import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),id=new URLSearchParams(location.search).get('match'),stage=$('stage'),svg=$('interaction');
 let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=true,identityKey='',polling=false,moveEpoch=0;
-let leaving112=false;
+let leaving112=false,booting139=false;
+const pollRecovery139=createPollRecovery139();
 lockArenaSelection112($('arenaTheme'));
 const renderSeries129=bindSeriesHud129();
 const atmosphere=createVoidAtmosphere(),audio=createTableAudio(),portraitIntro=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
@@ -51,9 +53,9 @@ function render(){
 function rps(){
  if(!data)return;
  const dialog=$('startDuel'),show=['rps','initiative'].includes(data.phase);if(!show)return;
- if(!dialog.open){profiles();portraitIntro.open();dialog.showModal();}
+ if(!dialog.open){profiles();try{portraitIntro.open();}catch{}dialog.showModal();}
  $('startAttempt').textContent='ATTEMPT '+data.attempt;$('startTitle').textContent=data.phase==='initiative'?(data.rpsWinner===0?'You won the start right.':'Your opponent won the start right.'):'Who makes the first move?';
- $('startStatus').textContent=data.phase==='initiative'?(data.rpsWinner===0?'Choose who starts.':'Waiting for the opponent to choose.'):data.ownChoice?'Choice locked. Waiting for your opponent…':data.lastRps?.winner===null?'A tie. Choose again.':'Choose your hand sign privately.';
+ $('startStatus').textContent=pollRecovery139.message|| (data.phase==='initiative'?(data.rpsWinner===0?'Choose who starts.':'Waiting for the opponent to choose.'):data.ownChoice?'Choice locked. Waiting for your opponent…':data.lastRps?.winner===null?'A tie. Choose again.':'Choose your hand sign privately.');
  $('startChoices').hidden=data.phase!=='rps';$('startInitiative').hidden=data.phase!=='initiative'||data.rpsWinner!==0;$('startRetry').hidden=true;$('startContinue').hidden=true;
  for(const b of dialog.querySelectorAll('[data-gesture]')){b.querySelector('.gesture-art').textContent=glyphs[b.dataset.gesture];b.disabled=working||Boolean(data.ownChoice);b.setAttribute('aria-pressed',String(b.dataset.gesture===data.ownChoice));}
  const choices=data.phase==='initiative'?data.lastRps.choices:[data.ownChoice,null];$('startPlayerHand').textContent=glyphs[choices[0]]??'?';$('startOpponentHand').textContent=glyphs[choices[1]]??'?';$('startPlayerName').textContent=gestureNames[choices[0]]??'Your choice';$('startOpponentName').textContent=choices[1]?gestureNames[choices[1]]:data.opponentChosen?'Locked':'Hidden choice';
@@ -80,14 +82,14 @@ async function accept(next){
  if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked,autoContinueMs:next.phase==='ended'?5000:Math.max(0,next.remainingMs??8000)});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}
 
 }
-async function move(input){if(leaving112||working||animating||!client||!data)return;working=true;moveEpoch++;notice='Saving…';render();rps();try{await accept(await client.move(data.version,input));$('gameAccountError').hidden=true;}catch(e){notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
-async function poll(){if(working||animating||stopped||!client||polling)return;polling=true;const epoch=moveEpoch;try{const next=await client.poll(presentation.needsSnapshot?undefined:data?.version);if(epoch!==moveEpoch||working)return;await accept(next);$('gameAccountError').hidden=true;}catch(e){if(epoch===moveEpoch){$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}}finally{polling=false;render();rps();}}
+async function move(input){if(leaving112||working||animating||!client||!view||!data)return;working=true;moveEpoch++;notice='Saving…';try{render();rps();await accept(await client.move(data.version,input));pollRecovery139.reset();$('gameAccountError').hidden=true;}catch(e){pollRecovery139.failed(e);notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
+async function poll(){if(working||animating||stopped||booting139||document.hidden||!client||!view||polling||!pollRecovery139.ready)return;polling=true;const epoch=moveEpoch;try{const next=await client.poll(presentation.needsSnapshot?undefined:data?.version);if(epoch!==moveEpoch||working)return;await accept(next);pollRecovery139.reset();$('gameAccountError').hidden=true;}catch(e){if(epoch===moveEpoch){pollRecovery139.failed(e);$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}}finally{polling=false;render();rps();}}
 function choose(uid){if(!inputState().inspect||!game.players[0].hand.some(c=>c.uid===uid))return;const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;audio.play('select');render();}
 function field(cell){if(locked())return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;}else if(selected&&!game.board[cell]&&game.block!==cell){target=cell;twistCell=null;}render();}
 function confirm(){if(locked())return;if(mode==='shift'){if(moveTargets(game).includes(target))void move({kind:'shift',cell:target});}else if(plan())void move({kind:'place',action:action()});}
 $('confirm').onclick=confirm;$('cancel').onclick=()=>{if(!locked()){clear();render();}};$('shiftBlock').onclick=()=>{if(locked())return;const old=mode;clear();mode=old==='shift'?'card':'shift';render();};
 $('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>new Option(n,String(i))));$('abilityDirection').onchange=()=>{abilityDirection=Number($('abilityDirection').value);render();};$('twistTarget').onchange=()=>{twistCell=$('twistTarget').value||null;render();};
-$('nextRound').onclick=()=>{if(data.phase==='between')void move({kind:'ready'});else location.assign('/play');};$('gameAccountRetry').onclick=()=>void poll();$('showRules').onclick=()=>{$('rulesPanel').open=!$('rulesPanel').open;};
+$('nextRound').onclick=()=>{if(data.phase==='between')void move({kind:'ready'});else location.assign('/play');};$('gameAccountRetry').onclick=()=>{pollRecovery139.reset();if(!client||!view)void bootOnline139();else void poll();};$('showRules').onclick=()=>{$('rulesPanel').open=!$('rulesPanel').open;};
 for(const b of $('startDuel').querySelectorAll('[data-gesture]'))b.onclick=()=>void move({kind:'gesture',value:b.dataset.gesture});for(const b of $('startDuel').querySelectorAll('[data-starter]'))b.onclick=()=>void move({kind:'starter',side:Number(b.dataset.starter)});$('startDuel').addEventListener('cancel',e=>e.preventDefault());
 bindDuelExit112({concede:async()=>{if(!client||!data||working)throw Error('Bitte kurz warten, bis der aktuelle Zug gespeichert ist.');working=true;moveEpoch++;try{await accept(await client.move(data.version,{kind:'resign'}));}finally{working=false;render();}},leave:async()=>{if(!client)throw Error('Open the match lobby to leave while sign-in is loading.');leaving112=true;stopped=true;try{await client.leave();}catch(e){leaving112=false;stopped=false;throw e;}}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)field(c.dataset.cell);});svg.addEventListener('keydown',e=>{if(!['Enter','Space'].includes(e.code))return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();h?choose(h.dataset.hand):field(c.dataset.cell);}});
@@ -117,9 +119,10 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return
 async function soundOn(value){sound=value;$('arenaSound').textContent=sound?'♪ Sound on':'♪ Sound off';$('soundEnabled').checked=sound;await audio.setEnabled(sound);}
 document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.running)void audio.setEnabled(true);},{capture:true});$('arenaSound').onclick=()=>void soundOn(!sound);$('soundEnabled').onchange=()=>void soundOn($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('motion').onchange=()=>{view.setMotion($('motion').checked);atmosphere.setMotion($('motion').checked);};
 $('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
-try{
+async function bootOnline139(){if(booting139||stopped)return;booting139=true;let ready=false;try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
- client=await connectOnline90(id);view=await createTableView(stage,svg,{getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient(true);void audio.preloadAnnouncements();
- $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';await poll();
-}catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}
+ if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient(true);void audio.preloadAnnouncements();}
+ $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';ready=true;
+}catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{booting139=false;}if(ready)await poll();}
+void bootOnline139();
 const pollTimer=setInterval(()=>void poll(),1800),clockTimer=setInterval(clock,250);window.addEventListener('focus',()=>void poll());window.addEventListener('pagehide',()=>{stopped=true;clearInterval(pollTimer);clearInterval(clockTimer);portraitIntro.cancel();ceremony.dispose();audio.dispose();view?.dispose();});

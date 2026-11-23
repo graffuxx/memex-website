@@ -50,13 +50,538 @@ function attackWins(attack, defend, rules = 5) {
   return attack.total > defend.total || rules !== 3 && attack.total === defend.total && attack.element > defend.element;
 }
 
+// public/game/platform/iconics136.mjs
+var ICONIC_CARDS136 = Object.freeze([
+  {
+    "id": "rage-guy",
+    "name": "Rage Guy \u2013 FUUUU",
+    "short": "RAGE GUY",
+    "ruleId": "iconic-rage-guy",
+    "element": "fire",
+    "values": [
+      8,
+      7,
+      4,
+      3,
+      3,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/rage-guy-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "take-my-money",
+    "name": "Shut Up and Take My Money",
+    "short": "TAKE MY MONEY",
+    "ruleId": "iconic-take-my-money",
+    "element": "fire",
+    "values": [
+      3,
+      6,
+      6,
+      5,
+      5,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/take-my-money-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "why-are-you-running",
+    "name": "Why Are You Running?",
+    "short": "WHY RUNNING?",
+    "ruleId": "iconic-why-are-you-running",
+    "element": "fire",
+    "values": [
+      4,
+      3,
+      3,
+      8,
+      7,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/why-are-you-running-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "no-god-please-no",
+    "name": "No God, Please No!",
+    "short": "PLEASE NO!",
+    "ruleId": "iconic-no-god-please-no",
+    "element": "fire",
+    "values": [
+      6,
+      2,
+      2,
+      7,
+      7,
+      4
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/no-god-please-no-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "kekw",
+    "name": "KEKW \u2013 El Risitas",
+    "short": "KEKW",
+    "ruleId": "iconic-kekw",
+    "element": "water",
+    "values": [
+      3,
+      8,
+      7,
+      3,
+      3,
+      4
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/kekw-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "forever-alone",
+    "name": "Forever Alone",
+    "short": "FOREVER ALONE",
+    "ruleId": "iconic-forever-alone",
+    "element": "water",
+    "values": [
+      5,
+      3,
+      3,
+      3,
+      6,
+      8
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/forever-alone-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "first-world-problems",
+    "name": "First World Problems",
+    "short": "FIRST WORLD",
+    "ruleId": "iconic-first-world-problems",
+    "element": "water",
+    "values": [
+      7,
+      4,
+      2,
+      2,
+      6,
+      7
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/first-world-problems-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "awkward-penguin",
+    "name": "Socially Awkward Penguin",
+    "short": "AWKWARD",
+    "ruleId": "iconic-awkward-penguin",
+    "element": "water",
+    "values": [
+      3,
+      5,
+      5,
+      6,
+      6,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/awkward-penguin-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "overly-manly-man",
+    "name": "Overly Manly Man",
+    "short": "MANLY MAN",
+    "ruleId": "iconic-overly-manly-man",
+    "element": "earth",
+    "values": [
+      7,
+      6,
+      4,
+      2,
+      2,
+      7
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/overly-manly-man-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "good-guy-greg",
+    "name": "Good Guy Greg",
+    "short": "GOOD GUY GREG",
+    "ruleId": "iconic-good-guy-greg",
+    "element": "earth",
+    "values": [
+      4,
+      5,
+      6,
+      6,
+      4,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/good-guy-greg-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "scumbag-steve",
+    "name": "Scumbag Steve",
+    "short": "SCUMBAG STEVE",
+    "ruleId": "iconic-scumbag-steve",
+    "element": "earth",
+    "values": [
+      3,
+      3,
+      8,
+      7,
+      4,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/scumbag-steve-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "change-my-mind",
+    "name": "Change My Mind",
+    "short": "CHANGE MY MIND",
+    "ruleId": "iconic-change-my-mind",
+    "element": "earth",
+    "values": [
+      2,
+      7,
+      7,
+      6,
+      4,
+      2
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/change-my-mind-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "confused-travolta",
+    "name": "Confused Travolta",
+    "short": "CONFUSED",
+    "ruleId": "iconic-confused-travolta",
+    "element": "air",
+    "values": [
+      7,
+      3,
+      3,
+      3,
+      4,
+      8
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/confused-travolta-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "epic-sax-guy",
+    "name": "Epic Sax Guy",
+    "short": "EPIC SAX GUY",
+    "ruleId": "iconic-epic-sax-guy",
+    "element": "air",
+    "values": [
+      3,
+      2,
+      7,
+      7,
+      6,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/epic-sax-guy-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "is-this-a-pigeon",
+    "name": "Is This a Pigeon?",
+    "short": "A PIGEON?",
+    "ruleId": "iconic-is-this-a-pigeon",
+    "element": "air",
+    "values": [
+      5,
+      6,
+      6,
+      4,
+      3,
+      4
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/is-this-a-pigeon-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "double-rainbow",
+    "name": "Double Rainbow",
+    "short": "DOUBLE RAINBOW",
+    "ruleId": "iconic-double-rainbow",
+    "element": "air",
+    "values": [
+      8,
+      3,
+      3,
+      4,
+      7,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/double-rainbow-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "philosoraptor",
+    "name": "Philosoraptor",
+    "short": "PHILOSORAPTOR",
+    "ruleId": "iconic-philosoraptor",
+    "element": "storm",
+    "values": [
+      3,
+      3,
+      4,
+      7,
+      8,
+      3
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/philosoraptor-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "two-buttons",
+    "name": "Two Buttons",
+    "short": "TWO BUTTONS",
+    "ruleId": "iconic-two-buttons",
+    "element": "storm",
+    "values": [
+      6,
+      7,
+      2,
+      2,
+      4,
+      7
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/two-buttons-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "always-has-been",
+    "name": "Always Has Been",
+    "short": "ALWAYS HAS BEEN",
+    "ruleId": "iconic-always-has-been",
+    "element": "storm",
+    "values": [
+      4,
+      3,
+      4,
+      6,
+      6,
+      5
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/always-has-been-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  },
+  {
+    "id": "yo-dawg",
+    "name": "Yo Dawg",
+    "short": "YO DAWG",
+    "ruleId": "iconic-yo-dawg",
+    "element": "storm",
+    "values": [
+      7,
+      3,
+      3,
+      3,
+      8,
+      4
+    ],
+    "iconic": true,
+    "prime": false,
+    "ability": null,
+    "artDirectory": "iconics-v136",
+    "image": "/game/assets/cards/iconics-v136/yo-dawg-common.webp",
+    "artRegion": {
+      "x": -0.09,
+      "y": -0.19,
+      "w": 1.18,
+      "h": 1.18
+    }
+  }
+].map((c) => Object.freeze({ ...c, quote: { "rage-guy": "One more lag spike. Just one.", "take-my-money": "No questions. Just cash.", "why-are-you-running": "That was not a tactical retreat.", "no-god-please-no": "Not another meeting.", "kekw": "Your strategy has been reviewed.", "forever-alone": "Reserved a table for one. Again.", "first-world-problems": "The charger is in the other room.", "awkward-penguin": "Said you too to the waiter.", "overly-manly-man": "I sharpen my cards with my beard.", "good-guy-greg": "Keeps the last slice for you.", "scumbag-steve": "Borrowed your deck. Calls it his.", "change-my-mind": "Obviously my deck is balanced.", "confused-travolta": "Where did my cards go?", "epic-sax-guy": "Still playing. Still epic.", "is-this-a-pigeon": "Is this a winning move?", "double-rainbow": "What does it mean?", "philosoraptor": "If I flip myself, am I winning?", "two-buttons": "Both moves looked better yesterday.", "always-has-been": "It was a card game all along.", "yo-dawg": "A card in your card." }[c.id], values: Object.freeze(c.values), artRegion: Object.freeze(c.artRegion) })));
+
 // public/game/platform/set-manifest131.mjs
 var ALPHA_REGULAR_IDS131 = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "distracted", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "confused", "bad-luck-brian", "gigachad", "this-is-fine", "trollface", "stonks", "press-f", "git-gud", "rage-quit", "lag-spike", "hodl", "diamond-hands", "to-the-moon", "rug-pull", "crying-cat", "keyboard-cat", "coffin-dance", "galaxy-brain", "npc", "leeroy-jenkins", "touch-grass", "copium", "paper-hands", "buy-the-dip", "angry-wojak", "screaming-marmot", "table-flip", "triggered", "salt-bae", "floor-is-lava", "hot-take", "headshot", "rage-hamster", "burning-toast", "capybara-chill", "sad-keanu", "crying-wojak", "tears-of-joy", "duck-float", "seal-of-approval", "sink-or-swim", "stay-hydrated", "pool-noodle", "wet-cat", "bonk", "cheems", "walter", "absolute-unit", "couch-potato", "monke", "banana-for-scale", "turtle-stack", "stone-face", "rock-solid", "nyan-cat", "dramatic-chipmunk", "spinning-seal", "longcat", "ceiling-cat", "hover-cat", "bird-is-word", "flying-spaghetti", "airhorn", "yeet", "error-404", "blue-screen", "cat-jam", "shocked-monkey", "math-lady", "surprised-rat", "plot-twist", "big-brain-time", "rickroll", "uno-reverse"]);
 var ALPHA_PRIME_IDS131 = Object.freeze(["evil-ernie", "nuck-chorris", "sparta-kick", "emotional-damage", "pablo-waiting", "here-we-go-again", "one-does-not-simply", "sanic", "numa-numa", "keyboard-crusher", "idiot-sandwich", "crying-jordan", "disappointed-fan", "blinking-guy", "overly-attached"]);
+var ALPHA_ICONIC_IDS136 = Object.freeze(["rage-guy", "take-my-money", "why-are-you-running", "no-god-please-no", "kekw", "forever-alone", "first-world-problems", "awkward-penguin", "overly-manly-man", "good-guy-greg", "scumbag-steve", "change-my-mind", "confused-travolta", "epic-sax-guy", "is-this-a-pigeon", "double-rainbow", "philosoraptor", "two-buttons", "always-has-been", "yo-dawg"]);
 var ALPHA_SLOTS131 = Object.freeze([
   ...ALPHA_REGULAR_IDS131.map((id, i) => ({ number: i + 1, id, category: "regular" })),
   ...Array.from({ length: 15 }, (_, i) => ({ number: 86 + i, id: ALPHA_PRIME_IDS131[i] ?? null, category: "prime" })),
-  ...Array.from({ length: 20 }, (_, i) => ({ number: 101 + i, id: null, category: "iconic" }))
+  ...Array.from({ length: 20 }, (_, i) => ({ number: 101 + i, id: ALPHA_ICONIC_IDS136[i], category: "iconic" }))
 ].map((s) => Object.freeze(s)));
 var SETS131 = Object.freeze([{ id: "alpha", name: "Alpha", mark: "\u03B1", size: 120, current: true, limits: Object.freeze({ regular: 85, prime: 15, iconic: 20 }), slots: ALPHA_SLOTS131 }].map((s) => Object.freeze(s)));
 var ALPHA_IDS131 = Object.freeze(ALPHA_SLOTS131.filter((s) => s.id).map((s) => s.id));
@@ -67,7 +592,7 @@ function assertSetCatalog131(cards) {
   const seen = /* @__PURE__ */ new Set();
   for (const c of cards) {
     const slot = setSlot131(c.id);
-    if (!slot || seen.has(c.id) || Boolean(c.prime) !== (slot.category === "prime")) throw Error("Card requires a unique, matching edition slot: " + c.id);
+    if (!slot || seen.has(c.id) || Boolean(c.prime) !== (slot.category === "prime") || Boolean(c.iconic) !== (slot.category === "iconic")) throw Error("Card requires a unique, matching edition slot: " + c.id);
     seen.add(c.id);
   }
   for (const s of SETS131) {
@@ -2111,15 +2636,16 @@ var REFERRAL_RULES95 = Object.freeze({ rounds: 10, opponents: 2, days: 3 });
 // public/game/platform/catalog.mjs
 var DECK_SIZE = 15;
 var MAX_MOTIF_COPIES = 1;
-var CATALOG_VERSION = 12;
+var CATALOG_VERSION = 13;
 var RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
 var DEFINITIONS = Object.freeze([
   { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
   { id: "doge", name: "Doge", short: "Doge", ruleId: "brain", element: "fire", values: [5, 2, 5, 2, 5, 5], ability: "hype", quote: "Such strategy. Much wow.", image: "/game/assets/cards/frame-v21/swollen-doge.webp" },
   { id: "roll-safe", name: "Roll Safe", short: "Roll Safe", ruleId: "trust", element: "stone", values: [5, 5, 5, 3, 3, 3], ability: "twist", quote: "Can\u2019t lose if you think ahead.", image: "/game/assets/cards/v04/roll-safe.webp" },
   ...EXPANSION_CARDS,
-  ...PRIME_CARDS
-].map((c) => Object.freeze({ ...c, category: cardCategory131(c.id), prime: "prime" in c ? Boolean(c.prime) : false, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
+  ...PRIME_CARDS,
+  ...ICONIC_CARDS136
+].map((c) => Object.freeze({ ...c, category: cardCategory131(c.id), iconic: cardCategory131(c.id) === "iconic", prime: "prime" in c ? Boolean(c.prime) : false, element: normalizeElement2(c.element), edition: ALPHA_IDS.includes(c.id) ? "alpha" : null })));
 assertSetCatalog131(DEFINITIONS);
 var STARTER_IDS = Object.freeze(["pepe", "doge", "roll-safe", "harold", "disaster-girl", "confused", "side-eye", "success-kid", "grumpy-cat", "aliens-guy", "smudge", "bad-luck-brian", "gigachad", "stonks", "trollface"]);
 var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((element) => RARITIES.map((rarity) => Object.freeze({
@@ -2128,7 +2654,7 @@ var UNSORTED_VARIANTS = DEFINITIONS.flatMap((card) => ELEMENT_IDS2.flatMap((elem
   element,
   rarity: rarity.id,
   edition: card.edition,
-  image: card.prime ? `/game/assets/cards/${card.artDirectory ?? "primes-v126"}/${card.id}-${rarity.id}.webp` : card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+  image: card.prime || card.iconic ? `/game/assets/cards/${card.artDirectory ?? "primes-v126"}/${card.id}-${rarity.id}.webp` : card.artAtlas ? card.image + "?finish=" + rarity.id : rarity.id === "common" ? card.image : EXPANSION_CARDS.some((c) => c.id === card.id) ? `/game/assets/cards/${card.artDirectory ?? "memes-v27"}/${card.id}-${rarity.id}.webp` : `/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
   artOffsetY: card.artOffsetY ?? 0,
   artRegion: card.artRegion ?? (card.artAtlas ? Object.freeze({ x: RARITIES.findIndex((r) => r.id === rarity.id) / 5, ...ATLAS_REGIONS[card.id] }) : null)
 }))));
@@ -2145,6 +2671,10 @@ function starterDeck() {
   return STARTER_IDS.map((id) => `${id}:common`);
 }
 var MAX_PRIMES = 1;
+var MAX_ICONICS = 1;
+function countIconics(cards) {
+  return cards.filter((id) => DEFINITIONS.find((c) => c.id === getVariant(id)?.definitionId)?.iconic).length;
+}
 function countPrimes(cards) {
   return cards.filter((id) => DEFINITIONS.find((c) => c.id === getVariant(id)?.definitionId)?.prime).length;
 }
@@ -2166,6 +2696,7 @@ function validateDeck(cards, inventory) {
   if (!Array.isArray(cards) || cards.length !== DECK_SIZE) errors.push(`Your deck needs exactly ${DECK_SIZE} cards.`);
   if (!Array.isArray(cards)) return { valid: false, errors };
   if (countPrimes(cards) > MAX_PRIMES) errors.push("Maximum 1 Prime per deck, across all finishes.");
+  if (countIconics(cards) > MAX_ICONICS) errors.push("Maximum 1 Iconic per deck, across all finishes.");
   for (const [id, count] of Object.entries(countMotifs(cards))) if (count > MAX_MOTIF_COPIES) errors.push(`${DEFINITIONS.find((c) => c.id === id).name}: maximum ${MAX_MOTIF_COPIES} copies per motif, across all finishes.`);
   for (const [id, count] of Object.entries(countCards(cards))) {
     if (!getVariant(id)) errors.push("This deck contains an unknown card.");
@@ -2264,8 +2795,8 @@ function shuffle(a, rng) {
 }
 function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
   if (![0, 1].includes(starter) || !LAYOUTS.some((l) => l.id === layout)) throw Error("Ung\xFCltige Partieauswahl.");
-  let primeCount = 0;
-  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).filter((c) => !c.prime || primeCount++ < 1).slice(0, 9), players = [0, 1].map((p) => {
+  let primeCount = 0, iconicCount = 0;
+  const rng = random(seed), pool = shuffle([...DEFINITIONS.filter((c) => c.edition === "alpha")], rng).filter((c) => (!c.prime || primeCount++ < 1) && (!c.iconic || iconicCount++ < 1)).slice(0, 9), players = [0, 1].map((p) => {
     const cards = shuffle(pool.map((c) => ({ id: c.ruleId, variantId: `${c.id}:common`, rarity: "common", uid: p + ":" + c.id, origin: p })), rng);
     return { hand: cards.slice(0, 5), deck: cards.slice(5), shifts: 1, flips: 0 };
   });
@@ -2819,10 +3350,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.5";
+var BALANCE_PATCH94 = "alpha-2026-11-23.6";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 5,
+  revision: 6,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -2838,9 +3369,10 @@ var BALANCE_RULES94 = Object.freeze({
   deckSize: 15,
   maxMotifCopies: 1,
   maxPrimes: 1,
+  maxIconics: 1,
   sRankElementOnly: true,
   abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60 },
-  cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime) }))
+  cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);
 var hash = 0xcbf29ce484222325n;
@@ -2922,7 +3454,7 @@ function createGameHandler({ env, fetcher = fetch, randomSeed = () => crypto.get
   async function rest(path, options = {}) {
     const res = await fetcher(url + "/rest/v1/" + path, { ...options, headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json", ...options.headers } });
     const text = await res.text(), data = text ? JSON.parse(text) : null;
-    if (!res.ok) throw Object.assign(Error(data?.message || "Game storage unavailable."), { status: data?.code === "40001" ? 409 : res.status >= 500 ? 503 : 400 });
+    if (!res.ok) throw Object.assign(Error(data?.message || "Game storage unavailable."), { status: ["40001", "PT409"].includes(data?.code) ? 409 : res.status >= 500 ? 503 : 400 });
     return data;
   }
   return async function handle(req) {

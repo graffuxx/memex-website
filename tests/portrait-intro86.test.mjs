@@ -28,3 +28,22 @@ test('an unavailable or rejected visual transition never blocks either start-rig
 test('older cached HTML can still start a duel when the new portrait slots are missing',async()=>{
  const controller=bindPortraitIntro86(null,{doc:{getElementById:()=>null},win:{}});controller.open();await controller.fly();controller.cancel();
 });
+test('a failed decorative opening hook cannot prevent rock paper scissors or leave a pending start unresolved',async()=>{
+ const f=fixture({onOpen(){throw Error('Portrait target missing');}});
+ const started=f.control.open();assert.equal(f.dialog.open,true);
+ f.play('paper');f.start(0);assert.equal(await started,0);
+});
+test('portrait observation skips missing targets and works when MutationObserver is unavailable',()=>{
+ const original=globalThis.MutationObserver;
+ const nodes=new Map(),observed=[];
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'Player',hidden:false,querySelector:()=>null,closest:()=>null});return nodes.get(id);};
+ for(const id of ['ownPortrait85','enemyPortrait85','startOwnPortrait86','startEnemyPortrait86','startOwnName86','startOwnTitle86'])node(id);
+ const doc={getElementById:id=>nodes.get(id)??null,body:{dataset:{}},addEventListener(){}};
+ const win={addEventListener(){}};
+ try{
+  globalThis.MutationObserver=class{observe(target){assert.ok(target);observed.push(target);}disconnect(){}};
+  const intro=bindPortraitIntro86({}, {doc,win});intro.open();assert.equal(observed.length,2);intro.cancel();
+  globalThis.MutationObserver=undefined;
+  const unavailable=bindPortraitIntro86({}, {doc,win});unavailable.open();unavailable.cancel();
+ }finally{globalThis.MutationObserver=original;}
+});

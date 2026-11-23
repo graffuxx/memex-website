@@ -5,16 +5,17 @@ export function bindPortraitIntro86(dialog,{motion=()=>true,doc=document,win=win
  let observer=null,flight=null,run=0;
  function sync(){
   for(const [source,target] of pairs){const node=find(source)?.querySelector('.identity-portrait85');if(!node)continue;const copy=node.cloneNode(true);copy.style.setProperty('--portrait-size','var(--start-portrait-size86)');find(target)?.replaceChildren(copy);}
-  find('startOwnName86').textContent=find('playerName85').textContent;
-  const title=find('playerTitle85');find('startOwnTitle86').textContent=title.textContent;find('startOwnTitle86').hidden=title.hidden||!title.textContent;
+  const name=find('startOwnName86'),title=find('playerTitle85'),targetTitle=find('startOwnTitle86');
+  if(name)name.textContent=find('playerName85')?.textContent??'';
+  if(targetTitle){targetTitle.textContent=title?.textContent??'';targetTitle.hidden=!title||title.hidden||!title.textContent;}
  }
- function settle(){if(!flight)return;const current=flight;flight=null;win.clearTimeout(current.timer);for(const a of current.animations)a.cancel();current.layer.remove();doc.body.dataset.portraitStage86='docked';current.resolve();}
+ function settle(){if(!flight)return;const current=flight;flight=null;win.clearTimeout(current.timer);for(const a of current.animations)try{a.cancel();}catch{}current.layer.remove();doc.body.dataset.portraitStage86='docked';current.resolve();}
  function stopWatching(){observer?.disconnect();observer=null;}
  const interrupt=()=>settle();
  win.addEventListener('resize',interrupt);doc.addEventListener('visibilitychange',()=>{if(doc.hidden)settle();});
  doc.addEventListener('keydown',event=>{if(event.code==='Escape'&&flight)settle();});
  return {
-  open(){run++;settle();stopWatching();find('ownPortrait85')?.closest('.scorebar')?.scrollIntoView({block:'nearest',behavior:'instant'});sync();doc.body.dataset.portraitStage86='opening';observer=new MutationObserver(sync);for(const id of ['ownPortrait85','enemyPortrait85','playerName85','playerTitle85'])observer.observe(find(id),{childList:true,characterData:true,subtree:true});},
+  open(){run++;settle();stopWatching();find('ownPortrait85')?.closest('.scorebar')?.scrollIntoView({block:'nearest',behavior:'instant'});sync();doc.body.dataset.portraitStage86='opening';if(typeof MutationObserver==='function'){observer=new MutationObserver(sync);for(const id of ['ownPortrait85','enemyPortrait85','playerName85','playerTitle85']){const node=find(id);if(node)observer.observe(node,{childList:true,characterData:true,subtree:true});}}},
   fly(){
    stopWatching();sync();const token=++run;
    if(!motion()||win.matchMedia('(prefers-reduced-motion: reduce)').matches||doc.hidden){doc.body.dataset.portraitStage86='docked';return Promise.resolve();}
