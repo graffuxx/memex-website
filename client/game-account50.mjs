@@ -1,4 +1,5 @@
 import {createClient} from '@supabase/supabase-js';
+import {duelRequest133} from '../public/game/src/online-recovery133.mjs';
 const URL='https://vnwvwwukqlbwzqroaqeu.supabase.co',PUBLIC_KEY='sb_publishable_Nz664DzwUuBcOpLzCXgB_Q_4SzenMlV';
 const auth=createClient(URL,PUBLIC_KEY),ENDPOINT='/api/solo';
 async function leaveDuelRequest112(id,userId){const {data:{session}}=await auth.auth.getSession();if(!session||session.user.id!==userId)throw Error('Sign in with the same player account to leave.');const response=await fetch('/api/duel',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({op:'leave',id})});const data=await response.json();if(!response.ok)throw Error(data.error??'Could not leave. Try again.');return data;}
@@ -23,7 +24,7 @@ export async function connectAccountGame({sandbox=false}={}){
 export async function connectOnline90(id){
  const first=await auth.auth.getSession(),userId=first.data.session?.user.id;if(!userId)throw Error('Sign in to resume this duel.');
  const storageKey='duelverse.online90.'+userId+'.'+id;let pending=null;try{pending=JSON.parse(localStorage.getItem(storageKey)??'null');}catch{}
- async function invoke(body){const {data:{session}}=await auth.auth.getSession();if(!session||session.user.id!==userId)throw Error('Sign in with the same player account to resume.');const res=await fetch('/api/duel',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw Object.assign(Error(data.error??'Duel unavailable.'),{status:res.status});return data;}
+ async function invoke(body){const {data:{session}}=await auth.auth.getSession();if(!session||session.user.id!==userId)throw Error('Sign in with the same player account to resume.');return duelRequest133(fetch,'/api/duel',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)});}
  async function send(){try{const data=await invoke(pending);pending=null;localStorage.removeItem(storageKey);return data;}catch(e){if(e.status&&e.status<500&&e.status!==429){pending=null;localStorage.removeItem(storageKey);}throw e;}}
  return {async leave(){const result=await leaveDuelRequest112(id,userId);pending=null;try{localStorage.removeItem(storageKey);if(localStorage.getItem('duelverse.match90.'+userId)===id)localStorage.removeItem('duelverse.match90.'+userId);}catch{}return result;},async poll(version){if(pending)return send();return invoke({op:'poll',id,version});},async move(version,move){if(pending)return send();pending={op:'move',id,version,requestId:crypto.randomUUID(),move};localStorage.setItem(storageKey,JSON.stringify(pending));return send();}};
 }

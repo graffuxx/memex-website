@@ -1,0 +1,36 @@
+// Local regression fixture: the real online UI, HTTP handler and isolated database.
+import http from 'node:http';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {PGlite} from '@electric-sql/pglite';
+import {createMatchHandler90} from '../server/game/match-handler90.mjs';
+import {createPvp90,advancePvp90} from '../server/game/pvp90.mjs';
+import {createBot96,armBot96} from '../server/game/bot96.mjs';
+import {chooseTactic} from '../public/game/src/tactics-ai.mjs';
+const root=path.resolve(import.meta.dirname,'..'),pub=path.join(root,'public'),db=new PGlite(),user='13313313-3133-4133-8133-000000000001';
+await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id,email_confirmed_at,email) values('${user}',now(),'round133@example.test');`);
+for(const f of (await fs.readdir(path.join(root,'supabase/migrations'))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(path.join(root,'supabase/migrations',f),'utf8'));
+await db.exec(`set request.jwt.claim.sub='${user}';select public.dv_initialize_account();update public.dv_profiles set display_name='Round QA' where user_id='${user}';reset role;set role service_role;`);
+async function rpc(name,args){const entries=Object.entries(args);return(await db.query('select public.'+name+'('+entries.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') data',entries.map(([,v])=>v&&typeof v==='object'?JSON.stringify(v):v))).rows[0].data;}
+const deck=(await db.query('select id from public.dv_decks where user_id=$1',[user])).rows[0].id;
+const match=await rpc('dv_match_join90',{p_user:user,p_kind:'random',p_deck:deck});
+await db.exec('reset role');await db.query("update public.dv_pvp90 set created_at=now()-interval '36 seconds' where id=$1",[match]);await db.exec('set role service_role');
+const bot=createBot96(321),row=await rpc('dv_match_fill_ai96',{p_user:user,p_id:match,p_deck:bot.deck,p_identity:bot.identity});
+let state=createPvp90([row.host_deck,row.guest_deck],10,Date.now());state.bot96={seed:321,nextAt:null};
+await rpc('dv_match_commit90',{p_user:user,p_id:match,p_version:0,p_request:crypto.randomUUID(),p_state:state});
+state=advancePvp90(advancePvp90(advancePvp90(state,0,{kind:'gesture',value:'rock'},Date.now()),1,{kind:'gesture',value:'scissors'},Date.now()),0,{kind:'starter',side:1},Date.now());
+while(state.game.placements<17)state=advancePvp90(state,state.game.turn,{kind:'place',action:chooseTactic(state.game,{policy:'position'}).chosen.action},Date.now());
+state=armBot96(state,Date.now());await rpc('dv_match_commit90',{p_user:user,p_id:match,p_version:1,p_request:crypto.randomUUID(),p_state:state});
+const action=chooseTactic(state.game,{policy:'position'}).chosen.action;
+const handler=createMatchHandler90({env:k=>({SUPABASE_URL:'https://round133.test',SUPABASE_SERVICE_ROLE_KEY:'isolated-only'})[k],seed:()=>133,fetcher:async(url,opt)=>{if(url.endsWith('/auth/v1/user'))return Response.json({id:user,email_confirmed_at:'2026-11-23'});try{return Response.json(await rpc(url.split('/').at(-1),JSON.parse(opt.body)));}catch(e){return Response.json({message:e.message,code:e.code},{status:400});}}});
+const client=`export async function connectOnline90(id){async function invoke(body){const r=await fetch('/api/duel',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer isolated'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Object.assign(Error(d.error),{status:r.status});return d;}return{leave:()=>invoke({op:'leave',id}),poll:version=>invoke({op:'poll',id,version}),move:(version,move)=>invoke({op:'move',id,version,requestId:crypto.randomUUID(),move})};}`;
+const types={'.html':'text/html','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.wav':'audio/wav','.mp3':'audio/mpeg','.woff2':'font/woff2'};
+let serial=Promise.resolve();
+http.createServer((req,res)=>{const run=async()=>{try{const u=new URL(req.url,'http://127.0.0.1:4243');
+ if(u.pathname==='/api/duel'){const chunks=[];for await(const c of req)chunks.push(c);const body=Buffer.concat(chunks),input=JSON.parse(body),answer=await handler(new Request(u,{method:'POST',headers:req.headers,body}));const result=await answer.json();console.log(JSON.stringify({op:input.op,move:input.move?.kind,status:answer.status,phase:result.phase,round:result.round,version:result.version,error:result.error}));res.writeHead(answer.status,Object.fromEntries(answer.headers));res.end(JSON.stringify(result));return;}
+ if(u.pathname==='/game/src/table-demo-view-hand17.mjs'){res.setHeader('Content-Type','text/javascript');res.end(`import{createTableView as create}from './table-demo-view-hand17.real133.mjs';export async function createTableView(...args){const v=await create(...args),fault=new URLSearchParams(location.search).get('fault');let failed=false;const init=v.initGame,place=v.place;v.initGame=g=>{if(fault==='reject'&&g.finished&&!failed){failed=true;throw Error('QA: final snapshot interrupted');}return init(g);};v.place=(...a)=>{if(fault==='stall'&&!failed){failed=true;return new Promise(()=>{});}return place(...a);};return v;}`);return;}
+ if(u.pathname==='/game/src/table-demo-view-hand17.real133.mjs'){res.setHeader('Content-Type','text/javascript');res.end(await fs.readFile(path.join(pub,'game/src/table-demo-view-hand17.mjs')));return;}
+ if(u.pathname==='/game/platform/social-inbox-app111.js'){res.setHeader('Content-Type','text/javascript');res.end('');return;}
+ if(u.pathname==='/game/platform/account-client50.mjs'){res.setHeader('Content-Type','text/javascript');res.end(client);return;}
+ const file=path.resolve(pub,'.'+decodeURIComponent(u.pathname));if(!file.startsWith(pub+'/'))throw Error('Not found');res.setHeader('Content-Type',types[path.extname(file)]??'application/octet-stream');let bytes=await fs.readFile(file);if(u.pathname==='/game/online.html')bytes=bytes.toString().replace('<body','<body data-qa="round133"').replace('</body>',`<button id="qa-final" style="position:fixed;z-index:99999;top:8px;left:8px">QA: finish round 1</button><script>document.getElementById("qa-final").onclick=function(){fetch('/api/duel',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer isolated'},body:JSON.stringify({op:'move',id:'${match}',version:2,requestId:crypto.randomUUID(),move:{kind:'place',action:${JSON.stringify(action)}}})}).then(()=>this.remove())}</script></body>`);res.end(bytes);
+ }catch(e){res.statusCode=404;res.end(e.message);}};serial=serial.then(run,run);}).listen(4243,'127.0.0.1',()=>console.log('Round transition QA: http://127.0.0.1:4243/game/online.html?match='+match));

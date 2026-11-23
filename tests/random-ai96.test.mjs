@@ -41,7 +41,8 @@ test('empty queue fallback, human priority, cancel, reconnect, first-to-two AI r
    if(x.phase==='rps'&&!x.ownChoice){lastMove={kind:'gesture',value:'rock'};}
    else if(x.phase==='initiative'&&x.rpsWinner===0)lastMove={kind:'starter',side:0};
    else if(x.phase==='play'&&x.game.turn===0)lastMove={kind:'place',action:chooseTactic(x.game,{policy:'position'}).chosen.action};
-   else if(x.phase==='between'&&!x.ready[0])lastMove={kind:'ready'};
+   // Round 1 must resume without a ready click; later rounds exercise Continue sooner.
+   else if(x.phase==='between'&&x.round>1&&!x.ready[0])lastMove={kind:'ready'};
    else lastMove=null;
    const previous=x;
    if(lastMove){lastRequest=uid(n++);lastVersion=x.version;x=await call('a',{op:'move',id,version:x.version,requestId:lastRequest,move:lastMove});const duplicate=await call('a',{op:'move',id,version:lastVersion,requestId:lastRequest,move:lastMove});assert.equal(duplicate.version,x.version);}
