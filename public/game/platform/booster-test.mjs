@@ -1,14 +1,15 @@
 import {ELEMENT_CARDS} from './expansion53.mjs';
 import {ALPHA_ADDITIONS} from './expansion48.mjs';
 import {EXPANSION_CARDS} from './expansion27.mjs';
-import {DEFINITIONS,VARIANTS,MAX_MOTIF_COPIES,getVariant,originalVariantId116,originalCards116,originalInventory116,starterInventory,starterDeck,validateDeck} from './catalog.mjs';
+import {VARIANTS,MAX_MOTIF_COPIES,getVariant,originalVariantId116,originalCards116,originalInventory116,starterInventory,starterDeck,validateDeck} from './catalog.mjs';
 export const TEST_COLLECTION_KEY='duelverse.booster-test.v1';
 export const TEST_DECK_KEY='duelverse.booster-test-deck.v1';
 export const PACK_SIZE=5;
 export const TEST_SINGLE_DRAW_LIMIT=3;
 // The local preview uses the published live odds; it never grants account cards.
 export {ALPHA_ODDS as TEST_PACK_ODDS} from './alpha-booster36.mjs';
-import {ALPHA_ODDS as TEST_PACK_ODDS} from './alpha-booster36.mjs';
+import {ALPHA_ODDS as TEST_PACK_ODDS,ALPHA_CLASS_ODDS} from './alpha-booster36.mjs';
+import {cardCategory131} from './set-manifest131.mjs';
 export const blankTestCollection=()=>({version:1,openedPacks:0,inventory:{},lastPack:null,singleDrawsUsed:0,lastDraw:null});
 // Editor-only sandbox allowance. Never persist this as collection ownership.
 export function fullTestDeckInventory(){return Object.fromEntries(VARIANTS.map(v=>[v.id,MAX_MOTIF_COPIES]));}
@@ -28,8 +29,14 @@ export function readTestCollection(storage){
 }
 function checkedRandom(random){const value=random();if(!Number.isFinite(value)||value<0||value>=1)throw Error('Invalid random sample.');return value;}
 export function rarityForRoll(weights,value){let cumulative=0;const roll=Math.floor(checkedRandom(()=>value)*10000);for(const [rarity,weight]of weights){cumulative+=weight;if(roll<cumulative)return rarity;}throw Error('Invalid pack odds.');}
+const testClassWeights=Object.entries(ALPHA_CLASS_ODDS);
+function drawTestVariant(rarity,random){
+ const category=rarityForRoll(testClassWeights,checkedRandom(random));
+ const pool=VARIANTS.filter(v=>v.edition==='alpha'&&v.rarity===rarity&&cardCategory131(v.definitionId)===category);
+ return pool[Math.floor(checkedRandom(random)*pool.length)].id;
+}
 export function drawTestPack(random=()=>{const value=new Uint32Array(1);globalThis.crypto.getRandomValues(value);return value[0]/4294967296;}){
- return Array.from({length:PACK_SIZE},(_,i)=>{const rarity=rarityForRoll(i===PACK_SIZE-1?TEST_PACK_ODDS.guaranteed:TEST_PACK_ODDS.standard,checkedRandom(random));const definition=DEFINITIONS[Math.floor(checkedRandom(random)*DEFINITIONS.length)];return VARIANTS.find(v=>v.definitionId===definition.id&&v.rarity===rarity).id;});
+ return Array.from({length:PACK_SIZE},(_,i)=>drawTestVariant(rarityForRoll(i===PACK_SIZE-1?TEST_PACK_ODDS.guaranteed:TEST_PACK_ODDS.standard,checkedRandom(random)),random));
 }
 export function addTestPack(collection,cards,id){
  if(typeof id!=='string'||!id||cards.length!==PACK_SIZE||!cards.every(getVariant))throw Error('Invalid test booster.');
@@ -45,8 +52,7 @@ export function readTestDeck(storage,inventory){try{const saved=JSON.parse(stora
 export function expansionTestDeck(){return [...ALPHA_ADDITIONS.map(c=>`${c.id}:common`),'pepe:common','doge:common','roll-safe:common','gigachad:common','trollface:common'];}
 
 export function drawSingleTestCard(random=()=>{const value=new Uint32Array(1);globalThis.crypto.getRandomValues(value);return value[0]/4294967296;}){
- const rarity=rarityForRoll(TEST_PACK_ODDS.standard,checkedRandom(random));
- const pool=VARIANTS.filter(v=>v.rarity===rarity);return pool[Math.floor(checkedRandom(random)*pool.length)].id;
+ return drawTestVariant(rarityForRoll(TEST_PACK_ODDS.standard,checkedRandom(random)),random);
 }
 export function addSingleTestDraw(collection,card,id){
  if(typeof id!=='string'||!id||!getVariant(card))throw Error('Invalid card draw.');

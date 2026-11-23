@@ -8,6 +8,7 @@ import {newGame} from '../public/game/src/rules.mjs';
 import {LOADOUTS,placeEffect} from '../public/game/src/table-demo-rules.mjs';
 import {applyPortalDecks} from '../public/game/platform/deck-bridge.mjs';
 import {testInventory,blankTestCollection,expansionTestDeck,drawTestPack} from '../public/game/platform/booster-test.mjs';
+import {cardCategory131} from '../public/game/platform/set-manifest131.mjs';
 test('120 identities and 600 native-element/finish variants have matching rule, portrait, short title and owner-independent profiles',()=>{
  assert.equal(DEFINITIONS.length,120);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,600);assert.equal(EXPANSION_CARDS.length,82);
  for(const c of DEFINITIONS){assert.equal(DEMO_PROFILES[c.ruleId],c.id);assert.equal(CARD_PROFILES[c.id].ruleId,c.ruleId);assert.ok(CARD_PROFILES[c.id].name.length<=16);const art=Object.values(CARD_ART[c.id]);assert.equal(art.length,5);assert.equal(new Set(art).size,5);for(const v of VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha')){assert.equal(v.image.replace('/game/','../'),CARD_ART[c.id][v.rarity]);assert.equal(v.artOffsetY,c.artOffsetY??0);assert.equal(expandGameDeck([v.id],0)[0].id,c.ruleId);}}
@@ -17,7 +18,14 @@ test('120 identities and 600 native-element/finish variants have matching rule, 
 test('new meme test deck stays separate from account starter inventory and all cards can be pulled',()=>{
  const inventory=testInventory(blankTestCollection()),deck=expansionTestDeck();assert.equal(deck.length,15);assert.ok(validateDeck(deck,inventory).valid);assert.equal(validateDeck(deck,starterInventory()).valid,false);
  assert.equal(new Set(deck.map(id=>id.split(':')[0])).size,15);
- for(let i=0;i<DEFINITIONS.length;i++){let n=0;const drawn=drawTestPack(()=>[.5,(i+.5)/DEFINITIONS.length][n++%2]);assert.ok(drawn.every(id=>id.startsWith(DEFINITIONS[i].id+':')));}
+ for(const [category,roll] of [['regular',.5],['prime',.005],['iconic',.02]]){
+  const pool=DEFINITIONS.filter(card=>cardCategory131(card.id)===category);
+  for(let i=0;i<pool.length;i++){
+   let n=0;
+   const drawn=drawTestPack(()=>[.5,roll,(i+.5)/pool.length][n++%3]);
+   assert.ok(drawn.every(id=>id.startsWith(pool[i].id+':')));
+  }
+ }
 });
 test('mixed expansion decks finish both rounds for either starting side with all five rarities and legal AI actions',()=>{
  const tiers=['common','rare','epic','legendary','mythic'],deck=expansionTestDeck().map((id,i)=>id.split(':')[0]+':'+tiers[i%5]);

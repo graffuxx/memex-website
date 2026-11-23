@@ -4,6 +4,7 @@ import './editions131.css';
 const ALPHA131=editionProgress131('alpha');
 import {useEffect,useRef,useState} from 'react';
 import AlphaBoosterPack from './AlphaBoosterPack';
+import AlphaBoosterOdds from './AlphaBoosterOdds';
 import PlayerBalances from './PlayerBalances';
 import {ShopTabs81,ShardShop81,ArenaSkins81,IdentityCosmetics85,type ShopCategory81} from './ShopCatalog81';
 import useBoosterAudio from './useBoosterAudio';
@@ -11,9 +12,9 @@ import BoosterTear from './BoosterTear';
 import BoosterRevealCard from './BoosterRevealCard';
 import usePlayerCollection from './usePlayerCollection';
 import {BoosterPurchaseError,buyAlphaBooster,loadBooster,loadBoosterHistory,loadUnopenedBoosters,findBoosterRequest,openAlphaBooster,type BoosterCurrency,type BoosterPurchase} from '@/lib/duelverse/account';
-import {ALPHA_BOOSTER,ALPHA_ODDS,previewAlphaPack,revealedSlots,validAlphaPack} from '../../../public/game/platform/alpha-booster36.mjs';
+import {ALPHA_BOOSTER,previewAlphaPack,revealedSlots,validAlphaPack} from '../../../public/game/platform/alpha-booster36.mjs';
 import {ALL_PACK_SLOTS,unopenedPacks,prepareManualOpening,flipPackSlot} from '../../../public/game/platform/booster-opening58.mjs';
-import {RARITIES,getVariant} from '../../../public/game/platform/catalog.mjs';
+import {getVariant} from '../../../public/game/platform/catalog.mjs';
 import {requestedBooster} from '../../../public/game/platform/player-area49.mjs';
 import './alpha-boosters.css';
 import './booster-opening.css';
@@ -126,7 +127,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
   <div className="alpha-booster-showcase"><div className="alpha-booster-art-stage"><AlphaBoosterPack/><span>ALPHA BOOSTER · FIRST EDITION</span></div><div className="alpha-booster-product"><span className="alpha-eyebrow">First edition</span><h2>Alpha Booster</h2><small className="alpha-set131">Alpha · {ALPHA131.released}/{ALPHA131.size} motifs released · {ALPHA131.pending} in development. Packs contain released cards only.</small><div className="alpha-booster-flags"><span>5 cards</span><span>At least 1 Silver or higher</span><span>Duplicate protection</span></div><div className="alpha-purchase-options"><button className="button gold" disabled={locked||!player||player.pixels<100} onClick={()=>setConfirmation('pixels')}><strong>100 Pixels</strong><span>Buy with Pixels</span></button><button className="button glass" disabled={locked||!player||player.shards<150} onClick={()=>setConfirmation('shards')}><strong>150 Shards</strong><span>Buy with Shards</span></button></div>{ready&&!userId?<p className="muted"><a href="/account">Sign in</a> to buy.</p>:player&&<p className="muted">Uses your current balance · <a href="/shop?category=shards" onClick={e=>{if(shop){e.preventDefault();changeCategory('shards');}}}>Get Shards</a></p>}<button className="alpha-preview-button" disabled={locked} onClick={startPreview}>Try the opening preview</button></div></div>
   <a className="alpha-crafting-link" href="/collection"><span><strong>Craft cards</strong><small>Regular · Normal, Silver, Gold</small></span><span>Use Echoes</span></a>
  </>}
- {(!shop||category==='boosters'||opening)&&<details className="booster-odds alpha-booster-odds"><summary>Contents &amp; drop rates</summary><p>Four slots use the standard rates below. One additional slot guarantees Silver or higher. The five slots are shuffled before opening. Welcome gifts, paid-currency and earned-currency boosters use the same rules.</p><table><thead><tr><th>Finish</th><th>Each standard slot</th><th>Guarantee slot</th></tr></thead><tbody>{RARITIES.map(r=><tr key={r.id}><th>{r.name}</th><td>{(Number(ALPHA_ODDS.standard.find(([id])=>id===r.id)?.[1]??0)/100).toFixed(2)}%</td><td>{(Number(ALPHA_ODDS.guaranteed.find(([id])=>id===r.id)?.[1]??0)/100).toFixed(2)}%</td></tr>)}</tbody></table><p>The finish is rolled first. Within it, variants not yet acquired are selected uniformly. Once you have acquired every variant of that finish, duplicates become possible. This history includes crafted, starter and dismantled cards. All Prime and Iconic finishes are booster exclusive. A saved 15-card deck permits each motif once across all finishes, with up to two Iconics and one Prime.</p><p>Your five cards are saved when the pack is granted or purchased. Purchases save the charge in the same transaction. Flip cards individually. Leaving an opened pack reveals the rest; the complete contents are safely saved when you tear it open. Reloading never duplicates cards or charges again.</p></details>}
+ {(!shop||category==='boosters'||opening)&&<AlphaBoosterOdds/>}
  <dialog ref={dialog} className="card-trade-dialog alpha-purchase-dialog" aria-labelledby="alphaPurchaseTitle" onCancel={e=>{e.preventDefault();if(!busy)setConfirmation(null);}}><h2 id="alphaPurchaseTitle">Buy one Alpha Booster?</h2><AlphaBoosterPack compact/><p>Five cards. At least one Silver or higher. Duplicate protection included.</p><p><strong>{selectedPrice} {confirmation==='pixels'?'Pixels':'Shards'}</strong> will be deducted from your account balance.</p><div className="actions"><button className="button glass" disabled={busy} onClick={()=>setConfirmation(null)}>Cancel</button><button className="button gold" disabled={busy||!confirmation} onClick={()=>confirmation&&purchase(confirmation)}>{busy?'Saving your booster…':`Buy for ${selectedPrice} ${confirmation==='pixels'?'Pixels':'Shards'}`}</button></div></dialog>
  </section>;
 }
