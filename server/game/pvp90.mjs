@@ -7,6 +7,7 @@ import {timeoutAction} from '../../public/game/src/turn-clock.mjs';
 import {balanceVersion94,BALANCE_FINGERPRINT94} from './balance-version94.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
 import {botPersonality134} from './bot-personality134.mjs';
+import {observeOpponent135} from './opponent-model135.mjs';
 export const PVP_RULE90='pvp-90',TURN_MS90=90000;
 export const AFK_AFTER129=2,AFK_TURN_MS129=3000,ROUND_BREAK_MS129=8000;
 const gestures=['rock','paper','scissors'];
@@ -57,7 +58,9 @@ export function advancePvp90(state,side,input,now=Date.now()){
  if(s.phase!=='play'||s.game.turn!==side)throw Error('It is not your turn.');
  if(input.kind==='shift'){const before=s.game;s.game=shiftBlock(s.game,input.cell);s.step={kind:'shift',cell:input.cell,before:structuredClone(before),after:structuredClone(s.game)};return s;}
  if(input.kind!=='place'||input.action?.rotation!==0)throw Error('Invalid card action.');
- s.afkStreak129[side]=0;place(s,input.action,now);return s;
+ s.afkStreak129[side]=0;place(s,input.action,now);
+ if(s.bot96&&side===0)s.bot96.opponent135=observeOpponent135(s.bot96.opponent135,state.game,s.game,input.action,`${s.round}:${s.game.placements}`);
+ return s;
 }
 export function expirePvp90(state,now=Date.now()){
  if(!state.deadline||now<state.deadline)return null;
@@ -86,7 +89,7 @@ export function projectPvp90(row,uid,now=Date.now()){
  if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,RANDOM_AI_WAIT_MS98-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
  const players=side===1?[row.identities[1],row.identities[0]]:row.identities;
  const personality=row.ai_opponent96&&s.bot96?(s.bot96.personality134??botPersonality134(s.bot96.seed)):null;
- return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',opponentStyle:personality?{id:personality.id,label:personality.label,description:personality.description}:null,round:s.round,starter:swap(s.starter),players,series:series113(s.results.map(r=>side===1?[r[1],r[0]]:r)),winner:s.forfeit!=null?swap(1-s.forfeit):swap(series113(s.results).winner),rated:row.kind==='random',
+ return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',opponentStyle:personality?{id:personality.id,label:personality.label,description:personality.description}:null,opponentEngine:row.ai_opponent96?{name:'IS-MCTS',adaptive:true,observedMoves:s.bot96?.opponent135?.observations??0}:null,round:s.round,starter:swap(s.starter),players,series:series113(s.results.map(r=>side===1?[r[1],r[0]]:r)),winner:s.forfeit!=null?swap(1-s.forfeit):swap(series113(s.results).winner),rated:row.kind==='random',
   results:s.results.map(r=>side===1?[r[1],r[0]]:r),game:perspectiveGame(s.game,side),ready:side===1?[s.ready[1],s.ready[0]]:s.ready,
   ownChoice:s.choices[side],opponentChosen:Boolean(s.choices[1-side]),attempt:s.attempt,rpsWinner:swap(s.rpsWinner),
   lastRps:s.lastRps?{choices:side===1?[s.lastRps.choices[1],s.lastRps.choices[0]]:s.lastRps.choices,winner:swap(s.lastRps.winner)}:null,

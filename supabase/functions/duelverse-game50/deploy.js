@@ -2813,13 +2813,18 @@ var BOT_STYLES134 = Object.freeze([
   { id: "balanced", label: "Balanced", description: "Balances captures, safe edges and board position.", capture: 2.15, safety: 0.43, contacts: 0.17, twist: 1, variety: 0.12 }
 ].map((style) => Object.freeze(style)));
 
+// server/game/ismcts135.mjs
+var ISMCTS_VERSION135 = "is-mcts-1";
+var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, standard: { iterations: 160, maxMs: 550 }, tower: { iterations: 640, maxMs: 1600 } });
+var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
+
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.4";
+var BALANCE_PATCH94 = "alpha-2026-11-23.5";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 4,
+  revision: 5,
   catalog: CATALOG_VERSION,
-  randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134 },
+  randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
   nativeElementsOnly: true,
   eventFieldsEnabled: false,
