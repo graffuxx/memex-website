@@ -2640,7 +2640,7 @@ function legalCandidates(game, rules = table_demo_rules_exports) {
   }
   return result;
 }
-function positionalValue(game, { action, plan }, rules = table_demo_rules_exports) {
+function positionalValue(game, { action, plan }, rules = table_demo_rules_exports, weights = {}) {
   let safety = 0, contacts = 0;
   for (const n of neighbors2(action.cell)) {
     if (n.id === game.block) continue;
@@ -2656,7 +2656,8 @@ function positionalValue(game, { action, plan }, rules = table_demo_rules_export
     const before = game.board[t.cell], after = plan.board[t.cell];
     for (const n of neighbors2(t.cell)) if (!game.board[n.id] && n.id !== game.block) twistSafety += (sideValue(before, n.dir) - sideValue(after, n.dir)) * 0.18;
   }
-  return plan.flips.length * 2 + safety * 0.42 + contacts * 0.16 + twistSafety;
+  const closing = weights.capture === void 0 ? 0 : Math.max(0, (game.placements - 12) / 5);
+  return plan.flips.length * ((weights.capture ?? 2) + closing) + safety * (weights.safety ?? 0.42) + contacts * (weights.contacts ?? 0.16) + twistSafety * (weights.twist ?? 1);
 }
 function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
   const board = { ...plan.board, [action.cell]: plan.card };
@@ -2690,10 +2691,14 @@ function rotateField(f, steps) {
   for (let i = 0; i < steps; i++) [q, r] = [-r, q + r];
   return { ...f, cell: q + "," + r, ...f.directions ? { directions: f.directions.map((d) => (d + steps) % 6) } : {} };
 }
-function chooseTactic2(game, { rules = table_demo_rules_exports, policy = "reply", random: random2 = () => 0.5 } = {}) {
+function chooseTactic2(game, { rules = table_demo_rules_exports, policy = "reply", random: random2 = () => 0.5, personality = null } = {}) {
   const candidates = legalCandidates(game, rules);
   if (!candidates.length) return { chosen: null, candidates };
   let pool = candidates;
+  if (policy === "position" && personality && game.placements === 17) {
+    const captures = Math.max(...pool.map((item) => item.plan.flips.length));
+    pool = pool.filter((item) => item.plan.flips.length === captures);
+  }
   if (policy === "reply") {
     const groups = /* @__PURE__ */ new Map();
     for (const item of candidates) {
@@ -2706,7 +2711,7 @@ function chooseTactic2(game, { rules = table_demo_rules_exports, policy = "reply
   }
   let best = -Infinity, chosen = null, ties = 0;
   for (const item of pool) {
-    const value = policy === "greedy" ? item.plan.flips.length * 6 : policy === "reply" ? item.plan.flips.length * 2 - replyRisk(game, item, rules) * 1.65 + (item.position ?? positionalValue(game, item, rules)) * 0.12 : positionalValue(game, item, rules);
+    const value = policy === "greedy" ? item.plan.flips.length * 6 : policy === "reply" ? item.plan.flips.length * 2 - replyRisk(game, item, rules) * 1.65 + (item.position ?? positionalValue(game, item, rules)) * 0.12 : positionalValue(game, item, rules, personality?.weights) + (personality ? (random2() - 0.5) * personality.variety : 0);
     if (value > best + 1e-8) {
       best = value;
       chosen = item;
@@ -2800,12 +2805,21 @@ function timeoutAction(game) {
   return null;
 }
 
+// server/game/bot-personality134.mjs
+var BOT_PERSONALITY_VERSION134 = "personalities-1";
+var BOT_STYLES134 = Object.freeze([
+  { id: "aggressive", label: "Aggressive", description: "Pressures exposed cards and accepts more positional risk.", capture: 2.65, safety: 0.29, contacts: 0.12, twist: 0.85, variety: 0.2 },
+  { id: "defensive", label: "Defensive", description: "Protects exposed edges and builds connected positions.", capture: 1.9, safety: 0.62, contacts: 0.22, twist: 1.1, variety: 0.06 },
+  { id: "balanced", label: "Balanced", description: "Balances captures, safe edges and board position.", capture: 2.15, safety: 0.43, contacts: 0.17, twist: 1, variety: 0.12 }
+].map((style) => Object.freeze(style)));
+
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.3";
+var BALANCE_PATCH94 = "alpha-2026-11-23.4";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 3,
+  revision: 4,
   catalog: CATALOG_VERSION,
+  randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
   nativeElementsOnly: true,
   eventFieldsEnabled: false,

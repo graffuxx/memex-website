@@ -6,6 +6,7 @@ import {shiftBlock,scores} from '../../public/game/src/rules.mjs';
 import {timeoutAction} from '../../public/game/src/turn-clock.mjs';
 import {balanceVersion94,BALANCE_FINGERPRINT94} from './balance-version94.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
+import {botPersonality134} from './bot-personality134.mjs';
 export const PVP_RULE90='pvp-90',TURN_MS90=90000;
 export const AFK_AFTER129=2,AFK_TURN_MS129=3000,ROUND_BREAK_MS129=8000;
 const gestures=['rock','paper','scissors'];
@@ -69,6 +70,8 @@ export function expirePvp90(state,now=Date.now()){
 }
 function perspectiveGame(game,side,revealUid=null){
  if(!game)return null;const g=structuredClone(game),swap=n=>n===null||n===undefined?n:side===1?1-n:n;
+ // Board geometry is public; the seed also shuffles hidden draws and stays server-side.
+ delete g.seed;
  const card=c=>{const v={...c};for(const k of ['origin','controller','guardOwner'])if(v[k]!==undefined)v[k]=swap(v[k]);return v;};
  const hidden=c=>({id:'oracle',uid:c.uid,origin:swap(c.origin),controller:swap(c.controller),rotation:0,hidden:true});
  g.players=(side===1?[g.players[1],g.players[0]]:g.players).map((p,i)=>({...p,hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),deck:p.deck.map(hidden)}));
@@ -82,7 +85,8 @@ export function projectPvp90(row,uid,now=Date.now()){
  const s=row.state,swap=n=>n===null||n===undefined?n:side===1?1-n:n;
  if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,RANDOM_AI_WAIT_MS98-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
  const players=side===1?[row.identities[1],row.identities[0]]:row.identities;
- return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',round:s.round,starter:swap(s.starter),players,series:series113(s.results.map(r=>side===1?[r[1],r[0]]:r)),winner:s.forfeit!=null?swap(1-s.forfeit):swap(series113(s.results).winner),rated:row.kind==='random',
+ const personality=row.ai_opponent96&&s.bot96?(s.bot96.personality134??botPersonality134(s.bot96.seed)):null;
+ return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',opponentStyle:personality?{id:personality.id,label:personality.label,description:personality.description}:null,round:s.round,starter:swap(s.starter),players,series:series113(s.results.map(r=>side===1?[r[1],r[0]]:r)),winner:s.forfeit!=null?swap(1-s.forfeit):swap(series113(s.results).winner),rated:row.kind==='random',
   results:s.results.map(r=>side===1?[r[1],r[0]]:r),game:perspectiveGame(s.game,side),ready:side===1?[s.ready[1],s.ready[0]]:s.ready,
   ownChoice:s.choices[side],opponentChosen:Boolean(s.choices[1-side]),attempt:s.attempt,rpsWinner:swap(s.rpsWinner),
   lastRps:s.lastRps?{choices:side===1?[s.lastRps.choices[1],s.lastRps.choices[0]]:s.lastRps.choices,winner:swap(s.lastRps.winner)}:null,

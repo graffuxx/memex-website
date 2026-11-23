@@ -10,11 +10,13 @@ export function legalCandidates(game,rules=currentRules){
   for(const action of rules.actionOptions(game,card,cell,rotation))if(directions.includes(action.abilityDirection)){const plan=rules.previewEffect(game,action);result.push({action,plan});}
  }return result;
 }
-export function positionalValue(game,{action,plan},rules=currentRules){
+export function positionalValue(game,{action,plan},rules=currentRules,weights={}){
  let safety=0,contacts=0;
  for(const n of neighbors(action.cell)){if(n.id===game.block)continue;const other=plan.board[n.id];if(!other){const defense=rules.effectStrength(game,plan.card,action.cell,n.dir,{id:'brain'});safety+=Math.min(7,defense.base+defense.field+defense.ability)-4.1;}else if(other.controller===game.turn||plan.flips.includes(n.id))contacts++;}
  let twistSafety=0;for(const t of plan.transforms){if(t.temporary)continue;const before=game.board[t.cell],after=plan.board[t.cell];for(const n of neighbors(t.cell))if(!game.board[n.id]&&n.id!==game.block)twistSafety+=(sideValue(before,n.dir)-sideValue(after,n.dir))*.18;}
- return plan.flips.length*2+safety*.42+contacts*.16+twistSafety;
+ // At the end of the round, actual ownership matters more than a future safe edge.
+ const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
+ return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
@@ -33,15 +35,17 @@ export function replyRisk(game,{action,plan},rules=currentRules){
  }return worst;
 }
 function rotateField(f,steps){let [q,r]=f.cell.split(',').map(Number);for(let i=0;i<steps;i++)[q,r]=[-r,q+r];return {...f,cell:q+','+r,...(f.directions?{directions:f.directions.map(d=>(d+steps)%6)}:{})};}
-export function chooseTactic(game,{rules=currentRules,policy='reply',random=()=>.5}={}){
+export function chooseTactic(game,{rules=currentRules,policy='reply',random=()=>.5,personality=null}={}){
  const candidates=legalCandidates(game,rules);if(!candidates.length)return {chosen:null,candidates};
  let pool=candidates;
+ // A personality may vary close decisions, but never throw away a better final score.
+ if(policy==='position'&&personality&&game.placements===17){const captures=Math.max(...pool.map(item=>item.plan.flips.length));pool=pool.filter(item=>item.plan.flips.length===captures);}
  if(policy==='reply'){
   const groups=new Map();for(const item of candidates){item.position=positionalValue(game,item,rules);const n=item.plan.flips.length;if(!groups.has(n))groups.set(n,[]);groups.get(n).push(item);}
   pool=[...groups.values()].flatMap(group=>group.sort((a,b)=>b.position-a.position).slice(0,2));
  }
  let best=-Infinity,chosen=null,ties=0;
- for(const item of pool){const value=policy==='greedy'?item.plan.flips.length*6:policy==='reply'?item.plan.flips.length*2-replyRisk(game,item,rules)*1.65+(item.position??positionalValue(game,item,rules))*.12:positionalValue(game,item,rules);
+ for(const item of pool){const value=policy==='greedy'?item.plan.flips.length*6:policy==='reply'?item.plan.flips.length*2-replyRisk(game,item,rules)*1.65+(item.position??positionalValue(game,item,rules))*.12:positionalValue(game,item,rules,personality?.weights)+(personality?(random()-.5)*personality.variety:0);
   if(value>best+1e-8){best=value;chosen=item;ties=1;}else if(Math.abs(value-best)<1e-8&&random()<1/++ties)chosen=item;
  }return {chosen,candidates};
 }

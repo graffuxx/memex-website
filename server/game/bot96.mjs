@@ -4,6 +4,7 @@ import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
 import {chooseTactic} from '../../public/game/src/tactics-ai.mjs';
 import {advancePvp90} from './pvp90.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
+import {botPersonality134} from './bot-personality134.mjs';
 export const BOT_WAIT_MS96=RANDOM_AI_WAIT_MS98;
 // Match the existing middle training tier: captures + position, without reply search.
 export const BOT_DIFFICULTY97='standard',BOT_POLICY97='position';
@@ -21,6 +22,7 @@ export function createBot96(seed){
 function needed(s){return s.phase==='rps'&&s.choices[1]===null||s.phase==='initiative'&&s.rpsWinner===1||s.phase==='play'&&s.game?.turn===1||s.phase==='between'&&!s.ready[1];}
 export function armBot96(state,now){
  if(!state.bot96)return state;const s=structuredClone(state);
+ s.bot96.personality134??=botPersonality134(s.bot96.seed);
  if(!needed(s))s.bot96.nextAt=null;
  else if(s.bot96.nextAt===null)s.bot96.nextAt=now+1200+Math.floor(random96(s.bot96.seed^Math.imul((s.game?.placements??0)+s.attempt+s.round,2654435761))()*1500);
  return s;
@@ -35,7 +37,7 @@ export function stepBot96(state,now){
  else {
   // The policy receives only its own hand, the public board and hidden card counts.
   const visible=structuredClone(state.game);visible.players[0].hand=visible.players[0].hand.map(c=>({uid:c.uid,hidden:true}));for(const p of visible.players)p.deck=p.deck.map(c=>({uid:c.uid,hidden:true}));
-  const action=chooseTactic(visible,{policy:BOT_POLICY97,random:r}).chosen?.action;if(!action)throw Error('AI has no legal move.');move={kind:'place',action};
+  const action=chooseTactic(visible,{policy:BOT_POLICY97,random:r,personality:state.bot96.personality134??botPersonality134(state.bot96.seed)}).chosen?.action;if(!action)throw Error('AI has no legal move.');move={kind:'place',action};
  }
  const next=advancePvp90(state,1,move,now);next.bot96.nextAt=null;return armBot96(next,now);
 }
