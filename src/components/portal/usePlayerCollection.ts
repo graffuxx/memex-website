@@ -17,8 +17,14 @@ function useCollectionState(){
    catch(e){if(alive&&ticket===generation.current)setError(e instanceof Error?e.message:'Collection unavailable.');}
    finally{if(alive&&ticket===generation.current)setReady(true);}
   }
-  const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>{if(alive)void restore(session?.user.id??null);},0);});
-  return()=>{alive=false;mounted.current=false;generation.current++;subscription.unsubscribe();};
+  const sessionTimer=setTimeout(()=>{
+   if(alive&&lastId===undefined){setError('Your sign-in status could not be checked. Please try again.');setReady(true);}
+  },18000);
+  const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{
+   clearTimeout(sessionTimer);
+   setTimeout(()=>{if(alive)void restore(session?.user.id??null);},0);
+  });
+  return()=>{alive=false;clearTimeout(sessionTimer);mounted.current=false;generation.current++;subscription.unsubscribe();};
  },[]);
  async function refresh(){const ticket=generation.current;try{const data=await loadPlayer();if(mounted.current&&ticket===generation.current){setPlayer(data);setError('');}return data;}catch(e){if(mounted.current&&ticket===generation.current)setError(e instanceof Error?e.message:'Collection unavailable.');throw e;}}
  return {ready,userId,player,error,testMode,refresh,inventory:testMode?testItems:userId?(player?.inventory??{}):starterInventory()};

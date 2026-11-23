@@ -25,8 +25,13 @@ export function bindSignupConfirmation109(auth,{getEmail,onConfirmed,schedule=ca
 export async function verifiedConfirmation109(auth,{timeoutMs=8000}={}){
  let timer;
  try{
+  const readUser=async()=>{
+   const initialization=await auth.initialize?.();
+   if(initialization?.error)throw initialization.error;
+   return auth.getUser();
+  };
   const response=await Promise.race([
-   auth.getUser(),
+   readUser(),
    new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Confirmation check timed out')),timeoutMs);})
   ]);
   if(response.error)throw response.error;

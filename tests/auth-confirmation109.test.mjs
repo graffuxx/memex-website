@@ -24,3 +24,14 @@ test('confirmation feedback requires a server-verified user and settles on failu
  await assert.rejects(verifiedConfirmation109({getUser:async()=>({data:{user:null},error:new Error('Expired token')})}),/Expired token/);
  await assert.rejects(verifiedConfirmation109({getUser:()=>new Promise(()=>{})},{timeoutMs:10}),/timed out/);
 });
+test('a callback initialization failure cannot confirm a previous session, and a temporary failure is preserved',async()=>{
+ const error=new Error('Account service request timed out');
+ await assert.rejects(verifiedConfirmation109({
+  initialize:async()=>({error}),
+  getUser:async()=>assert.fail('The previous session must not be accepted')
+ }),error);
+ await assert.rejects(verifiedConfirmation109({
+  initialize:()=>new Promise(()=>{}),
+  getUser:async()=>assert.fail('Auth startup has not completed')
+ },{timeoutMs:10}),/timed out/);
+});

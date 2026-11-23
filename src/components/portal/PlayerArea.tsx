@@ -20,6 +20,7 @@ export default function PlayerArea({children}:{children:ReactNode}){
 export function PlayerAreaGate({children}:{children:ReactNode}){
  const {ready,userId,player,error,refresh}=usePlayerCollection(),[retrying,setRetrying]=useState(false);
  if(!ready)return <section className="portal-section player-gate"><h1>Your player area.</h1><p role="status">Loading your account…</p></section>;
+ if(!userId&&error)return <section className="portal-section player-gate"><h1>Your player area.</h1><p className="error" role="alert">{error}</p><button className="button glass" onClick={()=>window.location.reload()}>Try again</button></section>;
  if(!userId)return <section className="portal-section player-gate"><img src="/memex-mainlogo.png" alt="MemeX Duelverse"/><h1>Your player area.</h1><p>Sign in to find your cards, decks and saved boosters.</p><div className="actions"><a className="button gold" href="/account">Sign in</a><a className="button glass" href="/account/register">Create account</a></div></section>;
  if(!player)return <section className="portal-section player-gate"><h1>Your player area.</h1><p className="error" role="alert">{error||'Your account could not be loaded.'}</p><button className="button glass" disabled={retrying} onClick={async()=>{setRetrying(true);try{await refresh();}catch{}finally{setRetrying(false);}}}>{retrying?'Loading…':'Try again'}</button></section>;
  return <>{children}</>;
