@@ -1,5 +1,5 @@
 import {arenaCameraPose78} from './arena-navigation78.mjs?v=void-storm-79';
-import {createVoidNebula78} from './void-nebula78.mjs?v=void-storm-79';
+import {createVoidNebula78} from './void-nebula78.mjs?v=void-weather-137';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS} from './rules.mjs';
 import {tileCenter} from './arena-projection.mjs';
@@ -61,7 +61,7 @@ for(const cluster of crystalClusters)for(let j=0;j<3;j++){const points=[];for(le
  const atmosphere=createAtmosphere({scene,clusters:crystalClusters,root}),glow=createGlowPipeline(renderer),nebula=createVoidNebula78();
  let elapsed=0,lastWidth=0,lastHeight=0;
  return {
-  frame(dt,camera,animated){nebula.frame(dt,animated);if(animated)elapsed+=dt;crystalTime.value=elapsed;effectAmount.value=animated?1:0;atmosphere.frame(elapsed,camera,animated);lavaMaterial.uniforms.uTime.value=elapsed;for(const {arc,phase}of arcs)arc.material.opacity=animated?Math.pow(Math.max(0,Math.sin(elapsed*.75+phase)),10)*.7:0;coreMaterial.opacity=animated?.24+.07*Math.sin(elapsed*1.1):0;warmLight.intensity=animated?28+Math.sin(elapsed*.48)*1.2:0;},
+  frame(dt,camera,animated,musicTimeline=null){nebula.frame(dt,animated,musicTimeline);if(animated)elapsed+=dt;crystalTime.value=elapsed;effectAmount.value=animated?1:0;atmosphere.frame(elapsed,camera,animated);lavaMaterial.uniforms.uTime.value=elapsed;for(const {arc,phase}of arcs)arc.material.opacity=animated?Math.pow(Math.max(0,Math.sin(elapsed*.75+phase)),10)*.7:0;coreMaterial.opacity=animated?.24+.07*Math.sin(elapsed*1.1):0;warmLight.intensity=animated?28+Math.sin(elapsed*.48)*1.2:0;},
   renderBackground(width,height){nebula.render(renderer,width,height);},
   render(camera,viewport){const ratio=renderer.getPixelRatio(),w=Math.round(viewport[2]*ratio),h=Math.round(viewport[3]*ratio);if(w!==lastWidth||h!==lastHeight){glow.resize(w,h);lastWidth=w;lastHeight=h;}glow.render(scene,camera,viewport);},
   dispose(){nebula.dispose();glow.dispose();const geometries=new Set(),materials=new Set(),textures=new Set([blankMap]);scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(m);for(const t of Object.values(m))if(t?.isTexture)textures.add(t);}o.shadow?.dispose();});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();scene.clear();}

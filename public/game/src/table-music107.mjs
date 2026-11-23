@@ -1,5 +1,5 @@
 // One local, original soundtrack. Playback follows the game's audio gesture/mute.
-export const MUSIC_URL107=new URL('../assets/audio/hex-pulse-v107.mp3',import.meta.url);
+export const MUSIC_URL107=new URL('../assets/audio/quiet-orbit-void-weather-v137.mp3',import.meta.url);
 export function createTableMusic107({context,output,fetcher=fetch}){
  let active=false,disposed=false,volume=.16,master=.35,source=null,offset=0,started=0,buffer=null,pending=null,epoch=0;
  const gain=context.createGain();gain.gain.value=0;gain.connect(output);
@@ -23,6 +23,7 @@ export function createTableMusic107({context,output,fetcher=fetch}){
   setMasterVolume(v){master=Math.max(0,Math.min(1,Number(v)||0));epoch++;return sync();},
   duck(seconds=0){if(disposed)return;level(seconds>0?.3:1);if(seconds>0&&active)gain.gain.setTargetAtTime(target(),context.currentTime+seconds,.35);},
   get playing(){return Boolean(source);},
+  getTimeline(){return source&&active&&!disposed&&volume>0&&master>0&&context.state==='running'?{position:(offset+Math.max(0,context.currentTime-started))%buffer.duration,duration:buffer.duration}:null;},
   dispose(){if(disposed)return;disposed=true;active=false;epoch++;stop();gain.disconnect();}
  };
 }

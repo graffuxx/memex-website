@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createTableMusic107} from '../public/game/src/table-music107.mjs';
 
-function rig(fetcher){
+function rig(fetcher,duration=90){
  const nodes=[];let loads=0;
  const gain={value:0,events:[],cancelScheduledValues(t){this.events.push(['cancel',t]);},setTargetAtTime(v,t){this.events.push(['target',v,t]);}};
- const context={state:'running',currentTime:0,createGain(){return {gain,connect(){},disconnect(){this.disconnected=true;}};},createBufferSource(){const n={connect(){},disconnect(){this.disconnected=true;},start(t,offset){this.offset=offset;},stop(){this.stopped=true;}};nodes.push(n);return n;},async decodeAudioData(){return {duration:90};}};
+ const context={state:'running',currentTime:0,createGain(){return {gain,connect(){},disconnect(){this.disconnected=true;}};},createBufferSource(){const n={connect(){},disconnect(){this.disconnected=true;},start(t,offset){this.offset=offset;},stop(){this.stopped=true;}};nodes.push(n);return n;},async decodeAudioData(){return {duration};}};
  const music=createTableMusic107({context,output:{},fetcher:fetcher??(async()=>{loads++;return {ok:true,async arrayBuffer(){return new ArrayBuffer(1);}};})});
  return {music,context,nodes,gain,get loads(){return loads;}};
 }
@@ -20,6 +20,26 @@ test('music is lazy, quiet, loops once, and resumes the same position after mute
  r.music.duck(2);const scheduled=r.gain.events.filter(e=>e[0]==='target');assert.ok(scheduled.at(-2)[1]<scheduled.at(-1)[1]);assert.equal(scheduled.at(-1)[2],62);
  await r.music.setMasterVolume(0);assert.equal(r.music.playing,false);await r.music.setMasterVolume(.35);assert.equal(r.music.playing,true);
  r.music.dispose();r.music.dispose();assert.ok(r.nodes.every(n=>n.stopped&&n.disconnected));await r.music.setActive(true);assert.equal(r.music.playing,false);
+});
+test('weather follows the actual soundtrack playhead across loop, muted pause, suspended context and resume',async()=>{
+ const {voidMusicWeather137}=await import('../public/game/src/void-weather137.mjs');
+ const r=rig(undefined,192);
+ assert.equal(r.music.getTimeline(),null);
+ r.context.currentTime=100;await r.music.setActive(true);
+ r.context.currentTime=104;
+ assert.deepEqual(r.music.getTimeline(),{position:4,duration:192});
+ assert.ok(voidMusicWeather137(r.music.getTimeline()).left>.95);
+ r.context.currentTime=296;
+ assert.deepEqual(r.music.getTimeline(),{position:4,duration:192});
+ await r.music.setActive(false);assert.equal(r.music.getTimeline(),null);
+ r.context.currentTime=500;await r.music.setActive(true);
+ assert.deepEqual(r.music.getTimeline(),{position:4,duration:192});
+ r.context.state='suspended';assert.equal(r.music.getTimeline(),null);
+ r.context.state='running';assert.ok(r.music.getTimeline());
+ await r.music.setVolume(0);assert.equal(r.music.getTimeline(),null);
+ await r.music.setVolume(.16);assert.equal(r.music.getTimeline().position,4);
+ await r.music.setMasterVolume(0);assert.equal(r.music.getTimeline(),null);
+ r.music.dispose();assert.equal(r.music.getTimeline(),null);
 });
 test('a late download cannot start music after mute/dispose; concurrent activation never doubles playback',async()=>{
  let resolve;const r=rig(()=>new Promise(r=>{resolve=r;}));

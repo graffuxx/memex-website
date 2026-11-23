@@ -1,4 +1,5 @@
 import {voidStormState79} from './void-storm79.mjs';
+import {voidMusicWeather137} from './void-weather137.mjs';
 import * as T from '../vendor/three.module.min.js';
 
 // This layer stays behind the terrain. No refraction, blur or deformation touches the board.
@@ -39,5 +40,5 @@ export function createVoidNebula78(){
  const starsGeometry=new T.BufferGeometry();starsGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));starsGeometry.setAttribute('seed',new T.Float32BufferAttribute(seeds,1));
  const starsMaterial=new T.ShaderMaterial({transparent:true,depthTest:false,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending,uniforms:{uTime:time,uAspect:aspect,uRatio:{value:Math.min(globalThis.devicePixelRatio||1,1.75)}},vertexShader:'attribute float seed;uniform float uTime,uAspect,uRatio;varying float fade;void main(){vec2 p=position.xy+vec2(sin(uTime*.06+seed*20.)*.022,cos(uTime*.045+seed*14.)*.018);p.x/=max(.8,uAspect*.72);gl_Position=vec4(p,0.,1.);gl_PointSize=(1.5+seed*2.5)*uRatio;fade=.22+.30*pow(.5+.5*sin(uTime*.45+seed*30.),3.);}',fragmentShader:'varying float fade;void main(){float d=length((gl_PointCoord-.5)*2.);if(d>1.)discard;gl_FragColor=vec4(.43,.32,1.,exp(-d*d*5.)*fade);}'});
  const stars=new T.Points(starsGeometry,starsMaterial);stars.frustumCulled=false;scene.add(stars);let elapsed=0;
- return {frame(dt,animated){if(animated)elapsed+=Math.min(.05,Math.max(0,dt));time.value=elapsed;const weather=voidStormState79(elapsed,animated);storm.value.set(weather.left,weather.right);stars.visible=animated;},render(renderer,width,height){aspect.value=width/Math.max(1,height);renderer.setViewport(0,0,width,height);renderer.setScissorTest(false);renderer.autoClear=false;renderer.render(scene,camera);},dispose(){geometry.dispose();material.dispose();starsGeometry.dispose();starsMaterial.dispose();scene.clear();}};
+ return {frame(dt,animated,musicTimeline=null){if(animated)elapsed+=Math.min(.05,Math.max(0,dt));time.value=elapsed;const weather=musicTimeline?voidMusicWeather137(musicTimeline,animated):voidStormState79(elapsed,animated);storm.value.set(weather.left,weather.right);stars.visible=animated;},render(renderer,width,height){aspect.value=width/Math.max(1,height);renderer.setViewport(0,0,width,height);renderer.setScissorTest(false);renderer.autoClear=false;renderer.render(scene,camera);},dispose(){geometry.dispose();material.dispose();starsGeometry.dispose();starsMaterial.dispose();scene.clear();}};
 }

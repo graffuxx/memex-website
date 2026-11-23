@@ -5,12 +5,12 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=round-recovery-133';
-import {createTableView} from './table-demo-view-hand17.mjs?v=online-input-117';
+import {createTableView} from './table-demo-view-hand17.mjs?v=void-weather-137';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=hex-pulse-107';
-import {bindTableMusic107} from './table-music107.mjs';
+import {createTableAudio} from './table-audio.mjs?v=void-weather-137';
+import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
@@ -119,7 +119,7 @@ document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.runnin
 $('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
 try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
- client=await connectOnline90(id);view=await createTableView(stage,svg,{onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient(true);void audio.preloadAnnouncements();
+ client=await connectOnline90(id);view=await createTableView(stage,svg,{getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient(true);void audio.preloadAnnouncements();
  $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';await poll();
 }catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}
 const pollTimer=setInterval(()=>void poll(),1800),clockTimer=setInterval(clock,250);window.addEventListener('focus',()=>void poll());window.addEventListener('pagehide',()=>{stopped=true;clearInterval(pollTimer);clearInterval(clockTimer);portraitIntro.cancel();ceremony.dispose();audio.dispose();view?.dispose();});
