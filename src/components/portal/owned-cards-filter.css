@@ -1,0 +1,6 @@
+.dv-portal .owned-cards-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dv-portal .owned-cards-filter button{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border:1px solid #b898de66;border-radius:999px;background:#1b122c;color:#e4d5f3;font-size:13px;white-space:nowrap}
+.dv-portal .owned-cards-filter button:hover{border-color:#e8c77b;color:#ffedc4}
+.dv-portal .owned-cards-filter button[aria-pressed=true]{border-color:#e8c77b;background:#593f3c;color:#ffedc4}
+.dv-portal .owned-cards-filter button>span{display:grid;place-items:center;width:16px;height:16px;border:1px solid currentColor;border-radius:4px;font-size:12px;line-height:1}
+.dv-portal .owned-cards-count{color:#c8b6dc;font-size:12px;white-space:nowrap}
