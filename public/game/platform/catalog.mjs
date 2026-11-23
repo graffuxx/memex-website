@@ -9,7 +9,7 @@ import {RECRUITER_VARIANTS95} from './quests95.mjs';
 export const DECK_SIZE = 15;
 export const MAX_MOTIF_COPIES = 1;
 export const STARTER_COPIES = 1;
-export const CATALOG_VERSION = 10;
+export const CATALOG_VERSION = 11;
 export const RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id,m])=>Object.freeze({id,name:m.name,color:m.color})));
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',short:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},

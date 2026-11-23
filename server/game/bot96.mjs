@@ -12,7 +12,7 @@ const pick=(list,r)=>list[Math.floor(r()*list.length)];
 function shuffle(list,r){const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 export function createBot96(seed){
  const r=random96(seed),first=['Pixel','Void','Salty','Turbo','Meme','Neon','Cosmic','Sleepy','Crystal','Chaos','Quantum','Glitch'],last=['Goblin','Doge','Wizard','Potato','Gremlin','Wombat','Ninja','Pickle','Raccoon','Toast','Panda','Gecko'];
- const identity={displayName:pick(first,r)+pick(last,r)+String(Math.floor(r()*90)+10),avatarId:pick(PORTRAITS85,r).id,frameId:'starter',titleId:'',xp:0,isAi:true};
+ const identity={displayName:pick(first,r)+pick(last,r)+String(Math.floor(r()*90)+10),avatarId:pick(PORTRAITS85.filter(p=>!p.quest),r).id,frameId:'starter',titleId:'',xp:0,isAi:true};
  const motifs=shuffle(ELEMENT_IDS.flatMap(element=>shuffle(DEFINITIONS.filter(c=>!c.prime&&c.element===element),r).slice(0,3)),r);
  if(r()<.5){const primes=DEFINITIONS.filter(c=>c.prime);if(primes.length){const prime=pick(primes,r);motifs[motifs.findIndex(c=>c.element===prime.element)]=prime;}}
  const cards=motifs.map((c,i)=>{const roll=r(),rarity=roll<.5?'common':roll<.8?'rare':roll<.95?'epic':roll<.99?'legendary':'mythic';return VARIANTS.find(v=>v.edition==='alpha'&&v.definitionId===c.id&&v.rarity===rarity).id;});

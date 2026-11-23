@@ -32,7 +32,7 @@ export function neighbors(id){const c=CELLS.find(c=>c.id===id);return c?DIRECTIO
 export const freeCells=g=>CELLS.filter(c=>c.id!==g.block&&!g.board[c.id]).map(c=>c.id);
 export const scores=g=>[0,1].map(p=>Object.values(g.board).filter(c=>c.controller===p).length);
 export const eventPhase=g=>g.placements>=12?2:g.placements>=6?1:0;
-export function fieldAt(g,cell){const f=g.events.find(f=>f.cell===cell);if(!f)return null;const phase=eventPhase(g);return {element:phase===2?({storm:'water',water:'storm'}[f.element]):f.element,bonus:phase===1?2:1};}
+export function fieldAt(g,cell){if(g.eventFieldsEnabled===false)return null;const f=g.events.find(f=>f.cell===cell);if(!f)return null;const phase=eventPhase(g);return {element:phase===2?({storm:'water',water:'storm'}[f.element]):f.element,bonus:phase===1?2:1};}
 export function sideValue(card,dir,rotation=card.rotation??0){return cardOf(card).values[((dir-rotation)%6+6)%6];}
 export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,...rankedStrength126(base,fieldBonus+((g.elementRules??3)===3?advantage:0))};}
 export function preview(g,{uid,cell,rotation=0}){

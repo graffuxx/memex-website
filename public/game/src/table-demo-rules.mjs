@@ -27,6 +27,7 @@ const FIELD_PHASES=[
  [{cell:'-1,0',type:'resonance',element:'stone'},{cell:'0,1',type:'crossfire',directions:[1,4]}]
 ];
 export function eventFields(game){
+ if(game.eventFieldsEnabled===false)return [];
  if(game.demoFields)return game.demoFields;
  const phase=eventPhase(game);
  return FIELD_PHASES[phase].map((template,index)=>{
@@ -37,7 +38,7 @@ export function eventFields(game){
  });
 }
 export function eventFieldAt(game,cell){return cell===game.block?null:eventFields(game).find(f=>f.cell===cell)??null;}
-export function nextEvent(game){const phase=eventPhase(game);return phase<2?{remaining:[6,12][phase]-game.placements,fields:eventFields({...game,placements:[6,12][phase]})}:null;}
+export function nextEvent(game){if(game.eventFieldsEnabled===false)return null;const phase=eventPhase(game);return phase<2?{remaining:[6,12][phase]-game.placements,fields:eventFields({...game,placements:[6,12][phase]})}:null;}
 export function fieldText(f){if(!f)return 'Normales Feld';return FIELD_TYPES[f.type].name+(f.type==='resonance'?' · '+ELEMENTS[f.element].name+' +1':f.type==='crossfire'?' · '+f.directions.map(d=>DIRECTION_NAMES[d]).join('/')+' +1':' · Fähigkeiten aus');}
 export function abilityAt(game,card,cell){return card.ability&&eventFieldAt(game,cell)?.type!=='silence'?card.ability:null;}
 export function guardActive(game,card,cell){return abilityAt(game,card,cell)==='guard'&&card.guardOwner===card.controller&&game.placements<card.guardUntil;}
@@ -71,7 +72,7 @@ export function placeEffect(game,action){
  next.board[action.cell]={...p.card,flips:p.flips.length};
  for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;}
  player.flips+=p.flips.length;next.placements++;
- next.last={type:'place',side,cell:action.cell,uid:action.uid,name:cardOf(p.card).name,flips:p.flips,transforms:p.transforms,ability:p.ability,suppressed:p.suppressed,event:eventPhase(next)!==eventPhase(game)?eventPhase(next):null};next.history.push(next.last);
+ next.last={type:'place',side,cell:action.cell,uid:action.uid,name:cardOf(p.card).name,flips:p.flips,transforms:p.transforms,ability:p.ability,suppressed:p.suppressed,event:game.eventFieldsEnabled===false?null:eventPhase(next)!==eventPhase(game)?eventPhase(next):null};next.history.push(next.last);
  if(freeCells(next).length===0){next.finished=true;const s=scores(next);next.winner=s[0]===s[1]?null:s[0]>s[1]?0:1;}else next.turn=1-side;
  return next;
 }

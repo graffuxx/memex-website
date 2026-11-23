@@ -24,7 +24,7 @@ test('50 new motifs, ten native per element, every motif keeps its native elemen
  for(const c of ELEMENT_CARDS){assert.equal(c.values.reduce((a,b)=>a+b,0),24);assert.ok(c.values.every(n=>Number.isInteger(n)&&n>=2&&n<=7));}
 });
 test('resonance can reach all five elements; mixed-element rounds finish legally and server resolves the same action',()=>{
- assert.deepEqual(new Set(Array.from({length:30},(_,seed)=>eventFields(createTacticsMatch({seed})).filter(f=>f.type==='resonance').map(f=>f.element)).flat()),new Set(ELEMENT_IDS));
+ assert.deepEqual(new Set(Array.from({length:30},(_,seed)=>eventFields(createTacticsMatch({seed,eventFieldsEnabled:true})).filter(f=>f.type==='resonance').map(f=>f.element)).flat()),new Set(ELEMENT_IDS));
  const deck=ELEMENT_IDS.flatMap(e=>ELEMENT_CARDS.filter(c=>c.element===e).slice(0,3)).map(c=>c.id+':common'),inventory=Object.fromEntries(deck.map(id=>[id,1]));
  for(const starter of [0,1]){let game=applyPortalDecks(createTacticsMatch({seed:91,starter}),deck,[LOADOUTS['hype-guard'],LOADOUTS['hype-twist']]);game.rotationLocked=true;
   for(let i=0;i<18;i++){const action=demoAction(game);assert.ok(action);game=placeEffect(game,action);}assert.ok(game.finished);assert.equal(scores(game).reduce((a,b)=>a+b),18);
@@ -40,7 +40,7 @@ test('additive database upgrade preserves accounts and matches all 2125 variants
   await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();update public.dv_wallets set earned=2000,echoes=20000 where user_id='${u}';`);
   const snapshot=async()=>JSON.stringify({decks:(await db.query('select * from public.dv_decks order by id')).rows,inventory:(await db.query('select * from public.dv_inventory order by variant_id')).rows,wallet:(await db.query('select * from public.dv_wallets')).rows});const before=await snapshot();
   const sql=await fs.readFile(new URL('../supabase/migrations/202611200002_five_elements.sql',import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);assert.equal(await snapshot(),before);
-  const rows=(await db.query('select id,element,image from public.dv_card_variants')).rows;assert.equal(rows.length,2125);for(const v of VARIANTS.filter(v=>v.edition==='alpha'&&!DEFINITIONS.find(d=>d.id===v.definitionId).prime)){const row=rows.find(r=>r.id===v.id);assert.equal(row.element,v.element,v.id);assert.equal(row.image,v.image,v.id);}
+  const rows=(await db.query('select id,element,image from public.dv_card_variants')).rows;assert.equal(rows.length,2125);for(const v of VARIANTS.filter(v=>v.edition==='alpha'&&!DEFINITIONS.find(d=>d.id===v.definitionId).prime)){const row=rows.find(r=>r.id===v.id);assert.equal(row.element,v.element,v.id);if(v.definitionId!=='salt-bae')assert.equal(row.image,v.image,v.id);}
   await db.exec(`set role authenticated;select public.dv_trade_card('53535353-0000-4000-8000-000000000001','craft','capybara-chill:epic:air');`);
   await assert.rejects(db.query(`select public.dv_trade_card('53535353-0000-4000-8000-000000000002','craft','capybara-chill:mythic:air')`),/booster exclusive/);
   await db.exec('reset role');

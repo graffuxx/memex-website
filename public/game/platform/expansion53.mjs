@@ -78,8 +78,8 @@ export const ELEMENT_CARDS=Object.freeze([
  },
  {
   "id": "salt-bae",
-  "name": "Salt Bae",
-  "short": "Salt Bae",
+  "name": "Let Him Cook",
+  "short": "Let Him Cook",
   "element": "fire",
   "values": [
    7,
@@ -90,10 +90,10 @@ export const ELEMENT_CARDS=Object.freeze([
    4
   ],
   "ability": null,
-  "quote": "Just a pinch of tactical seasoning.",
+  "quote": "Trust the process. Ignore the smoke alarm.",
   "artAtlas": true,
   "artDirectory": "elements-v53",
-  "image": "/game/assets/cards/elements-v53/salt-bae.webp"
+  "image": "/game/assets/cards/replacements-v129/let-him-cook.webp"
  },
  {
   "id": "floor-is-lava",

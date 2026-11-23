@@ -1,4 +1,4 @@
-import {createPvp90,advancePvp90,expirePvp90,projectPvp90} from './pvp90.mjs';
+import {createPvp90,advancePvp90,expirePvp90,projectPvp90,refreshPvpRules129} from './pvp90.mjs';
 import {BOT_WAIT_MS96,createBot96,armBot96,stepBot96} from './bot96.mjs';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=()=>crypto.getRandomValues(new Uint32Array(1))[0],requestId=()=>crypto.randomUUID()}){
@@ -32,7 +32,7 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
      const bot=createBot96(seed());row=await rpc('dv_match_fill_ai96',{p_user:uid,p_id:row.id,p_deck:bot.deck,p_identity:bot.identity});
     }
     if(row.status==='matched'&&!row.state){let initial=createPvp90([row.host_deck,row.guest_deck],seed(),now());if(row.ai_opponent96){initial.bot96={seed:seed(),nextAt:null};initial=armBot96(initial,now());}row=await commit(initial);}
-    else if(row.status==='matched'){const expired=expirePvp90(row.state,now());const next=expired?armBot96(expired,now()):stepBot96(row.state,now());if(next)row=await commit(next);}
+    else if(row.status==='matched'){const upgraded=refreshPvpRules129(row.state,now()),current=upgraded??row.state,expired=expirePvp90(current,now());const next=expired?armBot96(expired,now()):stepBot96(current,now())??upgraded;if(next)row=await commit(next);}
    }catch(e){if(e.status!==409)throw e;row=await rpc('dv_match_get90',{p_user:uid,p_id:input.id});}
    if(Number.isInteger(input.version)&&input.version===row.version&&row.state)return reply({unchanged:true,remainingMs:row.state.deadline?Math.max(0,row.state.deadline-now()):null,wallet:row.wallet});
    return reply(projectPvp90(row,uid,now()));

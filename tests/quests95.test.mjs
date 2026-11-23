@@ -22,7 +22,7 @@ test('quest schedule, special artwork and shared gameplay values preserve the or
 test('server quests bind only new signups, require verified active play and grant boosters/cards exactly once',async()=>{
  const db=await db95();let seq=1000;const packs=async u=>Number((await db.query('select count(*) n from public.dv_booster_purchases36 where user_id=$1',[u])).rows[0].n);
  try{
-  let s=await status(db,owner);assert.deepEqual(s.counts,{played:0,won:0,referrals:0});assert.match(s.code,/^[a-f0-9]{32}$/);const code=s.code;
+  let s=await status(db,owner);assert.equal(s.counts.played,0);assert.equal(s.counts.won,0);assert.equal(s.counts.referrals,0);assert.ok(s.counts.collected>=15&&s.counts.collected<=65);assert.match(s.code,/^[a-f0-9]{32}$/);const code=s.code;
   await assert.rejects(db.query("select public.dv_claim_quest95('played-5')"),/not complete/);
   for(const t of ['dv_quest_activity95','dv_quest_claims95','dv_referral_codes95','dv_referrals95','dv_quest_catalog95'])await assert.rejects(db.query('select * from public.'+t),/permission denied/);
   await assert.rejects(db.query('select public.dv_sync_referrals95($1)',[owner]),/permission denied/);await assert.rejects(db.query('select public.dv_quest_counts95($1)',[old]),/permission denied/);
@@ -43,7 +43,7 @@ test('server quests bind only new signups, require verified active play and gran
   await db.exec('reset role');assert.equal((await db.query("select count(*) n from public.dv_inventory where user_id=$1 and variant_id like '%:recruiter' and quantity=1",[owner])).rows[0].n,2);
   // A friend has independent quests and cannot see or claim the inviter's progress.
   const friend=await status(db,first);assert.equal(friend.counts.played,10);assert.equal(friend.counts.referrals,0);await assert.rejects(db.query("select public.dv_claim_quest95('referrals-1')"),/not complete/);const reward=(await db.query("select public.dv_claim_quest95('played-5') data")).rows[0].data;assert.equal(reward.packs.length,1);
-  await db.exec('reset role');const catalog=(await db.query('select id,family,goal,packs,card from public.dv_quest_catalog95 order by id')).rows;assert.deepEqual(catalog,[...QUESTS95].sort((a,b)=>a.id.localeCompare(b.id)));
+  await db.exec('reset role');const catalog=(await db.query('select id,family,goal,packs,card from public.dv_quest_catalog95 order by id')).rows;assert.deepEqual(catalog,QUESTS95.map(({id,family,goal,packs,card})=>({id,family,goal,packs,card})).sort((a,b)=>a.id.localeCompare(b.id)));
   // A qualified friend's later deletion cannot erase the inviter's earned milestone.
   await db.query('delete from public.dv_pvp_rounds90 where user_id=$1',[joined[0]]);await db.query('delete from public.dv_pvp90 where host_id=$1 or guest_id=$1',[joined[0]]);await db.query('delete from auth.users where id=$1',[joined[0]]);assert.equal((await status(db,owner)).counts.referrals,15);
  }finally{await db.close();}

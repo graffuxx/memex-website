@@ -25,7 +25,7 @@ test('Fire 4 beats Water 3; only Water wins a 4:4 tie, on all six facing edges a
  }
 });
 test('field and ability bonuses are resolved before the elemental tiebreaker',()=>{
- let {game,action,cell}=scenario(3,4,'water','fire');game.demoFields=[{cell:'0,0',type:'resonance',element:'water'}];let plan=previewEffect(game,action);assert.equal(plan.comparisons[0].attack.total,4);assert.equal(plan.comparisons[0].flip,true);
+ let {game,action,cell}=scenario(3,4,'water','fire');game.eventFieldsEnabled=true;game.demoFields=[{cell:'0,0',type:'resonance',element:'water'}];let plan=previewEffect(game,action);assert.equal(plan.comparisons[0].attack.total,4);assert.equal(plan.comparisons[0].flip,true);
  ({game,action,cell}=scenario(3,4,'fire','water'));game.players[0].hand[0].ability='hype';plan=previewEffect(game,action);assert.equal(plan.comparisons[0].attack.total,4);assert.equal(plan.comparisons[0].flip,false);
  ({game,action,cell}=scenario(4,4,'fire','water'));game.players[0].hand[0].ability='hype';plan=previewEffect(game,action);assert.equal(plan.comparisons[0].attack.total,5);assert.equal(plan.comparisons[0].flip,true);
  ({game,action,cell}=scenario(4,2,'water','fire'));Object.assign(game.board[cell],{ability:'guard',guardDirection:3,guardOwner:1,guardUntil:5});plan=previewEffect(game,action);assert.equal(plan.comparisons[0].defend.total,4);assert.equal(plan.comparisons[0].flip,true);

@@ -65,7 +65,7 @@ private invitation duels, and disabled Ranked (Coming soon). The existing Vercel
 server uses `SUPABASE_SERVICE_ROLE_KEY` for `/api/duel`; no browser receives this key.
 One active match per account; both decks are checked and frozen at pairing. Only
 own hand and played cards are revealed; future draws and opponent cards stay hidden.
-Server deadlines enforce 90-second turns, both players confirm the return round,
+Server deadlines enforce 90-second turns; after two missed own turns, subsequent turns allow three seconds until a legal manual placement. Return rounds start automatically after eight seconds,
 and reconnect restores the saved board. Only completed Random rounds grant titles
 and 5/2 Pixels; private matches grant no currencies, XP or titles. Random has no AI
 fallback or skill rating yet. Run `node scripts/preview-matchmaking90.mjs` for isolated
@@ -122,3 +122,21 @@ Coin/presale UI stays hidden; only copy and navigation needed for the game chang
 All added portal CSS must stay inside `.dv-portal`; it must never restyle the
 existing homepage or shared website elements. Use existing branded video backdrops
 for new game/account pages. A site redesign requires an explicit request.
+
+## 23 November gameplay update (129)
+
+Normal matches disable event fields and random field-stat changes. Dormant field support
+shows +1 field strengths directly over affected card edges when re-enabled in QA.
+The HUD separates round wins/completed rounds from controlled-card scores. Surrender
+is explicit, Leave Duel is highlighted, results show both winner/loser perspectives
+and return to matchmaking after five seconds. Native card-hover tooltips are removed;
+hover enlargement and accessible card names remain. Website sound toggle removed;
+game audio and interactive booster effects retain their own behavior.
+
+Apply `202611230002_collection_quests129.sql` for lifetime unique-motif milestones
+25/50/95, each granting one profile portrait and title after an explicit claim.
+XP cannot bypass those locks; retries cannot multiply rewards. Apply
+`202611230003_replace_salt_bae129.sql` for Let Him Cook (stable salt-bae IDs,
+unchanged values/element and five replacement artworks). Existing ownership is retained.
+Validation: 186 automated tests; isolated two-client browser round, automatic next
+round, surrender and automatic lobby return; production build.

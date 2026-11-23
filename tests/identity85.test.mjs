@@ -5,7 +5,7 @@ import {createAccountDuel,beginAccountRound,advanceAccountDuel} from '../server/
 import {chooseTactic} from '../public/game/src/tactics-ai.mjs';
 const a='85858585-8585-4585-8585-858585858585',b='86868686-8686-4686-8686-868686868686',uuid=n=>'85858585-8585-4585-8585-'+String(n).padStart(12,'0');
 test('twenty real starter portraits and earned frame tiers resolve consistently; milestones cannot be equipped early',async()=>{
- assert.equal(PORTRAITS85.length,20);assert.equal(new Set(PORTRAITS85.map(p=>p.id)).size,20);
+ assert.equal(PORTRAITS85.filter(p=>!p.quest).length,20);assert.equal(new Set(PORTRAITS85.map(p=>p.id)).size,23);
  for(const p of PORTRAITS85)await fs.access(new URL('../public'+p.image,import.meta.url));
  for(let level=1;level<=1000;level++){assert.equal(progression85(xpAtLevel85(level)).level,level);if(level>1)assert.equal(progression85(xpAtLevel85(level)-1).level,level-1);}
  const identity={xp:0,wins:0,frameId:'auto',owned:[]};assert.equal(frame85(identity).id,'starter');assert.equal(unlocked85(FRAMES85[1],identity),false);
@@ -31,7 +31,7 @@ test('the identity foundation preserves historic grants, catalog rules and accou
   const saved=(await save()).rows[0].data;assert.equal(saved.displayName,'Meme Captain');assert.equal(saved.avatarId,'doge');assert.equal(saved.titleId,'first-flip');assert.equal(saved.xp,100);
   await db.exec(`set request.jwt.claim.sub='${b}';`);assert.equal((await identity()).displayName,'Player');assert.equal((await identity()).xp,0);await assert.rejects(save(),/locked or unknown/);
   await db.exec('reset role');for(const [level,win] of [[1,0],[50,10],[100,100],[150,200],[200,300],[250,400],[300,500]]){await db.query('insert into public.dv_profile_progress85(user_id,xp,wins) values($1,$2,$3) on conflict(user_id) do update set xp=excluded.xp,wins=excluded.wins',[b,xpAtLevel85(level),win]);await db.exec(`set role authenticated;set request.jwt.claim.sub='${b}';`);assert.equal((await identity()).level,level);await save('Milestone','pepe',FRAMES85.find(f=>f.level===level).id,'rookie');await db.exec('reset role');}
-  const catalog=(await db.query('select kind,id,min_level,min_wins from public.dv_identity_catalog85')).rows;for(const c of [...PORTRAITS85,...FRAMES85]){const row=catalog.find(r=>r.kind===c.kind&&r.id===c.id);assert.equal(row.min_level,c.minLevel);assert.equal(Number(row.min_wins),c.minWins);}
+  const catalog=(await db.query('select kind,id,min_level,min_wins from public.dv_identity_catalog85')).rows;for(const c of [...PORTRAITS85.filter(p=>!p.quest),...FRAMES85]){const row=catalog.find(r=>r.kind===c.kind&&r.id===c.id);assert.equal(row.min_level,c.minLevel);assert.equal(Number(row.min_wins),c.minWins);}
   await db.exec('set role anon');await assert.rejects(db.query('select public.dv_identity85()'),/permission denied/);await assert.rejects(save(),/permission denied/);
  }finally{await db.close();}
 });

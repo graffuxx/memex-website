@@ -661,8 +661,8 @@ var ELEMENT_CARDS = Object.freeze([
   },
   {
     "id": "salt-bae",
-    "name": "Salt Bae",
-    "short": "Salt Bae",
+    "name": "Let Him Cook",
+    "short": "Let Him Cook",
     "element": "fire",
     "values": [
       7,
@@ -673,10 +673,10 @@ var ELEMENT_CARDS = Object.freeze([
       4
     ],
     "ability": null,
-    "quote": "Just a pinch of tactical seasoning.",
+    "quote": "Trust the process. Ignore the smoke alarm.",
     "artAtlas": true,
     "artDirectory": "elements-v53",
-    "image": "/game/assets/cards/elements-v53/salt-bae.webp"
+    "image": "/game/assets/cards/replacements-v129/let-him-cook.webp"
   },
   {
     "id": "floor-is-lava",
@@ -1926,6 +1926,13 @@ var CARD_MATERIALS = Object.freeze({
   mythic: Object.freeze({ name: "Void", de: "Void", color: "#cd8aff", metal: "#4b2470", finish: "Void-Obsidian", motion: "Wandernder Void-Nebel mit Energieadern und Schattenfunken", palette: ["#080612", "#371747", "#be7ef5"] })
 });
 
+// public/game/platform/collection-quests129.mjs
+var COLLECTION_QUESTS129 = Object.freeze([
+  { id: "collected-25", family: "collected", goal: 25, packs: 0, card: null, portrait: "collector-gold", title: "meme-collector", portraitName: "Golden Collector", titleName: "Meme Collector", image: "/game/assets/cards/rarity-v16/doge-epic.webp" },
+  { id: "collected-50", family: "collected", goal: 50, packs: 0, card: null, portrait: "collector-diamond", title: "gallery-curator", portraitName: "Diamond Curator", titleName: "Gallery Curator", image: "/game/assets/cards/memes-v48/galaxy-brain-legendary.webp" },
+  { id: "collected-95", family: "collected", goal: 95, packs: 0, card: null, portrait: "collector-void", title: "archive-overlord", portraitName: "Void Archivist", titleName: "Archive Overlord", image: "/game/assets/cards/rarity-v16/pepe-mythic.webp" }
+].map((q) => Object.freeze(q)));
+
 // public/game/platform/quests95.mjs
 var RECRUITER_VARIANTS95 = Object.freeze([
   Object.freeze({ id: "doge:legendary:fire:recruiter", definitionId: "doge", element: "fire", rarity: "legendary", edition: "recruiter", image: "/game/assets/cards/recruiter-v95/doge-diamond.webp", artOffsetY: 0, artRegion: null }),
@@ -1934,14 +1941,15 @@ var RECRUITER_VARIANTS95 = Object.freeze([
 var QUESTS95 = Object.freeze([
   ...[[5, 1], [25, 1], [100, 3], [250, 5]].map(([goal, packs]) => ({ id: `played-${goal}`, family: "played", goal, packs, card: null })),
   ...[[3, 1], [10, 1], [50, 3], [100, 5]].map(([goal, packs]) => ({ id: `won-${goal}`, family: "won", goal, packs, card: null })),
-  ...[[1, 1, null], [3, 2, null], [5, 2, RECRUITER_VARIANTS95[0].id], [15, 5, RECRUITER_VARIANTS95[1].id]].map(([goal, packs, card]) => ({ id: `referrals-${goal}`, family: "referrals", goal, packs, card }))
+  ...[[1, 1, null], [3, 2, null], [5, 2, RECRUITER_VARIANTS95[0].id], [15, 5, RECRUITER_VARIANTS95[1].id]].map(([goal, packs, card]) => ({ id: `referrals-${goal}`, family: "referrals", goal, packs, card })),
+  ...COLLECTION_QUESTS129
 ].map(Object.freeze));
 var REFERRAL_RULES95 = Object.freeze({ rounds: 10, opponents: 2, days: 3 });
 
 // public/game/platform/catalog.mjs
 var DECK_SIZE = 15;
 var MAX_MOTIF_COPIES = 1;
-var CATALOG_VERSION = 10;
+var CATALOG_VERSION = 11;
 var RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id, m]) => Object.freeze({ id, name: m.name, color: m.color })));
 var DEFINITIONS = Object.freeze([
   { id: "pepe", name: "Pepe", short: "Pepe", ruleId: "oracle", element: "storm", values: [7, 6, 3, 2, 3, 3], ability: "guard", quote: "Feels good, man.", image: "/game/assets/cards/v03/overthinker-thinking-pepe.webp" },
@@ -2108,6 +2116,7 @@ var freeCells2 = (g) => CELLS2.filter((c) => c.id !== g.block && !g.board[c.id])
 var scores2 = (g) => [0, 1].map((p) => Object.values(g.board).filter((c) => c.controller === p).length);
 var eventPhase = (g) => g.placements >= 12 ? 2 : g.placements >= 6 ? 1 : 0;
 function fieldAt(g, cell) {
+  if (g.eventFieldsEnabled === false) return null;
   const f = g.events.find((f2) => f2.cell === cell);
   if (!f) return null;
   const phase = eventPhase(g);
@@ -2179,6 +2188,7 @@ var FIELD_PHASES = [
   [{ cell: "-1,0", type: "resonance", element: "stone" }, { cell: "0,1", type: "crossfire", directions: [1, 4] }]
 ];
 function eventFields(game) {
+  if (game.eventFieldsEnabled === false) return [];
   if (game.demoFields) return game.demoFields;
   const phase = eventPhase(game);
   return FIELD_PHASES[phase].map((template, index) => {
@@ -2192,6 +2202,7 @@ function eventFieldAt(game, cell) {
   return cell === game.block ? null : eventFields(game).find((f) => f.cell === cell) ?? null;
 }
 function nextEvent(game) {
+  if (game.eventFieldsEnabled === false) return null;
   const phase = eventPhase(game);
   return phase < 2 ? { remaining: [6, 12][phase] - game.placements, fields: eventFields({ ...game, placements: [6, 12][phase] }) } : null;
 }
@@ -2261,7 +2272,7 @@ function placeEffect(game, action) {
   }
   player.flips += p.flips.length;
   next.placements++;
-  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
   next.history.push(next.last);
   if (freeCells2(next).length === 0) {
     next.finished = true;
@@ -2280,9 +2291,10 @@ var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleI
 
 // public/game/src/table-demo-state.mjs
 var DEMO_PROFILES = Object.fromEntries(DEFINITIONS.map((c) => [c.ruleId, c.id]));
-function createTacticsMatch({ loadouts = ["hype-guard", "hype-twist"], seed = 20261117, starter = 0, swap = false, disableRole = null } = {}) {
+function createTacticsMatch({ loadouts = ["hype-guard", "hype-twist"], seed = 20261117, starter = 0, swap = false, disableRole = null, eventFieldsEnabled = false } = {}) {
   if (loadouts.length !== 2 || loadouts.some((id) => !Object.hasOwn(LOADOUTS, id))) throw Error("Ung\xFCltige Deckauswahl.");
   const game = newGame({ seed, starter });
+  game.eventFieldsEnabled = eventFieldsEnabled;
   Object.assign(game, createTacticsLayout(seed));
   game.events = [];
   game.resonanceOffset = (seed % 5 + 5) % 5;
@@ -2367,6 +2379,7 @@ var FIELD_PHASES2 = [
   [{ cell: "-1,0", type: "resonance", element: "stone" }, { cell: "0,1", type: "crossfire", directions: [1, 4] }]
 ];
 function eventFields2(game) {
+  if (game.eventFieldsEnabled === false) return [];
   if (game.demoFields) return game.demoFields;
   const phase = eventPhase(game);
   return FIELD_PHASES2[phase].map((template, index) => {
@@ -2441,7 +2454,7 @@ function placeEffect2(game, action) {
   }
   player.flips += p.flips.length;
   next.placements++;
-  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
   next.history.push(next.last);
   if (freeCells2(next).length === 0) {
     next.finished = true;
@@ -2549,6 +2562,7 @@ var FIELD_PHASES3 = [
   [{ cell: "-1,0", type: "resonance", element: "stone" }, { cell: "0,1", type: "crossfire", directions: [1, 4] }]
 ];
 function eventFields3(game) {
+  if (game.eventFieldsEnabled === false) return [];
   if (game.demoFields) return game.demoFields;
   const phase = eventPhase(game);
   return FIELD_PHASES3[phase].map((template, index) => {
@@ -2624,13 +2638,17 @@ function timeoutAction(game) {
 }
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.1";
+var BALANCE_PATCH94 = "alpha-2026-11-23.2";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 1,
+  revision: 2,
   catalog: CATALOG_VERSION,
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
   nativeElementsOnly: true,
+  eventFieldsEnabled: false,
+  afkAfter: 2,
+  afkTurnMs: 3e3,
+  automaticNextRound: true,
   elementTiesOnly: true,
   rotationLocked: true,
   turnMs: 9e4,
