@@ -1,3 +1,4 @@
+import {bindBoardCardPreview146} from './board-card-preview146.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -20,7 +21,7 @@ import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=void-weather-137';
 import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=void-weather-137';
+import {createTableView} from './table-demo-view-hand17.mjs?v=card-preview-146';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs?v=booster-classes-140';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=tie-break-63';
@@ -33,7 +34,8 @@ const $=id=>document.getElementById(id),stage=$('stage'),svg=$('interaction');
 const renderSeries129=bindSeriesHud129();
 const refreshPresence85=mountPlayerPresence85();void refreshPresence85();
 if(portalDeck.source==='sandbox')for(const link of document.querySelectorAll('a[href="/decks"]'))link.href='/decks?test=1';
-let game=createTableDemo(),view,selected=null,target=null,rotation=0,abilityDirection=0,twistCell=null,hover=null,inspect=null,mode='card',busy=true,phase='loading',epoch=0,drag=null,notice='',round=1,roundResults=[],matchSeed=null,firstStarter=null;
+let game=createTableDemo(),view,selected=null,target=null,rotation=0,abilityDirection=0,twistCell=null,hover=null,mode='card',busy=true,phase='loading',epoch=0,drag=null,notice='',round=1,roundResults=[],matchSeed=null,firstStarter=null;
+const boardPreview=bindBoardCardPreview146(stage,svg,{getGame:()=>game,canInspect:()=>Boolean(view&&!busy),onPinChange:render});
 const portraitIntro86=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
 const startDialog=bindStartDuelDialog($('startDuel'),{onOpen:()=>portraitIntro86.open(),onBeforeClose:()=>portraitIntro86.fly(),onCancel:()=>portraitIntro86.cancel()});
 const atmosphere=createVoidAtmosphere();
@@ -80,6 +82,8 @@ function action(){return {uid:selected,cell:target,rotation,abilityDirection,twi
 function plan(){if(mode!=='card'||!selected||!target||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
 function detailStrength(s){if(s.rank==='S')return 'S (S-Rang; Zahlenboni ohne Wirkung)';return `${s.total} (Basis ${printedValue126(s.base)}${s.field?' + Feld '+s.field:''}${(game.elementRules??3)===3&&s.element?' + Element '+s.element:''}${s.ability?' + Fähigkeit '+s.ability:''})`;}
 function render(){
+ boardPreview.sync();
+ const inspect=boardPreview.pinnedCell;
  renderSeries129(round,roundResults);const s=scores(game),p=plan(),card=selectedCard(),shiftValid=mode==='shift'&&moveTargets(game).includes(target);
  for(const side of [0,1]){$('score'+side).textContent=s[side];$('stock'+side).textContent=game.players[side].hand.length+' Hand · '+game.players[side].deck.length+' Deck';}
  $('handCount').textContent=game.players[0].hand.length+' / 5';$('enemyHandCount').textContent=game.players[1].hand.length;$('ownDeckCount').textContent=game.players[0].deck.length+(game.players[0].deck.length===1?' Karte':' Karten');$('enemyDeckCount').textContent=game.players[1].deck.length+' Karten';
@@ -106,11 +110,23 @@ function render(){
  syncClock();
  view?.update(game,{selected,target,hover,busy,plan:p,mode,twistCell,inspect,abilityDirection});
 }
-function clear(){selected=null;target=null;rotation=0;abilityDirection=0;twistCell=null;hover=null;inspect=null;mode='card';}
+function clear(){boardPreview.clear();selected=null;target=null;rotation=0;abilityDirection=0;twistCell=null;hover=null;mode='card';}
 function choose(uid){if(expireTurn()||busy||game.finished)return;if(selected!==uid){const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;view.setRotation(uid,0);audio.play('select');}render();}
-function chooseField(cell){if(expireTurn()||busy||game.finished)return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;render();return;}
- if(game.board[cell]){if(selectedCard()?.ability==='twist'&&target&&abilityAt(game,selectedCard(),target)==='twist'&&twistTargets(game,target).includes(cell)){twistCell=twistCell===cell?null:cell;}else if(!selected){inspect=cell;}else{target=null;twistCell=null;}render();return;}
- if(!selected)return;target=game.block===cell?null:cell;twistCell=null;inspect=null;render();}
+function chooseField(cell){
+ if(busy)return;
+ if(game.board[cell]){
+  if(!game.finished&&selectedCard()?.ability==='twist'&&target&&abilityAt(game,selectedCard(),target)==='twist'&&twistTargets(game,target).includes(cell)&&!expireTurn()){
+   twistCell=twistCell===cell?null:cell;render();return;
+  }
+  boardPreview.toggle(cell);return;
+ }
+ const inspected=boardPreview.pinnedCell;
+ boardPreview.clear();
+ if(expireTurn()||game.finished)return;
+ if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;render();return;}
+ if(!selected){if(inspected)render();return;}
+ target=game.block===cell?null:cell;twistCell=null;render();
+}
 function showPracticeHint84(){
  if(!practice||busy||game.finished||game.turn!==0)return;
  const suggestion=soloAction84(game,'tactical');if(!suggestion)return;
@@ -198,7 +214,7 @@ function stopDrag(e,cancelled=false){
 svg.addEventListener('pointerup',e=>stopDrag(e));svg.addEventListener('pointercancel',e=>stopDrag(e,true));svg.addEventListener('pointerleave',()=>{if(!drag&&!busy&&hover){hover=null;render();}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)chooseField(c.dataset.cell);});
 svg.addEventListener('keydown',e=>{if(e.code!=='Enter'&&e.code!=='Space')return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();e.stopPropagation();h?choose(h.dataset.hand):chooseField(c.dataset.cell);}});
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();if(!ceremony.dismiss())cancelSelection();return;}if(['SELECT','INPUT'].includes(e.target.tagName))return;if(e.code==='Enter'&&e.target.tagName!=='BUTTON'&&(plan()||mode==='shift')&&!busy){e.preventDefault();confirm();}});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();if(!boardPreview.close()&&!ceremony.dismiss())cancelSelection();return;}if(['SELECT','INPUT'].includes(e.target.tagName))return;if(e.code==='Enter'&&e.target.tagName!=='BUTTON'&&(plan()||mode==='shift')&&!busy){e.preventDefault();confirm();}});
 $('newDuel').onclick=()=>reset();$('showRules').onclick=()=>{const panel=$('rulesPanel');panel.open=!panel.open;if(panel.open)panel.scrollIntoView({block:'nearest',behavior:'smooth'});};
 $('confirm').onclick=confirm;$('cancel').onclick=cancelSelection;$('autoDemo').onclick=()=>cycle(demoAction(game),true);$('resetDemo').onclick=reset;
 $('shiftBlock').onclick=()=>{if(expireTurn()||busy)return;if(mode==='shift')cancelSelection();else{cancelSelection();mode='shift';render();}};

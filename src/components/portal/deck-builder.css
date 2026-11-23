@@ -44,6 +44,18 @@
 /* Keep names, controls and element counts readable at normal laptop scale. */
 .dv-portal .deck-pool-name h3,.dv-portal .deck-item-name>strong{font-size:14px}
 .dv-portal .deck-pool-status,.dv-portal .deck-pool-controls>span,.dv-portal .deck-item-name>span,.dv-portal .deck-finish-summary>span{font-size:12px}
+.dv-portal .deck-item-name>span{flex-wrap:wrap;row-gap:3px}
+.dv-portal .deck-item-category{
+ padding:1px 5px;
+ border:1px solid;
+ border-radius:4px;
+ font-size:10px;
+ font-weight:700;
+ line-height:1.25;
+ text-transform:uppercase;
+}
+.dv-portal .deck-item-category[data-category=prime]{color:#ffda85;background:#50391f;border-color:#977044}
+.dv-portal .deck-item-category[data-category=iconic]{color:#e5c9ff;background:#3c285a;border-color:#7e589f}
 .dv-portal .deck-pool-controls button,.dv-portal .deck-pool-controls .deck-add{font-size:13px;min-height:32px}
 .dv-portal .deck-composer-head>label,.dv-portal .deck-list-heading h2,.dv-portal .deck-element-stat>span,.dv-portal .deck-readiness>span{font-size:13px}
 .dv-portal .deck-save-actions .button{font-size:14px;min-height:42px}
@@ -139,3 +151,7 @@
  .dv-portal .deck-builder--expanded .deck-element-filters{grid-column:2;grid-row:1}
  .dv-portal .deck-builder--expanded .deck-secondary-filters{grid-column:1/-1;grid-row:2;justify-content:flex-end}
 }
+
+.deck-card-hover{position:fixed;z-index:1200;pointer-events:none;filter:drop-shadow(0 12px 18px #04020bbb)}
+.deck-card-hover .duelverse-card{width:100%;max-width:none}
+.deck-card-hover .duelverse-card>svg{width:100%;height:auto;display:block}
