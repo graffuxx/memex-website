@@ -8,7 +8,7 @@ export function bindRoundCeremony(root,{audio,onContinue=()=>false,setTimer=setT
  function show(data,motion){
   kind=data.kind;previousFocus=document.activeElement;root.dataset.kind=kind;root.dataset.voice=data.voice;root.dataset.motion=motion?'on':'off';
   for(const id of ['label','title','detail'])find(id).textContent=data[id];
-  find('score').hidden=kind==='intro';find('own').textContent=data.own??'';find('enemy').textContent=data.enemy??'';
+  find('score').hidden=kind==='intro'||Boolean(data.hideScore);find('own').textContent=data.own??'';find('enemy').textContent=data.enemy??'';
   find('skip').hidden=kind!=='intro';find('actions').hidden=kind==='intro';find('continue').textContent=data.next;
   root.hidden=false;
   if(kind==='intro'){audio.play('round-start');void audio.say(data.voice);find('skip').focus({preventScroll:true});}

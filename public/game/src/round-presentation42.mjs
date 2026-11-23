@@ -7,8 +7,8 @@ export function roundOutcome({round=1,match=true,results=[],score,viewer=0,forfe
 
  const series=series113(results),final=match&&(series.finished||forfeit!==null),total=final?series.wins:score;
  const own=total[viewer],enemy=total[1-viewer],winner=forfeit!==null?1-forfeit:final?series.winner:own===enemy?null:own>enemy?viewer:1-viewer,outcome=winner===null?'draw':winner===viewer?'victory':'defeat';
- return {kind:outcome,voice:outcome,label:final?'DUEL COMPLETE':`ROUND ${round} COMPLETE`,title:outcome.toUpperCase(),own,enemy,
-  detail:forfeit!==null?(rated?'Random duel · concession counts as a loss':'Private duel · unranked concession'):final?'Round wins · first to 2':own===enemy?'Draw · neither player gains a round win':'Cards controlled · first to 2 round wins',
+ return {kind:outcome,voice:outcome,label:final?'DUEL COMPLETE':`ROUND ${round} COMPLETE`,title:outcome.toUpperCase(),own,enemy,hideScore:forfeit!==null,
+  detail:forfeit!==null?(winner===viewer?'Opponent conceded · you win':'You conceded · opponent wins')+(rated?' · Random duel':' · Private duel · unranked'):final?'Round wins · first to 2':own===enemy?'Draw · neither player gains a round win':'Cards controlled · first to 2 round wins',
   next:match&&!final?'Next round':'Back to lobby'};
 }
 // A reset invalidates pending intros and results; repeated render calls cannot replay them.

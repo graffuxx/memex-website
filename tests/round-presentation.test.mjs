@@ -10,7 +10,7 @@ test('first to two counts round wins, never the summed cards; draws keep the due
  const final=roundOutcome({round:3,score:[10,8],results:[[4,14],[11,7],[10,8]]});assert.equal(final.kind,'victory');assert.deepEqual([final.own,final.enemy],[2,1]);assert.equal(final.label,'DUEL COMPLETE');assert.equal(roundOutcome({round:3,score:[10,8],results:[[4,14],[11,7],[10,8]],viewer:1}).kind,'defeat');
  const draws=roundOutcome({round:3,score:[9,9],results:[[9,9],[10,8],[9,9]]});assert.equal(draws.kind,'draw');assert.equal(draws.next,'Next round');
  assert.equal(roundIntro({round:3,starter:1}).voice,'rematch');assert.match(roundIntro({starter:0}).detail,/Du beginnst/);
- assert.equal(roundOutcome({forfeit:0,rated:true,results:[],score:[0,0]}).kind,'defeat');assert.equal(roundOutcome({forfeit:0,rated:false,results:[],score:[0,0]}).title,'DEFEAT');
+ assert.equal(roundOutcome({forfeit:0,rated:true,results:[],score:[0,0]}).kind,'defeat');assert.equal(roundOutcome({forfeit:1,rated:true,results:[],score:[0,0]}).hideScore,true);assert.match(roundOutcome({forfeit:1,rated:true,results:[],score:[0,0]}).detail,/you win/);assert.equal(roundOutcome({forfeit:0,rated:false,results:[],score:[0,0]}).title,'DEFEAT');
 });
 test('round events cannot double-fire or accept a stale end after reset',()=>{
  const gate=createRoundGate();assert.equal(gate.finish(1),false);assert.equal(gate.begin(1),true);assert.equal(gate.begin(1),false);assert.equal(gate.finish(1),true);assert.equal(gate.finish(1),false);gate.begin(2);assert.equal(gate.finish(1),false);gate.cancel();assert.equal(gate.finish(2),false);
