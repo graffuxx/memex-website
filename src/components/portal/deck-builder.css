@@ -1,6 +1,7 @@
 /* A contained workbench: collection, chosen cards and actions stay in view. */
 .dv-portal .deck-builder{max-width:1560px;padding:132px 4% 36px;min-height:100svh;color:#f3edf9}
 .dv-portal .deck-page-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:18px}
+.dv-portal .deck-page-heading .deck-workspace-back{display:flex;width:fit-content;margin-bottom:8px}
 .dv-portal .deck-page-heading h1{font-size:36px;line-height:1.08;margin:7px 0 7px}.dv-portal .deck-page-heading .eyebrow{font-size:11px;letter-spacing:.17em;color:#b5a0d1}
 .dv-portal .deck-page-heading p{font-size:15px;margin:0;color:#c6bad7}.dv-portal .deck-storage-note{font-size:13px;color:#d5c5e8;text-align:right;line-height:1.6}.dv-portal .deck-storage-note small{display:block;font-size:12px;color:#a89bbd}
 .dv-portal .deck-library-bar{display:flex;align-items:center;gap:14px;border:1px solid #bc97eb32;border-radius:15px;background:#110a24df;padding:12px 16px;margin-bottom:18px}

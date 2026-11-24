@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ModernHeader.module.css';
 import MobileMenu from './MobileMenu';
-import BackButton from './BackButton';
 import {usePathname} from 'next/navigation';
 import {NAV_LINKS,activeNav} from './navigation';
 import {supabase} from '@/lib/supabaseClient';
@@ -15,7 +14,6 @@ export default function ModernHeader() {
   const accountHref=signedIn?'/account/private':'/account';
   const accountLabel=signedIn?'MY ACCOUNT':'LOGIN';
   const accountActive=activeNav(path,'/account/private');
-  const backFallback=signedIn&&path!=='/account/private'?'/account/private':'/';
   const current=NAV_LINKS.find(([url])=>activeNav(path,url));
   useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>setSignedIn(Boolean(session)));return()=>subscription.unsubscribe();},[]);
 
@@ -29,26 +27,24 @@ export default function ModernHeader() {
     <header className={styles.header}>
       <MobileMenu accountHref={accountHref} accountLabel={accountLabel}/>
       <div className={styles.mobileRow}>
-        <a className={styles.mobileLocation} href={accountActive?accountHref:current?.[0]??'/'}>
-          <img src="/background-card.png" alt=""/>
+        <div className={styles.mobileLocation}>
+          <a href="/" className={styles.logoLink} aria-label="Home">
+            <img src="/background-card.png" alt=""/>
+          </a>
           <span>{accountActive?accountLabel:current?.[1]??'MEMEX'}</span>
-        </a>
-        {path!=='/'&&<BackButton className={styles.mobileBack} fallback={backFallback}/>}
+        </div>
         {!playing&&<a className={styles.playCta} href="/play">Play</a>}
       </div>
 
       <div className={`${styles.bar} ${scrolled ? styles.barScrolled : ''}`}>
         <div className={styles.container}>
-          <div className={styles.leftGroup}>
-            {path!=='/'&&<BackButton fallback={backFallback}/> }
-            <a href="/" className={styles.logoLink}>
-              <img
-                src="/background-card.png"
-                alt="MemeX Duelverse"
-                className={styles.logoImage}
-              />
-            </a>
-          </div>
+          <a href="/" className={styles.logoLink}>
+            <img
+              src="/background-card.png"
+              alt="MemeX Duelverse"
+              className={styles.logoImage}
+            />
+          </a>
 
           <nav className={styles.navbar} aria-label="Main navigation">
             {NAV_LINKS.map(([url,label])=>{

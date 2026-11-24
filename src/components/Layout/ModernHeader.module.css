@@ -90,20 +90,12 @@
   position: relative;
   z-index: 3;
   width: 100%;
-  padding: 5px 14px;
+  padding: 12px 14px;
 
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-}
-
-/* LINKS – Logo */
-.leftGroup {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
 }
 
 .logoLink {
@@ -125,6 +117,7 @@
 .navbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: clamp(4px, 0.65vw, 10px);
   min-width: 0;
   overflow-x: auto;
@@ -335,17 +328,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  gap: 10px;
-  min-width: 134px;
-  min-height: 48px;
-  padding: 0 18px;
-  border: 1px solid #e0c5ff;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #c8a6f0;
   border-radius: 999px;
-  background: linear-gradient(112deg, #5834c5, #7835dc 60%, #9d49db);
+  background: linear-gradient(112deg, #4d2b94, #7139b8);
   color: #fff;
-  box-shadow: 0 0 18px #9062fe9c, inset 0 1px 0 #fff6;
-  font: 800 16px/1 Arial, sans-serif;
-  letter-spacing: .12em;
+  box-shadow: 0 0 9px #9062fe62, inset 0 1px 0 #fff3;
+  font: 700 12px/1 Arial, sans-serif;
+  letter-spacing: .09em;
   text-decoration: none;
   text-transform: uppercase;
   white-space: nowrap;
@@ -354,25 +346,24 @@
 
 .playCta::before {
   content: '';
-  width: 11px;
-  height: 12px;
+  width: 8px;
+  height: 9px;
   background: currentColor;
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
 .playCta:hover,
 .playCta[aria-current="page"] {
-  background: linear-gradient(112deg, #623ad3, #8240e5 60%, #aa52e5);
-  box-shadow: 0 0 19px #ac75ffb3, inset 0 1px 0 #fff5;
+  background: linear-gradient(112deg, #5c35ac, #8246cd);
+  box-shadow: 0 0 12px #ac75ff8c, inset 0 1px 0 #fff4;
 }
 
-.secondaryNav { margin-inline-start: auto; }
 .secondaryNav:not([aria-current="page"]) { color: #c1b5d3; }
 
 .navItem:focus-visible,
 .loginButton:focus-visible,
 .playCta:focus-visible,
-.mobileLocation:focus-visible {
+.logoLink:focus-visible {
   outline: 2px solid #e6bcff;
   outline-offset: 3px;
 }
@@ -423,13 +414,5 @@
     white-space: nowrap;
   }
 
-  .mobileRow .playCta {
-    gap: 8px;
-    min-width: 94px;
-    min-height: 42px;
-    padding: 0 14px;
-    font-size: 13px;
-  }
-  .mobileRow .mobileBack { width: 36px; padding: 7px; }
-  .mobileBack span { display: none; }
+  .mobileRow .playCta { min-height: 38px; }
 }
