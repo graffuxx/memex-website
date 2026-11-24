@@ -168,6 +168,8 @@ export function createAbilityEffects(layer,options){
   lastPaint=[game,plan,project];
   const keys=new Set();
   for(const marker of [...abilityMarkers(game,plan,options),...bursts]){
+   // The updated number is rendered in the original slot of the card.
+   if(game?.elementalTrial&&marker.dir!==undefined&&/^[+−-]?\d+$/.test(marker.label))continue;
    const key=[marker.kind,marker.cell,marker.dir,marker.burst?'burst':marker.preview?'preview':'active'].join(':');
    keys.add(key);
    if(!nodes.has(key))nodes.set(key,create(marker));

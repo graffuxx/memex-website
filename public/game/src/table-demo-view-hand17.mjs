@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=final-guard';
-import {fieldFeedback129} from './field-feedback129.mjs?v=final-guard';
+import {createAbilityEffects} from './ability-effects.mjs?v=edge-numbers';
+import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=edge-numbers';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -20,9 +20,9 @@ import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=final-guard';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets,PHALANX_BONUS} from './table-demo-rules.mjs?v=final-guard';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=board-ability-symbols';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=edge-numbers';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -101,7 +101,9 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
    if(!card)continue;
    const preview=g.elementalTrial&&ui.plan?.card.uid===c.uid?ui.plan.card:null;
    if(!moving.has(c.uid))card.setRotation(preview?.rotation??c.rotation??0);
-   card.setFieldEffects(preview?fieldFeedback129(g,preview,ui.plan.cell,ui.plan.abilityDirection):undefined);
+   const feedback=preview?fieldFeedback129({...g,board:ui.plan.board,block:ui.plan.blockadeMove?.to??g.block},preview,ui.plan.cell,ui.plan.abilityDirection):undefined;
+   if(feedback)feedback.totals=previewEdgeTotals129(ui.plan);
+   card.setFieldEffects(feedback);
    card.setAbility(c.ability,ui.selected===c.uid&&ui.plan?.suppressed);
    card.setBoost(ui.selected===c.uid&&['hype','guard'].includes(c.ability)&&!ui.plan?.suppressed?ui.abilityDirection:null);
   }
@@ -154,23 +156,29 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   const previewCard=cover?{...card,coverWard:{dir:cover.dir,owner:card.controller,until:game.placements+2}}
    :ward?.cell===cell?{...card,ernieWard:{dir:ward.dir,owner:card.controller,until:game.placements+2}}:card;
   const feedback=fieldFeedback129(game,previewCard,cell);
+  if(ui.plan?.pivot?.cell!==cell)feedback.totals=previewEdgeTotals129(ui.plan,cell);
   if(attackFlash?.uid===card.uid&&attackFlash.placement===game.placements){
-   feedback.bonuses[attackFlash.dir]+=attackFlash.amount;
-   feedback.effects=[...(feedback.effects??[]),{dir:attackFlash.dir,ability:attackFlash.ability}];
+   for(const {dir,amount} of attackFlash.edges)feedback.bonuses[dir]+=amount;
   }
   return feedback;
  }
  function abilityBurst(resolved){
   if(motion)abilityEffects.burst(resolved);
   const move=resolved.last;
-  if(!resolved.elementalTrial||!move.abilityEdge||!['fire','storm','bid','ambush'].includes(move.ability))return;
+  if(!resolved.elementalTrial)return;
+  const edges=[
+   ['fire','storm','bid','ambush'].includes(move.ability)&&move.abilityEdge,
+   move.rally&&{dir:move.rally.dir,amount:PHALANX_BONUS},
+   move.sandwich&&{dir:move.sandwich.dir,amount:move.sandwich.amount},
+  ].filter(Boolean);
+  if(!edges.length)return;
   const refresh=()=>{
    const card=game?.board[move.cell];
    if(card?.uid===move.uid)cardMap.get(move.uid)?.setFieldEffects(boardFeedback(card,move.cell));
    dirty=true;
   };
   clearTimeout(attackFlashTimer);
-  attackFlash={uid:move.uid,placement:resolved.placements,ability:move.ability,...move.abilityEdge};
+  attackFlash={uid:move.uid,placement:resolved.placements,edges};
   refresh();
   attackFlashTimer=setTimeout(()=>{attackFlash=null;refresh();},520);
  }

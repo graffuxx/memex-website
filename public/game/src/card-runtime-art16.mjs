@@ -7,6 +7,7 @@ import {RECRUITER_VARIANTS95} from '../platform/quests95.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
 import {createCardFinishLayer} from './card-finish-layer16.mjs?v=board-ownership-62';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
+import {displayedEdgeValue129} from './field-feedback129.mjs?v=edge-numbers';
 import * as T from '../vendor/three.module.min.js';
 import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=board-ability-symbols';
 
@@ -72,18 +73,20 @@ export async function createCardRuntime(renderer,{variants=null}={}){
  const face=faceGeometry(),body=new T.ExtrudeGeometry(cardShape(),{depth:CARD_SPEC.bodyDepth,bevelEnabled:true,bevelSegments:3,bevelSize:.012,bevelThickness:.009,steps:1});body.translate(0,0,-CARD_SPEC.bodyDepth/2);
  const metal=new T.MeshStandardMaterial({color:'#142a43',metalness:.72,roughness:.35});
  const boostGeometry=new T.PlaneGeometry(.025,.18),boostMaterial=new T.MeshBasicMaterial({color:'#ffdb71',toneMapped:false}),badgeGeometry=new T.PlaneGeometry(ABILITY_ICON_SIZE,ABILITY_ICON_SIZE);
- const valueEffectGeo=new T.PlaneGeometry(.35,.29),valueEffectTextures=new Map();
- function valueEffectTexture(value,kind='field'){
-  const key=kind+':'+value;
+ const valuePatchSize=.25,valueEffectGeo=new T.PlaneGeometry(valuePatchSize,valuePatchSize),valueEffectTextures=new Map();
+ function valueEffectTexture(rarity,dir,label){
+  const key=rarity+':'+dir+':'+label;
   if(valueEffectTextures.has(key))return valueEffectTextures.get(key);
-  const canvas=document.createElement('canvas');canvas.width=192;canvas.height=160;
-  const ctx=canvas.getContext('2d'),element=ELEMENTS[kind];
-  ctx.fillStyle=element?.from??'#ffe39c';ctx.strokeStyle=element?.to??'#7b4e19';ctx.lineWidth=9;
-  ctx.beginPath();ctx.roundRect(5,5,182,150,30);ctx.fill();ctx.stroke();
-  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#251927';
-  ctx.font='900 100px Arial';ctx.fillText(String(value),96,element?82:67);
-  if(!element){ctx.font='900 30px Arial';ctx.fillText('+1 FIELD',96,128);}
-  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;valueEffectTextures.set(key,texture);return texture;
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=144;
+  const ctx=canvas.getContext('2d'),image=frames.get(rarity).image;
+  const [x,y]=valuePosition(dir),width=image.width*valuePatchSize/FRAME_LAYOUT.width,height=image.height*valuePatchSize/FRAME_LAYOUT.height;
+  ctx.drawImage(image,image.width*(.5+x/FRAME_LAYOUT.width)-width/2,
+   image.height*(.5-y/FRAME_LAYOUT.height)-height/2,width,height,0,0,canvas.width,canvas.height);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#401859';
+  ctx.font='800 115px Arial,sans-serif';ctx.fillText(label,72,77,124);
+  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;
+  valueEffectTextures.set(key,texture);
+  return texture;
  }
  const backMaterial=new T.MeshBasicMaterial({map:bake('pepe',0,true),transparent:true,alphaTest:.025,toneMapped:false});
  function spawn(uid,profile,owner,rotation=0,rarity='common',element=PROFILES[profile].element,variantId=null){
@@ -100,17 +103,15 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   let currentRotation=rotation;
   const refreshFace=()=>{frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key,variantId);};
   const card={uid,profile,group,finish,setFieldEffects(feedback={bonuses:[]}){
-   const key=JSON.stringify([currentRotation,feedback]);
+   const key=JSON.stringify([currentRotation,finish.rarity.key,feedback]);
    if(key===effectKey)return;
    effectKey=key;
    fieldValueMeshes.forEach((mesh,dir)=>{
     const base=PROFILES[profile].values[((dir-currentRotation)%6+6)%6];
-    const value=feedback.values?.[dir]??base,bonus=feedback.bonuses[dir]??0;
-    const exchanged=value!==base;
-    mesh.visible=(exchanged||bonus!==0)&&base!==10;
-    if(mesh.visible){
-     const ability=feedback.effects?.findLast(effect=>effect.dir===dir)?.ability;
-     mesh.material.map=valueEffectTexture(value+bonus,ability??(exchanged?'luxury':'field'));
+    const {label,changed}=displayedEdgeValue129(base,{value:feedback.values?.[dir],bonus:feedback.bonuses[dir],total:feedback.totals?.[dir]});
+    mesh.visible=changed;
+    if(changed){
+     mesh.material.map=valueEffectTexture(finish.rarity.key,dir,label);
      mesh.material.needsUpdate=true;
     }
    });

@@ -1,6 +1,5 @@
 import {DEFINITIONS,getVariant} from '../platform/catalog.mjs';
 import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
-import {printedValue126} from '../platform/card-ranks126.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
 import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=final-guard';
@@ -8,7 +7,7 @@ import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=board-ability-sym
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {fieldFeedback129} from './field-feedback129.mjs?v=final-guard';
+import {displayedEdgeValue129,fieldFeedback129} from './field-feedback129.mjs?v=edge-numbers';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -78,8 +77,8 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    <image data-frame href="${fallbackFrame}" x="${-FRAME_LAYOUT.width/2}" y="${-FRAME_LAYOUT.height/2}" width="${FRAME_LAYOUT.width}" height="${FRAME_LAYOUT.height}" preserveAspectRatio="none"/>
    ${abilityIcon?`<g opacity="${feedback.silenced?.45:1}">${abilityIcon}</g>`:''}
    <g fill="#17150d" font-size=".1995">${FRAME_LAYOUT.values.map(([x,y],i)=>{
-    const modified=feedback.bonuses[i]!==0,changed=sideValue(card,i)!==sideValue(printedCard,i);
-    return `<text x="${x}" y="${-y+.0093}"${modified||changed?' fill="#823300"':''}>${modified?values[i]:printedValue126(values[i])}</text>`;
+    const {label,changed}=displayedEdgeValue129(sideValue(printedCard,i),{total:values[i]});
+    return `<text x="${x}" y="${-y+.0093}"${changed?' fill="#401859"':''}>${label}</text>`;
    }).join('')}</g>
    <text x="0" y="${-FRAME_LAYOUT.titleY+.004}" fill="#17150d" font-size=".105"${label.length>10?' textLength=".66" lengthAdjust="spacingAndGlyphs"':''}>${escape(label)}</text>
    ${variant.edition==='alpha'||variant.edition==='recruiter'?alphaNameplateMarkup(FRAME_LAYOUT.titleY):''}

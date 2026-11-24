@@ -1,3 +1,4 @@
+import {printedValue126} from '../platform/card-ranks126.mjs';
 import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=final-guard';
 import {cardOf,sideValue} from './rules.mjs?v=final-guard';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
@@ -15,4 +16,23 @@ export function fieldFeedback129(game,card,cell,previewDirection=null){
  });
  const values=card.edgeSwap||card.edgeCopy?Array.from({length:6},(_,dir)=>sideValue(card,dir)):null;
  return {silenced:Boolean((field?.type==='silence'||jamActive(game,card))&&card.ability),bonuses,...(values?{values}:{}),...(effects.length?{effects}:{})};
+}
+
+
+// Keep S distinct from a numbered edge whose bonus happens to bring it to 10.
+export function displayedEdgeValue129(base,{value=base,bonus=0,total}={}){
+ const effective=total??value+bonus;
+ const changed=effective!==base;
+ return {label:base===10||!changed?printedValue126(base):String(effective),changed:base!==10&&changed};
+}
+
+export function previewEdgeTotals129(plan,defenderCell=null){
+ const totals=[];
+ for(const comparison of plan?.comparisons??[]){
+  if(defenderCell!==null&&comparison.cell!==defenderCell)continue;
+  const edge=defenderCell===null?comparison.attack:comparison.defend;
+  const dir=defenderCell===null?comparison.dir:(comparison.dir+3)%6;
+  totals[dir]=edge.total;
+ }
+ return totals;
 }
