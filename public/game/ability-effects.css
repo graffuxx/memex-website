@@ -63,3 +63,17 @@
 }
 .signature-draw__choices button small{display:block;margin-top:4px;color:#cee1f4;line-height:1.3}
 .signature-draw__choices button:disabled{opacity:.55;cursor:default}
+
+.ability-effects g[data-rotation] path{fill:#141129;stroke-width:1.8}
+.ability-effects g[data-rotation] text{font-size:20px}
+#interaction .board-cell.rotation-target[data-owner]:not(.will-flip):not(.twist-target):not(.inspect-target)>.field-hit{
+ stroke:#a4efdd;stroke-width:2.5;stroke-dasharray:5 4;
+}
+.twist-choice,.turn-choice{display:grid;gap:5px}
+.twist-choice[hidden],.turn-choice[hidden]{display:none}
+.game-table .game-sidebar .twist-choice label{color:#ead5ad;font-weight:700}
+.twist-choice select{max-width:100%;width:100%}
+.turn-choice__buttons{display:flex;flex-wrap:wrap;gap:5px}
+.turn-choice__buttons button{min-height:36px;padding:5px 9px;font-size:12px;flex:1 0 auto}
+.turn-choice__buttons button span{font-size:16px;vertical-align:middle}
+.turn-choice__buttons button[aria-pressed=true]{border-color:#d9b983;background:#534067;color:#fff5db}

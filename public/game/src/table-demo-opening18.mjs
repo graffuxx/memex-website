@@ -1,4 +1,5 @@
-import {bindSignatureControls} from './signature-controls.mjs?v=final-guard';
+import {bindSignatureControls} from './signature-controls.mjs?v=turn-arrows';
+import {edgeLabels,updateTwistControl} from './direction-controls.mjs';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=arcade-voices';
 import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=storm-tie-shield';
 import {bindSeriesHud129} from './duel-hud129.mjs';
@@ -23,10 +24,10 @@ import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=storm-tie-shield';
+import {createTableView} from './table-demo-view-hand17.mjs?v=turn-arrows';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
-import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
-import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=storm-tie-shield';
+import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
+import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=turn-arrows';
 import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let conceded129=false,afkStreak129=0;
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
@@ -102,8 +103,10 @@ function render(){
  $('abilityOptions').hidden=!card||!card.ability||mode==='shift';const a=card?.ability,muted=card&&target&&eventFieldAt(game,target)?.type==='silence';
  $('abilityLabel').textContent=a?ABILITIES[a].name+(muted?' · im Funkloch deaktiviert':''):'';$('abilityHint').textContent=abilityDescription(game,a);
  $('directionLabel').hidden=!aimsAbility(a);$('abilityDirection').value=String(abilityDirection);$('abilityDirection').disabled=busy||Boolean(muted);
- $('twistLabel').hidden=!turnsCards(a);const options=[{cell:'',label:'Keine Karte drehen'},...(target&&turnsCards(a)?twistTargets(game,target,a).map(cell=>({cell,label:name(game.board[cell])+' · '+cell})):[])];
- $('twistTarget').replaceChildren(...options.map(o=>{const el=document.createElement('option');el.value=o.cell;el.textContent=o.label;return el;}));$('twistTarget').value=twistCell??'';$('twistTarget').disabled=busy||!target||Boolean(muted);
+ const rotationAbility=turnsCards(a)?a:null;
+ const rotationTargets=target&&rotationAbility&&!muted?twistTargets(game,target,rotationAbility):[];
+ updateTwistControl({wrapper:$('twistLabel'),title:$('twistTitle'),hint:$('twistHint'),select:$('twistTarget'),
+  ability:muted?null:rotationAbility,ready:Boolean(target),targets:rotationTargets,selected:twistCell,busy,name:cell=>name(game.board[cell])});
  const rush=card?.ability==='dash'&&target===game.block;
  const rage=card?.ability==='rage';
  $('blockadeLabel').hidden=!rush&&!rage;
@@ -121,10 +124,10 @@ function render(){
  else{$('statusTitle').textContent='Karte wählen oder aufs Feld ziehen.';$('statusDetail').textContent='';}
  const described=card??(inspect?game.board[inspect]:null)??game.players[0].hand.find(c=>c.uid===hover);$('rarityInfo').hidden=!described;if(described){const r=rarityOf(described);$('rarityInfo').style.setProperty('--rarity-color',r.color);$('rarityName').textContent=r.mark+' · '+r.label;$('rarityFinish').textContent=r.finish;}
  $('controls').dataset.context=busy||card||inspect||mode==='shift'||game.finished?'active':'idle';
- $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.rank==='S'||c.defend.rank==='S'?(c.attack.rank===c.defend.rank?' = ':c.attack.rank==='S'?' > ':' < '):c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(c.rainbow?' · Zweiter Bogen':c.swipe?' · Schildklau':c.bid?' · Nachschlag':c.decoy?' · Falsche Kante':c.pursuit?' · Kein Entkommen':c.objection?' · Einspruch hält':c.finalGuard?' · Schlussschutz hält':c.bailout?' · Rettung in letzter Sekunde':c.redirect?' · Klammergriff → '+name(game.board[c.redirect]):c.pincer?' · Doppelansage':c.phalanx?' · Phalanx':c.sandwich?' · Sandwich':c.ambush?' · Hinterhalt':game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.tieProtected?' · KEKW hält den Gleichstand':c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):inspect&&game.board[inspect]?'Basiswerte O / SO / SW / W / NW / NO: '+DIRECTION_NAMES.map((_,d)=>printedValue126(sideValue(game.board[inspect],d))).join(' / '):'';
+ $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.rank==='S'||c.defend.rank==='S'?(c.attack.rank===c.defend.rank?' = ':c.attack.rank==='S'?' > ':' < '):c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(c.rainbow?' · Zweiter Bogen':c.swipe?' · Schildklau':c.bid?' · Nachschlag':c.decoy?' · Falsche Kante':c.pursuit?' · Kein Entkommen':c.objection?' · Einspruch hält':c.finalGuard?' · Schlussschutz hält':c.bailout?' · Rettung in letzter Sekunde':c.redirect?' · Klammergriff → '+name(game.board[c.redirect]):c.pincer?' · Doppelansage':c.phalanx?' · Phalanx':c.sandwich?' · Sandwich':c.ambush?' · Hinterhalt':game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.tieProtected?' · KEKW hält den Gleichstand':c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):'';
  signatureControls.update({game,card,target,plan:p,busy:finishDraw?false:busy,options:finishDraw?game.players[0].deck.slice(0,2):null,waiting:game.pendingDraw?.side===1});
  syncClock();
- view?.update(game,{selected,target,hover,busy,confirmPlacement:Boolean(p&&!busy&&!drag?.moved),plan:p,mode,twistCell,inspect,abilityDirection});
+ view?.update(game,{selected,target,hover,busy,confirmPlacement:Boolean(p&&!busy&&!drag?.moved),plan:p,mode,twistCell,rotationTargets,inspect,abilityDirection});
 }
 let finishDraw=null;
 const signatureControls=bindSignatureControls($('abilityOptions'),{onChange:render,onDraw:index=>finishDraw?.(index)});
@@ -142,6 +145,7 @@ function chooseField(cell){
  if(busy)return;
  if(game.board[cell]){
   if(!game.finished&&turnsCards(selectedCard()?.ability)&&target&&abilityAt(game,selectedCard(),target)&&twistTargets(game,target,selectedCard().ability).includes(cell)&&!expireTurn()){
+   boardPreview.clear();
    twistCell=twistCell===cell?null:cell;render();return;
   }
   boardPreview.toggle(cell);return;
@@ -272,7 +276,7 @@ function advanceRound(){if(conceded129||game.finished&&series113(roundResults).f
 $('nextRound').onclick=advanceRound;
 for(const selector of ['loadout','opponentLoadout'])$(selector).replaceChildren(...Object.entries(LOADOUTS).map(([key,value])=>{const o=document.createElement('option');o.value=key;o.textContent=value.name;return o;}));
 $('opponentLoadout').value=practice?.opponent==='mirror'?$('loadout').value:practice?.opponent==='balanced'?'guard-twist':'hype-twist';
-$('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=['→','↘','↙','←','↖','↗'][i]+' '+n;return o;}));
+$('abilityDirection').replaceChildren(...edgeLabels().map((label,i)=>new Option(label,String(i))));
 $('motion').checked=!matchMedia('(prefers-reduced-motion:reduce)').matches;atmosphere.setMotion($('motion').checked);$('motion').onchange=()=>{atmosphere.setMotion($('motion').checked);view?.setMotion($('motion').checked);stage.dataset.motion=$('motion').checked?'on':'off';};
 let arenaRequest=0,currentArena='voidforge';
 function arenaLabel(id){return ILLUSTRATED_ARENAS[id]?.name??({voidforge:'Voidforge',painted:'Void-Kluft',grove:'Resonanzhain',rift:'Glutkluft',void:'Void-Sanktuarium'})[id];}

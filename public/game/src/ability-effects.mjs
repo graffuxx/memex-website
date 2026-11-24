@@ -182,6 +182,14 @@ export function createAbilityEffects(layer,options){
    const {stroke,badge,text}=nodes.get(key),geometry=abilityMarkerGeometry(project(marker.cell),marker.dir);
    const {x,y}=geometry.center,size=clamp(Math.hypot(geometry.points[0].x-geometry.points[1].x,geometry.points[0].y-geometry.points[1].y)*.23,9,14);
    stroke.setAttribute('points',(marker.dir===undefined?[...geometry.points,geometry.points[0]]:geometry.points).map(coordinates).join(' '));
+   const rotation=marker.label==='↻'||marker.label==='↶';
+   nodes.get(key).root.toggleAttribute('data-rotation',rotation);
+   if(rotation){
+    const top=Math.max(18,Math.min(...geometry.points.map(point=>point.y))-7);
+    badge.setAttribute('d',`M ${x} ${top-12} a 12 12 0 1 1 0 24 a 12 12 0 1 1 0 -24 Z`);
+    text.setAttribute('x',x);text.setAttribute('y',top);text.textContent=marker.label;
+    continue;
+   }
    if(marker.kind==='final-guard'||(marker.kind==='blink'||marker.kind==='laugh')&&marker.label.length>1){
     const labelY=Math.max(14,Math.min(...geometry.points.map(point=>point.y))-8);
     const half=marker.label.length*3.7+8;

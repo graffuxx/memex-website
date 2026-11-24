@@ -1,43 +1,30 @@
-import {canTurnSelf,DIRECTION_NAMES,valueSwapTargets} from './table-demo-rules.mjs?v=final-guard';
+import {canTurnSelf,valueSwapTargets} from './table-demo-rules.mjs?v=turn-arrows';
 import {cardOf,ELEMENTS} from './rules.mjs?v=final-guard';
+import {createTurnButtons,edgeLabels} from './direction-controls.mjs';
 
 export function bindSignatureControls(abilities,{english=false,onChange,onDraw}){
  const exchangeLabel=document.createElement('label'),exchange=document.createElement('select'),exchangeText=document.createTextNode('');
  exchangeLabel.append(exchangeText,exchange);
- const pivotLabel=document.createElement('label'),pivot=document.createElement('select'),pivotText=document.createTextNode('');
- pivotLabel.append(pivotText,pivot);
- pivot.append(
-  new Option(english?'Keep orientation':'Ausrichtung behalten','0'),
-  new Option(english?'↶ 60° counterclockwise':'↶ 60° nach links','-1'),
-  new Option(english?'↻ 60° clockwise':'↻ 60° nach rechts','1'),
- );
+ const pivot=createTurnButtons(english,turn=>{pivotDirection=turn;onChange();});
  const valueLabel=document.createElement('label'),values=document.createElement('select');
  valueLabel.append(english?'Swap edge values':'Kantenwerte tauschen',values);
- const facingLabel=document.createElement('label'),facing=document.createElement('select');
- facingLabel.append(english?'Choose orientation':'Ausrichtung wählen',facing);
- facing.append(
-  new Option(english?'Keep orientation':'Ausrichtung behalten','0'),
-  new Option(english?'↶ 60° counterclockwise':'↶ 60° nach links','-1'),
-  new Option(english?'↻ 60° clockwise':'↻ 60° nach rechts','1'),
- );
+ const facing=createTurnButtons(english,turn=>{selfTurn=turn;onChange();});
  const stepLabel=document.createElement('label'),step=document.createElement('select');
  stepLabel.append(english?'Move an allied card':'Eigene Karte verschieben',step);
  const bidLabel=document.createElement('label'),bid=document.createElement('select');
  bidLabel.append(english?'Spend blockade move':'Blockadezug einsetzen',bid);
  const drawPanel=document.createElement('div'),drawTitle=document.createElement('strong'),drawChoices=document.createElement('div');
- drawPanel.hidden=exchangeLabel.hidden=pivotLabel.hidden=valueLabel.hidden=facingLabel.hidden=stepLabel.hidden=bidLabel.hidden=true;
+ drawPanel.hidden=exchangeLabel.hidden=pivot.group.hidden=valueLabel.hidden=facing.group.hidden=stepLabel.hidden=bidLabel.hidden=true;
  drawPanel.className='signature-draw';drawChoices.className='signature-draw__choices';
  drawPanel.append(drawTitle,drawChoices);
- abilities.append(exchangeLabel,pivotLabel,valueLabel,facingLabel,stepLabel,bidLabel);
+ abilities.append(exchangeLabel,pivot.group,valueLabel,facing.group,stepLabel,bidLabel);
  abilities.after(drawPanel);
  let swapCells=null,pivotDirection=0,valueSwap=null,selfTurn=0,stepCells=null,bidDirection=null;
  exchange.onchange=()=>{swapCells=exchange.value?exchange.value.split('|'):null;onChange();};
- pivot.onchange=()=>{pivotDirection=Number(pivot.value);onChange();};
  values.onchange=()=>{valueSwap=values.value?values.value.split('|').map(Number):null;onChange();};
- facing.onchange=()=>{selfTurn=Number(facing.value);onChange();};
  step.onchange=()=>{stepCells=step.value?step.value.split('|'):null;onChange();};
  bid.onchange=()=>{bidDirection=bid.value===''?null:Number(bid.value);onChange();};
- const directions=english?['E','SE','SW','W','NW','NE']:DIRECTION_NAMES;
+ const directions=edgeLabels(english);
 
  function update({game,card,target,plan,busy,options,waiting=false}){
   exchangeLabel.hidden=card?.ability!=='exchange'&&card?.ability!=='thought'&&!plan?.relay;
@@ -48,10 +35,11 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
    exchange.value=swapCells?.join('|')??'';
    exchange.disabled=busy||!pairs.length;
   }
-  pivotLabel.hidden=card?.ability!=='roundhouse'&&card?.ability!=='encore';
-  pivotText.textContent=card?.ability==='encore'?(english?'Rotate Epic Sax Guy':'Epic Sax Guy drehen'):(english?'Rotate captured card':'Eroberte Karte drehen');
-  pivot.value=String(pivotDirection);
-  pivot.disabled=busy||!plan?.pivotTarget;
+  pivot.update({
+   show:card?.ability==='roundhouse'||card?.ability==='encore',
+   label:card?.ability==='encore'?(english?'Turn Epic Sax Guy':'Epic Sax Guy drehen'):(english?'Turn captured card':'Eroberte Karte drehen'),
+   value:pivotDirection,disabled:busy||!plan?.pivotTarget,
+  });
   valueLabel.hidden=card?.ability!=='luxury';
   if(!valueLabel.hidden){
    const pairs=target?valueSwapTargets(game,card,target):[];
@@ -61,10 +49,11 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
   }
   const retry=card?.ability==='retry';
   const turns=plan?.turnChoices??[];
-  facingLabel.hidden=card?.ability!=='wander'&&!retry;
-  facing.value=String(selfTurn);
-  for(const option of facing.options)option.disabled=retry&&option.value!=='0'&&!turns.includes(Number(option.value));
-  facing.disabled=busy||!target||(retry?!turns.length:!canTurnSelf(game,target));
+  facing.update({
+   show:card?.ability==='wander'||retry,label:english?'Turn your card':'Deine Karte drehen',
+   value:selfTurn,disabled:busy||!target||(retry?!turns.length:!canTurnSelf(game,target)),
+   allowed:retry?turns:undefined,
+  });
   const chorus=card?.ability==='chorus',jam=card?.ability==='jam',fan=card?.ability==='fan',cling=card?.ability==='cling';
   stepLabel.hidden=card?.ability!=='sidestep'&&!chorus&&!jam&&!fan&&!cling;
   stepLabel.firstChild.textContent=chorus?(english?'Choose dance partners':'Tanzpartner wählen'):jam?(english?'Mute an enemy card':'Gegnerkarte stummschalten'):fan?(english?'Reserve a field':'Feld reservieren'):cling?(english?'Link a friendly Regular':'Eigene Standardkarte verknüpfen'):(english?'Move an allied card':'Eigene Karte verschieben');
@@ -77,8 +66,8 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
     if(fan)return from;
     if(jam||cling)return labelAt(from);
     if(!chorus)return labelAt(from)+' → '+to;
-    if(to==='cw'||to==='ccw')return (to==='cw'?'↻ ':'↶ ')+labelAt(from);
-    return '↻ '+labelAt(from)+' / ↶ '+labelAt(to);
+    if(to==='cw'||to==='ccw')return (to==='cw'?'↻ ':'↶ ')+nameAt(from);
+    return '↻ '+nameAt(from)+' / ↶ '+nameAt(to);
    };
    step.replaceChildren(new Option(unchanged,''),...pairs.map(pair=>new Option(describe(pair),pair.join('|'))));
    step.value=stepCells?.join('|')??'';

@@ -1,4 +1,4 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=storm-tie-shield';
+import {createAbilityEffects} from './ability-effects.mjs?v=turn-arrows';
 import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=duel-feedback';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
@@ -31,7 +31,7 @@ const tableArena=id=>id==='voidforge'||flatArena(id);
 let hudMaskSerial105=0;
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
-export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',blinkLabel='BLINZLER',tieShieldLabel='SCHUTZ BEI PATT'}={}){
+export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',rotationTargetLabel='Kann nach rechts drehen',rotationSelectedLabel='Dreht sich nach rechts',blinkLabel='BLINZLER',tieShieldLabel='SCHUTZ BEI PATT'}={}){
  const syncDuelControl=bindDuelControl105(stage.ownerDocument);
  const placementButton=onConfirmPlacement?stage.ownerDocument.createElement('button'):null;
  if(placementButton){
@@ -134,8 +134,9 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
  }
  function overlays(){if(!game)return;const shifts=ui.mode==='shift'?moveTargets(game):[];const reserved=reservedCell(game);const selected=game.players[game.turn].hand.find(card=>card.uid===ui.selected);const dash=ui.mode!=='shift'&&dashTargets(game,selected,game.block).length>0;for(const c of CELLS){
    const node=fieldNodes.get(c.id),held=game.board[c.id],blocked=game.block===c.id,f=eventFieldAt(game,c.id),pts=projectHex(camera,c,width,boardHeight,arenaId==='voidforge'?.88:.96,flatArena(arenaId)?(held ? .30 : .235):.36),points=pts.map(p=>p.x+','+(p.y+boardTop)).join(' '),cx=pts.reduce((n,p)=>n+p.x,0)/6,top=Math.min(...pts.map(p=>p.y))+boardTop,bottom=Math.max(...pts.map(p=>p.y))+boardTop;
-   const label=(blocked?(dash?'Durchbruch auf '+c.id+' · Blockade':'Versiegelte Karte · Blockade'):held?CARD_PROFILES[DEMO_PROFILES[held.id]].name+', '+['deine Karte','gegnerische Karte'][held.controller]:reserved===c.id?'Reserviertes Feld '+c.id:'Freies Feld '+c.id)+(f?', '+fieldText(f):'')+(held?.ability?', '+ABILITIES[held.ability].name:'')+(held?', '+rarityOf(held).label:'');
-   if(held)node.dataset.rarity=rarityOf(held).key;else delete node.dataset.rarity;node.setAttribute('aria-label',label);node.setAttribute('aria-disabled',String((held?!(ui.inspectable??!ui.busy):Boolean(ui.busy)||reserved===c.id&&ui.mode!=='shift')||showcase));node.querySelector('polygon').setAttribute('points',points);node.classList.toggle('targeted',ui.target===c.id);node.classList.toggle('available',ui.mode==='shift'?shifts.includes(c.id):Boolean(ui.selected)&&!held&&reserved!==c.id&&(!blocked||dash));node.classList.toggle('will-flip',Boolean(ui.plan?.flips.includes(c.id)));node.classList.toggle('twist-target',ui.twistCell===c.id);node.classList.toggle('inspect-target',ui.inspect===c.id);node.classList.toggle('shift-target',shifts.includes(c.id));
+   const rotationTarget=!ui.busy&&ui.rotationTargets?.includes(c.id);
+   const label=(blocked?(dash?'Durchbruch auf '+c.id+' · Blockade':'Versiegelte Karte · Blockade'):held?CARD_PROFILES[DEMO_PROFILES[held.id]].name+', '+['deine Karte','gegnerische Karte'][held.controller]:reserved===c.id?'Reserviertes Feld '+c.id:'Freies Feld '+c.id)+(f?', '+fieldText(f):'')+(held?.ability?', '+ABILITIES[held.ability].name:'')+(held?', '+rarityOf(held).label:'')+(rotationTarget?', '+(ui.twistCell===c.id?rotationSelectedLabel:rotationTargetLabel):'');
+   if(held)node.dataset.rarity=rarityOf(held).key;else delete node.dataset.rarity;node.setAttribute('aria-label',label);node.setAttribute('aria-disabled',String((held?!(ui.inspectable??!ui.busy):Boolean(ui.busy)||reserved===c.id&&ui.mode!=='shift')||showcase));node.querySelector('polygon').setAttribute('points',points);node.classList.toggle('targeted',ui.target===c.id);node.classList.toggle('available',ui.mode==='shift'?shifts.includes(c.id):Boolean(ui.selected)&&!held&&reserved!==c.id&&(!blocked||dash));node.classList.toggle('will-flip',Boolean(ui.plan?.flips.includes(c.id)));node.classList.toggle('rotation-target',Boolean(rotationTarget));node.classList.toggle('twist-target',ui.twistCell===c.id);node.classList.toggle('inspect-target',ui.inspect===c.id);node.classList.toggle('shift-target',shifts.includes(c.id));
    const text=node.querySelector('.field-label');text.textContent=f?(held?FIELD_TYPES[f.type].symbol:FIELD_TYPES[f.type].name.toUpperCase()+(f.type==='resonance'?' +1':f.type==='crossfire'?' +1':' ×')):'';text.setAttribute('x',cx);text.setAttribute('y',bottom-3);text.setAttribute('fill',f?FIELD_TYPES[f.type].color:'#fff');
    const owner=node.querySelector('.owner-label');owner.textContent='';if(held)node.dataset.owner=String(held.controller);else delete node.dataset.owner;
   }

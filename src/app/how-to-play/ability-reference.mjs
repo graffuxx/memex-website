@@ -27,7 +27,7 @@ const explanations = {
  fire:['Ember Strike','Play a Regular Fire card touching exactly one enemy.','Its edge facing that enemy gains +1 attack for this play.'],
  water:['Wave Shield','Select a Regular Water card, target a hex and choose the edge to protect. Confirm the play.',`That edge gains +${WATER_BONUS} defence until your next turn.`],
  earth:['Bulwark','A Regular Earth card touches an allied card or the blockade.','Its weakest open edge gains +1 defence. The protected edge updates as the board changes.'],
- air:['Tailwind','When placing a Regular Air card, you may select one adjacent ally to rotate.','The ally turns 60° without triggering any captures.'],
+ air:['Tailwind','Place a Regular Air card, then tap a highlighted allied card if you want to turn it.','The arrow shows the turn. The card turns one step to the right and stays yours.'],
  storm:['Flanking Lightning','Play a Regular Storm card touching at least two enemies.',`Its weakest enemy-facing edge gains +1 attack if its base value is ${STORM_MAX_EDGE} or less.`],
  rage:['Rage Pivot','Place Rage Guy while behind on the board with your blockade move unused. Choose an available destination.','Move the blockade up to two free hexes. This uses your blockade move for the round.'],
  buttons:['Second Choice','Play Two Buttons with at least two cards remaining in your deck and another turn left in the round.','Privately choose which of the top two you draw. The other stays on top. If the timer expires, the game chooses.'],

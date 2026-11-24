@@ -5,7 +5,8 @@ import {newGame,moveTargets,sideValue} from '../public/game/src/rules.mjs';
 import {abilityEdge,effectStrength,placeEffect,previewEffect,standardAbility,twistTargets} from '../public/game/src/table-demo-rules.mjs';
 import {fieldFeedback129} from '../public/game/src/field-feedback129.mjs';
 import {legalCandidates,positionalValue} from '../public/game/src/tactics-ai.mjs';
-import {abilityBursts} from '../public/game/src/ability-effects.mjs';
+import {abilityBursts,abilityMarkers} from '../public/game/src/ability-effects.mjs';
+import {edgeLabels,twistLabels} from '../public/game/src/direction-controls.mjs';
 import {createTacticsLayout} from '../public/game/src/tactics-layout.mjs';
 import {advancePvp90,createPvp90,projectPvp90} from '../server/game/pvp90.mjs';
 
@@ -70,10 +71,20 @@ test('Water expires after the opposing move, Earth follows the blockade and Air 
  assert.ok(move);
  const withoutRotation={...move.action,twistCell:null};
  assert.ok(positionalValue(game,move)>positionalValue(game,{action:withoutRotation,plan:previewEffect(game,withoutRotation)}));
+ assert.deepEqual(abilityMarkers(game,move.plan).find(marker=>marker.kind==='air'),{kind:'air',cell:'-1,0',preview:true,label:'↻'});
+ assert.equal(abilityMarkers(game,previewEffect(game,withoutRotation)).some(marker=>marker.kind==='air'),false);
  const after=placeEffect(game,move.action);
  assert.equal(after.board['-1,0'].rotation,1);
  assert.equal(after.board['-1,0'].controller,0);
  assert.equal(after.last.flips.includes('-1,0'),false);
+ assert.ok(abilityBursts(after).some(marker=>marker.cell==='-1,0'&&marker.label==='↻'));
+});
+test('rotation and edge labels use arrows and plain directions in both game languages',()=>{
+ assert.deepEqual(edgeLabels(),['→ Rechts','↘ Unten rechts','↙ Unten links','← Links','↖ Oben links','↗ Oben rechts']);
+ assert.deepEqual(edgeLabels(true),['→ Right','↘ Bottom right','↙ Bottom left','← Left','↖ Top left','↗ Top right']);
+ assert.match(twistLabels('air',true,true).hint,/nach rechts/);
+ assert.match(twistLabels('twist',true,true,true).hint,/one step right/);
+ assert.match(twistLabels('air',false,false).hint,/zuerst ein freies Feld/);
 });
 test('Earth uses the weakest open edge beside an ally in the late game, with the old rule retained for existing duels',()=>{
  const game=trial(),earth={...makeCard('roll-safe:common',0,'earth'),controller:0,rotation:0};
