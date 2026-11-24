@@ -1,7 +1,7 @@
 import {series113,seriesStarter113} from '../../public/game/platform/series113.mjs';
 import {createTacticsMatch} from '../../public/game/src/table-demo-state.mjs';
 import {applyPortalDecks} from '../../public/game/platform/deck-bridge.mjs';
-import {LOADOUTS,placeEffect} from '../../public/game/src/table-demo-rules.mjs';
+import {LOADOUTS,placeEffect,resolveDraw} from '../../public/game/src/table-demo-rules.mjs';
 import {shiftBlock,scores} from '../../public/game/src/rules.mjs';
 import {timeoutAction} from '../../public/game/src/turn-clock.mjs';
 import {balanceVersion94,BALANCE_FINGERPRINT94} from './balance-version94.mjs';
@@ -16,7 +16,7 @@ export function refreshPvpRules129(state,now=Date.now()){if(!state?.game||state.
 export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0,releasedPrimeTrio=false,releasedPrimePair=false,allPrimes=false}={}){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
  const balance=balanceVersion94(now);
- if(elementalTrial)balance.patch+=allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
+ if(elementalTrial)balance.patch+=iconicAbilityWave>=7?'-iconic-complete':allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
  return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,releasedPrimeTrio,releasedPrimePair,allPrimes,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
 }
 function newRound(s,now){
@@ -32,7 +32,7 @@ function newRound(s,now){
  g=applyPortalDecks(g,s.decks[0].cards,loadouts,{round:s.round,opponentCards:s.decks[1].cards});
  g.elementRules=5;g.rotationLocked=true;g.eventFieldsEnabled=false;g.resonanceOffset=s.seed%5;
  // Opaque per-round card tokens never reveal a hidden motif or rarity.
- g.players.forEach((p,side)=>[...p.hand,...p.deck].forEach((c,i)=>{c.uid=`r${s.round}-p${side}-c${i}`;}));
+ g.players.forEach((p,side)=>[...p.hand,...p.deck].forEach((c,i)=>{c.uid=s.iconicAbilityWave>=7?crypto.randomUUID():`r${s.round}-p${side}-c${i}`;}));
  s.game=g;s.phase='play';s.deadline=due(now,s,g.turn);s.ready=[false,false];s.step=null;
  if(s.balance)s.balance.roundStartedAt=now;
 }
@@ -43,9 +43,16 @@ function resolveRps(s,now){
  if(winner===null){s.choices=[null,null];s.attempt++;}else{s.phase='initiative';s.rpsWinner=winner;}
  s.deadline=due(now);
 }
-function place(s,action,now){
- const before=s.game;s.game=placeEffect(before,action);s.step={kind:'place',action,before:structuredClone(before),after:structuredClone(s.game)};
- if(s.game.finished){s.results[s.round-1]=scores(s.game);s.phase=series113(s.results).finished?'ended':'between';s.deadline=s.phase==='between'?now+ROUND_BREAK_MS129:null;}else s.deadline=due(now,s,s.game.turn);
+const DRAW_CHOICE_MS=15000;
+function draw(s,index,now){
+ const before=s.game;
+ s.game=resolveDraw(before,index);
+ s.step={kind:'draw',before:structuredClone(before),after:structuredClone(s.game)};
+ s.deadline=due(now,s,s.game.turn);
+}
+function place(s,action,now,{chooseDraw=true}={}){
+ const before=s.game;s.game=placeEffect(before,action,{chooseDraw:chooseDraw&&s.iconicAbilityWave>=7});s.step={kind:'place',action,before:structuredClone(before),after:structuredClone(s.game)};
+ if(s.game.finished){s.results[s.round-1]=scores(s.game);s.phase=series113(s.results).finished?'ended':'between';s.deadline=s.phase==='between'?now+ROUND_BREAK_MS129:null;}else s.deadline=s.game.pendingDraw?now+DRAW_CHOICE_MS:due(now,s,s.game.turn);
 }
 export function advancePvp90(state,side,input,now=Date.now()){
  if(state.ruleset!==PVP_RULE90||![0,1].includes(side))throw Error('Invalid online duel.');
@@ -65,6 +72,11 @@ export function advancePvp90(state,side,input,now=Date.now()){
   if(s.ready.every(Boolean)){s.round++;newRound(s,now);}return s;
  }
  if(s.phase!=='play'||s.game.turn!==side)throw Error('It is not your turn.');
+ if(s.game.pendingDraw){
+  if(input.kind!=='draw')throw Error('Choose a card to draw first.');
+  draw(s,input.index,now);
+  return s;
+ }
  if(input.kind==='shift'){const before=s.game;s.game=shiftBlock(s.game,input.cell);s.step={kind:'shift',cell:input.cell,before:structuredClone(before),after:structuredClone(s.game)};return s;}
  if(input.kind!=='place'||input.action?.rotation!==0)throw Error('Invalid card action.');
  s.afkStreak129[side]=0;place(s,input.action,now);
@@ -78,7 +90,12 @@ export function expirePvp90(state,now=Date.now()){
  if(s.phase==='rps'){for(const side of [0,1])if(s.choices[side]===null)s.choices[side]=gestures[((s.seed>>>side)+s.attempt+side)%3];resolveRps(s,now);return s;}
  if(s.phase==='initiative'){s.starter=s.rpsWinner;newRound(s,now);return s;}
  if(s.phase==='between'){s.round++;newRound(s,now);return s;}
- if(s.phase==='play'){s.afkStreak129[s.game.turn]++;place(s,timeoutAction(s.game),now);return s;}return null;
+ if(s.phase==='play'){
+  if(s.game.pendingDraw){draw(s,0,now);return s;}
+  s.afkStreak129[s.game.turn]++;
+  place(s,timeoutAction(s.game),now,{chooseDraw:false});
+  return s;
+ }return null;
 }
 function perspectiveGame(game,side,revealUid=null){
  if(!game)return null;const g=structuredClone(game),swap=n=>n===null||n===undefined?n:side===1?1-n:n;
@@ -86,8 +103,12 @@ function perspectiveGame(game,side,revealUid=null){
  delete g.seed;
  const card=c=>{const v={...c};for(const k of ['origin','controller','guardOwner','laughOwner'])if(v[k]!==undefined)v[k]=swap(v[k]);for(const key of ['coverWard','ernieWard','phalanxLink'])if(v[key])v[key]={...v[key],owner:swap(v[key].owner)};return v;};
  const hidden=c=>({id:'oracle',uid:c.uid,origin:swap(c.origin),controller:swap(c.controller),rotation:0,hidden:true});
- g.players=(side===1?[g.players[1],g.players[0]]:g.players).map((p,i)=>({...p,hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),deck:p.deck.map(hidden)}));
+ g.players=(side===1?[g.players[1],g.players[0]]:g.players).map((p,i)=>({...p,hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),deck:p.deck.map((c,index)=>g.iconicAbilityWave>=7?{...hidden(c),uid:`deck-${i}-${index}`}:hidden(c))}));
  g.board=Object.fromEntries(Object.entries(g.board).map(([k,c])=>[k,card(c)]));
+ if(g.pendingDraw){
+  const owner=g.pendingDraw.side;
+  g.pendingDraw={side:swap(owner),...(owner===side?{options:game.players[owner].deck.slice(0,2).map(card)}:{})};
+ }
  if(g.fanReserve)g.fanReserve.owner=swap(g.fanReserve.owner);
  if(g.blockadeLock)g.blockadeLock.owner=swap(g.blockadeLock.owner);
  for(const k of ['turn','starter','winner'])g[k]=swap(g[k]);

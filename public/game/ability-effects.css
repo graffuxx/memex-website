@@ -49,3 +49,9 @@
 .ability-effects g[data-ability=cling]{--ability-color:#ffc6e8;--ability-glow:#ed69b1}
 .ability-effects g[data-ability=fan]{--ability-color:#ffd7bb;--ability-glow:#f46d54}
 .ability-effects g[data-ability=sandwich]{--ability-color:#ffe09c;--ability-glow:#f2ad50}
+.signature-draw{grid-column:1/-1;width:100%;display:grid;gap:8px;padding:9px;border-radius:9px;background:#17182e;border:1px solid #b6ddff66;color:#f0e9fa}
+.signature-draw[hidden]{display:none}
+.signature-draw__choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.signature-draw__choices button{border:1px solid #b6ddff77;border-radius:7px;padding:7px;background:#252641;color:#f0e9fa;font:inherit;cursor:pointer}
+.signature-draw__choices button small{display:block;color:#cee1f4}
+.signature-draw__choices button:disabled{opacity:.55;cursor:default}

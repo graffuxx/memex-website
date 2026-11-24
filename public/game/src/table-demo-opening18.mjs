@@ -1,6 +1,6 @@
-import {bindSignatureControls} from './signature-controls.mjs?v=alpha-primes';
+import {bindSignatureControls} from './signature-controls.mjs?v=alpha-complete';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=alpha-primes';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=alpha-complete';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -9,24 +9,24 @@ import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs?v=booster-classes-140';
-import {soloAction84} from './solo-ai84.mjs?v=alpha-primes';
+import {soloAction84} from './solo-ai84.mjs?v=alpha-complete';
 import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {connectAccountGame,leaveStoredAccount112} from '../platform/account-client50.mjs?v=identity-85';
-import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-primes';
+import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=alpha-complete';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=start-recovery-139';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=alpha-primes';
+import {createTableAudio} from './table-audio.mjs?v=alpha-complete';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=alpha-primes';
-import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=alpha-primes';
-import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue,blockadeLocked,reservedCell} from './rules.mjs?v=alpha-primes';
-import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=alpha-primes';
+import {createTableView} from './table-demo-view-hand17.mjs?v=alpha-complete';
+import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=alpha-complete';
+import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue,blockadeLocked,reservedCell} from './rules.mjs?v=alpha-complete';
+import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=alpha-complete';
 import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let conceded129=false,afkStreak129=0;
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
@@ -105,9 +105,10 @@ function render(){
  $('twistLabel').hidden=!turnsCards(a);const options=[{cell:'',label:'Keine Karte drehen'},...(target&&turnsCards(a)?twistTargets(game,target,a).map(cell=>({cell,label:name(game.board[cell])+' · '+cell})):[])];
  $('twistTarget').replaceChildren(...options.map(o=>{const el=document.createElement('option');el.value=o.cell;el.textContent=o.label;return el;}));$('twistTarget').value=twistCell??'';$('twistTarget').disabled=busy||!target||Boolean(muted);
  const rush=card?.ability==='dash'&&target===game.block;
- $('blockadeLabel').hidden=!rush;
- if(rush){
-  const cells=dashTargets(game,card,target);
+ const rage=card?.ability==='rage';
+ $('blockadeLabel').hidden=!rush&&!rage;
+ if(rush||rage){
+  const cells=target?(rush?dashTargets(game,card,target):rageTargets(game,target)):[];
   $('blockadeTarget').replaceChildren(new Option(rush&&cells.length?'Automatisch · '+cells[0]:'Blockade stehen lassen',''),...cells.map(c=>new Option(c,c)));
   $('blockadeTarget').value=blockadeCell??'';
   $('blockadeTarget').disabled=busy||!cells.length;
@@ -121,11 +122,19 @@ function render(){
  const described=card??(inspect?game.board[inspect]:null)??game.players[0].hand.find(c=>c.uid===hover);$('rarityInfo').hidden=!described;if(described){const r=rarityOf(described);$('rarityInfo').style.setProperty('--rarity-color',r.color);$('rarityName').textContent=r.mark+' · '+r.label;$('rarityFinish').textContent=r.finish;}
  $('controls').dataset.context=busy||card||inspect||mode==='shift'||game.finished?'active':'idle';
  $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.rank==='S'||c.defend.rank==='S'?(c.attack.rank===c.defend.rank?' = ':c.attack.rank==='S'?' > ':' < '):c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(c.rainbow?' · Zweiter Bogen':c.swipe?' · Schildklau':c.bid?' · Nachschlag':c.decoy?' · Falsche Kante':c.pursuit?' · Kein Entkommen':c.objection?' · Einspruch hält':c.bailout?' · Rettung in letzter Sekunde':c.redirect?' · Klammergriff → '+name(game.board[c.redirect]):c.pincer?' · Doppelansage':c.phalanx?' · Phalanx':c.sandwich?' · Sandwich':c.ambush?' · Hinterhalt':game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.tieProtected?' · KEKW hält den Gleichstand':c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):inspect&&game.board[inspect]?'Basiswerte O / SO / SW / W / NW / NO: '+DIRECTION_NAMES.map((_,d)=>printedValue126(sideValue(game.board[inspect],d))).join(' / '):'';
- signatureControls.update({game,card,target,plan:p,busy});
+ signatureControls.update({game,card,target,plan:p,busy:finishDraw?false:busy,options:finishDraw?game.players[0].deck.slice(0,2):null,waiting:game.pendingDraw?.side===1});
  syncClock();
  view?.update(game,{selected,target,hover,busy,plan:p,mode,twistCell,inspect,abilityDirection});
 }
-const signatureControls=bindSignatureControls($('abilityOptions'),{onChange:render});
+let finishDraw=null;
+const signatureControls=bindSignatureControls($('abilityOptions'),{onChange:render,onDraw:index=>finishDraw?.(index)});
+function askDraw(){
+ return new Promise(resolve=>{
+  const timer=setTimeout(()=>finishDraw?.(0),15000);
+  finishDraw=index=>{clearTimeout(timer);finishDraw=null;resolve(index);};
+  render();
+ });
+}
 function clear(){signatureControls.clear();boardPreview.clear();selected=null;target=null;rotation=0;abilityDirection=0;twistCell=null;blockadeCell=null;hover=null;mode='card';}
 function choose(uid){if(expireTurn()||busy||game.finished)return;if(selected!==uid){const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;view.setRotation(uid,0);audio.play('select');}render();}
 function canStage(cell){return Boolean(cell&&cell!==reservedCell(game)&&!game.board[cell]&&(game.block!==cell||dashTargets(game,selectedCard(),cell).length));}
@@ -152,7 +161,7 @@ function showPracticeHint84(){
 $('practiceHint84').onclick=showPracticeHint84;
 function cancelSelection(){if(busy)return;if(drag){const d=drag;drag=null;d.node.classList.remove('dragging');try{d.node.releasePointerCapture(d.id);}catch{}view.release(d.uid);}if(selected||mode==='shift')audio.play('cancel');if(selected){view.release(selected);view.setRotation(selected,0);}clear();render();}
 async function playAction(a,token,serverNext=null){
- const side=game.turn,before=game,resolution=previewEffect(game,a),next=serverNext??placeEffect(game,a),draw=drawnCard(before,next,side),played=before.players[side].hand.find(c=>c.uid===a.uid);
+ const side=game.turn,before=game,resolution=previewEffect(game,a),next=serverNext??placeEffect(game,a,{chooseDraw:game.iconicAbilityWave>=7}),draw=drawnCard(before,next,side),played=before.players[side].hand.find(c=>c.uid===a.uid);
  phase=side===1?'opponent':'placing';notice=name(played)+' wird ausgespielt'+(played.ability?' · '+ABILITIES[played.ability].name:'')+'.';render();view.setRotation(a.uid,resolution.card.rotation);
  if(next.last.dash){if(!await view.shift(next.last.blockadeMove.to)||token!==epoch)return false;audio.play('shift');}
  if(!await view.place(a.uid,a.cell)||token!==epoch)return false;audio.play('place');
@@ -166,6 +175,16 @@ async function playAction(a,token,serverNext=null){
  if(next.last.flips.length){audio.play('capture',{side,count:next.last.flips.length});if(next.last.flips.length===1)announce(side===0?'Deine Übernahme':'Gegner übernimmt');notice=next.last.flips.length+(next.last.flips.length===1?' Karte wechselt':' Karten wechseln')+' die Seite.';render();await animateResolvedFlips(view,next,flipCombo);if(token!==epoch)return false;}
  if(next.last.ability==='encore'&&next.last.transforms.length){audio.play('twist');announce('♫ Zugabe');for(const t of next.last.transforms)if(!await view.turnCard(t.uid,t.from,t.to)||token!==epoch)return false;}
  if(next.last.blink){const {uid,from,to}=next.last.blink;audio.play('twist');announce('⟳ Blinzler');if(!await view.turnCard(uid,from,to)||token!==epoch)return false;}
+ if(next.pendingDraw){
+  const index=side===0?await askDraw():preferredDrawIndex(next.players[side].deck.slice(0,2));
+  if(token!==epoch)return false;
+  game=resolveDraw(next,index);
+  const chosen=drawnCard(next,game,side);
+  if(chosen){
+   view.hide(chosen.uid);view.hold(chosen.uid);render();audio.play('draw');
+   if(!await view.draw(chosen.uid,side)||token!==epoch)return false;
+  }
+ }
  if(draw){audio.play('draw');notice=(side===0?'Du ziehst':'Der Gegner zieht')+' eine Karte nach.';phase=side===1?'opponent':'drawing';render();if(!await view.draw(draw.uid,side)||token!==epoch)return false;}
  if(next.last.event!==null){view.eventChange();announce('Feldwechsel · neue Resonanz');audio.play('event');}
  if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked,autoContinueMs:series113(roundResults).finished?5000:8000});if(accountGame){const awarded=accountSnapshot?.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+awarded+' Pixels'+(awarded===5?' · +100 XP':'')+' · Runde '+round+' gutgeschrieben';}}
@@ -182,7 +201,7 @@ async function cycle(a,showPreview=false,fromTimeout=false){if(!fromTimeout&&exp
 async function confirm(){if(expireTurn()||busy)return;if(mode!=='shift'){if(plan())cycle(action());return;}if(!moveTargets(game).includes(target))return;
  const token=epoch;let next;if(accountGame){busy=true;phase='connection';render();try{const data=await accountGame.move({kind:'shift',cell:target});acceptAccount(data);next=data.state.game;}catch(error){accountProblem(error);return;}}else next=shiftBlock(game,target);busy=true;notice='Blockade wird verschoben.';audio.play('shift');render();const ok=await view.shift(target);if(ok&&token===epoch){game=next;busy=false;notice='';clear();render();}}
 async function reset({preserveSeries=false}={}){
- if(!view||accountFailed)return;const token=++epoch;startDialog.cancel();ceremony.cancel();
+ if(!view||accountFailed)return;const token=++epoch;finishDraw?.(0);startDialog.cancel();ceremony.cancel();
  if(drag){drag.node.classList.remove('dragging');try{drag.node.releasePointerCapture(drag.id);}catch{}drag=null;}
  view.cancel();flipCombo.clear();audio.cancel();clearTimeout(messageTimer);$('arenaMessage').classList.remove('active');
  if(!preserveSeries){conceded129=false;afkStreak129=0;round=1;roundResults=[];matchSeed=freshMatchSeed(matchSeed);firstStarter=null;}
@@ -195,7 +214,7 @@ async function reset({preserveSeries=false}={}){
   }catch(error){accountProblem(error);return;}
  }
  game=isMatch()?createTacticsMatch({loadouts:[$('loadout').value,$('opponentLoadout').value],seed:matchSeed,starter:roundStarter(firstStarter??0,round)}):createTableDemo($('loadout').value);
- if(practice?.mode==='deck-test'){game.abilityTrial=true;game.elementalTrial=true;game.iconicAbilities=true;game.iconicAbilityWave=6;game.releasedPrimeTrio=true;game.releasedPrimePair=true;game.allPrimes=true;}
+ if(practice?.mode==='deck-test'){game.abilityTrial=true;game.elementalTrial=true;game.iconicAbilities=true;game.iconicAbilityWave=7;game.releasedPrimeTrio=true;game.releasedPrimePair=true;game.allPrimes=true;}
  if(isMatch())game=applyPortalDecks(game,portalDeck.cards,[$('loadout').value,$('opponentLoadout').value].map(id=>LOADOUTS[id]),{round,opponentCards:practice?soloOpponent84(practice.opponent,portalDeck.cards,matchSeed):null});
  if(accountData)game=accountData.state.game;
  game=withDemoFinishes(game);game.rotationLocked=true;await view.prepareGame(game);if(token!==epoch)return;view.initGame(game);
@@ -232,7 +251,7 @@ function stopDrag(e,cancelled=false){
  target=canStage(cell)?cell:null;twistCell=null;blockadeCell=null;signatureControls.clear();
  const placement=target&&plan();
  if(placement){
-  if(placement.pivotTarget||placement.steps.length||placement.bidTargets.length||placement.swaps.length||placement.turnChoices.length||placement.dash||['water','air'].includes(placement.ability)){
+  if(placement.pivotTarget||placement.steps.length||placement.bidTargets.length||placement.swaps.length||placement.valueSwaps?.length||placement.turnChoices.length||placement.dash||placement.ability==='rage'&&rageTargets(game,target).length||['water','air'].includes(placement.ability)){
    view.release(d.uid);render();
   }else cycle(action());
   return;

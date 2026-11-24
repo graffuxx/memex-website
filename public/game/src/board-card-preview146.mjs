@@ -3,12 +3,12 @@ import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=alpha-primes';
-import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=alpha-primes';
+import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=alpha-complete';
+import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=alpha-complete';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {fieldFeedback129} from './field-feedback129.mjs?v=alpha-primes';
+import {fieldFeedback129} from './field-feedback129.mjs?v=alpha-complete';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -70,6 +70,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    .replace('width="256" height="256"',`x="-.1225" y="${-FRAME_LAYOUT.elementY-.1225}" width=".245" height=".245"`)
    .replace('id="e"', 'id="board-preview-element"').replaceAll('url(#e)', 'url(#board-preview-element)');
   const category=definition?.prime?'PRIME':definition?.iconic?'ICONIC':'';
+  const printedCard={...card,edgeCopy:undefined,edgeSwap:undefined};
   face.innerHTML=`<svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label="${escape(rules.name)}">
    <defs><clipPath id="board-preview-art"><polygon points="${hex}"/></clipPath></defs>
    <image href="${escape(variant.image)}" x="${-.96-(crop?.x??0)*width}" y="${-.96-(crop?.y??0)*height+(variant.artOffsetY??0)}" width="${width}" height="${height}" preserveAspectRatio="${crop?'none':'xMidYMid slice'}" clip-path="url(#board-preview-art)"/>
@@ -77,8 +78,8 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    ${cardAbilityIconMarkup(card.ability)}
    ${category?`<text x="0" y="-.748" fill="#ffe1a0" font-size=".06">${category}</text>`:''}
    <g fill="#17150d" font-size=".1995">${FRAME_LAYOUT.values.map(([x,y],i)=>{
-    const boosted=feedback.bonuses[i]>0,value=boosted?values[i]:printedValue126(values[i]);
-    return `<text x="${x}" y="${-y+.0093}"${boosted?' fill="#823300"':''}>${value}</text>`;
+    const modified=feedback.bonuses[i]!==0,changed=sideValue(card,i)!==sideValue(printedCard,i);
+    return `<text x="${x}" y="${-y+.0093}"${modified||changed?' fill="#823300"':''}>${modified?values[i]:printedValue126(values[i])}</text>`;
    }).join('')}</g>
    <text x="0" y="${-FRAME_LAYOUT.titleY+.004}" fill="#17150d" font-size=".105"${label.length>10?' textLength=".66" lengthAdjust="spacingAndGlyphs"':''}>${escape(label)}</text>
    ${variant.edition==='alpha'||variant.edition==='recruiter'?alphaNameplateMarkup(FRAME_LAYOUT.titleY):''}

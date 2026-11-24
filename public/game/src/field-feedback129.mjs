@@ -1,5 +1,5 @@
-import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=alpha-primes';
-import {cardOf,sideValue} from './rules.mjs?v=alpha-primes';
+import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=alpha-complete';
+import {cardOf,sideValue} from './rules.mjs?v=alpha-complete';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);
  const active=game.elementalTrial?abilityEdge(game,card,cell,{attacking:previewDirection!==null,direction:previewDirection})??abilityEdge(game,card,cell):null;

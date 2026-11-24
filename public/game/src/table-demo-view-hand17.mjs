@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=alpha-primes';
-import {fieldFeedback129} from './field-feedback129.mjs?v=alpha-primes';
+import {createAbilityEffects} from './ability-effects.mjs?v=alpha-complete';
+import {fieldFeedback129} from './field-feedback129.mjs?v=alpha-complete';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -19,10 +19,10 @@ import {createPaintedBackdrop} from './painted-backdrop-glow8.mjs?v=home-rift-25
 import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
-import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=alpha-primes';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=alpha-primes';
+import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=alpha-complete';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=alpha-complete';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-primes';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-complete';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';

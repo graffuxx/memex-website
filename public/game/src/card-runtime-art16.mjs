@@ -1,4 +1,4 @@
-import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=alpha-primes';
+import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=alpha-complete';
 import {ELEMENT_IDS,ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {CARD_PROFILES as PROFILES} from './card-profiles27.mjs';
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
@@ -97,7 +97,32 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   const socket=new T.Mesh(new T.CircleGeometry(.127,32),new T.MeshBasicMaterial({color:'#101829',toneMapped:false}));socket.position.set(0,FRAME_LAYOUT.elementY,.073);group.add(socket);
   const glyphMaterial=new T.MeshBasicMaterial({map:elementTextures.get(element),transparent:true,depthWrite:false,toneMapped:false}),glyph=new T.Mesh(new T.PlaneGeometry(.245,.245),glyphMaterial);glyph.position.set(0,FRAME_LAYOUT.elementY,.075);group.add(glyph);
   let effectKey='';const fieldValueMeshes=Array.from({length:6},(_,dir)=>{const mesh=new T.Mesh(valueEffectGeo,new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}));const [x,y]=valuePosition(dir);mesh.position.set(x,y,.086);mesh.visible=false;group.add(mesh);return mesh;});
-  let currentRotation=rotation;const card={uid,profile,group,finish,setFieldEffects(feedback={bonuses:[]}){const key=JSON.stringify([currentRotation,feedback]);if(key===effectKey)return;effectKey=key;fieldValueMeshes.forEach((mesh,dir)=>{const base=PROFILES[profile].values[((dir-currentRotation)%6+6)%6],bonus=feedback.bonuses[dir]??0;mesh.visible=bonus>0&&base!==10;if(mesh.visible){mesh.material.map=valueEffectTexture(base+bonus,feedback.effects?.find(effect=>effect.dir===dir)?.ability);mesh.material.needsUpdate=true;}});},setVariant(id){if(id===variantId)return;variantId=id;frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key,variantId);},setElement(id){glyphMaterial.map=elementTextures.get(id);},setRarity(key){if(key===finish.rarity.key)return;finish.setRarity(key);frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key,variantId);},setBoost(direction){boost.visible=Number.isInteger(direction);if(boost.visible){const [x,y]=valuePosition(direction);boost.position.set(x*.79,y*.79,.072);boost.rotation.z=Math.atan2(y,x);}},setAbility(ability,suppressed=false){badge.visible=badgeTextures.has(ability);if(badge.visible){badgeMaterial.map=badgeTextures.get(ability);badgeMaterial.color.set(suppressed?'#646b78':'#ffffff');badgeMaterial.opacity=suppressed?.7:1;badgeMaterial.needsUpdate=true;}},setOwner(side){finish.setOwner(side);ownerTitle.visible=side===0||side===1;if(ownerTitle.visible)ownerTitleMaterial.map=ownerTitleTexture(profile,side);},setRotation(r){currentRotation=((r%6)+6)%6;frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key,variantId);},dispose(){for(const mesh of fieldValueMeshes)mesh.material.dispose();glyphMaterial.dispose();glyph.geometry.dispose();socket.geometry.dispose();socket.material.dispose();frontMaterial.dispose();ownerTitleMaterial.dispose();finish.dispose();badgeMaterial.dispose();group.removeFromParent();instances.delete(card);}};instances.add(card);return card;
+  let currentRotation=rotation;
+  const refreshFace=()=>{frontMaterial.map=bake(profile,currentRotation,false,finish.rarity.key,variantId);};
+  const card={uid,profile,group,finish,setFieldEffects(feedback={bonuses:[]}){
+   const key=JSON.stringify([currentRotation,feedback]);
+   if(key===effectKey)return;
+   effectKey=key;
+   fieldValueMeshes.forEach((mesh,dir)=>{
+    const base=PROFILES[profile].values[((dir-currentRotation)%6+6)%6];
+    const value=feedback.values?.[dir]??base,bonus=feedback.bonuses[dir]??0;
+    const exchanged=value!==base;
+    mesh.visible=(exchanged||bonus!==0)&&base!==10;
+    if(mesh.visible){
+     const ability=feedback.effects?.findLast(effect=>effect.dir===dir)?.ability;
+     mesh.material.map=valueEffectTexture(value+bonus,ability??(exchanged?'luxury':'field'));
+     mesh.material.needsUpdate=true;
+    }
+   });
+  },setVariant(id){if(id===variantId)return;variantId=id;refreshFace();},setElement(id){glyphMaterial.map=elementTextures.get(id);},setRarity(key){if(key===finish.rarity.key)return;finish.setRarity(key);refreshFace();},setBoost(direction){boost.visible=Number.isInteger(direction);if(boost.visible){const [x,y]=valuePosition(direction);boost.position.set(x*.79,y*.79,.072);boost.rotation.z=Math.atan2(y,x);}},setAbility(ability,suppressed=false){
+   const icon=badgeTextures.get(ability);
+   badge.visible=Boolean(icon);
+   if(!icon)return;
+   badgeMaterial.map=icon;
+   badgeMaterial.color.set(suppressed?'#646b78':'#ffffff');
+   badgeMaterial.opacity=suppressed?.7:1;
+   badgeMaterial.needsUpdate=true;
+  },setOwner(side){finish.setOwner(side);ownerTitle.visible=side===0||side===1;if(ownerTitle.visible)ownerTitleMaterial.map=ownerTitleTexture(profile,side);},setRotation(r){currentRotation=((r%6)+6)%6;refreshFace();},dispose(){for(const mesh of fieldValueMeshes)mesh.material.dispose();glyphMaterial.dispose();glyph.geometry.dispose();socket.geometry.dispose();socket.material.dispose();frontMaterial.dispose();ownerTitleMaterial.dispose();finish.dispose();badgeMaterial.dispose();group.removeFromParent();instances.delete(card);}};instances.add(card);return card;
  }
  const normal=new T.Vector3(),viewDirection=new T.Vector3(),quaternion=new T.Quaternion();
  return {spawn,prepare,frame(dt,motion,cameraForCard=null){for(const c of instances)if(c.group.visible){c.finish.frame(dt,motion);const camera=cameraForCard?.(c);if(camera){c.group.updateWorldMatrix(true,false);normal.set(0,0,1).applyQuaternion(c.group.getWorldQuaternion(quaternion));camera.getWorldDirection(viewDirection);c.finish.setFrontVisible(normal.dot(viewDirection)<-.005);}}},dispose(){for(const c of [...instances])c.dispose();for(const t of faces.values())t.dispose();for(const [path,t] of artworkTextures)if(!templates.some(m=>m.artworkTexture===t))t.dispose();for(const t of templates)t.dispose();for(const t of frames.values())t.dispose();for(const t of elementTextures.values())t.dispose();for(const t of badgeTextures.values())t.dispose();for(const t of ownerTitleTextures.values())t.dispose();for(const texture of valueEffectTextures.values())texture.dispose();valueEffectGeo.dispose();ownerTitleGeometry.dispose();boostGeometry.dispose();boostMaterial.dispose();badgeGeometry.dispose();face.dispose();body.dispose();metal.dispose();backMaterial.dispose();}};

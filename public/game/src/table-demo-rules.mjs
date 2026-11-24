@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=alpha-primes';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=alpha-complete';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -91,6 +91,14 @@ const RELEASED_ICONICS={
  'iconic-overly-manly-man':[5,'cover'],
  'iconic-no-god-please-no':[6,'objection'],
  'iconic-philosoraptor':[6,'thought'],
+ 'iconic-rage-guy':[7,'rage'],
+ 'iconic-two-buttons':[7,'buttons'],
+ 'iconic-change-my-mind':[7,'exchange'],
+ 'iconic-first-world-problems':[7,'luxury'],
+ 'iconic-confused-travolta':[7,'wander'],
+ 'iconic-awkward-penguin':[7,'awkward'],
+ 'iconic-always-has-been':[7,'ambush'],
+ 'iconic-yo-dawg':[7,'nested'],
 };
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
@@ -407,7 +415,7 @@ export function previewEffect(game,action){
   return {cell:n.id,dir:n.dir,attack,defend,setup,flip:!setup&&effectAttackWins(attack,defend,elementRules),name:cardOf(other).name,...(tieProtected?{tieProtected:true}:{})};
  });
  let comparisons=compare(card);
- const turnChoices=[];
+ const turnChoices=ability==='wander'&&canTurnSelf(working,cell)?[-1,1]:[];
  if(ability==='retry'&&enemies.length&&!comparisons.some(c=>c.flip)&&surrounding.some(n=>working.board[n.id]?.controller===game.turn)){
   for(const turn of [-1,1]){
    const facing={...card,rotation:(rotation+turn+6)%6};
@@ -513,12 +521,46 @@ export function previewEffect(game,action){
    break;
   }
  }
+ let bailout=null;
+ for(const attempt of comparisons){
+  const {attack,defend,cell:target}=attempt;
+  if(!attempt.flip||attack.rank==='S'||defend.rank==='S'||attack.total-defend.total>JORDAN_MAX_MARGIN)continue;
+  const rescued=working.board[target];
+  if(!standardAbility(rescued))continue;
+  const protector=neighbors(target).find(({id})=>{
+   const defender=working.board[id];
+   return defender?.controller===rescued.controller&&!defender.bailoutSpent&&abilityAt(working,defender,id)==='bailout'
+    &&!comparisons.some(hit=>hit.flip&&hit.cell===id);
+  });
+  if(!protector)continue;
+  attempt.flip=false;attempt.bailout=true;
+  bailout={cell:target,protector:protector.id,dir:(attempt.dir+3)%6};
+  break;
+ }
+ let attachment=null;
+ for(const hit of comparisons){
+  if(!hit.flip||hit.attack.rank==='S')continue;
+  const defender=working.board[hit.cell];
+  const linkedPrime=[hit.cell,...neighbors(hit.cell).map(({id})=>id)].find(id=>{
+   const prime=working.board[id];
+   if(!prime||prime.controller!==defender.controller||abilityAt(working,prime,id)!=='cling')return false;
+   const partner=clingPartner(working,id,prime);
+   const substitute=id===hit.cell?partner:partner===hit.cell?id:null;
+   return substitute&&!comparisons.some(c=>c.flip&&c.cell===substitute);
+  });
+  if(!linkedPrime)continue;
+  const substitute=linkedPrime===hit.cell?working.board[linkedPrime].attachedLink.cell:linkedPrime;
+  hit.redirect=substitute;
+  attachment={source:linkedPrime,cell:substitute,target:hit.cell};
+  break;
+ }
+ // Resolve reactions to direct hits before using a successful hit to trigger a follow-up.
  let rainbow=null;
  if(ability==='rainbow'){
-  const initialFlips=comparisons.filter(c=>c.flip);
+  const initialFlips=comparisons.filter(c=>c.flip&&!c.redirect);
   if(initialFlips.length===1){
    const firstDir=initialFlips[0].dir;
-   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
+   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&!c.bailout&&c.cell!==attachment?.cell&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
     .sort((a,b)=>(a.dir-firstDir+6)%6-(b.dir-firstDir+6)%6)[0];
    if(tied){
     tied.flip=true;
@@ -530,11 +572,11 @@ export function previewEffect(game,action){
  let pursuit=null;
  if(ability==='chase'){
   for(const primary of comparisons){
-   if(!primary.flip)continue;
+   if(!primary.flip||primary.redirect)continue;
    const dir=primary.dir;
    const behind=neighbors(primary.cell).find(n=>n.dir===dir)?.id;
    const target=working.board[behind];
-   if(!target||target.controller===game.turn)continue;
+   if(!target||target.controller===game.turn||behind===attachment?.cell)continue;
    const base=effectStrength(working,card,cell,dir,target,{attacking:true,abilityDirection});
    const defend=effectStrength(working,target,behind,(dir+3)%6,card);
    const attack={...base,total:base.total-CHASE_PENALTY,distancePenalty:CHASE_PENALTY};
@@ -545,10 +587,10 @@ export function previewEffect(game,action){
   }
  }
  let pincer=null;
- if(ability==='pincer'&&comparisons.filter(c=>c.flip).length===1){
+ if(ability==='pincer'&&comparisons.filter(c=>c.flip&&!c.redirect).length===1){
   const ring=neighbors(cell);
   for(const target of comparisons){
-   if(target.flip||target.setup||target.objection)continue;
+   if(target.flip||target.setup||target.objection||target.bailout||target.cell===attachment?.cell)continue;
    const enemy=working.board[target.cell];
    for(const {id:source} of ring){
     const ally=working.board[source];
@@ -565,39 +607,6 @@ export function previewEffect(game,action){
    }
    if(pincer)break;
   }
- }
- let bailout=null;
- for(const attempt of comparisons){
-  const {attack,defend,cell:target}=attempt;
-  if(!attempt.flip||attempt.pursuit||attempt.pincer||attack.rank==='S'||defend.rank==='S'||attack.total-defend.total>JORDAN_MAX_MARGIN)continue;
-  const rescued=working.board[target];
-  if(!standardAbility(rescued))continue;
-  const protector=neighbors(target).find(({id})=>{
-   const defender=working.board[id];
-   return defender?.controller===rescued.controller&&!defender.bailoutSpent&&abilityAt(working,defender,id)==='bailout'
-    &&!comparisons.some(hit=>hit.flip&&hit.cell===id);
-  });
-  if(!protector)continue;
-  attempt.flip=false;attempt.bailout=true;
-  bailout={cell:target,protector:protector.id,dir:(attempt.dir+3)%6};
-  break;
- }
- let attachment=null;
- for(const hit of comparisons){
-  if(!hit.flip||hit.pursuit||hit.pincer||hit.rainbow||hit.attack.rank==='S')continue;
-  const defender=working.board[hit.cell];
-  const linkedPrime=[hit.cell,...neighbors(hit.cell).map(({id})=>id)].find(id=>{
-   const prime=working.board[id];
-   if(!prime||prime.controller!==defender.controller||abilityAt(working,prime,id)!=='cling')return false;
-   const partner=clingPartner(working,id,prime);
-   const substitute=id===hit.cell?partner:partner===hit.cell?id:null;
-   return substitute&&!comparisons.some(c=>c.flip&&c.cell===substitute);
-  });
-  if(!linkedPrime)continue;
-  const substitute=linkedPrime===hit.cell?working.board[linkedPrime].attachedLink.cell:linkedPrime;
-  hit.redirect=substitute;
-  attachment={source:linkedPrime,cell:substitute,target:hit.cell};
-  break;
  }
  const resolvedHits=comparisons.filter(c=>c.flip);
  let blink=null;
@@ -678,7 +687,7 @@ export function previewEffect(game,action){
  const blockadeLock=ability==='gate'&&neighbors(cell).some(n=>n.id===game.block)?{owner:game.turn,until:game.placements+2}:null;
  const ward=captured?{cell:captured.cell,dir:captured.dir}:null;
  const blockadeMove=dash||blockadeCell!==null?{from:game.block,to:dash??blockadeCell}:null;
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,jam,sandwich,bailout,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action,{chooseDraw=false}={}){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
