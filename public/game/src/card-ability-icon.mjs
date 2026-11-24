@@ -11,6 +11,8 @@ const symbols={
  air:{color:'#baf4e8',path:'M2 8h13a3 3 0 1 0-3-3M2 12h16a3 3 0 1 1-3 3M4 16h6a2.5 2.5 0 1 1-2.5 2.5'},
  storm:{color:'#d4bdff',path:'M14 2 4 14h7l-1 8L20 9h-7z',solid:true},
 
+ sidestep:{color:'#b9f3ba',path:'M4 18h7m-6-5 3 5-3 5M10 18c7 0 9-3 9-8V4m-4 4 4-4 4 4'},
+ laugh:{color:'#ffd584',path:'M4 9c2-2 4-2 6 0m4 0c2-2 4-2 6 0M5 13h14c-1 6-4 8-7 8s-6-2-7-8Z'},
 };
 
 function iconPath(ability){

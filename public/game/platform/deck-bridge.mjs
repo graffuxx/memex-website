@@ -1,5 +1,5 @@
 import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
-import {standardAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=standard-effects-147';
+import {standardAbility,releasedIconicAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=greg-kekw-release';
 import {soloSettings84} from './solo84.mjs';
 export const PLAY_DECK_KEY='duelverse.play-deck.v1';
 export function readPlayDeck(storage){
@@ -17,7 +17,7 @@ export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null
   let state=(next.seed*53+side*8017+111)>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
   const deck=expandGameDeck(side===0?cards:opponentCards??starterDeck(),side);
   if(next.elementalTrial){
-   for(const card of deck){const ability=standardAbility(card);if(ability)card.ability=ability;}
+   for(const card of deck){const ability=standardAbility(card)??(next.iconicAbilities?releasedIconicAbility(card):null);if(ability)card.ability=ability;}
   }else{
    for(const ability of loadouts[side].abilities){const candidates=deck.filter(c=>ABILITY_FOR[c.id]===ability);if(candidates.length)candidates[Math.floor(random()*candidates.length)].ability=ability;}
   }

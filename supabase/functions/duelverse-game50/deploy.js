@@ -2811,7 +2811,7 @@ function sideValue(card, dir, rotation = card.rotation ?? 0) {
   return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
 }
 
-// public/game/src/rules.mjs?v=standard-effects-147
+// public/game/src/rules.mjs?v=greg-kekw-release
 var ELEMENTS5 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS3 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
 var CATALOG3 = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
@@ -2877,7 +2877,9 @@ var ABILITIES = {
   water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
   earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
   air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
-  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE} betr\xE4gt.` }
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE} betr\xE4gt.` },
+  sidestep: { name: "Iconic \xB7 Platz machen", short: "\u219D", description: "Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte beh\xE4lt ihre Ausrichtung. Eben geflippte Karten k\xF6nnen erst in sp\xE4teren Z\xFCgen verschoben werden." },
+  laugh: { name: "Iconic \xB7 Letztes Lachen", short: "\u25C9", description: "Im n\xE4chsten gegnerischen Zug h\xE4lt KEKW numerische Gleichst\xE4nde auch gegen das st\xE4rkere Element. H\xF6here Werte und S-Kanten greifen nach den normalen Regeln an." }
 };
 var LOADOUTS = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -2886,7 +2888,7 @@ var LOADOUTS = {
 };
 var ABILITY_FOR = { brain: "hype", oracle: "guard", trust: "twist" };
 
-// public/game/src/table-demo-rules.mjs?v=standard-effects-147
+// public/game/src/table-demo-rules.mjs?v=greg-kekw-release
 var table_demo_rules_exports = {};
 __export(table_demo_rules_exports, {
   ABILITIES: () => ABILITIES2,
@@ -2903,16 +2905,21 @@ __export(table_demo_rules_exports, {
   abilityEdge: () => abilityEdge,
   actionOptions: () => actionOptions,
   aimsAbility: () => aimsAbility,
+  effectAttackWins: () => effectAttackWins,
   effectStrength: () => effectStrength,
   eventFieldAt: () => eventFieldAt,
   eventFields: () => eventFields,
   fieldText: () => fieldText,
   guardActive: () => guardActive,
   guardBonus: () => guardBonus,
+  laughActive: () => laughActive,
   nextEvent: () => nextEvent,
   placeEffect: () => placeEffect,
   previewEffect: () => previewEffect,
+  releasedIconicAbility: () => releasedIconicAbility,
+  sidestepTargets: () => sidestepTargets,
   standardAbility: () => standardAbility,
+  stopsElementTie: () => stopsElementTie,
   turnsCards: () => turnsCards,
   twistTargets: () => twistTargets
 });
@@ -2929,7 +2936,9 @@ var ABILITIES2 = {
   water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS2} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
   earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
   air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
-  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE2} betr\xE4gt.` }
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE2} betr\xE4gt.` },
+  sidestep: { name: "Iconic \xB7 Platz machen", short: "\u219D", description: "Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte beh\xE4lt ihre Ausrichtung. Eben geflippte Karten k\xF6nnen erst in sp\xE4teren Z\xFCgen verschoben werden." },
+  laugh: { name: "Iconic \xB7 Letztes Lachen", short: "\u25C9", description: "Im n\xE4chsten gegnerischen Zug h\xE4lt KEKW numerische Gleichst\xE4nde auch gegen das st\xE4rkere Element. H\xF6here Werte und S-Kanten greifen nach den normalen Regeln an." }
 };
 var LOADOUTS2 = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -2943,6 +2952,10 @@ var guardsEdge = (ability) => ability === "guard" || ability === "water";
 function standardAbility(card) {
   const definition = cardOf2(card);
   return definition && !definition.prime && !definition.iconic ? definition.element : null;
+}
+function releasedIconicAbility(card) {
+  const id = cardOf2(card)?.id;
+  return id === "iconic-good-guy-greg" ? "sidestep" : id === "iconic-kekw" ? "laugh" : null;
 }
 function abilityDescription(game, ability) {
   if (ability === "guard") return `Eine Seite erh\xE4lt +${guardBonus(game)} Verteidigung bis zum n\xE4chsten eigenen Karten-Zug.`;
@@ -2991,6 +3004,22 @@ function guardActive(game, card, cell) {
 function twistTargets(game, cell, ability = "twist") {
   return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
 }
+function sidestepTargets(game, cell) {
+  const ring = neighbors3(cell).map((n) => n.id), empty = new Set(ring.filter((id) => id !== game.block && !game.board[id]));
+  return ring.filter((id) => {
+    const card = game.board[id];
+    return card?.controller === game.turn && Boolean(standardAbility(card));
+  }).flatMap((from) => neighbors3(from).filter((n) => empty.has(n.id)).map((n) => [from, n.id]));
+}
+function laughActive(game, card, cell) {
+  return abilityAt(game, card, cell) === "laugh" && card.laughOwner === card.controller && game.turn !== card.controller && game.placements < card.laughUntil;
+}
+function stopsElementTie(attack, defend) {
+  return Boolean(defend.holdsTie && attack.rank !== "S" && defend.rank !== "S" && attack.total === defend.total);
+}
+function effectAttackWins(attack, defend, elementRules) {
+  return !stopsElementTie(attack, defend) && attackWins(attack, defend, elementRules);
+}
 function weakestEdge(card, edges) {
   return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
 }
@@ -3022,10 +3051,17 @@ function effectStrength(game, card, cell, dir, opponent, { attacking = false, ab
   const element = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const bonus = abilityEdge(game, card, cell, { attacking, direction: abilityDirection });
   const ability = bonus?.dir === dir ? bonus.amount : 0;
-  return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
+  return {
+    base,
+    field,
+    element,
+    ability,
+    ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)),
+    ...!attacking && laughActive(game, card, cell) ? { holdsTie: true } : {}
+  };
 }
 function previewEffect(game, action) {
-  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null } = action;
   if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
   preview(game, { uid, cell, rotation });
   if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
@@ -3045,6 +3081,10 @@ function previewEffect(game, action) {
     transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
     target.rotation = (target.rotation + 1) % 6;
   }
+  if (ability === "laugh") {
+    card.laughOwner = game.turn;
+    card.laughUntil = game.placements + 2;
+  }
   if (guardsEdge(ability)) {
     card.guardDirection = abilityDirection;
     card.guardOwner = game.turn;
@@ -3052,9 +3092,15 @@ function previewEffect(game, action) {
   }
   const comparisons = neighbors3(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf2(other).name };
+    const setup = n.id === twistCell, elementRules = game.elementRules ?? 3;
+    const tieProtected = !setup && stopsElementTie(attack, defend) && attackWins(attack, defend, elementRules);
+    return { cell: n.id, dir: n.dir, attack, defend, setup, flip: !setup && effectAttackWins(attack, defend, elementRules), name: cardOf2(other).name, ...tieProtected ? { tieProtected: true } : {} };
   });
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
+  const flips = comparisons.filter((c) => c.flip).map((c) => c.cell);
+  const steps = ability === "sidestep" ? sidestepTargets(working, cell) : [];
+  if (stepCells !== null && (!Array.isArray(stepCells) || stepCells.length !== 2 || !steps.some(([from, to]) => from === stepCells[0] && to === stepCells[1]))) throw Error("Kein g\xFCltiges Ziel f\xFCr Platz machen.");
+  const relocation = stepCells === null ? null : { from: stepCells[0], to: stepCells[1], uid: working.board[stepCells[0]].uid };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation };
 }
 function placeEffect(game, action) {
   const p = previewEffect(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3068,10 +3114,20 @@ function placeEffect(game, action) {
     delete c.guardOwner;
     delete c.guardUntil;
     delete c.guardDirection;
+    delete c.laughOwner;
+    delete c.laughUntil;
+  }
+  if (p.relocation) {
+    const { from, to } = p.relocation;
+    next.board[to] = next.board[from];
+    delete next.board[from];
   }
   player.flips += p.flips.length;
   next.placements++;
   next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf2(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  if (p.relocation) next.last.relocation = p.relocation;
+  const tieBlocks = p.comparisons.filter((c) => c.tieProtected).map((c) => ({ cell: c.cell, dir: (c.dir + 3) % 6 }));
+  if (tieBlocks.length) next.last.tieBlocks = tieBlocks;
   if (game.abilityTrial && p.ability) {
     next.last.abilityDirection = p.abilityDirection;
     if (game.elementalTrial) {
@@ -3089,10 +3145,14 @@ function placeEffect(game, action) {
 }
 function actionOptions(game, card, cell, rotation) {
   const ability = abilityAt(game, card, cell), directions = aimsAbility(ability) ? [0, 1, 2, 3, 4, 5] : [0], targets = turnsCards(ability) ? [null, ...twistTargets(game, cell, ability)] : [null];
+  if (ability === "sidestep") {
+    const action = { uid: card.uid, cell, rotation, abilityDirection: 0 };
+    return [action, ...previewEffect(game, action).steps.map((stepCells) => ({ ...action, stepCells }))];
+  }
   return directions.flatMap((abilityDirection) => targets.map((twistCell) => ({ uid: card.uid, cell, rotation, abilityDirection, twistCell })));
 }
 
-// public/game/src/tactics-ai.mjs?v=standard-effects-147
+// public/game/src/tactics-ai.mjs?v=greg-kekw-release
 var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 
 // public/game/src/table-demo-state.mjs
@@ -3187,7 +3247,7 @@ function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = nu
     const deck = expandGameDeck(side === 0 ? cards : opponentCards ?? starterDeck(), side);
     if (next.elementalTrial) {
       for (const card of deck) {
-        const ability = standardAbility(card);
+        const ability = standardAbility(card) ?? (next.iconicAbilities ? releasedIconicAbility(card) : null);
         if (ability) card.ability = ability;
       }
     } else {
@@ -3221,7 +3281,9 @@ var ABILITIES3 = {
   water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS3} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
   earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
   air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
-  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE3} betr\xE4gt.` }
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE3} betr\xE4gt.` },
+  sidestep: { name: "Iconic \xB7 Platz machen", short: "\u219D", description: "Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte beh\xE4lt ihre Ausrichtung. Eben geflippte Karten k\xF6nnen erst in sp\xE4teren Z\xFCgen verschoben werden." },
+  laugh: { name: "Iconic \xB7 Letztes Lachen", short: "\u25C9", description: "Im n\xE4chsten gegnerischen Zug h\xE4lt KEKW numerische Gleichst\xE4nde auch gegen das st\xE4rkere Element. H\xF6here Werte und S-Kanten greifen nach den normalen Regeln an." }
 };
 var LOADOUTS3 = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -3230,6 +3292,10 @@ var LOADOUTS3 = {
 };
 var turnsCards2 = (ability) => ability === "twist" || ability === "air";
 var guardsEdge2 = (ability) => ability === "guard" || ability === "water";
+function standardAbility2(card) {
+  const definition = cardOf2(card);
+  return definition && !definition.prime && !definition.iconic ? definition.element : null;
+}
 var FIELD_PHASES2 = [
   [{ cell: "-1,0", type: "resonance", element: "storm" }, { cell: "0,1", type: "crossfire", directions: [0, 3] }],
   [{ cell: "-1,0", type: "silence" }, { cell: "0,1", type: "resonance", element: "fire" }],
@@ -3257,6 +3323,22 @@ function guardActive2(game, card, cell) {
 }
 function twistTargets2(game, cell, ability = "twist") {
   return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
+}
+function sidestepTargets2(game, cell) {
+  const ring = neighbors3(cell).map((n) => n.id), empty = new Set(ring.filter((id) => id !== game.block && !game.board[id]));
+  return ring.filter((id) => {
+    const card = game.board[id];
+    return card?.controller === game.turn && Boolean(standardAbility2(card));
+  }).flatMap((from) => neighbors3(from).filter((n) => empty.has(n.id)).map((n) => [from, n.id]));
+}
+function laughActive2(game, card, cell) {
+  return abilityAt2(game, card, cell) === "laugh" && card.laughOwner === card.controller && game.turn !== card.controller && game.placements < card.laughUntil;
+}
+function stopsElementTie2(attack, defend) {
+  return Boolean(defend.holdsTie && attack.rank !== "S" && defend.rank !== "S" && attack.total === defend.total);
+}
+function effectAttackWins2(attack, defend, elementRules) {
+  return !stopsElementTie2(attack, defend) && attackWins(attack, defend, elementRules);
 }
 function weakestEdge2(card, edges) {
   return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
@@ -3289,10 +3371,17 @@ function effectStrength2(game, card, cell, dir, opponent, { attacking = false, a
   const element = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const bonus = abilityEdge2(game, card, cell, { attacking, direction: abilityDirection });
   const ability = bonus?.dir === dir ? bonus.amount : 0;
-  return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
+  return {
+    base,
+    field,
+    element,
+    ability,
+    ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)),
+    ...!attacking && laughActive2(game, card, cell) ? { holdsTie: true } : {}
+  };
 }
 function previewEffect2(game, action) {
-  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null } = action;
   if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
   preview(game, { uid, cell, rotation });
   if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
@@ -3312,6 +3401,10 @@ function previewEffect2(game, action) {
     transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
     target.rotation = (target.rotation + 1) % 6;
   }
+  if (ability === "laugh") {
+    card.laughOwner = game.turn;
+    card.laughUntil = game.placements + 2;
+  }
   if (guardsEdge2(ability)) {
     card.guardDirection = abilityDirection;
     card.guardOwner = game.turn;
@@ -3319,9 +3412,15 @@ function previewEffect2(game, action) {
   }
   const comparisons = neighbors3(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength2(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength2(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf2(other).name };
+    const setup = n.id === twistCell, elementRules = game.elementRules ?? 3;
+    const tieProtected = !setup && stopsElementTie2(attack, defend) && attackWins(attack, defend, elementRules);
+    return { cell: n.id, dir: n.dir, attack, defend, setup, flip: !setup && effectAttackWins2(attack, defend, elementRules), name: cardOf2(other).name, ...tieProtected ? { tieProtected: true } : {} };
   });
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
+  const flips = comparisons.filter((c) => c.flip).map((c) => c.cell);
+  const steps = ability === "sidestep" ? sidestepTargets2(working, cell) : [];
+  if (stepCells !== null && (!Array.isArray(stepCells) || stepCells.length !== 2 || !steps.some(([from, to]) => from === stepCells[0] && to === stepCells[1]))) throw Error("Kein g\xFCltiges Ziel f\xFCr Platz machen.");
+  const relocation = stepCells === null ? null : { from: stepCells[0], to: stepCells[1], uid: working.board[stepCells[0]].uid };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation };
 }
 function placeEffect2(game, action) {
   const p = previewEffect2(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3335,10 +3434,20 @@ function placeEffect2(game, action) {
     delete c.guardOwner;
     delete c.guardUntil;
     delete c.guardDirection;
+    delete c.laughOwner;
+    delete c.laughUntil;
+  }
+  if (p.relocation) {
+    const { from, to } = p.relocation;
+    next.board[to] = next.board[from];
+    delete next.board[from];
   }
   player.flips += p.flips.length;
   next.placements++;
   next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf2(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  if (p.relocation) next.last.relocation = p.relocation;
+  const tieBlocks = p.comparisons.filter((c) => c.tieProtected).map((c) => ({ cell: c.cell, dir: (c.dir + 3) % 6 }));
+  if (tieBlocks.length) next.last.tieBlocks = tieBlocks;
   if (game.abilityTrial && p.ability) {
     next.last.abilityDirection = p.abilityDirection;
     if (game.elementalTrial) {
@@ -3388,13 +3497,26 @@ function positionalValue(game, { action, plan }, rules = table_demo_rules_export
       twistSafety += sign * (sideValue(after, dir) - sideValue(before, dir)) * 0.18;
     }
   }
+  if (plan.relocation) {
+    const { from, to } = plan.relocation, card = plan.board[from];
+    const coverAt = (cell, occupied) => neighbors2(cell).reduce((total, { id, dir }) => {
+      if (id === action.cell || id === game.block || occupied(id)) return total;
+      return total + Math.min(7, sideValue(card, dir)) - 4.1;
+    }, 0);
+    twistSafety += (coverAt(to, (id) => id !== from && Boolean(game.board[id])) - coverAt(from, (id) => id === to || Boolean(game.board[id]))) * 0.18;
+  }
   const closing = weights.capture === void 0 ? 0 : Math.max(0, (game.placements - 12) / 5);
   return plan.flips.length * ((weights.capture ?? 2) + closing) + safety * (weights.safety ?? 0.42) + contacts * (weights.contacts ?? 0.16) + twistSafety * (weights.twist ?? 1);
 }
 function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
   const board = { ...plan.board, [action.cell]: plan.card };
-  for (const cell of plan.flips) board[cell] = { ...board[cell], controller: game.turn, guardOwner: void 0, guardUntil: void 0 };
+  for (const cell of plan.flips) board[cell] = { ...board[cell], controller: game.turn, guardOwner: void 0, guardUntil: void 0, laughOwner: void 0, laughUntil: void 0 };
   for (const t of plan.transforms) if (t.temporary) board[t.cell] = { ...board[t.cell], rotation: t.from };
+  if (plan.relocation) {
+    const { from, to } = plan.relocation;
+    board[to] = board[from];
+    delete board[from];
+  }
   const future = { ...game, board, placements: game.placements + 1, turn: 1 - game.turn };
   if (future.placements >= 18) return 0;
   if (game.demoFields && game.auditOrientation !== void 0) {
@@ -3412,7 +3534,7 @@ function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
       let flips = 0;
       for (const n of enemies) {
         const other = board[n.id], a = rules.effectStrength(future, card, cell, n.dir, other, { attacking: true }), d = rules.effectStrength(future, other, n.id, (n.dir + 3) % 6, card);
-        if (attackWins(a, d, future.elementRules ?? 3)) flips++;
+        if ((rules.effectAttackWins ?? attackWins)(a, d, future.elementRules ?? 3)) flips++;
       }
       worst = Math.max(worst, flips);
     }
@@ -3468,10 +3590,16 @@ var ABILITIES4 = {
   water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS4} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
   earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
   air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
-  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE4} betr\xE4gt.` }
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE4} betr\xE4gt.` },
+  sidestep: { name: "Iconic \xB7 Platz machen", short: "\u219D", description: "Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte beh\xE4lt ihre Ausrichtung. Eben geflippte Karten k\xF6nnen erst in sp\xE4teren Z\xFCgen verschoben werden." },
+  laugh: { name: "Iconic \xB7 Letztes Lachen", short: "\u25C9", description: "Im n\xE4chsten gegnerischen Zug h\xE4lt KEKW numerische Gleichst\xE4nde auch gegen das st\xE4rkere Element. H\xF6here Werte und S-Kanten greifen nach den normalen Regeln an." }
 };
 var turnsCards3 = (ability) => ability === "twist" || ability === "air";
 var guardsEdge3 = (ability) => ability === "guard" || ability === "water";
+function standardAbility3(card) {
+  const definition = cardOf2(card);
+  return definition && !definition.prime && !definition.iconic ? definition.element : null;
+}
 var FIELD_PHASES3 = [
   [{ cell: "-1,0", type: "resonance", element: "storm" }, { cell: "0,1", type: "crossfire", directions: [0, 3] }],
   [{ cell: "-1,0", type: "silence" }, { cell: "0,1", type: "resonance", element: "fire" }],
@@ -3499,6 +3627,22 @@ function guardActive3(game, card, cell) {
 }
 function twistTargets3(game, cell, ability = "twist") {
   return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
+}
+function sidestepTargets3(game, cell) {
+  const ring = neighbors3(cell).map((n) => n.id), empty = new Set(ring.filter((id) => id !== game.block && !game.board[id]));
+  return ring.filter((id) => {
+    const card = game.board[id];
+    return card?.controller === game.turn && Boolean(standardAbility3(card));
+  }).flatMap((from) => neighbors3(from).filter((n) => empty.has(n.id)).map((n) => [from, n.id]));
+}
+function laughActive3(game, card, cell) {
+  return abilityAt3(game, card, cell) === "laugh" && card.laughOwner === card.controller && game.turn !== card.controller && game.placements < card.laughUntil;
+}
+function stopsElementTie3(attack, defend) {
+  return Boolean(defend.holdsTie && attack.rank !== "S" && defend.rank !== "S" && attack.total === defend.total);
+}
+function effectAttackWins3(attack, defend, elementRules) {
+  return !stopsElementTie3(attack, defend) && attackWins(attack, defend, elementRules);
 }
 function weakestEdge3(card, edges) {
   return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
@@ -3531,10 +3675,17 @@ function effectStrength3(game, card, cell, dir, opponent, { attacking = false, a
   const element = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, game.elementRules ?? 3) ? 1 : 0;
   const bonus = abilityEdge3(game, card, cell, { attacking, direction: abilityDirection });
   const ability = bonus?.dir === dir ? bonus.amount : 0;
-  return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
+  return {
+    base,
+    field,
+    element,
+    ability,
+    ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)),
+    ...!attacking && laughActive3(game, card, cell) ? { holdsTie: true } : {}
+  };
 }
 function previewEffect3(game, action) {
-  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null } = action;
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null } = action;
   if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
   preview(game, { uid, cell, rotation });
   if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
@@ -3554,6 +3705,10 @@ function previewEffect3(game, action) {
     transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
     target.rotation = (target.rotation + 1) % 6;
   }
+  if (ability === "laugh") {
+    card.laughOwner = game.turn;
+    card.laughUntil = game.placements + 2;
+  }
   if (guardsEdge3(ability)) {
     card.guardDirection = abilityDirection;
     card.guardOwner = game.turn;
@@ -3561,9 +3716,15 @@ function previewEffect3(game, action) {
   }
   const comparisons = neighbors3(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength3(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength3(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf2(other).name };
+    const setup = n.id === twistCell, elementRules = game.elementRules ?? 3;
+    const tieProtected = !setup && stopsElementTie3(attack, defend) && attackWins(attack, defend, elementRules);
+    return { cell: n.id, dir: n.dir, attack, defend, setup, flip: !setup && effectAttackWins3(attack, defend, elementRules), name: cardOf2(other).name, ...tieProtected ? { tieProtected: true } : {} };
   });
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
+  const flips = comparisons.filter((c) => c.flip).map((c) => c.cell);
+  const steps = ability === "sidestep" ? sidestepTargets3(working, cell) : [];
+  if (stepCells !== null && (!Array.isArray(stepCells) || stepCells.length !== 2 || !steps.some(([from, to]) => from === stepCells[0] && to === stepCells[1]))) throw Error("Kein g\xFCltiges Ziel f\xFCr Platz machen.");
+  const relocation = stepCells === null ? null : { from: stepCells[0], to: stepCells[1], uid: working.board[stepCells[0]].uid };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation };
 }
 
 // public/game/src/turn-clock.mjs
@@ -3594,10 +3755,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-24.8";
+var BALANCE_PATCH94 = "alpha-2026-11-24.15";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 8,
+  revision: 15,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -3615,7 +3776,7 @@ var BALANCE_RULES94 = Object.freeze({
   maxPrimes: MAX_PRIMES,
   maxIconics: MAX_ICONICS,
   sRankElementOnly: true,
-  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 } },
+  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 } },
   cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);

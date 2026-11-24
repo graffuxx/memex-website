@@ -1,4 +1,4 @@
-import {eventFieldAt,abilityEdge} from './table-demo-rules.mjs?v=standard-effects-147';
+import {eventFieldAt,abilityEdge} from './table-demo-rules.mjs?v=greg-kekw-release';
 import {cardOf,sideValue} from './rules.mjs';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);

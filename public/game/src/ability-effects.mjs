@@ -1,4 +1,4 @@
-import {abilityEdge,guardActive,guardBonus} from './table-demo-rules.mjs?v=standard-effects-147';
+import {abilityEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=greg-kekw-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -12,12 +12,18 @@ export function abilityMarkers(game,plan){
   for(const [cell,card] of Object.entries(game.board)){
    const edge=abilityEdge(game,card,cell);
    if(edge)markers.push({kind:card.ability,cell,dir:edge.dir,label:`+${edge.amount}`});
+   if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:'='});
   }
   if(plan?.ability){
    const working={...game,board:plan.board};
    const edge=abilityEdge(working,plan.card,plan.cell,{attacking:true,direction:plan.abilityDirection})??abilityEdge(working,plan.card,plan.cell);
    if(edge)markers.push({kind:plan.ability,cell:plan.cell,dir:edge.dir,preview:true,label:`+${edge.amount}`});
    for(const target of plan.transforms)markers.push({kind:plan.ability,cell:target.cell,preview:true,label:'↻'});
+   if(plan.relocation){
+    markers.push({kind:'sidestep',cell:plan.relocation.from,preview:true,label:'↗'});
+    markers.push({kind:'sidestep',cell:plan.relocation.to,preview:true,label:'◆'});
+   }
+
   }
   return markers;
  }
@@ -39,8 +45,10 @@ export function abilityBursts(game){
  if(!game?.abilityTrial||last?.type!=='place'||last.suppressed)return [];
  if(game.elementalTrial){
   const {ability,abilityEdge:edge}=last;
-  if(edge)return [{kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`}];
-  return (last.transforms??[]).map(target=>({kind:ability,cell:target.cell,label:'↻'}));
+  const markers=(last.tieBlocks??[]).map(stop=>({kind:'laugh',...stop,label:'='}));
+  if(last.relocation)markers.push({kind:'sidestep',cell:last.relocation.to,label:'↗'});
+  if(edge)markers.push({kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`});
+  return [...markers,...(last.transforms??[]).map(target=>({kind:ability,cell:target.cell,label:'↻'}))];
  }
  if(last.ability==='hype'||last.ability==='guard'){
   return [{kind:last.ability,cell:last.cell,dir:last.abilityDirection,label:last.ability==='guard'?`+${guardBonus(game)}`:'+1'}];

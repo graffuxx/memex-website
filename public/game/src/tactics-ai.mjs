@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=standard-effects-147';
+import * as currentRules from './table-demo-rules.mjs?v=greg-kekw-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -23,14 +23,27 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
    twistSafety+=sign*(sideValue(after,dir)-sideValue(before,dir))*.18;
   }
  }
+ if(plan.relocation){
+  const {from,to}=plan.relocation,card=plan.board[from];
+  const coverAt=(cell,occupied)=>neighbors(cell).reduce((total,{id,dir})=>{
+   if(id===action.cell||id===game.block||occupied(id))return total;
+   return total+Math.min(7,sideValue(card,dir))-4.1;
+  },0);
+  twistSafety+=(coverAt(to,id=>id!==from&&Boolean(game.board[id]))-coverAt(from,id=>id===to||Boolean(game.board[id])))*.18;
+ }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
  return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
- const board={...plan.board,[action.cell]:plan.card};for(const cell of plan.flips)board[cell]={...board[cell],controller:game.turn,guardOwner:undefined,guardUntil:undefined};
+ const board={...plan.board,[action.cell]:plan.card};for(const cell of plan.flips)board[cell]={...board[cell],controller:game.turn,guardOwner:undefined,guardUntil:undefined,laughOwner:undefined,laughUntil:undefined};
  for(const t of plan.transforms)if(t.temporary)board[t.cell]={...board[t.cell],rotation:t.from};
+ if(plan.relocation){
+  const {from,to}=plan.relocation;
+  board[to]=board[from];
+  delete board[from];
+ }
  const future={...game,board,placements:game.placements+1,turn:1-game.turn};
  if(future.placements>=18)return 0;
  // Let the authoritative field resolver advance before examining the next move.
@@ -39,7 +52,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
  for(const cell of freeCells(future)){const enemies=neighbors(cell).filter(n=>board[n.id]?.controller===game.turn);if(!enemies.length)continue;
   for(const id of ARCHETYPES)for(const element of game.elementRules===5?ELEMENT_IDS:[undefined])for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
    const card={id,element,rotation,controller:future.turn};if(future.elementalTrial)card.ability=rules.standardAbility?.(card);let flips=0;
-   for(const n of enemies){const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);if(attackWins(a,d,future.elementRules??3))flips++;}worst=Math.max(worst,flips);
+   for(const n of enemies){const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);if((rules.effectAttackWins??attackWins)(a,d,future.elementRules??3))flips++;}worst=Math.max(worst,flips);
   }
  }return worst;
 }

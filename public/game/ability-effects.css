@@ -15,3 +15,5 @@
 .ability-effects g[data-state=burst]{animation:ability-burst .52s ease-out both;transform-box:fill-box;transform-origin:center}
 @keyframes ability-burst{0%{opacity:.4;transform:scale(.94)}32%{opacity:1;transform:scale(1.12);filter:drop-shadow(0 0 10px var(--ability-glow))}100%{opacity:0;transform:scale(1.2)}}
 @media(prefers-reduced-motion:reduce){.ability-effects g[data-state=burst]{animation:none}}
+.ability-effects g[data-ability=sidestep]{--ability-color:#b9f3ba;--ability-glow:#6cda8f}
+.ability-effects g[data-ability=laugh]{--ability-color:#ffe29b;--ability-glow:#ff9e55}
