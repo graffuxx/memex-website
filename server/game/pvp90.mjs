@@ -16,7 +16,8 @@ export function refreshPvpRules129(state,now=Date.now()){if(!state?.game||state.
 export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0,releasedPrimeTrio=false,releasedPrimePair=false,allPrimes=false,finalGuard=false}={}){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
  const balance=balanceVersion94(now);
- if(elementalTrial)balance.patch+=finalGuard?'-final-guard':iconicAbilityWave>=7?'-iconic-complete':allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
+ if(finalGuard)balance.patch+=elementalTrial?'-final-guard':'-random-final-guard';
+ else if(elementalTrial)balance.patch+=iconicAbilityWave>=7?'-iconic-complete':allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
  return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,releasedPrimeTrio,releasedPrimePair,allPrimes,finalGuard,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
 }
 function newRound(s,now){
