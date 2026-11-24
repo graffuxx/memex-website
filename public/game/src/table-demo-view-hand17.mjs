@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=alpha-complete';
-import {fieldFeedback129} from './field-feedback129.mjs?v=alpha-complete';
+import {createAbilityEffects} from './ability-effects.mjs?v=final-guard';
+import {fieldFeedback129} from './field-feedback129.mjs?v=final-guard';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -19,10 +19,10 @@ import {createPaintedBackdrop} from './painted-backdrop-glow8.mjs?v=home-rift-25
 import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
-import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=alpha-complete';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=alpha-complete';
+import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=final-guard';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=alpha-complete';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=final-guard';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -31,7 +31,7 @@ const tableArena=id=>id==='voidforge'||flatArena(id);
 let hudMaskSerial105=0;
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
-export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,getMusicTimeline=()=>null}={}){
+export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null}={}){
  const syncDuelControl=bindDuelControl105(stage.ownerDocument);
  const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.75));renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.domElement.className='table-canvas';renderer.domElement.setAttribute('aria-hidden','true');stage.prepend(renderer.domElement);
  const paintedBackdrop=showcase?null:await createPaintedBackdrop(renderer),illustratedBackdrop=showcase?null:createIllustratedBackdrop67(renderer);
@@ -68,7 +68,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
  let forgeWorld=null,navigation=null,orbitPose={...DEFAULT_ARENA_POSE78},orbitTarget={...DEFAULT_ARENA_POSE78};
  const fieldNodes=new Map(),handNodes=new Map(),cardMap=new Map(),moving=new Set(),hidden=new Set(),tweens=[];
  const fieldLayer=svgNode('g',{'class':'board-hits'}),handLayer=svgNode('g',{'class':'hand-hits'}),abilityLayer=svgNode('g',{class:'ability-effects','aria-hidden':'true'});
- const abilityEffects=createAbilityEffects(abilityLayer);
+ const abilityEffects=createAbilityEffects(abilityLayer,{finalGuardLabel});
  let attackFlash=null,attackFlashTimer=null;
  // SVG field outlines otherwise sit above the entire WebGL canvas, including HUD cards.
  // Cut their actual, animated silhouettes out of the field overlay, not out of the cards.

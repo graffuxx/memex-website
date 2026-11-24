@@ -5,12 +5,13 @@ import {PGlite} from '@electric-sql/pglite';
 import {createMatchHandler90} from '../server/game/match-handler90.mjs';
 import {createPvp90,advancePvp90} from '../server/game/pvp90.mjs';
 import {DEFINITIONS} from '../public/game/platform/catalog.mjs';
-import {abilityBursts} from '../public/game/src/ability-effects.mjs';
+import {abilityBursts,abilityMarkers} from '../public/game/src/ability-effects.mjs';
 import {abilityIconTextureSvg} from '../public/game/src/card-ability-icon.mjs';
 import {releasedPrimeAbility,previewEffect,ABILITIES} from '../public/game/src/table-demo-rules.mjs';
 import {legalCandidates} from '../public/game/src/tactics-ai.mjs';
 
 const fixtures=JSON.parse(await readFile(new URL('./prime-duel-fixtures.json',import.meta.url),'utf8'));
+const finalGuardFixtures=JSON.parse(await readFile(new URL('./final-guard-fixtures.json',import.meta.url),'utf8'));
 const players=['90909090-9090-4090-8090-000000000001','90909090-9090-4090-8090-000000000002'];
 const standard=(element,count)=>DEFINITIONS.filter(c=>!c.prime&&!c.iconic&&c.element===element).slice(0,count).map(c=>c.id+':common');
 const regulars=[...standard('earth',3),...standard('water',3),...standard('air',2),...standard('storm',2),...standard('fire',2)];
@@ -44,7 +45,7 @@ test('all 15 Prime badges and rules are assigned only in the new private snapsho
  }
 });
 
-test('every Prime resolves through a real private invite for either starter and both player views',async()=>{
+test('Prime abilities and Final Guard resolve through a real private invite in both player views',async()=>{
  const db=new PGlite();
  const close=()=>db.close();
  try{
@@ -81,9 +82,10 @@ test('every Prime resolves through a real private invite for either starter and 
    const res=await handler(new Request('https://private-fixture.test/api/duel',{method:'POST',headers:{Authorization:'Bearer '+side},body:JSON.stringify(data)}));
    const body=await res.json();assert.ok(res.ok,JSON.stringify({data,error:body.error}));return body;
   }
-  for(const fixture of fixtures){
+  for(const fixture of [...fixtures,...finalGuardFixtures.fixtures]){
+   const closing=fixture.ability==='final-guard';
    await db.exec('reset role');
-   for(const [side,cards] of fixtureDecks(fixture.motif).entries()){
+   for(const [side,cards] of (closing?[finalGuardFixtures.cards,finalGuardFixtures.cards]:fixtureDecks(fixture.motif)).entries()){
     await db.query('insert into public.dv_inventory(user_id,variant_id,quantity) select $1,id,1 from unnest($2::text[]) ids(id) on conflict do nothing',[players[side],cards]);
     await db.query('update public.dv_decks set cards=$2::text[] where id=$1',[deckIds[side],cards]);
    }
@@ -104,6 +106,7 @@ test('every Prime resolves through a real private invite for either starter and 
    const started=await move(0,{kind:'starter',side:fixture.starter});
    assert.equal(started.game.starter,fixture.starter);
    assert.ok(started.game.allPrimes);
+   assert.ok(started.game.finalGuard);
    let last;
    for(const {side,motif,action} of fixture.moves){
     const state=await poll(side),game=state.game,played=game.players[0].hand.find(c=>c.variantId===motif);
@@ -113,6 +116,25 @@ test('every Prime resolves through a real private invite for either starter and 
     assert.deepEqual(last.game.last.flips,local.flips,fixture.motif);
    }
    const other=await poll(1-fixture.moves.at(-1).side);
+   if(closing){
+    assert.equal(last.game.placements,18);
+    assert.equal(last.phase,'between');
+    assert.equal(last.game.last.finalGuard.cell,fixture.saved);
+    assert.deepEqual(last.game.last.finalGuard,other.game.last.finalGuard);
+    assert.equal(last.game.board[fixture.saved].controller,1);
+    assert.equal(other.game.board[fixture.saved].controller,0);
+    for(const view of [last,other]){
+     assert.ok(abilityMarkers(view.game,null).some(marker=>marker.kind==='final-guard'&&marker.cell===fixture.saved));
+    }
+    await move(0,{kind:'ready'});
+    const next=await move(1,{kind:'ready'});
+    assert.equal(next.round,2);
+    assert.equal(next.game.starter,fixture.starter);
+    assert.ok(next.game.finalGuard);
+    assert.equal(next.game.last?.finalGuard,undefined);
+    await request(0,{op:'leave',id});
+    continue;
+   }
    const key=eventKey[fixture.ability],effect=last.game.last[key];
    assert.ok(Array.isArray(effect)?effect.length:effect,fixture.motif+' starter '+fixture.starter);
    assert.deepEqual(other.game.last[key],effect);

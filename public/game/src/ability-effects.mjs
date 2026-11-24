@@ -1,5 +1,5 @@
-import {blockadeLocked,sideValue} from './rules.mjs?v=alpha-complete';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=alpha-complete';
+import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=final-guard';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -7,9 +7,12 @@ const interpolate=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
 const turnArrow=({from,to})=>(to-from+6)%6===5?'↶':'↻';
 const coordinates=p=>`${p.x},${p.y}`;
 
-export function abilityMarkers(game,plan){
- if(!game?.abilityTrial)return [];
+export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ'}={}){
  const markers=[];
+ const saved=game?.last?.finalGuard;
+ if(saved)markers.push({kind:'final-guard',cell:saved.cell,label:finalGuardLabel});
+ else if(plan?.finalGuard)markers.push({kind:'final-guard',cell:plan.finalGuard.cell,preview:true,label:finalGuardLabel});
+ if(!game?.abilityTrial)return markers;
  if(game.elementalTrial){
   if(blockadeLocked(game))markers.push({kind:'gate',cell:game.block,label:'⊣'});
   for(const [cell,card] of Object.entries(game.board)){
@@ -148,7 +151,7 @@ export function abilityMarkerGeometry(points,direction){
  return {center:interpolate(center,midpoint,1.10),points:[interpolate(...edge,.17),interpolate(...edge,.83)]};
 }
 
-export function createAbilityEffects(layer){
+export function createAbilityEffects(layer,options){
  const nodes=new Map();
  let bursts=[],timer=null,lastPaint=null;
 
@@ -164,13 +167,20 @@ export function createAbilityEffects(layer){
  function paint(game,plan,project){
   lastPaint=[game,plan,project];
   const keys=new Set();
-  for(const marker of [...abilityMarkers(game,plan),...bursts]){
+  for(const marker of [...abilityMarkers(game,plan,options),...bursts]){
    const key=[marker.kind,marker.cell,marker.dir,marker.burst?'burst':marker.preview?'preview':'active'].join(':');
    keys.add(key);
    if(!nodes.has(key))nodes.set(key,create(marker));
    const {stroke,badge,text}=nodes.get(key),geometry=abilityMarkerGeometry(project(marker.cell),marker.dir);
    const {x,y}=geometry.center,size=clamp(Math.hypot(geometry.points[0].x-geometry.points[1].x,geometry.points[0].y-geometry.points[1].y)*.23,9,14);
    stroke.setAttribute('points',(marker.dir===undefined?[...geometry.points,geometry.points[0]]:geometry.points).map(coordinates).join(' '));
+   if(marker.kind==='final-guard'){
+    const labelY=Math.max(14,Math.min(...geometry.points.map(point=>point.y))-8);
+    const half=marker.label.length*3.7+8;
+    badge.setAttribute('d',`M ${x-half+5} ${labelY-9} h ${2*half-10} q 5 0 5 5 v 8 q 0 5 -5 5 h ${10-2*half} q -5 0 -5 -5 v -8 q 0 -5 5 -5 Z`);
+    text.setAttribute('x',x);text.setAttribute('y',labelY);text.textContent=marker.label;
+    continue;
+   }
    badge.setAttribute('d',['guard','water','earth','ernie','solitude','cover'].includes(marker.kind)
     ?`M ${x-size} ${y-size*.75} h ${size*2} v ${size} l ${-size} ${size*.6} l ${-size} ${-size*.6} Z`
     :`M ${x} ${y-size} l ${size} ${size} l ${-size} ${size} l ${-size} ${-size} Z`);

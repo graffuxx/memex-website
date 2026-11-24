@@ -1,0 +1,363 @@
+{
+  "cards": [
+    "good-guy-greg:common",
+    "kekw:common",
+    "evil-ernie:common",
+    "doge:common",
+    "disaster-girl:common",
+    "success-kid:common",
+    "capybara-chill:common",
+    "sad-keanu:common",
+    "crying-wojak:common",
+    "roll-safe:common",
+    "harold:common",
+    "nyan-cat:common",
+    "dramatic-chipmunk:common",
+    "pepe:common",
+    "distracted:common"
+  ],
+  "fixtures": [
+    {
+      "motif": "final-guard",
+      "ability": "final-guard",
+      "starter": 0,
+      "seed": 1489,
+      "moves": [
+        {
+          "side": 0,
+          "motif": "evil-ernie:common",
+          "action": {
+            "cell": "-2,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "evil-ernie:common",
+          "action": {
+            "cell": "-2,2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "pepe:common",
+          "action": {
+            "cell": "-2,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "success-kid:common",
+          "action": {
+            "cell": "-1,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "kekw:common",
+          "action": {
+            "cell": "0,-2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "sad-keanu:common",
+          "action": {
+            "cell": "-1,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "capybara-chill:common",
+          "action": {
+            "cell": "-1,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "good-guy-greg:common",
+          "action": {
+            "cell": "0,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "crying-wojak:common",
+          "action": {
+            "cell": "1,0",
+            "rotation": 0,
+            "abilityDirection": 1
+          }
+        },
+        {
+          "side": 1,
+          "motif": "nyan-cat:common",
+          "action": {
+            "cell": "0,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "good-guy-greg:common",
+          "action": {
+            "cell": "0,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "dramatic-chipmunk:common",
+          "action": {
+            "cell": "1,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "harold:common",
+          "action": {
+            "cell": "2,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "disaster-girl:common",
+          "action": {
+            "cell": "2,-2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "sad-keanu:common",
+          "action": {
+            "cell": "-1,2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "capybara-chill:common",
+          "action": {
+            "cell": "0,2",
+            "rotation": 0,
+            "abilityDirection": 5
+          }
+        },
+        {
+          "side": 0,
+          "motif": "doge:common",
+          "action": {
+            "cell": "2,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "pepe:common",
+          "action": {
+            "cell": "1,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        }
+      ],
+      "saved": "1,0"
+    },
+    {
+      "motif": "final-guard",
+      "ability": "final-guard",
+      "starter": 1,
+      "seed": 2978,
+      "moves": [
+        {
+          "side": 1,
+          "motif": "sad-keanu:common",
+          "action": {
+            "cell": "-2,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "pepe:common",
+          "action": {
+            "cell": "-2,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "doge:common",
+          "action": {
+            "cell": "-1,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "success-kid:common",
+          "action": {
+            "cell": "-1,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "good-guy-greg:common",
+          "action": {
+            "cell": "0,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "kekw:common",
+          "action": {
+            "cell": "0,-2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "harold:common",
+          "action": {
+            "cell": "1,-2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "dramatic-chipmunk:common",
+          "action": {
+            "cell": "1,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "kekw:common",
+          "action": {
+            "cell": "2,-2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "sad-keanu:common",
+          "action": {
+            "cell": "-1,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "evil-ernie:common",
+          "action": {
+            "cell": "-1,2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "nyan-cat:common",
+          "action": {
+            "cell": "2,-1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "success-kid:common",
+          "action": {
+            "cell": "1,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "doge:common",
+          "action": {
+            "cell": "0,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "capybara-chill:common",
+          "action": {
+            "cell": "0,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "evil-ernie:common",
+          "action": {
+            "cell": "0,2",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 1,
+          "motif": "distracted:common",
+          "action": {
+            "cell": "1,1",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        },
+        {
+          "side": 0,
+          "motif": "roll-safe:common",
+          "action": {
+            "cell": "2,0",
+            "rotation": 0,
+            "abilityDirection": 0
+          }
+        }
+      ],
+      "saved": "1,1"
+    }
+  ]
+}

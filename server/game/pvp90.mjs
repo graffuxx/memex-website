@@ -13,11 +13,11 @@ export const AFK_AFTER129=2,AFK_TURN_MS129=3000,ROUND_BREAK_MS129=8000;
 const gestures=['rock','paper','scissors'];
 const due=(now,s=null,side=null)=>now+(side!==null&&(s?.afkStreak129?.[side]??0)>=AFK_AFTER129?AFK_TURN_MS129:TURN_MS90);
 export function refreshPvpRules129(state,now=Date.now()){if(!state?.game||state.game.eventFieldsEnabled===false&&!(state.phase==='between'&&!state.deadline))return null;const s=structuredClone(state);s.game.eventFieldsEnabled=false;if(s.balance&&s.balance.fingerprint!==BALANCE_FINGERPRINT94){s.balance.mixed=true;s.balance.current=balanceVersion94(now);}if(s.phase==='between'&&!s.deadline)s.deadline=now+ROUND_BREAK_MS129;return s;}
-export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0,releasedPrimeTrio=false,releasedPrimePair=false,allPrimes=false}={}){
+export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0,releasedPrimeTrio=false,releasedPrimePair=false,allPrimes=false,finalGuard=false}={}){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
  const balance=balanceVersion94(now);
- if(elementalTrial)balance.patch+=iconicAbilityWave>=7?'-iconic-complete':allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
- return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,releasedPrimeTrio,releasedPrimePair,allPrimes,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
+ if(elementalTrial)balance.patch+=finalGuard?'-final-guard':iconicAbilityWave>=7?'-iconic-complete':allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
+ return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,releasedPrimeTrio,releasedPrimePair,allPrimes,finalGuard,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
 }
 function newRound(s,now){
  const loadouts=[LOADOUTS['hype-guard'],LOADOUTS['hype-guard']];
@@ -29,6 +29,7 @@ function newRound(s,now){
  g.releasedPrimeTrio=s.releasedPrimeTrio===true;
  g.releasedPrimePair=s.releasedPrimePair===true;
  g.allPrimes=s.allPrimes===true;
+ g.finalGuard=s.finalGuard===true;
  g=applyPortalDecks(g,s.decks[0].cards,loadouts,{round:s.round,opponentCards:s.decks[1].cards});
  g.elementRules=5;g.rotationLocked=true;g.eventFieldsEnabled=false;g.resonanceOffset=s.seed%5;
  // Opaque per-round card tokens never reveal a hidden motif or rarity.

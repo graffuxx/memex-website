@@ -1,5 +1,5 @@
-import {canTurnSelf,DIRECTION_NAMES,valueSwapTargets} from './table-demo-rules.mjs?v=alpha-complete';
-import {cardOf,ELEMENTS} from './rules.mjs?v=alpha-complete';
+import {canTurnSelf,DIRECTION_NAMES,valueSwapTargets} from './table-demo-rules.mjs?v=final-guard';
+import {cardOf,ELEMENTS} from './rules.mjs?v=final-guard';
 
 export function bindSignatureControls(abilities,{english=false,onChange,onDraw}){
  const exchangeLabel=document.createElement('label'),exchange=document.createElement('select'),exchangeText=document.createTextNode('');

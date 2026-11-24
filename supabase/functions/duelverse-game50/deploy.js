@@ -2797,7 +2797,7 @@ function newGame({ seed = 12345, layout = "core", starter = 0 } = {}) {
   return { version: VERSION, elementRules: 5, seed, layout, starter, turn: starter, placements: 0, board: {}, block: LAYOUTS.find((l) => l.id === layout).block, players, events: [{ cell: "-1,1", element: "storm" }, { cell: "1,-1", element: "water" }], history: [], last: null, winner: null, finished: false };
 }
 
-// public/game/src/rules.mjs?v=alpha-complete
+// public/game/src/rules.mjs?v=final-guard
 var ELEMENTS5 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS2 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
 var CATALOG3 = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
@@ -2929,7 +2929,7 @@ var LOADOUTS = {
 };
 var ABILITY_FOR = { brain: "hype", oracle: "guard", trust: "twist" };
 
-// public/game/src/table-demo-rules.mjs?v=alpha-complete
+// public/game/src/table-demo-rules.mjs?v=final-guard
 var table_demo_rules_exports = {};
 __export(table_demo_rules_exports, {
   ABILITIES: () => ABILITIES2,
@@ -3561,6 +3561,12 @@ function previewEffect(game, action) {
       break;
     }
   }
+  const guardedHit = game.finalGuard === true && game.placements === 17 && game.turn !== game.starter ? comparisons.find((c) => c.flip && c.attack.rank !== "S" && working.board[c.cell].controller === game.starter) : null;
+  const finalGuard = guardedHit ? { cell: guardedHit.cell, uid: working.board[guardedHit.cell].uid } : null;
+  if (guardedHit) {
+    guardedHit.flip = false;
+    guardedHit.finalGuard = true;
+  }
   let bailout = null;
   for (const attempt of comparisons) {
     const { attack, defend, cell: target } = attempt;
@@ -3599,7 +3605,7 @@ function previewEffect(game, action) {
     const initialFlips = comparisons.filter((c) => c.flip && !c.redirect);
     if (initialFlips.length === 1) {
       const firstDir = initialFlips[0].dir;
-      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.bailout && c.cell !== attachment?.cell && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
+      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.bailout && !c.finalGuard && c.cell !== attachment?.cell && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
       if (tied) {
         tied.flip = true;
         tied.rainbow = true;
@@ -3628,7 +3634,7 @@ function previewEffect(game, action) {
   if (ability === "pincer" && comparisons.filter((c) => c.flip && !c.redirect).length === 1) {
     const ring = neighbors2(cell);
     for (const target of comparisons) {
-      if (target.flip || target.setup || target.objection || target.bailout || target.cell === attachment?.cell) continue;
+      if (target.flip || target.setup || target.objection || target.bailout || target.finalGuard || target.cell === attachment?.cell) continue;
       const enemy = working.board[target.cell];
       for (const { id: source2 } of ring) {
         const ally = working.board[source2];
@@ -3725,7 +3731,7 @@ function previewEffect(game, action) {
   const blockadeLock = ability === "gate" && neighbors2(cell).some((n) => n.id === game.block) ? { owner: game.turn, until: game.placements + 2 } : null;
   const ward = captured ? { cell: captured.cell, dir: captured.dir } : null;
   const blockadeMove = dash || blockadeCell !== null ? { from: game.block, to: dash ?? blockadeCell } : null;
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, ward, coverWards, blockadeMove, dash: Boolean(dash), blockadeLock, swapCells, swaps, pivotTarget, pivot, valueSwap, selfTurn, steps, relocation, rainbow, swipe, decoy, pursuit, objection, ambush, awkward, nested, phalanx, rally, pincer, relay, waiting, turnChoices, valueSwaps: ability === "luxury" ? valueSwapTargets(working, held, cell, rotation) : [], jam, sandwich, bailout, reserve, link, attachment, blink, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, ward, coverWards, blockadeMove, dash: Boolean(dash), blockadeLock, swapCells, swaps, pivotTarget, pivot, valueSwap, selfTurn, steps, relocation, rainbow, swipe, decoy, pursuit, objection, ambush, awkward, nested, phalanx, rally, pincer, relay, waiting, turnChoices, valueSwaps: ability === "luxury" ? valueSwapTargets(working, held, cell, rotation) : [], jam, sandwich, bailout, finalGuard, reserve, link, attachment, blink, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 function placeEffect(game, action, { chooseDraw = false } = {}) {
   const p = previewEffect(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3822,6 +3828,10 @@ function placeEffect(game, action, { chooseDraw = false } = {}) {
   if (p.pincer) next.last.pincer = p.pincer;
   if (p.jam) next.last.jam = p.jam;
   if (p.sandwich) next.last.sandwich = p.sandwich;
+  if (p.finalGuard) {
+    const protectedCell = Object.keys(next.board).find((cell) => next.board[cell].uid === p.finalGuard.uid);
+    next.last.finalGuard = { cell: protectedCell ?? p.finalGuard.cell, uid: p.finalGuard.uid };
+  }
   if (p.bailout) next.last.bailout = p.bailout;
   if (p.reserve) next.last.reserve = p.reserve;
   if (p.link) next.last.link = p.link;
@@ -3888,7 +3898,7 @@ function actionOptions(game, card, cell, rotation) {
   }));
 }
 
-// public/game/src/tactics-ai.mjs?v=alpha-complete
+// public/game/src/tactics-ai.mjs?v=final-guard
 var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 
 // public/game/src/table-demo-state.mjs
@@ -4486,6 +4496,12 @@ function previewEffect2(game, action) {
       break;
     }
   }
+  const guardedHit = game.finalGuard === true && game.placements === 17 && game.turn !== game.starter ? comparisons.find((c) => c.flip && c.attack.rank !== "S" && working.board[c.cell].controller === game.starter) : null;
+  const finalGuard = guardedHit ? { cell: guardedHit.cell, uid: working.board[guardedHit.cell].uid } : null;
+  if (guardedHit) {
+    guardedHit.flip = false;
+    guardedHit.finalGuard = true;
+  }
   let bailout = null;
   for (const attempt of comparisons) {
     const { attack, defend, cell: target } = attempt;
@@ -4524,7 +4540,7 @@ function previewEffect2(game, action) {
     const initialFlips = comparisons.filter((c) => c.flip && !c.redirect);
     if (initialFlips.length === 1) {
       const firstDir = initialFlips[0].dir;
-      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.bailout && c.cell !== attachment?.cell && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
+      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.bailout && !c.finalGuard && c.cell !== attachment?.cell && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
       if (tied) {
         tied.flip = true;
         tied.rainbow = true;
@@ -4553,7 +4569,7 @@ function previewEffect2(game, action) {
   if (ability === "pincer" && comparisons.filter((c) => c.flip && !c.redirect).length === 1) {
     const ring = neighbors2(cell);
     for (const target of comparisons) {
-      if (target.flip || target.setup || target.objection || target.bailout || target.cell === attachment?.cell) continue;
+      if (target.flip || target.setup || target.objection || target.bailout || target.finalGuard || target.cell === attachment?.cell) continue;
       const enemy = working.board[target.cell];
       for (const { id: source2 } of ring) {
         const ally = working.board[source2];
@@ -4650,7 +4666,7 @@ function previewEffect2(game, action) {
   const blockadeLock = ability === "gate" && neighbors2(cell).some((n) => n.id === game.block) ? { owner: game.turn, until: game.placements + 2 } : null;
   const ward = captured ? { cell: captured.cell, dir: captured.dir } : null;
   const blockadeMove = dash || blockadeCell !== null ? { from: game.block, to: dash ?? blockadeCell } : null;
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, ward, coverWards, blockadeMove, dash: Boolean(dash), blockadeLock, swapCells, swaps, pivotTarget, pivot, valueSwap, selfTurn, steps, relocation, rainbow, swipe, decoy, pursuit, objection, ambush, awkward, nested, phalanx, rally, pincer, relay, waiting, turnChoices, valueSwaps: ability === "luxury" ? valueSwapTargets2(working, held, cell, rotation) : [], jam, sandwich, bailout, reserve, link, attachment, blink, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, ward, coverWards, blockadeMove, dash: Boolean(dash), blockadeLock, swapCells, swaps, pivotTarget, pivot, valueSwap, selfTurn, steps, relocation, rainbow, swipe, decoy, pursuit, objection, ambush, awkward, nested, phalanx, rally, pincer, relay, waiting, turnChoices, valueSwaps: ability === "luxury" ? valueSwapTargets2(working, held, cell, rotation) : [], jam, sandwich, bailout, finalGuard, reserve, link, attachment, blink, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 function placeEffect2(game, action, { chooseDraw = false } = {}) {
   const p = previewEffect2(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -4747,6 +4763,10 @@ function placeEffect2(game, action, { chooseDraw = false } = {}) {
   if (p.pincer) next.last.pincer = p.pincer;
   if (p.jam) next.last.jam = p.jam;
   if (p.sandwich) next.last.sandwich = p.sandwich;
+  if (p.finalGuard) {
+    const protectedCell = Object.keys(next.board).find((cell) => next.board[cell].uid === p.finalGuard.uid);
+    next.last.finalGuard = { cell: protectedCell ?? p.finalGuard.cell, uid: p.finalGuard.uid };
+  }
   if (p.bailout) next.last.bailout = p.bailout;
   if (p.reserve) next.last.reserve = p.reserve;
   if (p.link) next.last.link = p.link;
@@ -5424,6 +5444,12 @@ function previewEffect3(game, action) {
       break;
     }
   }
+  const guardedHit = game.finalGuard === true && game.placements === 17 && game.turn !== game.starter ? comparisons.find((c) => c.flip && c.attack.rank !== "S" && working.board[c.cell].controller === game.starter) : null;
+  const finalGuard = guardedHit ? { cell: guardedHit.cell, uid: working.board[guardedHit.cell].uid } : null;
+  if (guardedHit) {
+    guardedHit.flip = false;
+    guardedHit.finalGuard = true;
+  }
   let bailout = null;
   for (const attempt of comparisons) {
     const { attack, defend, cell: target } = attempt;
@@ -5462,7 +5488,7 @@ function previewEffect3(game, action) {
     const initialFlips = comparisons.filter((c) => c.flip && !c.redirect);
     if (initialFlips.length === 1) {
       const firstDir = initialFlips[0].dir;
-      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.bailout && c.cell !== attachment?.cell && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
+      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.bailout && !c.finalGuard && c.cell !== attachment?.cell && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
       if (tied) {
         tied.flip = true;
         tied.rainbow = true;
@@ -5491,7 +5517,7 @@ function previewEffect3(game, action) {
   if (ability === "pincer" && comparisons.filter((c) => c.flip && !c.redirect).length === 1) {
     const ring = neighbors2(cell);
     for (const target of comparisons) {
-      if (target.flip || target.setup || target.objection || target.bailout || target.cell === attachment?.cell) continue;
+      if (target.flip || target.setup || target.objection || target.bailout || target.finalGuard || target.cell === attachment?.cell) continue;
       const enemy = working.board[target.cell];
       for (const { id: source2 } of ring) {
         const ally = working.board[source2];
@@ -5588,7 +5614,7 @@ function previewEffect3(game, action) {
   const blockadeLock = ability === "gate" && neighbors2(cell).some((n) => n.id === game.block) ? { owner: game.turn, until: game.placements + 2 } : null;
   const ward = captured ? { cell: captured.cell, dir: captured.dir } : null;
   const blockadeMove = dash || blockadeCell !== null ? { from: game.block, to: dash ?? blockadeCell } : null;
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, ward, coverWards, blockadeMove, dash: Boolean(dash), blockadeLock, swapCells, swaps, pivotTarget, pivot, valueSwap, selfTurn, steps, relocation, rainbow, swipe, decoy, pursuit, objection, ambush, awkward, nested, phalanx, rally, pincer, relay, waiting, turnChoices, valueSwaps: ability === "luxury" ? valueSwapTargets3(working, held, cell, rotation) : [], jam, sandwich, bailout, reserve, link, attachment, blink, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, ward, coverWards, blockadeMove, dash: Boolean(dash), blockadeLock, swapCells, swaps, pivotTarget, pivot, valueSwap, selfTurn, steps, relocation, rainbow, swipe, decoy, pursuit, objection, ambush, awkward, nested, phalanx, rally, pincer, relay, waiting, turnChoices, valueSwaps: ability === "luxury" ? valueSwapTargets3(working, held, cell, rotation) : [], jam, sandwich, bailout, finalGuard, reserve, link, attachment, blink, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 
 // public/game/src/turn-clock.mjs
@@ -5619,10 +5645,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-24.39";
+var BALANCE_PATCH94 = "alpha-2026-11-24.40";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 39,
+  revision: 40,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -5640,7 +5666,7 @@ var BALANCE_RULES94 = Object.freeze({
   maxPrimes: MAX_PRIMES,
   maxIconics: MAX_ICONICS,
   sRankElementOnly: true,
-  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1, solitudeDefense: 1, rainbowMaxBonusFlips: 1, swipeMaxDefense: SWIPE_MAX_DEFENSE3, encoreDegrees: [-60, 60], bidBoost: 1, pigeonMaxReduction: PIGEON_MAX_REDUCTION3, chasePenalty: CHASE_PENALTY3, coverMaxAllies: 2, objectionMaxMargin: OBJECTION_MAX_MARGIN3, thoughtReach: 2 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 }, privatePrimeTrio: { chorusSolo: 1, chorusDuet: CHORUS_DUET_GUARD3, chorusReach: 2, jamPlacements: JAM_PLACEMENTS2, sandwichMaxSupport: SANDWICH_MAX_SUPPORT3, sandwichSupportArc: 3 }, privatePrimePair: { jordanMaxMargin: JORDAN_MAX_MARGIN3, fanReserveOpponentTurns: 1, allPrimes: true, allIconics: true, privateDrawChoiceMs: 15e3, resolveDirectDefenseFirst: true, blinkDegrees: 60, clingMaxRedirects: 1, roundhouseDegrees: [-60, 60], ernieWard: 1, gateOpponentTurns: 1, phalanxBoost: 2, dashBlockadeSteps: 1, relayOwnTurns: 1, retryDegrees: [-60, 60], pincerMaxExtraFlips: 1 } },
+  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1, solitudeDefense: 1, rainbowMaxBonusFlips: 1, swipeMaxDefense: SWIPE_MAX_DEFENSE3, encoreDegrees: [-60, 60], bidBoost: 1, pigeonMaxReduction: PIGEON_MAX_REDUCTION3, chasePenalty: CHASE_PENALTY3, coverMaxAllies: 2, objectionMaxMargin: OBJECTION_MAX_MARGIN3, thoughtReach: 2 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 }, privatePrimeTrio: { chorusSolo: 1, chorusDuet: CHORUS_DUET_GUARD3, chorusReach: 2, jamPlacements: JAM_PLACEMENTS2, sandwichMaxSupport: SANDWICH_MAX_SUPPORT3, sandwichSupportArc: 3 }, privatePrimePair: { jordanMaxMargin: JORDAN_MAX_MARGIN3, fanReserveOpponentTurns: 1, allPrimes: true, allIconics: true, privateDrawChoiceMs: 15e3, resolveDirectDefenseFirst: true, finalGuard: { placement: 18, blockedDirectNumericFlips: 1 }, blinkDegrees: 60, clingMaxRedirects: 1, roundhouseDegrees: [-60, 60], ernieWard: 1, gateOpponentTurns: 1, phalanxBoost: 2, dashBlockadeSteps: 1, relayOwnTurns: 1, retryDegrees: [-60, 60], pincerMaxExtraFlips: 1 } },
   cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);

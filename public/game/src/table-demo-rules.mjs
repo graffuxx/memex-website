@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=alpha-complete';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=final-guard';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -521,6 +521,10 @@ export function previewEffect(game,action){
    break;
   }
  }
+ const guardedHit=game.finalGuard===true&&game.placements===17&&game.turn!==game.starter
+  ?comparisons.find(c=>c.flip&&c.attack.rank!=='S'&&working.board[c.cell].controller===game.starter):null;
+ const finalGuard=guardedHit?{cell:guardedHit.cell,uid:working.board[guardedHit.cell].uid}:null;
+ if(guardedHit){guardedHit.flip=false;guardedHit.finalGuard=true;}
  let bailout=null;
  for(const attempt of comparisons){
   const {attack,defend,cell:target}=attempt;
@@ -560,7 +564,7 @@ export function previewEffect(game,action){
   const initialFlips=comparisons.filter(c=>c.flip&&!c.redirect);
   if(initialFlips.length===1){
    const firstDir=initialFlips[0].dir;
-   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&!c.bailout&&c.cell!==attachment?.cell&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
+   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&!c.bailout&&!c.finalGuard&&c.cell!==attachment?.cell&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
     .sort((a,b)=>(a.dir-firstDir+6)%6-(b.dir-firstDir+6)%6)[0];
    if(tied){
     tied.flip=true;
@@ -590,7 +594,7 @@ export function previewEffect(game,action){
  if(ability==='pincer'&&comparisons.filter(c=>c.flip&&!c.redirect).length===1){
   const ring=neighbors(cell);
   for(const target of comparisons){
-   if(target.flip||target.setup||target.objection||target.bailout||target.cell===attachment?.cell)continue;
+   if(target.flip||target.setup||target.objection||target.bailout||target.finalGuard||target.cell===attachment?.cell)continue;
    const enemy=working.board[target.cell];
    for(const {id:source} of ring){
     const ally=working.board[source];
@@ -687,7 +691,7 @@ export function previewEffect(game,action){
  const blockadeLock=ability==='gate'&&neighbors(cell).some(n=>n.id===game.block)?{owner:game.turn,until:game.placements+2}:null;
  const ward=captured?{cell:captured.cell,dir:captured.dir}:null;
  const blockadeMove=dash||blockadeCell!==null?{from:game.block,to:dash??blockadeCell}:null;
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action,{chooseDraw=false}={}){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
@@ -764,6 +768,10 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  if(p.pincer)next.last.pincer=p.pincer;
  if(p.jam)next.last.jam=p.jam;
  if(p.sandwich)next.last.sandwich=p.sandwich;
+ if(p.finalGuard){
+  const protectedCell=Object.keys(next.board).find(cell=>next.board[cell].uid===p.finalGuard.uid);
+  next.last.finalGuard={cell:protectedCell??p.finalGuard.cell,uid:p.finalGuard.uid};
+ }
  if(p.bailout)next.last.bailout=p.bailout;
  if(p.reserve)next.last.reserve=p.reserve;
  if(p.link)next.last.link=p.link;
