@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=rainbow-pair-release';
+import * as currentRules from './table-demo-rules.mjs?v=encore-pair-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -31,6 +31,13 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
   },0);
   twistSafety+=(coverAt(to,id=>id!==from&&Boolean(game.board[id]))-coverAt(from,id=>id===to||Boolean(game.board[id])))*.18;
  }
+ if(plan.pivot){
+  const rotated={...plan.card,rotation:plan.pivot.to};
+  for(const {id,dir} of neighbors(action.cell)){
+   if(id===game.block||plan.board[id])continue;
+   twistSafety+=(Math.min(7,sideValue(rotated,dir))-Math.min(7,sideValue(plan.card,dir)))*.18;
+  }
+ }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
  return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
@@ -44,6 +51,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
   board[to]=board[from];
   delete board[from];
  }
+ if(plan.pivot)board[plan.pivot.cell]={...board[plan.pivot.cell],rotation:plan.pivot.to};
  const future={...game,board,placements:game.placements+1,turn:1-game.turn};
  if(future.placements>=18)return 0;
  // Let the authoritative field resolver advance before examining the next move.

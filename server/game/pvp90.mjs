@@ -16,7 +16,7 @@ export function refreshPvpRules129(state,now=Date.now()){if(!state?.game||state.
 export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0}={}){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
  const balance=balanceVersion94(now);
- if(elementalTrial)balance.patch+=iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
+ if(elementalTrial)balance.patch+=iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
  return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
 }
 function newRound(s,now){

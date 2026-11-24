@@ -77,9 +77,9 @@ for(const seat of [0,1]){
 
 
 test('New private duels start the latest ability wave and older games retain their original wave',()=>{
- const deck=[...starterDeck().slice(0,10),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','evil-ernie:rare'];
+ const deck=[...starterDeck().slice(0,8),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','evil-ernie:rare'];
  const decks=[{cards:deck},{cards:deck}];
- for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
+ for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
   let state=createPvp90(decks,9,1,flags);
   state=advancePvp90(state,0,{kind:'gesture',value:'rock'},2);
   state=advancePvp90(state,1,{kind:'gesture',value:'scissors'},3);
@@ -88,8 +88,10 @@ test('New private duels start the latest ability wave and older games retain the
    const assigned=[...player.hand,...player.deck];
    assert.equal(assigned.find(c=>c.variantId==='good-guy-greg:epic').ability,flags.iconicAbilities?'sidestep':undefined);
    assert.equal(assigned.find(c=>c.variantId==='kekw:mythic').ability,flags.iconicAbilities?'laugh':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='forever-alone:common').ability,flags.iconicAbilityWave===2?'solitude':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='double-rainbow:rare').ability,flags.iconicAbilityWave===2?'rainbow':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='forever-alone:common').ability,flags.iconicAbilityWave>=2?'solitude':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='double-rainbow:rare').ability,flags.iconicAbilityWave>=2?'rainbow':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='scumbag-steve:rare').ability,flags.iconicAbilityWave===3?'swipe':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='epic-sax-guy:common').ability,flags.iconicAbilityWave===3?'encore':undefined);
    assert.equal(assigned.find(c=>c.variantId==='evil-ernie:rare').ability,undefined);
   }
  }
@@ -142,5 +144,52 @@ for(const seat of [0,1]){
   game.board['0,1']={...makeCard('coffin-dance:common',other),controller:other};
   assert.deepEqual(previewEffect(game,move).flips,['1,0','0,1']);
   assert.deepEqual(previewEffect(game,move).rainbow,{cell:'0,1',dir:1});
+ });
+}
+for(const seat of [0,1]){
+ test(`Scumbag Steve bypasses up to two points of only one useful defense bonus for starter ${seat}`,()=>{
+  const game=trial(),opponent=1-seat,steve=makeCard('scumbag-steve:common',seat,'swipe');
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  game.players[seat].hand=[steve];
+  const guarded=(id,dir)=>({...makeCard(id+':common',opponent,'water'),controller:opponent,rotation:0,guardDirection:dir,guardOwner:opponent,guardUntil:2});
+  game.board={'-1,1':guarded('capybara-chill',5),'-1,0':guarded('sad-keanu',0)};
+  const action={uid:steve.uid,cell:'0,0'};
+  const plan=previewEffect(game,action);
+  assert.deepEqual(plan.flips,['-1,1']);
+  assert.deepEqual(plan.swipe,{cell:'-1,1',dir:2,amount:2});
+  assert.equal(plan.comparisons[0].defend.ability,0);
+  assert.equal(plan.comparisons[1].defend.ability,2);
+  assert.equal(game.board['-1,1'].guardOwner,opponent);
+  const after=placeEffect(game,action);
+  assert.equal(after.board['-1,0'].controller,opponent);
+  assert.deepEqual(abilityBursts(after),[{kind:'swipe',cell:'-1,1',dir:5,label:'−2'}]);
+  game.board['-1,1'].guardUntil=0;
+  const open=previewEffect(game,action);
+  assert.deepEqual(open.flips,['-1,1','-1,0']);
+  assert.deepEqual(open.swipe,{cell:'-1,0',dir:3,amount:2});
+ });
+
+ test(`Epic Sax Guy rotates only after one flip for starter ${seat}`,()=>{
+  const game=trial(),opponent=1-seat,sax=makeCard('epic-sax-guy:common',seat,'encore');
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  game.players[seat].hand=[sax];
+  const enemy=id=>({...makeCard(id+':common',opponent),controller:opponent,rotation:0});
+  game.board['-1,1']=enemy('capybara-chill');
+  const action={uid:sax.uid,cell:'0,0',rotation:0,pivotDirection:-1};
+  const plan=previewEffect(game,action);
+  assert.deepEqual(plan.flips,['-1,1']);
+  assert.equal(plan.card.rotation,0);
+  assert.deepEqual(plan.pivot,{cell:'0,0',uid:sax.uid,from:0,to:5});
+  assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='encore'&&m.cell==='0,0'));
+  const after=placeEffect(game,action);
+  assert.equal(after.board['0,0'].rotation,5);
+  assert.equal(after.board['-1,1'].rotation,0);
+  assert.deepEqual(after.last.flips,['-1,1']);
+  assert.ok(abilityBursts(after).some(m=>m.kind==='encore'&&m.label==='↶'));
+  assert.ok(legalCandidates(game).some(({action:a})=>a.cell==='0,0'&&a.pivotDirection===1));
+  game.board['-1,0']=enemy('sad-keanu');
+  assert.throws(()=>previewEffect(game,action),/Drehung/);
+  game.board={};
+  assert.throws(()=>previewEffect(game,action),/Drehung/);
  });
 }

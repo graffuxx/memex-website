@@ -1,11 +1,12 @@
 import {rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=rainbow-pair-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=encore-pair-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
 export const WATER_BONUS=2;
 export const STORM_MAX_EDGE=3;
+export const SWIPE_MAX_DEFENSE=2;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -20,6 +21,8 @@ export const ABILITIES={
  laugh:{name:'Iconic · Letztes Lachen',short:'◉',description:'Im nächsten gegnerischen Zug hält KEKW numerische Gleichstände auch gegen das stärkere Element. Höhere Werte und S-Kanten greifen nach den normalen Regeln an.'},
  solitude:{name:'Iconic · Allein auf weiter Flur',short:'◇',description:'Solange keine eigene Karte angrenzt, erhält die schwächste offene Kante +1 Verteidigung.'},
  rainbow:{name:'Iconic · Zweiter Bogen',short:'⌒',description:'Bei genau einem regulären Flip übernimmt Double Rainbow höchstens eine zweite Karte bei einem numerischen Gleichstand. Es zählt der erste ungeschützte Gleichstand im Uhrzeigersinn ab dem ersten Flip.'},
+ swipe:{name:'Iconic · Schildklau',short:'−',description:`Beim Angriff ignoriert Steve bis zu ${SWIPE_MAX_DEFENSE} Punkte Fähigkeits-Verteidigung, wenn er dadurch eine Karte flippt. Er nimmt höchstens einen Schild mit, beginnend im Osten im Uhrzeigersinn. Ereignisfelder und S-Kanten bleiben wirksam.`},
+ encore:{name:'Iconic · Zugabe',short:'♫',description:'Nach genau einem Flip darfst du Epic Sax Guy um 60° nach links oder rechts drehen. Die Drehung ändert nur die Ausrichtung für folgende Züge.'},
 };
 export const LOADOUTS={
  'hype-guard':{name:'Doge + Pepe',abilities:['hype','guard']},
@@ -35,14 +38,16 @@ export function standardAbility(card){
  return definition&&!definition.prime&&!definition.iconic?definition.element:null;
 }
 const RELEASED_ICONICS={
- 'iconic-good-guy-greg':'sidestep',
- 'iconic-kekw':'laugh',
- 'iconic-forever-alone':'solitude',
- 'iconic-double-rainbow':'rainbow',
+ 'iconic-good-guy-greg':[1,'sidestep'],
+ 'iconic-kekw':[1,'laugh'],
+ 'iconic-forever-alone':[2,'solitude'],
+ 'iconic-double-rainbow':[2,'rainbow'],
+ 'iconic-scumbag-steve':[3,'swipe'],
+ 'iconic-epic-sax-guy':[3,'encore'],
 };
 export function releasedIconicAbility(card,wave=1){
- const ability=RELEASED_ICONICS[cardOf(card)?.id]??null;
- return wave>=2||ability==='sidestep'||ability==='laugh'?ability:null;
+ const entry=RELEASED_ICONICS[cardOf(card)?.id];
+ return entry&&wave>=entry[0]?entry[1]:null;
 }
 export function abilityDescription(game,ability){
  if(ability==='guard')return `Eine Seite erhält +${guardBonus(game)} Verteidigung bis zum nächsten eigenen Karten-Zug.`;
@@ -136,7 +141,7 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
 }
 // All effects resolve on a copy. Merely aiming or cancelling can never alter the board.
 export function previewEffect(game,action){
- const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,stepCells=null}=action;
+ const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,stepCells=null,pivotDirection=0}=action;
  if(game.rotationLocked&&rotation!==0)throw Error('Handkarten haben eine feste Ausrichtung.');
  validatePlacement(game,{uid,cell,rotation});
  if(!Number.isInteger(abilityDirection)||abilityDirection<0||abilityDirection>5)throw Error('Ungültige Fähigkeitsrichtung.');
@@ -152,6 +157,21 @@ export function previewEffect(game,action){
   const tieProtected=!setup&&stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
   return {cell:n.id,dir:n.dir,attack,defend,setup,flip:!setup&&effectAttackWins(attack,defend,elementRules),name:cardOf(other).name,...(tieProtected?{tieProtected:true}:{})};
  });
+ let swipe=null;
+ if(ability==='swipe'){
+  for(const comparison of comparisons){
+   const {attack,defend}=comparison;
+   if(comparison.flip||comparison.setup||defend.ability<1||defend.rank==='S')continue;
+   const amount=Math.min(defend.ability,SWIPE_MAX_DEFENSE);
+   const weaker={...defend,total:defend.total-amount,ability:defend.ability-amount};
+   if(!effectAttackWins(attack,weaker,game.elementRules??3))continue;
+   comparison.defend=weaker;
+   comparison.flip=true;
+   comparison.swipe=true;
+   swipe={cell:comparison.cell,dir:comparison.dir,amount};
+   break;
+  }
+ }
  let rainbow=null;
  if(ability==='rainbow'){
   const initialFlips=comparisons.filter(c=>c.flip);
@@ -167,10 +187,13 @@ export function previewEffect(game,action){
   }
  }
  const flips=comparisons.filter(c=>c.flip).map(c=>c.cell);
+ const pivotTarget=ability==='encore'&&flips.length===1?cell:null;
+ if(![-1,0,1].includes(pivotDirection)||pivotDirection!==0&&!pivotTarget)throw Error('Keine Karte für die Drehung erobert.');
+ const pivot=pivotDirection?{cell,uid,from:rotation,to:(rotation+pivotDirection+6)%6}:null;
  const steps=ability==='sidestep'?sidestepTargets(working,cell):[];
  if(stepCells!==null&&(!Array.isArray(stepCells)||stepCells.length!==2||!steps.some(([from,to])=>from===stepCells[0]&&to===stepCells[1])))throw Error('Kein gültiges Ziel für Platz machen.');
  const relocation=stepCells===null?null:{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid};
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
@@ -186,6 +209,11 @@ export function placeEffect(game,action){
  next.last={type:'place',side,cell:action.cell,uid:action.uid,name:cardOf(p.card).name,flips:p.flips,transforms:p.transforms,ability:p.ability,suppressed:p.suppressed,event:game.eventFieldsEnabled===false?null:eventPhase(next)!==eventPhase(game)?eventPhase(next):null};
  if(p.relocation)next.last.relocation=p.relocation;
  if(p.rainbow)next.last.rainbow=p.rainbow;
+ if(p.swipe)next.last.swipe=p.swipe;
+ if(p.pivot){
+  next.board[action.cell].rotation=p.pivot.to;
+  next.last.transforms.push(p.pivot);
+ }
  const tieBlocks=p.comparisons.filter(c=>c.tieProtected).map(c=>({cell:c.cell,dir:(c.dir+3)%6}));
  if(tieBlocks.length)next.last.tieBlocks=tieBlocks;
  if(game.abilityTrial&&p.ability){
@@ -201,6 +229,10 @@ export function placeEffect(game,action){
 }
 export function actionOptions(game,card,cell,rotation){
  const ability=abilityAt(game,card,cell),directions=aimsAbility(ability)?[0,1,2,3,4,5]:[0],targets=turnsCards(ability)?[null,...twistTargets(game,cell,ability)]:[null];
+ if(ability==='encore'){
+  const action={uid:card.uid,cell,rotation,abilityDirection:0};
+  return previewEffect(game,action).pivotTarget?[action,{...action,pivotDirection:-1},{...action,pivotDirection:1}]:[action];
+ }
  if(ability==='sidestep'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   return [action,...previewEffect(game,action).steps.map(stepCells=>({...action,stepCells}))];

@@ -15,6 +15,8 @@ const symbols={
  laugh:{color:'#ffd584',path:'M4 9c2-2 4-2 6 0m4 0c2-2 4-2 6 0M5 13h14c-1 6-4 8-7 8s-6-2-7-8Z'},
  solitude:{color:'#aee5ff',path:'m12 4 4 8-4 8-4-8zM3 12h.1m18 0h.1'},
  rainbow:{color:'#f8b9f0',path:'M3 17a9 9 0 0 1 18 0M7 17a5 5 0 0 1 10 0m-6 0a1 1 0 0 1 2 0'},
+ swipe:{color:'#efbe9c',path:'M12 3 20 6v5c0 5-4 8-8 11-4-3-8-6-8-11V6zM8 12h8'},
+ encore:{color:'#fada90',path:'M9 17V6l11-3v12M9 7l11-3M9 17a3 2 0 1 1-6 0 3 2 0 1 1 6 0m11-2a3 2 0 1 1-6 0 3 2 0 1 1 6 0'},
 };
 
 function iconPath(ability){

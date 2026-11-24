@@ -1,4 +1,4 @@
-import {eventFieldAt,abilityEdge} from './table-demo-rules.mjs?v=rainbow-pair-release';
+import {eventFieldAt,abilityEdge} from './table-demo-rules.mjs?v=encore-pair-release';
 import {cardOf,sideValue} from './rules.mjs';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);
