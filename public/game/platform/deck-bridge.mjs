@@ -1,5 +1,5 @@
 import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
-import {standardAbility,releasedIconicAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=encore-pair-release';
+import {standardAbility,releasedIconicAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=pigeon-pair-release';
 import {soloSettings84} from './solo84.mjs';
 export const PLAY_DECK_KEY='duelverse.play-deck.v1';
 export function readPlayDeck(storage){

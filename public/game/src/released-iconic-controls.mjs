@@ -8,19 +8,30 @@ export function bindReleasedIconicControls(abilities,{english=false,onChange}){
  encore.append(new Option(english?'Keep orientation':'Ausrichtung behalten','0'),
   new Option(english?'↶ 60° counterclockwise':'↶ 60° nach links','-1'),
   new Option(english?'↻ 60° clockwise':'↻ 60° nach rechts','1'));
- label.hidden=encoreLabel.hidden=true;
- abilities.append(label,encoreLabel);
- let cells=null,pivotDirection=0;
+ const bidLabel=document.createElement('label'),bid=document.createElement('select');
+ bidLabel.append(english?'Spend blockade move':'Blockadezug einsetzen',bid);
+ const directions=english?['E','SE','SW','W','NW','NE']:['Ost','Südost','Südwest','West','Nordwest','Nordost'];
+ label.hidden=encoreLabel.hidden=bidLabel.hidden=true;
+ abilities.append(label,encoreLabel,bidLabel);
+ let cells=null,pivotDirection=0,bidDirection=null;
+ bid.onchange=()=>{bidDirection=bid.value===''?null:Number(bid.value);onChange();};
  encore.onchange=()=>{pivotDirection=Number(encore.value);onChange();};
  select.onchange=()=>{cells=select.value?select.value.split('|'):null;onChange();};
  return {
-  clear(){cells=null;pivotDirection=0;},
-  set(action){cells=action.stepCells??null;pivotDirection=action.pivotDirection??0;},
-  action(){return {stepCells:cells,pivotDirection};},
+  clear(){cells=null;pivotDirection=0;bidDirection=null;},
+  set(action){cells=action.stepCells??null;pivotDirection=action.pivotDirection??0;bidDirection=action.bidDirection??null;},
+  action(){return {stepCells:cells,pivotDirection,bidDirection};},
   update(game,card,plan,busy){
    encoreLabel.hidden=card?.ability!=='encore';
    encore.disabled=busy||!plan?.pivotTarget;
    encore.value=String(pivotDirection);
+   bidLabel.hidden=card?.ability!=='bid';
+   if(!bidLabel.hidden){
+    const available=plan?.bidTargets??[];
+    bid.replaceChildren(new Option(english?'Keep blockade move':'Blockadezug behalten',''),...available.map(dir=>new Option(directions[dir]+' · +1',String(dir))));
+    bid.value=bidDirection===null?'':String(bidDirection);
+    bid.disabled=busy||!available.length;
+   }
    label.hidden=card?.ability!=='sidestep';
    if(label.hidden)return;
    const pairs=plan?.steps??[];

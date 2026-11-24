@@ -1,12 +1,13 @@
-import {rankedStrength126} from '../platform/card-ranks126.mjs';
+import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=encore-pair-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=pigeon-pair-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
 export const WATER_BONUS=2;
 export const STORM_MAX_EDGE=3;
 export const SWIPE_MAX_DEFENSE=2;
+export const PIGEON_MAX_REDUCTION=2;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -23,6 +24,8 @@ export const ABILITIES={
  rainbow:{name:'Iconic · Zweiter Bogen',short:'⌒',description:'Bei genau einem regulären Flip übernimmt Double Rainbow höchstens eine zweite Karte bei einem numerischen Gleichstand. Es zählt der erste ungeschützte Gleichstand im Uhrzeigersinn ab dem ersten Flip.'},
  swipe:{name:'Iconic · Schildklau',short:'−',description:`Beim Angriff ignoriert Steve bis zu ${SWIPE_MAX_DEFENSE} Punkte Fähigkeits-Verteidigung, wenn er dadurch eine Karte flippt. Er nimmt höchstens einen Schild mit, beginnend im Osten im Uhrzeigersinn. Ereignisfelder und S-Kanten bleiben wirksam.`},
  encore:{name:'Iconic · Zugabe',short:'♫',description:'Nach genau einem Flip darfst du Epic Sax Guy um 60° nach links oder rechts drehen. Die Drehung ändert nur die Ausrichtung für folgende Züge.'},
+ bid:{name:'Iconic · Nachschlag',short:'+1',description:'Wenn du zurückliegst, kannst du deinen ungenutzten Blockadezug für +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen.'},
+ decoy:{name:'Iconic · Falsche Kante',short:'◇',description:`Pigeon verwechselt eine gegnerische Kante mit ihrer schwächeren Nachbarkante. Das senkt den Grundwert für diesen Angriff um höchstens ${PIGEON_MAX_REDUCTION}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn zählt. Schutzboni und S-Kanten gelten weiterhin.`},
 };
 export const LOADOUTS={
  'hype-guard':{name:'Doge + Pepe',abilities:['hype','guard']},
@@ -44,6 +47,8 @@ const RELEASED_ICONICS={
  'iconic-double-rainbow':[2,'rainbow'],
  'iconic-scumbag-steve':[3,'swipe'],
  'iconic-epic-sax-guy':[3,'encore'],
+ 'iconic-take-my-money':[4,'bid'],
+ 'iconic-is-this-a-pigeon':[4,'decoy'],
 };
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
@@ -141,7 +146,7 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
 }
 // All effects resolve on a copy. Merely aiming or cancelling can never alter the board.
 export function previewEffect(game,action){
- const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,stepCells=null,pivotDirection=0}=action;
+ const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,stepCells=null,pivotDirection=0,bidDirection=null}=action;
  if(game.rotationLocked&&rotation!==0)throw Error('Handkarten haben eine feste Ausrichtung.');
  validatePlacement(game,{uid,cell,rotation});
  if(!Number.isInteger(abilityDirection)||abilityDirection<0||abilityDirection>5)throw Error('Ungültige Fähigkeitsrichtung.');
@@ -157,6 +162,34 @@ export function previewEffect(game,action){
   const tieProtected=!setup&&stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
   return {cell:n.id,dir:n.dir,attack,defend,setup,flip:!setup&&effectAttackWins(attack,defend,elementRules),name:cardOf(other).name,...(tieProtected?{tieProtected:true}:{})};
  });
+ const currentScores=ability==='bid'?scores(game):null;
+ const bids=currentScores&&currentScores[game.turn]<currentScores[1-game.turn]&&game.players[game.turn].shifts>0
+  ?comparisons.filter(c=>!c.flip&&!c.setup&&c.attack.rank!=='S'&&effectAttackWins({...c.attack,total:c.attack.total+1},c.defend,game.elementRules??3))
+  :[];
+ const bid=bidDirection===null?null:bids.find(c=>c.dir===bidDirection);
+ if(bidDirection!==null&&!bid)throw Error('Kein gültiger Nachschlag.');
+ if(bid){bid.attack={...bid.attack,total:bid.attack.total+1,ability:bid.attack.ability+1};bid.flip=true;bid.tieProtected=false;bid.bid=true;}
+ let decoy=null;
+ if(ability==='decoy'){
+  for(const comparison of comparisons){
+   const {attack,defend,dir,cell:enemyCell}=comparison;
+   if(comparison.flip||comparison.setup||defend.rank==='S')continue;
+   const target=working.board[enemyCell];
+   const edge=(dir+3)%6;
+   const adjacent=[(edge+1)%6,(edge+5)%6];
+   const read=adjacent.map(dir=>sideValue(target,dir)).filter(value=>!isSRank126(value));
+   const amount=Math.min(PIGEON_MAX_REDUCTION,defend.base-Math.min(defend.base,...read));
+   if(!amount)continue;
+   const mistaken={...defend,total:defend.total-amount,misread:amount};
+   if(!effectAttackWins(attack,mistaken,game.elementRules??3))continue;
+   comparison.defend=mistaken;
+   comparison.flip=true;
+   comparison.tieProtected=false;
+   comparison.decoy=true;
+   decoy={cell:enemyCell,dir:edge,amount};
+   break;
+  }
+ }
  let swipe=null;
  if(ability==='swipe'){
   for(const comparison of comparisons){
@@ -193,7 +226,7 @@ export function previewEffect(game,action){
  const steps=ability==='sidestep'?sidestepTargets(working,cell):[];
  if(stepCells!==null&&(!Array.isArray(stepCells)||stepCells.length!==2||!steps.some(([from,to])=>from===stepCells[0]&&to===stepCells[1])))throw Error('Kein gültiges Ziel für Platz machen.');
  const relocation=stepCells===null?null:{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid};
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
@@ -205,11 +238,14 @@ export function placeEffect(game,action){
   next.board[to]=next.board[from];
   delete next.board[from];
  }
+ if(p.bid!==null)player.shifts--;
  player.flips+=p.flips.length;next.placements++;
  next.last={type:'place',side,cell:action.cell,uid:action.uid,name:cardOf(p.card).name,flips:p.flips,transforms:p.transforms,ability:p.ability,suppressed:p.suppressed,event:game.eventFieldsEnabled===false?null:eventPhase(next)!==eventPhase(game)?eventPhase(next):null};
  if(p.relocation)next.last.relocation=p.relocation;
  if(p.rainbow)next.last.rainbow=p.rainbow;
  if(p.swipe)next.last.swipe=p.swipe;
+ if(p.bid!==null)next.last.bid=p.bid;
+ if(p.decoy)next.last.decoy=p.decoy;
  if(p.pivot){
   next.board[action.cell].rotation=p.pivot.to;
   next.last.transforms.push(p.pivot);
@@ -220,7 +256,7 @@ export function placeEffect(game,action){
   next.last.abilityDirection=p.abilityDirection;
   if(game.elementalTrial){
    const working={...game,board:p.board};
-   next.last.abilityEdge=abilityEdge(working,p.card,p.cell,{attacking:true,direction:p.abilityDirection})??abilityEdge(working,p.card,p.cell);
+   next.last.abilityEdge=p.bid!==null?{dir:p.bid,amount:1}:abilityEdge(working,p.card,p.cell,{attacking:true,direction:p.abilityDirection})??abilityEdge(working,p.card,p.cell);
   }
  }
  next.history.push(next.last);
@@ -236,6 +272,10 @@ export function actionOptions(game,card,cell,rotation){
  if(ability==='sidestep'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   return [action,...previewEffect(game,action).steps.map(stepCells=>({...action,stepCells}))];
+ }
+ if(ability==='bid'){
+  const action={uid:card.uid,cell,rotation,abilityDirection:0};
+  return [action,...previewEffect(game,action).bidTargets.map(bidDirection=>({...action,bidDirection}))];
  }
  return directions.flatMap(abilityDirection=>targets.map(twistCell=>({uid:card.uid,cell,rotation,abilityDirection,twistCell})));
 }

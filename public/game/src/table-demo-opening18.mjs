@@ -1,6 +1,6 @@
-import {bindReleasedIconicControls} from './released-iconic-controls.mjs?v=encore-pair-release';
+import {bindReleasedIconicControls} from './released-iconic-controls.mjs?v=pigeon-pair-release';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=encore-pair-release';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=pigeon-pair-release';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -9,24 +9,24 @@ import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs?v=booster-classes-140';
-import {soloAction84} from './solo-ai84.mjs?v=encore-pair-release';
+import {soloAction84} from './solo-ai84.mjs?v=pigeon-pair-release';
 import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {connectAccountGame,leaveStoredAccount112} from '../platform/account-client50.mjs?v=identity-85';
-import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=encore-pair-release';
+import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=pigeon-pair-release';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=start-recovery-139';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=encore-pair-release';
+import {createTableAudio} from './table-audio.mjs?v=pigeon-pair-release';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=encore-pair-release';
-import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=encore-pair-release';
+import {createTableView} from './table-demo-view-hand17.mjs?v=pigeon-pair-release';
+import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=pigeon-pair-release';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs?v=booster-classes-140';
-import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards,WATER_BONUS} from './table-demo-rules.mjs?v=encore-pair-release';
+import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards,WATER_BONUS} from './table-demo-rules.mjs?v=pigeon-pair-release';
 import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let conceded129=false,afkStreak129=0;
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
@@ -86,7 +86,7 @@ const profile=c=>({...CARD_PROFILES[DEMO_PROFILES[c.id]],element:cardOf(c).eleme
 function selectedCard(){return game.players[0].hand.find(c=>c.uid===selected);}
 function action(){return {uid:selected,cell:target,rotation,abilityDirection,twistCell,...iconicControls.action()};}
 function plan(){if(mode!=='card'||!selected||!target||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
-function detailStrength(s){if(s.rank==='S')return 'S (S-Rang; Zahlenboni ohne Wirkung)';return `${s.total} (Basis ${printedValue126(s.base)}${s.field?' + Feld '+s.field:''}${(game.elementRules??3)===3&&s.element?' + Element '+s.element:''}${s.ability?' + Fähigkeit '+s.ability:''})`;}
+function detailStrength(s){if(s.rank==='S')return 'S (S-Rang; Zahlenboni ohne Wirkung)';return `${s.total} (Basis ${printedValue126(s.base)}${s.field?' + Feld '+s.field:''}${(game.elementRules??3)===3&&s.element?' + Element '+s.element:''}${s.ability?' + Fähigkeit '+s.ability:''}${s.misread?' − Falsche Kante '+s.misread:''})`;}
 function render(){
  boardPreview.sync();
  const inspect=boardPreview.pinnedCell;
@@ -113,7 +113,7 @@ function render(){
  else{$('statusTitle').textContent='Karte wählen oder aufs Feld ziehen.';$('statusDetail').textContent='';}
  const described=card??(inspect?game.board[inspect]:null)??game.players[0].hand.find(c=>c.uid===hover);$('rarityInfo').hidden=!described;if(described){const r=rarityOf(described);$('rarityInfo').style.setProperty('--rarity-color',r.color);$('rarityName').textContent=r.mark+' · '+r.label;$('rarityFinish').textContent=r.finish;}
  $('controls').dataset.context=busy||card||inspect||mode==='shift'||game.finished?'active':'idle';
- $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.rank==='S'||c.defend.rank==='S'?(c.attack.rank===c.defend.rank?' = ':c.attack.rank==='S'?' > ':' < '):c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(c.rainbow?' · Zweiter Bogen':c.swipe?' · Schildklau':game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.tieProtected?' · KEKW hält den Gleichstand':c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):inspect&&game.board[inspect]?'Basiswerte O / SO / SW / W / NW / NO: '+DIRECTION_NAMES.map((_,d)=>printedValue126(sideValue(game.board[inspect],d))).join(' / '):'';
+ $('previewText').textContent=p?p.comparisons.map(c=>name(game.board[c.cell])+': '+detailStrength(c.attack)+(c.setup?' → nur gedreht · ':c.attack.rank==='S'||c.defend.rank==='S'?(c.attack.rank===c.defend.rank?' = ':c.attack.rank==='S'?' > ':' < '):c.attack.total===c.defend.total?' = ':c.attack.total>c.defend.total?' > ':' < ')+detailStrength(c.defend)+(c.rainbow?' · Zweiter Bogen':c.swipe?' · Schildklau':c.bid?' · Nachschlag':c.decoy?' · Falsche Kante':game.elementRules===5&&c.attack.total===c.defend.total&&c.attack.element!==c.defend.element?(c.tieProtected?' · KEKW hält den Gleichstand':c.flip?' · Element entscheidet: Übernahme':' · Element entscheidet: Verteidigung hält'):'')).join(' · '):inspect&&game.board[inspect]?'Basiswerte O / SO / SW / W / NW / NO: '+DIRECTION_NAMES.map((_,d)=>printedValue126(sideValue(game.board[inspect],d))).join(' / '):'';
  syncClock();
  view?.update(game,{selected,target,hover,busy,plan:p,mode,twistCell,inspect,abilityDirection});
 }
@@ -184,7 +184,7 @@ async function reset({preserveSeries=false}={}){
   }catch(error){accountProblem(error);return;}
  }
  game=isMatch()?createTacticsMatch({loadouts:[$('loadout').value,$('opponentLoadout').value],seed:matchSeed,starter:roundStarter(firstStarter??0,round)}):createTableDemo($('loadout').value);
- if(practice?.mode==='deck-test'){game.abilityTrial=true;game.elementalTrial=true;game.iconicAbilities=true;game.iconicAbilityWave=3;}
+ if(practice?.mode==='deck-test'){game.abilityTrial=true;game.elementalTrial=true;game.iconicAbilities=true;game.iconicAbilityWave=4;}
  if(isMatch())game=applyPortalDecks(game,portalDeck.cards,[$('loadout').value,$('opponentLoadout').value].map(id=>LOADOUTS[id]),{round,opponentCards:practice?soloOpponent84(practice.opponent,portalDeck.cards,matchSeed):null});
  if(accountData)game=accountData.state.game;
  game=withDemoFinishes(game);game.rotationLocked=true;await view.prepareGame(game);if(token!==epoch)return;view.initGame(game);
@@ -220,7 +220,7 @@ function stopDrag(e,cancelled=false){
  if(cancelled){view.release(d.uid);cancelSelection();return;}
  iconicControls.clear();target=cell&&!game.board[cell]&&cell!==game.block?cell:null;twistCell=null;
  const pending=target&&plan();
- if(pending&&(['water','air'].includes(pending.ability)||pending.steps?.length||pending.pivotTarget)){view.release(d.uid);render();return;}
+ if(pending&&(['water','air'].includes(pending.ability)||pending.steps?.length||pending.pivotTarget||pending.bidTargets?.length)){view.release(d.uid);render();return;}
  if(pending){cycle(action());return;}
  // Invalid drops never reserve a tile, consume a card or start an opponent turn.
  view.release(d.uid);cancelSelection();

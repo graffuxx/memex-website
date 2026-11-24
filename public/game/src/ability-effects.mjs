@@ -1,4 +1,4 @@
-import {abilityEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=encore-pair-release';
+import {abilityEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=pigeon-pair-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -24,6 +24,8 @@ export function abilityMarkers(game,plan){
     markers.push({kind:'sidestep',cell:plan.relocation.to,preview:true,label:'◆'});
    }
 
+   if(plan.bid!=null)markers.push({kind:'bid',cell:plan.cell,dir:plan.bid,preview:true,label:'+1'});
+   if(plan.decoy)markers.push({kind:'decoy',...plan.decoy,preview:true,label:`−${plan.decoy.amount}`});
    if(plan.pivot)markers.push({kind:'encore',cell:plan.cell,preview:true,label:plan.pivot.to===(plan.pivot.from+5)%6?'↶':'↻'});
    if(plan.swipe)markers.push({kind:'swipe',cell:plan.swipe.cell,dir:(plan.swipe.dir+3)%6,preview:true,label:`−${plan.swipe.amount}`});
    if(plan.rainbow)markers.push({kind:'rainbow',cell:plan.cell,dir:plan.rainbow.dir,preview:true,label:'⌒'});
@@ -50,6 +52,7 @@ export function abilityBursts(game){
   const {ability,abilityEdge:edge}=last;
   const markers=(last.tieBlocks??[]).map(stop=>({kind:'laugh',...stop,label:'='}));
   if(last.relocation)markers.push({kind:'sidestep',cell:last.relocation.to,label:'↗'});
+  if(last.decoy)markers.push({kind:'decoy',...last.decoy,label:`−${last.decoy.amount}`});
   if(last.swipe)markers.push({kind:'swipe',cell:last.swipe.cell,dir:(last.swipe.dir+3)%6,label:`−${last.swipe.amount}`});
   if(last.rainbow)markers.push({kind:'rainbow',cell:last.rainbow.cell,dir:(last.rainbow.dir+3)%6,label:'⌒'});
   if(edge)markers.push({kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`});

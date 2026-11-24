@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=encore-pair-release';
+import * as currentRules from './table-demo-rules.mjs?v=pigeon-pair-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -40,7 +40,7 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
  }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
- return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
+ return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){

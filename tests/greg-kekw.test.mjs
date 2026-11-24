@@ -77,9 +77,9 @@ for(const seat of [0,1]){
 
 
 test('New private duels start the latest ability wave and older games retain their original wave',()=>{
- const deck=[...starterDeck().slice(0,8),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','evil-ernie:rare'];
+ const deck=[...starterDeck().slice(0,6),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','take-my-money:rare','is-this-a-pigeon:common','evil-ernie:rare'];
  const decks=[{cards:deck},{cards:deck}];
- for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
+ for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:4},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
   let state=createPvp90(decks,9,1,flags);
   state=advancePvp90(state,0,{kind:'gesture',value:'rock'},2);
   state=advancePvp90(state,1,{kind:'gesture',value:'scissors'},3);
@@ -90,8 +90,10 @@ test('New private duels start the latest ability wave and older games retain the
    assert.equal(assigned.find(c=>c.variantId==='kekw:mythic').ability,flags.iconicAbilities?'laugh':undefined);
    assert.equal(assigned.find(c=>c.variantId==='forever-alone:common').ability,flags.iconicAbilityWave>=2?'solitude':undefined);
    assert.equal(assigned.find(c=>c.variantId==='double-rainbow:rare').ability,flags.iconicAbilityWave>=2?'rainbow':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='scumbag-steve:rare').ability,flags.iconicAbilityWave===3?'swipe':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='epic-sax-guy:common').ability,flags.iconicAbilityWave===3?'encore':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='scumbag-steve:rare').ability,flags.iconicAbilityWave>=3?'swipe':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='epic-sax-guy:common').ability,flags.iconicAbilityWave>=3?'encore':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='take-my-money:rare').ability,flags.iconicAbilityWave===4?'bid':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='is-this-a-pigeon:common').ability,flags.iconicAbilityWave===4?'decoy':undefined);
    assert.equal(assigned.find(c=>c.variantId==='evil-ernie:rare').ability,undefined);
   }
  }
@@ -191,5 +193,73 @@ for(const seat of [0,1]){
   assert.throws(()=>previewEffect(game,action),/Drehung/);
   game.board={};
   assert.throws(()=>previewEffect(game,action),/Drehung/);
+ });
+}
+for(const seat of [0,1]){
+ test(`Take My Money may spend a blockade charge for one winning edge while behind for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat,money=makeCard('take-my-money:common',seat,'bid');
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  game.players[seat].hand=[money];
+  game.board={
+   '1,0':{...makeCard('sad-keanu:common',other),controller:other},
+   '-1,0':{...makeCard('seal-of-approval:common',other),controller:other},
+  };
+  const action={uid:money.uid,cell:'0,0'};
+  const before=structuredClone(game);
+  const initial=previewEffect(game,action);
+  assert.deepEqual(initial.flips,[]);
+  assert.deepEqual(initial.bidTargets,[0,3]);
+  const chosen={...action,bidDirection:0};
+  const plan=previewEffect(game,chosen);
+  assert.deepEqual(game,before);
+  assert.deepEqual(plan.flips,['1,0']);
+  assert.deepEqual(abilityMarkers(game,plan),[{kind:'bid',cell:'0,0',dir:0,preview:true,label:'+1'}]);
+  const next=placeEffect(game,chosen);
+  assert.equal(next.players[seat].shifts,0);
+  assert.equal(next.block,game.block);
+  assert.equal(next.board['-1,0'].controller,other);
+  assert.equal(placeEffect(game,action).players[seat].shifts,1);
+  assert.ok(legalCandidates(game).some(({action:a})=>a.cell==='0,0'&&a.bidDirection===3));
+  assert.throws(()=>previewEffect(game,{...action,bidDirection:1}),/Nachschlag/);
+  game.players[seat].shifts=0;
+  assert.throws(()=>previewEffect(game,chosen),/Nachschlag/);
+  game.players[seat].shifts=1;
+  game.board['0,1']={...makeCard('doge:common',seat),controller:seat};
+  game.board['0,-1']={...makeCard('pepe:common',seat),controller:seat};
+  assert.throws(()=>previewEffect(game,chosen),/Nachschlag/);
+ });
+
+ test(`Pigeon can misread one numeric edge without changing cards or ignoring shields for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat,pigeon=makeCard('is-this-a-pigeon:common',seat,'decoy');
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  game.players[seat].hand=[pigeon];
+  const enemy=(id,extras={})=>({...makeCard(id+':common',other),controller:other,rotation:0,...extras});
+  game.board={'1,0':enemy('side-eye'),'-1,0':enemy('sad-keanu')};
+  const action={uid:pigeon.uid,cell:'0,0'};
+  const plan=previewEffect(game,action);
+  assert.deepEqual(plan.flips,['1,0']);
+  assert.deepEqual(plan.decoy,{cell:'1,0',dir:3,amount:2});
+  assert.equal(plan.comparisons[0].defend.base,5);
+  assert.equal(plan.comparisons[0].defend.total,3);
+  assert.equal(abilityMarkers(game,plan).find(m=>m.kind==='decoy').label,'−2');
+  const next=placeEffect(game,action);
+  assert.equal(next.board['0,0'].element,'air');
+  assert.equal(next.board['1,0'].rotation,0);
+  assert.equal(sideValue(next.board['1,0'],3),5);
+  assert.deepEqual(next.last.decoy,plan.decoy);
+  assert.equal(next.board['-1,0'].controller,other);
+
+  game.board={'-1,0':enemy('sad-keanu',{ability:'water',guardOwner:other,guardDirection:0,guardUntil:2})};
+  assert.equal(previewEffect(game,action).decoy,null);
+  game.board['-1,0'].guardUntil=0;
+  assert.deepEqual(previewEffect(game,action).flips,['-1,0']);
+
+  game.board={'1,0':enemy('evil-ernie',{rotation:3})};
+  assert.equal(previewEffect(game,action).decoy,null);
+  assert.equal(previewEffect(game,action).comparisons[0].defend.rank,'S');
+
+  game.board={'0,1':enemy('kekw',{ability:'laugh',rotation:3,laughOwner:other,laughUntil:2})};
+  assert.deepEqual(previewEffect(game,action).flips,[]);
+  assert.deepEqual(previewEffect({...game,placements:2},action).flips,['0,1']);
  });
 }

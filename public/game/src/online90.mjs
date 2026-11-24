@@ -1,6 +1,6 @@
-import {bindReleasedIconicControls} from './released-iconic-controls.mjs?v=encore-pair-release';
+import {bindReleasedIconicControls} from './released-iconic-controls.mjs?v=pigeon-pair-release';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=encore-pair-release';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=pigeon-pair-release';
 import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
@@ -9,11 +9,11 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=encore-pair-release';
-import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=encore-pair-release';
+import {createTableView} from './table-demo-view-hand17.mjs?v=pigeon-pair-release';
+import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=pigeon-pair-release';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=booster-classes-140';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=encore-pair-release';
+import {createTableAudio} from './table-audio.mjs?v=pigeon-pair-release';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
@@ -51,7 +51,7 @@ function render(){
  $('confirm').disabled=busy||!(p||mode==='shift'&&moveTargets(game).includes(target));$('confirm').textContent=mode==='shift'?'Move blockade':'Play card';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent='◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
  $('nextRound').hidden=data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||animating||presentation.needsSnapshot||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Next round starts automatically':'Continue sooner';
  $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?(game.turn===0?'Choose a free field. Escape cancels.':'Inspect your hand while your opponent plays.'):game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
- $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.flip?' ✓':c.tieProtected?' · KEKW holds':'')).join(' · '):'';
+ $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.flip?' ✓':c.tieProtected?' · KEKW holds':'')).join(' · '):'';
  $('abilityOptions').hidden=!card?.ability||mode==='shift';$('abilityLabel').textContent=card?.ability?ABILITIES[card.ability].name:'';$('abilityHint').textContent=abilityDescription(game,card?.ability);$('directionLabel').hidden=!aimsAbility(card?.ability);$('twistLabel').hidden=!turnsCards(card?.ability);
  iconicControls.update(game,card,p,busy);
  if(turnsCards(card?.ability)){const opts=target?twistTargets(game,target,card.ability):[];$('twistTarget').replaceChildren(new Option('No rotation',''),...opts.map(c=>new Option(c,c)));$('twistTarget').value=twistCell??'';}
@@ -142,7 +142,7 @@ function release(e,cancelled=false){
  if(!d.moved){choose(d.uid);return;}
  view.release(d.uid);iconicControls.clear();target=cell&&!game.board[cell]&&cell!==game.block?cell:null;twistCell=null;
  const pending=locked()?null:plan();
- if(pending&&(['water','air'].includes(pending.ability)||pending.steps?.length||pending.pivotTarget))render();
+ if(pending&&(['water','air'].includes(pending.ability)||pending.steps?.length||pending.pivotTarget||pending.bidTargets?.length))render();
  else if(pending)confirm();
  else{clear();render();}
 }
