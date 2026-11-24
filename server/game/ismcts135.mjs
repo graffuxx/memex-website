@@ -1,9 +1,11 @@
 import {AI_DEFINITIONS107} from '../../public/game/platform/ai-pool107.mjs';
 import {DEFINITIONS,expandGameDeck,getVariant,MAX_ICONICS} from '../../public/game/platform/catalog.mjs';
 import {legalCandidates,positionalValue} from '../../public/game/src/tactics-ai.mjs';
-import {placeEffect} from '../../public/game/src/table-demo-rules.mjs';
+import {placeEffect,preferredDrawIndex,resolveDraw} from '../../public/game/src/table-demo-rules.mjs';
 import {scores} from '../../public/game/src/rules.mjs';
-import {sampleOpponentStyle135} from './opponent-model135.mjs';
+import {sampleOpponentStyle135,placementKey135} from './opponent-model135.mjs';
+
+import {portalTrialAbility} from '../../public/game/platform/deck-bridge.mjs';
 
 export const ISMCTS_VERSION135='is-mcts-1';
 // Independent of a future Tower UI: higher budgets can be calibrated against fixed agents.
@@ -11,7 +13,7 @@ export const SEARCH_LIMITS135=Object.freeze({casual:{iterations:48,maxMs:180},st
 const definitions=new Map(DEFINITIONS.map(c=>[c.id,c]));
 const shuffle=(list,random)=>{const a=[...list];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const definitionId=c=>getVariant(c.variantId)?.definitionId??DEFINITIONS.find(d=>d.ruleId===c.id)?.id;
-const actionKey=(action,g)=>JSON.stringify([action.uid,g.players[g.turn].hand.find(c=>c.uid===action.uid)?.id,action.cell,action.rotation??0,action.abilityDirection??0,action.twistCell??null]);
+const actionKey=(action,g)=>JSON.stringify([g.players[g.turn].hand.find(c=>c.uid===action.uid)?.id,placementKey135(action)]);
 
 export function observeGame135(game,observer){
  const g=structuredClone(game);delete g.seed;
@@ -19,6 +21,11 @@ export function observeGame135(game,observer){
  return g;
 }
 function attachAbility(card,game,side){
+ if(game.elementalTrial){
+  const ability=portalTrialAbility(game,card);
+  if(ability)card.ability=ability;
+  return card;
+ }
  const allowed=game.loadouts?.[side]==='hype-twist'?['hype','twist']:game.loadouts?.[side]==='guard-twist'?['guard','twist']:['hype','guard'];
  const ability=definitions.get(definitionId(card))?.ability;
  if(allowed.includes(ability))card.ability=ability;
@@ -50,10 +57,18 @@ export function determinize135(observation,{observer,ownDeck,random}){
  return g;
 }
 function informationKey(g,observer){
- const card=c=>[c.uid,c.id,c.variantId,c.origin,c.controller,c.rotation??0,c.ability??null,c.guardOwner??null,c.guardUntil??null,c.guardDirection??null];
- return JSON.stringify([g.placements,g.block,g.players.map(p=>p.shifts),Object.entries(g.board).sort(([a],[b])=>a.localeCompare(b)).map(([cell,c])=>[cell,card(c)]),g.players[observer].hand.map(card).sort((a,b)=>a[0].localeCompare(b[0]))]);
+ const card=g.abilityTrial?c=>c:c=>[c.uid,c.id,c.variantId,c.origin,c.controller,c.rotation??0,c.ability??null,c.guardOwner??null,c.guardUntil??null,c.guardDirection??null];
+ return JSON.stringify([g.placements,g.block,g.blockadeLock??null,g.fanReserve??null,g.players.map(p=>p.shifts),Object.entries(g.board).sort(([a],[b])=>a.localeCompare(b)).map(([cell,c])=>[cell,card(c)]),[...g.players[observer].hand].sort((a,b)=>a.uid.localeCompare(b.uid)).map(card)]);
 }
-function transition(g,action){const next=placeEffect(g,action);next.history=[];return next;}
+function transition(g,action){
+ let next=placeEffect(g,action,{chooseDraw:g.iconicAbilityWave>=7});
+ if(next.pendingDraw){
+  const cards=next.players[next.pendingDraw.side].deck.slice(0,2);
+  next=resolveDraw(next,preferredDrawIndex(cards));
+ }
+ next.history=[];
+ return next;
+}
 function rankCandidates(g,personality,random,light=false){
  let input=g;
  // Bounded rollout policy: sample two available cards early, use the whole hand late.

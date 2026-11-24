@@ -38,13 +38,16 @@ test('empty queue fallback, human priority, cancel, reconnect, first-to-two AI r
   await db.exec('reset role');
   const randomRules=(await db.query('select state from public.dv_pvp90 where id=$1',[id])).rows[0].state;
   assert.equal(randomRules.finalGuard,true);
-  assert.equal(randomRules.elementalTrial,false);
-  assert.ok(randomRules.balance.patch.endsWith('-random-final-guard'));
+  assert.equal(randomRules.elementalTrial,true);
+  assert.equal(randomRules.iconicAbilityWave,7);
+  assert.equal(randomRules.allPrimes,true);
+  assert.ok(randomRules.balance.patch.endsWith('-random-full-abilities'));
   let expected=0,expectedWins=0,manualMoves=0,lastRequest,lastVersion,lastMove;const restored=await call('a',{op:'poll',id});assert.deepEqual(restored.players,x.players);
   for(let guard=0;x.phase!=='ended'&&guard<150;guard++){
    time+=3000;
    if(x.phase==='rps'&&!x.ownChoice){lastMove={kind:'gesture',value:'rock'};}
    else if(x.phase==='initiative'&&x.rpsWinner===0)lastMove={kind:'starter',side:0};
+   else if(x.phase==='play'&&x.game.pendingDraw?.side===0)lastMove={kind:'draw',index:1};
    else if(x.phase==='play'&&x.game.turn===0)lastMove={kind:'place',action:chooseTactic(x.game,{policy:'position'}).chosen.action};
    // Round 1 must resume without a ready click; later rounds exercise Continue sooner.
    else if(x.phase==='between'&&x.round>1&&!x.ready[0])lastMove={kind:'ready'};

@@ -3981,6 +3981,9 @@ var SOLO_OPPONENTS84 = Object.freeze([
 ]);
 
 // public/game/platform/deck-bridge.mjs
+function portalTrialAbility(game, card) {
+  return standardAbility(card) ?? (game.iconicAbilities ? releasedIconicAbility(card, game.iconicAbilityWave) : null) ?? (game.allPrimes || game.releasedPrimeTrio ? releasedPrimeAbility(card, game.releasedPrimePair, game.allPrimes) : null);
+}
 function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = null } = {}) {
   if (!Number.isSafeInteger(round) || round < 1) throw Error("Invalid round.");
   const next = structuredClone(game);
@@ -3993,7 +3996,7 @@ function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = nu
     const deck = expandGameDeck(side === 0 ? cards : opponentCards ?? starterDeck(), side);
     if (next.elementalTrial) {
       for (const card of deck) {
-        const ability = standardAbility(card) ?? (next.iconicAbilities ? releasedIconicAbility(card, next.iconicAbilityWave) : null) ?? (next.allPrimes || next.releasedPrimeTrio ? releasedPrimeAbility(card, next.releasedPrimePair, next.allPrimes) : null);
+        const ability = portalTrialAbility(next, card);
         if (ability) card.ability = ability;
       }
     } else {

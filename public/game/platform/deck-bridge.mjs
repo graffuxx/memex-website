@@ -10,6 +10,11 @@ export function readPlayDeck(storage){
  return result.valid?{cards,deckId:typeof saved.deckId==='string'?saved.deckId:null,name:typeof saved.name==='string'?saved.name.slice(0,40):'My deck',source:saved.source==='sandbox'?'sandbox':saved.source==='account'?'account':'guest',...(practice?{practice}:{})}:null;
  }catch{return null;}
 }
+export function portalTrialAbility(game,card){
+ return standardAbility(card)
+  ?? (game.iconicAbilities?releasedIconicAbility(card,game.iconicAbilityWave):null)
+  ?? (game.allPrimes||game.releasedPrimeTrio?releasedPrimeAbility(card,game.releasedPrimePair,game.allPrimes):null);
+}
 export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null}={}){
  if(!Number.isSafeInteger(round)||round<1)throw Error('Invalid round.');
  const next=structuredClone(game);
@@ -17,7 +22,7 @@ export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null
   let state=(next.seed*53+side*8017+111)>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
   const deck=expandGameDeck(side===0?cards:opponentCards??starterDeck(),side);
   if(next.elementalTrial){
-   for(const card of deck){const ability=standardAbility(card)??(next.iconicAbilities?releasedIconicAbility(card,next.iconicAbilityWave):null)??(next.allPrimes||next.releasedPrimeTrio?releasedPrimeAbility(card,next.releasedPrimePair,next.allPrimes):null);if(ability)card.ability=ability;}
+   for(const card of deck){const ability=portalTrialAbility(next,card);if(ability)card.ability=ability;}
   }else{
    for(const ability of loadouts[side].abilities){const candidates=deck.filter(c=>ABILITY_FOR[c.id]===ability);if(candidates.length)candidates[Math.floor(random()*candidates.length)].ability=ability;}
   }

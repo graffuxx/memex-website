@@ -3,6 +3,7 @@ import {AI_DEFINITIONS107 as DEFINITIONS,AI_VARIANTS107 as VARIANTS} from '../..
 import {ELEMENT_IDS} from '../../public/game/platform/elements53.mjs';
 import {PORTRAITS85} from '../../public/game/platform/identity85.mjs';
 import {chooseTactic} from '../../public/game/src/tactics-ai.mjs';
+import {preferredDrawIndex} from '../../public/game/src/table-demo-rules.mjs';
 import {advancePvp90,expirePvp90} from './pvp90.mjs';
 import {RANDOM_AI_WAIT_MS98} from '../../public/game/platform/matchmaking98.mjs';
 import {botPersonality134} from './bot-personality134.mjs';
@@ -44,6 +45,7 @@ export function stepBot96(state,now,searchOptions={}){
  if(state.phase==='rps')move={kind:'gesture',value:pick(['rock','paper','scissors'],r)};
  else if(state.phase==='initiative')move={kind:'starter',side:r()<.75?1:0};
  else if(state.phase==='between')move={kind:'ready'};
+ else if(state.game.pendingDraw)move={kind:'draw',index:preferredDrawIndex(state.game.players[1].deck.slice(0,2))};
  else {
   // The policy receives only its own hand, the public board and hidden card counts.
   const visible=structuredClone(state.game);visible.players[0].hand=visible.players[0].hand.map(c=>({uid:c.uid,hidden:true}));for(const p of visible.players)p.deck=p.deck.map(c=>({uid:c.uid,hidden:true}));
