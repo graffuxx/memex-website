@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { DISCORD_INVITE } from '@/lib/discord';
 import styles from './SocialsSection.module.css';
 
 type Props = {
@@ -36,13 +37,14 @@ export default function SocialsSection({ mode = 'section' }: Props) {
             </span>
           </a>
 
-          <a className={styles.iconBtn} href="https://discord.gg/KWMRbErTh" aria-label="Discord">
+          <a className={`${styles.iconBtn} ${styles.discordButton}`} href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">
             <span className={styles.icon}>
               {/* Discord */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20 4.5a16 16 0 0 0-4-1.5l-.2.4a14 14 0 0 1 3 1.3 11 11 0 0 0-8.6 0 14 14 0 0 1 3-1.3L13 3a16 16 0 0 0-4 1.5C6.6 8 6 11.4 6.2 14.7a16 16 0 0 0 4.9 2.5l.6-.8a10 10 0 0 1-1.6-.8l.4-.3a11 11 0 0 0 9.1 0l.4.3a10 10 0 0 1-1.6.8l.6.8a16 16 0 0 0 4.9-2.5C23.4 11.4 22.8 8 20 4.5zM9.6 13.8c-.7 0-1.2-.6-1.2-1.4S9 11 9.6 11s1.2.6 1.2 1.4-.5 1.4-1.2 1.4zm4.8 0c-.7 0-1.2-.6-1.2-1.4S13.8 11 14.4 11s1.2.6 1.2 1.4-.5 1.4-1.2 1.4z" />
               </svg>
             </span>
+            Join Discord
           </a>
 
           <a className={styles.iconBtn} href="https://www.instagram.com/memex.duelverse/" aria-label="Instagram">

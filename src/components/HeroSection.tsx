@@ -1,5 +1,6 @@
 'use client';
 
+import { DISCORD_INVITE } from '@/lib/discord';
 import styles from './HeroSection.module.css';
 
 export default function HeroSection() {
@@ -17,10 +18,12 @@ export default function HeroSection() {
   </div>
 
   <div className={styles.heroContent}>
-    
-<a href="/play" className={styles.steamTeaser} aria-label="Play Alpha">
-  <span className={styles.steamTeaserText}>PLAY ALPHA</span>
-</a>
+    <a href="/play" className={styles.steamTeaser} aria-label="Play Alpha">
+      <span className={styles.steamTeaserText}>PLAY ALPHA</span>
+    </a>
+    <a className={styles.discordLink} href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">
+      Join Discord
+    </a>
   </div>
 </section>
   );

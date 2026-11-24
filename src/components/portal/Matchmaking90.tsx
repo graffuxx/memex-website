@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import usePlayerCollection from './usePlayerCollection';
+import {DISCORD_INVITE} from '@/lib/discord';
 import {matchRequest90,activeDuel112,leaveDuel112,type Lobby90} from '@/lib/duelverse/matchmaking90';
 import {eligibleDecks131,validateMatchDeck131} from '../../../public/game/platform/edition-catalog131.mjs';
 import './matchmaking90.css';
@@ -29,5 +30,5 @@ export default function Matchmaking90(){
  {!valid&&ready&&!room&&<p>Save a valid 15-card deck first.</p>}</>}
  {(error||accountError)&&<p role="alert" className="match-error90">{error||accountError}</p>}</div>
  <aside><strong>First to two. One rivalry.</strong><p>90 seconds per turn. Each round reshuffles both decks and alternates the starter. First to 2 round wins; draws do not count.</p><p>{kind==='random'?'Completed Random rounds: +5 Pixels for a win, +2 for a loss or draw. Human and AI Random rounds count toward play/win quests and +100 XP per win. Skill titles require human opponents.':'Private matches can use free loan decks with all released cards. Your collection is unchanged. No Pixels, XP or title progress.'}</p><small>After 35 seconds without a human match, a labelled AI opponent joins with a fresh random deck. AI rounds award Pixels, win XP and play/win quest progress. Skill-based PvP titles and referral qualification require human opponents. Private duels never use AI backup.</small></aside></div>
- <nav className="match-practice90" aria-label="Solo practice"><a href="/play?mode=training">AI Training</a><a href="/play?mode=deck-test">Deck Test</a></nav></section>;
+ <nav className="match-practice90" aria-label="Practice and community"><a href="/play?mode=training">AI Training</a><a href="/play?mode=deck-test">Deck Test</a><a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">Find players on Discord</a></nav></section>;
 }

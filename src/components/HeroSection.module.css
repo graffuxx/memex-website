@@ -73,6 +73,31 @@
   align-items: center;
 }
 
+.discordLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 22px;
+  border: 1px solid #b39bfa80;
+  border-radius: 999px;
+  background: #170d31d9;
+  color: #f1e6ff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.discordLink:hover {
+  border-color: #d5baff;
+  background: #29174b;
+}
+
+.discordLink:focus-visible {
+  outline: 2px solid #e1c8ff;
+  outline-offset: 4px;
+}
+
 .subtitle {
   margin-top: 16px;
   font-size: 19px;
@@ -216,5 +241,23 @@
 
   .steamLogo {
     width: 36px;
+  }
+}
+@media (max-height: 760px) {
+  .hero {
+    min-height: 520px;
+  }
+
+  .logoOverlay {
+    margin-top: clamp(120px, 24vh, 170px);
+  }
+
+  .logoOverlay img {
+    max-height: 46vh;
+    object-fit: contain;
+  }
+
+  .heroContent {
+    margin-top: 22px;
   }
 }
