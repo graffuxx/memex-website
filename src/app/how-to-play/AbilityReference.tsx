@@ -17,7 +17,7 @@ type Category=typeof categories[number]['id'];
 function GlossaryTerms({terms}:{terms:typeof glossary}){
  return <dl className={styles.glossaryGrid}>
   {terms.map(({term,alias,text})=><div key={term}>
-   <dt>{term}{alias&&<small lang="de">{alias}</small>}</dt>
+   <dt>{term}{alias&&<small lang="de">{' · '}{alias}</small>}</dt>
    <dd>{text}</dd>
   </div>)}
  </dl>;
@@ -63,7 +63,7 @@ export default function AbilityReference(){
      {visible.map(({id,name,title,gameLabel,trigger,effect})=><details key={id} className={styles.abilityEntry}>
       <summary>
        <span className={styles.referenceIcon} aria-hidden="true" dangerouslySetInnerHTML={{__html:abilityIconTextureSvg(id)}}/>
-       <span className={styles.abilityTitle}><strong>{name}</strong><span>{title}{gameLabel!==title&&<small lang="de">{gameLabel}</small>}</span></span>
+       <span className={styles.abilityTitle}><strong>{name}</strong><span>{title}{gameLabel!==title&&<small lang="de">{' · '}{gameLabel}</small>}</span></span>
       </summary>
       <dl className={styles.abilitySteps}>
        <div><dt>When it triggers</dt><dd>{trigger}</dd></div>

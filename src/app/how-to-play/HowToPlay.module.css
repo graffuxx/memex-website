@@ -8,8 +8,12 @@
 
 .specialCards136{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:24px 0}.specialCards136 figure{margin:0;text-align:center}.specialCards136 figcaption{font-size:13px;line-height:1.5;color:var(--muted);margin-top:8px}.specialCards136 figure>div{max-width:225px;margin:auto}
 
-.referenceSection {
+.guide .referenceSection {
   padding: 58px 0 10px;
+  scroll-margin-top: 132px;
+}
+.referenceSection :is(div, span, input, button, label, strong, small, dt, dd, summary, a) {
+  font-family: Arial, sans-serif;
 }
 .referenceSection .sectionHeading {
   align-items: center;
@@ -43,9 +47,6 @@
   color: #ba9fd0;
   font-weight: 400;
   font-size: .85em;
-}
-.glossaryGrid small::before, .abilityTitle small::before {
-  content: " · ";
 }
 .glossaryGrid dd, .abilitySteps dd {
   margin: 7px 0 0;
@@ -136,6 +137,9 @@
   align-items: start;
   gap: 8px;
 }
+.abilityList:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
 .abilityEntry {
   border: 1px solid #b392cc44;
   border-radius: 11px;
@@ -209,6 +213,6 @@
 @media(max-width: 800px) {
   .referenceSection .sectionHeading { align-items: flex-start; }
   .glossaryGrid, .abilityList { grid-template-columns: 1fr; }
-  .referenceSection { padding-top: 48px; }
+  .guide .referenceSection { padding-top: 48px; }
   .referencePanel { padding: 14px; }
 }
