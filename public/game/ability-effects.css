@@ -27,3 +27,6 @@
 .ability-effects g[data-ability=cover]{--ability-color:#eddbac;--ability-glow:#ba905b}
 .ability-effects g[data-ability=objection]{--ability-color:#ffb2a6;--ability-glow:#ed645d}
 .ability-effects g[data-ability=thought]{--ability-color:#d8c7ff;--ability-glow:#9b75e2}
+.ability-effects g[data-ability=chorus]{--ability-color:#ffd1ed;--ability-glow:#df73c4}
+.ability-effects g[data-ability=jam]{--ability-color:#ffbc9e;--ability-glow:#ef7050}
+.ability-effects g[data-ability=sandwich]{--ability-color:#ffe09c;--ability-glow:#f2ad50}

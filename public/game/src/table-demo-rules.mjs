@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=objection-pair-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=prime-trio-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -10,6 +10,9 @@ export const SWIPE_MAX_DEFENSE=2;
 export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
 export const OBJECTION_MAX_MARGIN=2;
+export const CHORUS_DUET_GUARD=2;
+export const JAM_PLACEMENTS=3;
+export const SANDWICH_MAX_SUPPORT=3;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -32,6 +35,9 @@ export const ABILITIES={
  cover:{name:'Iconic · Rückendeckung',short:'◈',description:'Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schwächsten offenen Kante bis zum nächsten eigenen Zug. Schutzboni stapeln sich nicht.'},
  objection:{name:'Iconic · Einspruch',short:'!',description:`Würde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf höchstens ${OBJECTION_MAX_MARGIN} Punkte höher sein. Gegen S greift der Einspruch nicht.`},
  thought:{name:'Iconic · Gedankenexperiment',short:'⇄',description:'Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch löst keine Flips aus.'},
+ jam:{name:'Prime · Eingabestopp',short:'⌧',description:'Wähle beim Legen eine angrenzende Gegnerkarte. Ihre eigene Fähigkeit pausiert sofort bis zum Ende deines nächsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam.'},
+ sandwich:{name:'Prime · Sandwich',short:'⟫',description:`Steht ein eigener Verbündeter direkt oder schräg hinter einer Gegnerkarte, kann sein Überschuss gegen deren Rückseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT} verstärken. Es zählt der erste dadurch mögliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.`},
+ chorus:{name:'Prime · Choreografie',short:'♫',description:`Drehe beim Legen eine eigene angrenzende Standardkarte um 60° und schütze ihre schwächste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD} Schutz bis zu deinem nächsten Zug. Die Drehung löst keine Flips aus.`},
 };
 export const LOADOUTS={
  'hype-guard':{name:'Doge + Pepe',abilities:['hype','guard']},
@@ -64,6 +70,13 @@ export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
  return entry&&wave>=entry[0]?entry[1]:null;
 }
+export function releasedPrimeAbility(card){
+ const id=cardOf(card)?.id;
+ if(id==='prime-numa-numa')return 'chorus';
+ if(id==='prime-keyboard-crusher')return 'jam';
+ if(id==='prime-idiot-sandwich')return 'sandwich';
+ return null;
+}
 export function abilityDescription(game,ability){
  if(ability==='guard')return `Eine Seite erhält +${guardBonus(game)} Verteidigung bis zum nächsten eigenen Karten-Zug.`;
  return ABILITIES[ability]?.description??'';
@@ -93,7 +106,14 @@ export function eventFields(game){
 export function eventFieldAt(game,cell){return cell===game.block?null:eventFields(game).find(f=>f.cell===cell)??null;}
 export function nextEvent(game){if(game.eventFieldsEnabled===false)return null;const phase=eventPhase(game);return phase<2?{remaining:[6,12][phase]-game.placements,fields:eventFields({...game,placements:[6,12][phase]})}:null;}
 export function fieldText(f){if(!f)return 'Normales Feld';return FIELD_TYPES[f.type].name+(f.type==='resonance'?' · '+ELEMENTS[f.element].name+' +1':f.type==='crossfire'?' · '+f.directions.map(d=>DIRECTION_NAMES[d]).join('/')+' +1':' · Fähigkeiten aus');}
-export function abilityAt(game,card,cell){return card.ability&&eventFieldAt(game,cell)?.type!=='silence'?card.ability:null;}
+export const jamActive=(game,card)=>game.placements<card.jammedUntil;
+export function abilityAt(game,card,cell){return card.ability&&!jamActive(game,card)&&eventFieldAt(game,cell)?.type!=='silence'?card.ability:null;}
+function jamTargets(game,cell){
+ return neighbors(cell).filter(({id})=>{
+  const card=game.board[id];
+  return card&&card.controller!==game.turn&&abilityAt(game,card,id);
+ }).map(({id})=>[id]);
+}
 export function guardActive(game,card,cell){return guardsEdge(abilityAt(game,card,cell))&&card.guardOwner===card.controller&&game.placements<card.guardUntil;}
 export function twistTargets(game,cell,ability='twist'){
  return neighbors(cell).filter(n=>game.board[n.id]&&((game.board[n.id].controller===game.turn)===(ability==='air'))).map(n=>n.id);
@@ -166,10 +186,23 @@ export function abilityEdge(game,card,cell,{attacking=false,direction=null}={}){
  }
  return null;
 }
+export function chorusTargets(game,cell){
+ const element=id=>{
+  const card=game.board[id];
+  return card?.controller===game.turn?standardAbility(card):null;
+ };
+ const ring=neighbors(cell).map(n=>n.id);
+ return ring.filter(element).flatMap(first=>{
+  const elementOfFirst=element(first);
+  const neighborsOfFirst=neighbors(first).map(n=>n.id);
+  const partners=[...new Set([...ring,...neighborsOfFirst])].filter(id=>element(id)&&element(id)!==elementOfFirst);
+  return [[first,'cw'],[first,'ccw'],...partners.map(second=>[first,second])];
+ });
+}
 export function coverEdge(game,card,cell){
  const ward=card.coverWard;
  return ward&&ward.owner===card.controller&&game.placements<ward.until&&eventFieldAt(game,cell)?.type!=='silence'
-  ?{dir:ward.dir,amount:1,kind:'cover'}:null;
+  ?{dir:ward.dir,amount:ward.amount??1,kind:ward.kind??'cover'}:null;
 }
 export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abilityDirection=null}={}){
  const f=eventFieldAt(game,cell),base=sideValue(card,dir),field=f?.type==='resonance'&&f.element===cardOf(card).element?1:f?.type==='crossfire'&&f.directions.includes(dir)?1:0;
@@ -192,7 +225,15 @@ export function previewEffect(game,action){
  if(twistCell!==null){if(!turnsCards(ability)||!twistTargets(working,cell,ability).includes(twistCell))throw Error('Kein gültiges Drehziel.');const target={...working.board[twistCell]};working.board[twistCell]=target;transforms.push({cell:twistCell,uid:target.uid,from:target.rotation,to:(target.rotation+1)%6});target.rotation=(target.rotation+1)%6;}
  if(ability==='laugh'){card.laughOwner=game.turn;card.laughUntil=game.placements+2;}
  if(guardsEdge(ability)){card.guardDirection=abilityDirection;card.guardOwner=game.turn;card.guardUntil=game.placements+2;}
- const comparisons=neighbors(cell).filter(n=>working.board[n.id]&&working.board[n.id].controller!==game.turn).map(n=>{
+ const surrounding=neighbors(cell);
+ const steps=ability==='sidestep'?sidestepTargets(working,cell):ability==='chorus'?chorusTargets(working,cell):ability==='jam'?jamTargets(working,cell):[];
+ if(stepCells!==null&&(!Array.isArray(stepCells)||!steps.some(pair=>pair.length===stepCells.length&&pair.every((id,index)=>id===stepCells[index])))){
+  const name=ability==='chorus'?'Choreografie':ability==='jam'?'Eingabestopp':'Platz machen';
+  throw Error('Kein gültiges Ziel für '+name+'.');
+ }
+ const jam=ability==='jam'&&stepCells?stepCells[0]:null;
+ if(jam)working.board[jam]={...working.board[jam],jammedUntil:game.placements+JAM_PLACEMENTS};
+ const comparisons=surrounding.filter(n=>working.board[n.id]&&working.board[n.id].controller!==game.turn).map(n=>{
   const other=working.board[n.id],attack=effectStrength(working,card,cell,n.dir,other,{attacking:true,abilityDirection}),defend=effectStrength(working,other,n.id,(n.dir+3)%6,card);
   const setup=n.id===twistCell,elementRules=game.elementRules??3;
   const tieProtected=!setup&&stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
@@ -202,6 +243,30 @@ export function previewEffect(game,action){
  const blocked=directWins.length>=2?directWins.find(c=>canObject(working,working.board[c.cell],c.cell,c.attack,c.defend)):null;
  const objection=blocked?{cell:blocked.cell,dir:(blocked.dir+3)%6}:null;
  if(blocked){blocked.flip=false;blocked.objection=true;}
+ let sandwich=null;
+ if(ability==='sandwich'){
+  for(const target of comparisons){
+   if(target.flip||target.setup||target.objection||target.attack.rank==='S'||target.defend.rank==='S')continue;
+   const enemy=working.board[target.cell];
+   const rear=neighbors(target.cell).filter(({dir})=>[target.dir,(target.dir+1)%6,(target.dir+5)%6].includes(dir));
+   const support=rear.reduce((best,{id,dir})=>{
+    const ally=working.board[id];
+    if(ally?.controller!==game.turn)return best;
+    const reverse=(dir+3)%6;
+    const attack=effectStrength(working,{...ally,ability:null},id,reverse,enemy,{attacking:true});
+    const defend=effectStrength(working,enemy,target.cell,dir,ally);
+    if(attack.rank==='S'||defend.rank==='S')return best;
+    const surplus=Math.min(SANDWICH_MAX_SUPPORT,attack.total-defend.total);
+    return surplus>(best?.amount??0)?{source:id,sourceDir:reverse,amount:surplus}:best;
+   },null);
+   if(!support)continue;
+   const attack={...target.attack,total:target.attack.total+support.amount,sandwich:support.amount};
+   if(!effectAttackWins(attack,target.defend,game.elementRules??3))continue;
+   Object.assign(target,{attack,flip:true,tieProtected:false,sandwich:true});
+   sandwich={cell:target.cell,dir:target.dir,...support};
+   break;
+  }
+ }
  const currentScores=ability==='bid'?scores(game):null;
  const bids=currentScores&&currentScores[game.turn]<currentScores[1-game.turn]&&game.players[game.turn].shifts>0
   ?comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&c.attack.rank!=='S'&&effectAttackWins({...c.attack,total:c.attack.total+1},c.defend,game.elementRules??3))
@@ -282,24 +347,33 @@ export function previewEffect(game,action){
  const pivot=pivotDirection?{cell,uid,from:rotation,to:(rotation+pivotDirection+6)%6}:null;
  const swaps=ability==='thought'?thoughtTargets(working,cell,flips):[];
  if(swapCells!==null&&(!Array.isArray(swapCells)||swapCells.length!==2||!swaps.some(pair=>pair.every(id=>swapCells.includes(id)))))throw Error('Kein gültiger Kartentausch.');
- const steps=ability==='sidestep'?sidestepTargets(working,cell):[];
- if(stepCells!==null&&(!Array.isArray(stepCells)||stepCells.length!==2||!steps.some(([from,to])=>from===stepCells[0]&&to===stepCells[1])))throw Error('Kein gültiges Ziel für Platz machen.');
- const relocation=stepCells===null?null:{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid};
- const coverWards=ability==='cover'?neighbors(cell).flatMap(({id})=>{
+ const relocation=ability==='sidestep'&&stepCells?{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid}:null;
+ const duet=ability==='chorus'&&Boolean(stepCells&&working.board[stepCells[1]]);
+ const chorusPartners=ability==='chorus'&&stepCells?(duet?stepCells:stepCells.slice(0,1)):[];
+ for(const [index,cell] of chorusPartners.entries()){
+  const ally=working.board[cell];
+  const direction=index||stepCells[1]==='ccw'?-1:1;
+  const to=(ally.rotation+direction+6)%6;
+  working.board[cell]={...ally,rotation:to};
+  transforms.push({cell,uid:ally.uid,from:ally.rotation,to});
+ }
+ const wardTargets=ability==='cover'?surrounding.map(n=>n.id):chorusPartners;
+ const coverWards=wardTargets.flatMap(id=>{
   const ally=working.board[id];
   if(ally?.controller!==game.turn||!standardAbility(ally))return [];
   const edge=weakestEdge(ally,neighbors(id).filter(n=>n.id!==cell&&n.id!==working.block&&!working.board[n.id]));
-  return edge?[{cell:id,dir:edge.dir}]:[];
- }).slice(0,2):[];
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,objection,swapCells,swaps,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+  return edge?[{cell:id,dir:edge.dir,...(ability==='chorus'?{kind:'chorus',amount:duet?CHORUS_DUET_GUARD:1}:{})}]:[];
+ }).slice(0,2);
+
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,objection,swapCells,swaps,jam,sandwich,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
  player.hand=player.hand.filter(c=>c.uid!==action.uid);if(player.deck.length)player.hand.push(player.deck.shift());
  next.board[action.cell]={...p.card,flips:p.flips.length};
  if(p.objection)next.board[p.objection.cell].objectionSpent=true;
- for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.laughOwner;delete c.laughUntil;delete c.coverWard;}
- for(const {cell,dir} of p.coverWards)next.board[cell].coverWard={dir,owner:side,until:game.placements+2};
+ for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.laughOwner;delete c.laughUntil;delete c.coverWard;delete c.jammedUntil;}
+ for(const {cell,dir,kind,amount} of p.coverWards)next.board[cell].coverWard={dir,owner:side,until:game.placements+2,...(kind?{kind,amount}:{})};
  if(p.swapCells){
   const [first,second]=p.swapCells;
   [next.board[first],next.board[second]]=[next.board[second],next.board[first]];
@@ -319,6 +393,8 @@ export function placeEffect(game,action){
  if(p.decoy)next.last.decoy=p.decoy;
  if(p.pursuit)next.last.pursuit=p.pursuit;
  if(p.objection)next.last.objection=p.objection;
+ if(p.jam)next.last.jam=p.jam;
+ if(p.sandwich)next.last.sandwich=p.sandwich;
  if(p.swapCells)next.last.swapCells=p.swapCells;
  if(p.coverWards.length)next.last.coverWards=p.coverWards;
  if(p.pivot){
@@ -344,9 +420,10 @@ export function actionOptions(game,card,cell,rotation){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   return previewEffect(game,action).pivotTarget?[action,{...action,pivotDirection:-1},{...action,pivotDirection:1}]:[action];
  }
- if(ability==='sidestep'){
+ if(ability==='sidestep'||ability==='chorus'||ability==='jam'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
-  return [action,...previewEffect(game,action).steps.map(stepCells=>({...action,stepCells}))];
+  const steps=ability==='chorus'?chorusTargets(game,cell):ability==='jam'?jamTargets(game,cell):sidestepTargets(game,cell);
+  return [action,...steps.map(stepCells=>({...action,stepCells}))];
  }
  if(ability==='bid'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};

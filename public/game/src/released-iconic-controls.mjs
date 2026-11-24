@@ -42,10 +42,20 @@ export function bindReleasedIconicControls(abilities,{english=false,onChange}){
     thought.value=swapCells?.join('|')??'';
     thought.disabled=busy||!pairs.length;
    }
-   label.hidden=card?.ability!=='sidestep';
+   const chorus=card?.ability==='chorus',jam=card?.ability==='jam';
+   label.hidden=card?.ability!=='sidestep'&&!chorus&&!jam;
    if(label.hidden)return;
+   label.firstChild.textContent=chorus?(english?'Choose dance partners':'Tanzpartner wählen'):jam?(english?'Mute an enemy card':'Gegnerkarte stummschalten'):(english?'Move an allied card':'Eigene Karte verschieben');
    const pairs=plan?.steps??[];
-   select.replaceChildren(new Option(english?'Keep positions':'Positionen behalten',''),...pairs.map(([from,to])=>new Option(cardOf(game.board[from]).name+' · '+from+' → '+to,[from,to].join('|'))));
+   const unchanged=chorus?(english?'Keep orientation':'Ausrichtung behalten'):jam?(english?'No mute':'Fähigkeit aktiv lassen'):(english?'Keep positions':'Positionen behalten');
+   const labelAt=cell=>cardOf(game.board[cell]).name+' · '+cell;
+   const describe=([from,to])=>{
+    if(jam)return labelAt(from);
+    if(!chorus)return labelAt(from)+' → '+to;
+    if(to==='cw'||to==='ccw')return (to==='cw'?'↻ ':'↶ ')+labelAt(from);
+    return '↻ '+labelAt(from)+' / ↶ '+labelAt(to);
+   };
+   select.replaceChildren(new Option(unchanged,''),...pairs.map(pair=>new Option(describe(pair),pair.join('|'))));
    select.value=cells?.join('|')??'';
    select.disabled=busy||!pairs.length;
   },

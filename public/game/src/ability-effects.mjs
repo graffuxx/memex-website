@@ -1,4 +1,4 @@
-import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=objection-pair-release';
+import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive,jamActive} from './table-demo-rules.mjs?v=prime-trio-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -12,6 +12,7 @@ export function abilityMarkers(game,plan){
   for(const [cell,card] of Object.entries(game.board)){
    const edge=abilityEdge(game,card,cell);
    const cover=coverEdge(game,card,cell);
+   if(jamActive(game,card))markers.push({kind:'jam',cell,label:'⌧'});
    if(cover&&(!edge||edge.dir!==cover.dir))markers.push({kind:'cover',cell,dir:cover.dir,label:'+1'});
    if(edge)markers.push({kind:card.ability,cell,dir:edge.dir,label:`+${edge.amount}`});
    if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:'='});
@@ -20,7 +21,7 @@ export function abilityMarkers(game,plan){
    const working={...game,board:plan.board};
    const edge=abilityEdge(working,plan.card,plan.cell,{attacking:true,direction:plan.abilityDirection})??abilityEdge(working,plan.card,plan.cell);
    if(edge)markers.push({kind:plan.ability,cell:plan.cell,dir:edge.dir,preview:true,label:`+${edge.amount}`});
-   for(const target of plan.transforms)markers.push({kind:plan.ability,cell:target.cell,preview:true,label:'↻'});
+   for(const target of plan.transforms)markers.push({kind:plan.ability,cell:target.cell,preview:true,label:(target.to-target.from+6)%6===5?'↶':'↻'});
    if(plan.relocation){
     markers.push({kind:'sidestep',cell:plan.relocation.from,preview:true,label:'↗'});
     markers.push({kind:'sidestep',cell:plan.relocation.to,preview:true,label:'◆'});
@@ -31,7 +32,12 @@ export function abilityMarkers(game,plan){
    if(plan.swapCells)for(const cell of plan.swapCells)markers.push({kind:'thought',cell,preview:true,label:'⇄'});
    if(plan.decoy)markers.push({kind:'decoy',...plan.decoy,preview:true,label:`−${plan.decoy.amount}`});
    if(plan.pursuit)markers.push({kind:'chase',...plan.pursuit,preview:true,label:'»'});
-   for(const ward of plan.coverWards??[])markers.push({kind:'cover',...ward,preview:true,label:'+1'});
+   if(plan.jam)markers.push({kind:'jam',cell:plan.jam,preview:true,label:'⌧'});
+   if(plan.sandwich){
+    markers.push({kind:'sandwich',cell:plan.cell,dir:plan.sandwich.dir,preview:true,label:`+${plan.sandwich.amount}`});
+    markers.push({kind:'sandwich',cell:plan.sandwich.source,dir:plan.sandwich.sourceDir,preview:true,label:'⟫'});
+   }
+   for(const ward of plan.coverWards??[])markers.push({kind:'cover',...ward,preview:true,label:`+${ward.amount??1}`});
    if(plan.pivot)markers.push({kind:'encore',cell:plan.cell,preview:true,label:plan.pivot.to===(plan.pivot.from+5)%6?'↶':'↻'});
    if(plan.swipe)markers.push({kind:'swipe',cell:plan.swipe.cell,dir:(plan.swipe.dir+3)%6,preview:true,label:`−${plan.swipe.amount}`});
    if(plan.rainbow)markers.push({kind:'rainbow',cell:plan.cell,dir:plan.rainbow.dir,preview:true,label:'⌒'});
@@ -47,7 +53,7 @@ export function abilityMarkers(game,plan){
    label:plan.ability==='guard'?`+${guardBonus(game)}`:'+1',
   });
  }
- for(const target of plan?.transforms??[])markers.push({kind:'twist',cell:target.cell,preview:true,label:'↻'});
+ for(const target of plan?.transforms??[])markers.push({kind:'twist',cell:target.cell,preview:true,label:(target.to-target.from+6)%6===5?'↶':'↻'});
  return markers;
 }
 
@@ -62,16 +68,21 @@ export function abilityBursts(game){
   if(last.swapCells)for(const cell of last.swapCells)markers.push({kind:'thought',cell,label:'⇄'});
   if(last.decoy)markers.push({kind:'decoy',...last.decoy,label:`−${last.decoy.amount}`});
   if(last.pursuit)markers.push({kind:'chase',...last.pursuit,label:'»'});
-  for(const ward of last.coverWards??[])markers.push({kind:'cover',...ward,label:'+1'});
+  if(last.jam)played.push({kind:'jam',cell:last.jam,label:'⌧'});
+  if(last.sandwich){
+   played.push({kind:'sandwich',cell:last.cell,dir:last.sandwich.dir,label:`+${last.sandwich.amount}`});
+   played.push({kind:'sandwich',cell:last.sandwich.source,dir:last.sandwich.sourceDir??(last.sandwich.dir+3)%6,label:'⟫'});
+  }
+  for(const ward of last.coverWards??[])markers.push({kind:'cover',...ward,label:`+${ward.amount??1}`});
   if(last.swipe)markers.push({kind:'swipe',cell:last.swipe.cell,dir:(last.swipe.dir+3)%6,label:`−${last.swipe.amount}`});
   if(last.rainbow)markers.push({kind:'rainbow',cell:last.rainbow.cell,dir:(last.rainbow.dir+3)%6,label:'⌒'});
   if(edge)markers.push({kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`});
-  return [...markers,...(last.transforms??[]).map(target=>({kind:ability,cell:target.cell,label:ability==='encore'&&(target.to-target.from+6)%6===5?'↶':'↻'}))];
+  return [...markers,...(last.transforms??[]).map(target=>({kind:ability,cell:target.cell,label:(target.to-target.from+6)%6===5?'↶':'↻'}))];
  }
  if(last.ability==='hype'||last.ability==='guard'){
   return [{kind:last.ability,cell:last.cell,dir:last.abilityDirection,label:last.ability==='guard'?`+${guardBonus(game)}`:'+1'}];
  }
- return (last.transforms??[]).map(target=>({kind:'twist',cell:target.cell,label:'↻'}));
+ return (last.transforms??[]).map(target=>({kind:'twist',cell:target.cell,label:(target.to-target.from+6)%6===5?'↶':'↻'}));
 }
 
 /** Match each axial direction to its projected hex edge, even when the camera orbits. */

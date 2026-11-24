@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=objection-pair-release';
+import * as currentRules from './table-demo-rules.mjs?v=prime-trio-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -48,7 +48,7 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
  }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
- return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+(plan.coverWards?.length??0)*.12;
+ return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0);
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
@@ -60,7 +60,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
   delete board[from];
  }
  if(plan.pivot)board[plan.pivot.cell]={...board[plan.pivot.cell],rotation:plan.pivot.to};
- for(const {cell,dir} of plan.coverWards??[])board[cell]={...board[cell],coverWard:{dir,owner:game.turn,until:game.placements+2}};
+ for(const {cell,dir,kind,amount} of plan.coverWards??[])board[cell]={...board[cell],coverWard:{dir,owner:game.turn,until:game.placements+2,...(kind?{kind,amount}:{})}};
  if(plan.swapCells){
   const [first,second]=plan.swapCells;
   [board[first],board[second]]=[board[second],board[first]];

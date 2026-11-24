@@ -1,4 +1,4 @@
-import {eventFieldAt,abilityEdge,coverEdge} from './table-demo-rules.mjs?v=objection-pair-release';
+import {eventFieldAt,abilityEdge,coverEdge,jamActive} from './table-demo-rules.mjs?v=prime-trio-release';
 import {cardOf,sideValue} from './rules.mjs';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);
@@ -10,5 +10,5 @@ export function fieldFeedback129(game,card,cell,previewDirection=null){
   const fieldBonus=field?.type==='resonance'&&field.element===cardOf(card).element||field?.type==='crossfire'&&field.directions.includes(dir)?1:0;
   return fieldBonus+Math.max(active?.dir===dir?active.amount:0,cover?.dir===dir?cover.amount:0);
  });
- return {silenced:Boolean(field?.type==='silence'&&card.ability),bonuses,...(effects.length?{effects}:{})};
+ return {silenced:Boolean((field?.type==='silence'||jamActive(game,card))&&card.ability),bonuses,...(effects.length?{effects}:{})};
 }
