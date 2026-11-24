@@ -1,4 +1,4 @@
-import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=final-guard';
+import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=board-ability-symbols';
 import {ELEMENT_IDS,ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {CARD_PROFILES as PROFILES} from './card-profiles27.mjs';
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
@@ -8,14 +8,14 @@ import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
 import {createCardFinishLayer} from './card-finish-layer16.mjs?v=board-ownership-62';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 import * as T from '../vendor/three.module.min.js';
-import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=element-53';
+import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=board-ability-symbols';
 
 // Render the approved sculpted face once, then reuse it on thin 3D bodies.
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.
 export async function createCardRuntime(renderer,{variants=null}={}){
  const elementTextures=new Map(await Promise.all(ELEMENT_IDS.map(async id=>{const t=await new T.TextureLoader().loadAsync('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(id)));t.colorSpace=T.SRGBColorSpace;return [id,t];})));
  const badgeTextures=new Map(await Promise.all(ABILITY_ICON_KEYS.map(async ability=>{
-  const svg=abilityIconTextureSvg(ability),texture=await new T.TextureLoader().loadAsync('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));
+  const svg=abilityIconTextureSvg(ability,{strokeWidth:2.5}),texture=await new T.TextureLoader().loadAsync('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));
   texture.colorSpace=T.SRGBColorSpace;
   return [ability,texture];
  })));
@@ -23,7 +23,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
  const frames=new Map(await Promise.all(Object.keys(CARD_MATERIALS).map(async key=>{const texture=await new T.TextureLoader().loadAsync(await materialFrameUrl(key));texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return [key,texture];})));
  const requested=variants===null?null:new Set(variants.map(id=>getVariant(id)?.definitionId).filter(Boolean));
  const profiles=Object.keys(CARD_PROFILES).filter(id=>requested===null||['pepe','doge','roll-safe'].includes(id)||requested.has(id));
- const templates=await Promise.all(profiles.map(profile=>createCardPrototype({profile,frames}))),scene=new T.Scene();
+ const templates=await Promise.all(profiles.map(profile=>createCardPrototype({profile,frames,showCategory:false}))),scene=new T.Scene();
  scene.add(new T.HemisphereLight('#e6e1ff','#241d31',2.6));const key=new T.DirectionalLight('#fff0cd',3.5);key.position.set(-3,4,5);scene.add(key);const rim=new T.DirectionalLight('#a58aff',2.6);rim.position.set(3,1,-2);scene.add(rim);
  for(const m of templates)scene.add(m.group);
  const artworkTextures=new Map(templates.map(m=>[artworkFor(m.profile.id),m.artworkTexture]));
@@ -42,7 +42,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   if(!Object.hasOwn(CARD_PROFILES,profile))throw Error('Unknown card motif.');
   if(preparing.has(profile))return preparing.get(profile);
   const pending=(async()=>{
-   if(!templates.some(m=>m.profile.id===profile)){const model=await createCardPrototype({profile,frames});templates.push(model);scene.add(model.group);artworkTextures.set(artworkFor(profile),model.artworkTexture);if(model.profile.artAtlas)atlasBases.set(profile,model.artworkTexture);}
+   if(!templates.some(m=>m.profile.id===profile)){const model=await createCardPrototype({profile,frames,showCategory:false});templates.push(model);scene.add(model.group);artworkTextures.set(artworkFor(profile),model.artworkTexture);if(model.profile.artAtlas)atlasBases.set(profile,model.artworkTexture);}
    await Promise.all(Object.keys(CARD_ART[profile]).filter(tier=>!artworkTextures.has(artworkFor(profile,tier))).map(async tier=>{const path=artworkFor(profile,tier),texture=await loadArtwork(profile,tier);artworkTextures.set(path,texture);}));
   })();preparing.set(profile,pending);
   try{await pending;}catch(error){preparing.delete(profile);throw error;}
@@ -93,7 +93,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   const back=new T.Mesh(face,backMaterial);back.rotation.y=Math.PI;back.position.z=-.035;group.add(back);
   const finish=createCardFinishLayer(rarity,owner,uid);group.add(finish.root);
   const ownerTitleMaterial=new T.MeshBasicMaterial({map:ownerTitleTexture(profile,owner),transparent:true,depthWrite:false,toneMapped:false}),ownerTitle=new T.Mesh(ownerTitleGeometry,ownerTitleMaterial);ownerTitle.position.set(-.49,FRAME_LAYOUT.titleY,.079);ownerTitle.visible=owner===0||owner===1;group.add(ownerTitle);
-  const badgeMaterial=new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}),badge=new T.Mesh(badgeGeometry,badgeMaterial);badge.position.set(0,CARD_SPEC.socketY,.07);badge.visible=false;group.add(badge);const boost=new T.Mesh(boostGeometry,boostMaterial);boost.visible=false;group.add(boost);
+  const badgeMaterial=new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}),badge=new T.Mesh(badgeGeometry,badgeMaterial);badge.name='Card ability icon';badge.position.set(0,CARD_SPEC.socketY,.091);badge.visible=false;group.add(badge);const boost=new T.Mesh(boostGeometry,boostMaterial);boost.visible=false;group.add(boost);
   const socket=new T.Mesh(new T.CircleGeometry(.127,32),new T.MeshBasicMaterial({color:'#101829',toneMapped:false}));socket.position.set(0,FRAME_LAYOUT.elementY,.073);group.add(socket);
   const glyphMaterial=new T.MeshBasicMaterial({map:elementTextures.get(element),transparent:true,depthWrite:false,toneMapped:false}),glyph=new T.Mesh(new T.PlaneGeometry(.245,.245),glyphMaterial);glyph.position.set(0,FRAME_LAYOUT.elementY,.075);group.add(glyph);
   let effectKey='';const fieldValueMeshes=Array.from({length:6},(_,dir)=>{const mesh=new T.Mesh(valueEffectGeo,new T.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}));const [x,y]=valuePosition(dir);mesh.position.set(x,y,.086);mesh.visible=false;group.add(mesh);return mesh;});

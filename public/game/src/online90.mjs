@@ -1,6 +1,6 @@
 import {bindSignatureControls} from './signature-controls.mjs?v=final-guard';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=final-guard';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=board-ability-symbols';
 import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
@@ -9,7 +9,7 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=final-guard';
+import {createTableView} from './table-demo-view-hand17.mjs?v=board-ability-symbols';
 import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=final-guard';
 import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';

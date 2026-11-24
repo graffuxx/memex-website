@@ -4,7 +4,7 @@ import {printedValue126} from '../platform/card-ranks126.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
 import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=final-guard';
-import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=final-guard';
+import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=board-ability-symbols';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
@@ -69,14 +69,14 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
   const element=elementSvg(rules.element)
    .replace('width="256" height="256"',`x="-.1225" y="${-FRAME_LAYOUT.elementY-.1225}" width=".245" height=".245"`)
    .replace('id="e"', 'id="board-preview-element"').replaceAll('url(#e)', 'url(#board-preview-element)');
-  const category=definition?.prime?'PRIME':definition?.iconic?'ICONIC':'';
+  const category=definition?.prime?'Prime':definition?.iconic?'Iconic':'';
+  const abilityIcon=cardAbilityIconMarkup(card.ability);
   const printedCard={...card,edgeCopy:undefined,edgeSwap:undefined};
   face.innerHTML=`<svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label="${escape(rules.name)}">
    <defs><clipPath id="board-preview-art"><polygon points="${hex}"/></clipPath></defs>
    <image href="${escape(variant.image)}" x="${-.96-(crop?.x??0)*width}" y="${-.96-(crop?.y??0)*height+(variant.artOffsetY??0)}" width="${width}" height="${height}" preserveAspectRatio="${crop?'none':'xMidYMid slice'}" clip-path="url(#board-preview-art)"/>
    <image data-frame href="${fallbackFrame}" x="${-FRAME_LAYOUT.width/2}" y="${-FRAME_LAYOUT.height/2}" width="${FRAME_LAYOUT.width}" height="${FRAME_LAYOUT.height}" preserveAspectRatio="none"/>
-   ${cardAbilityIconMarkup(card.ability)}
-   ${category?`<text x="0" y="-.748" fill="#ffe1a0" font-size=".06">${category}</text>`:''}
+   ${abilityIcon?`<g opacity="${feedback.silenced?.45:1}">${abilityIcon}</g>`:''}
    <g fill="#17150d" font-size=".1995">${FRAME_LAYOUT.values.map(([x,y],i)=>{
     const modified=feedback.bonuses[i]!==0,changed=sideValue(card,i)!==sideValue(printedCard,i);
     return `<text x="${x}" y="${-y+.0093}"${modified||changed?' fill="#823300"':''}>${modified?values[i]:printedValue126(values[i])}</text>`;
@@ -88,7 +88,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
   panel.style.setProperty('--preview-finish',material.color);
   panel.dataset.owner=String(card.controller);
   title.textContent=rules.name;
-  details.textContent=[material.name,ELEMENTS[rules.element]?.name,card.controller===0?'Deine Karte':'Gegnerische Karte'].filter(Boolean).join(' · ');
+  details.textContent=[material.name,ELEMENTS[rules.element]?.name,category,card.controller===0?'Deine Karte':'Gegnerische Karte'].filter(Boolean).join(' · ');
   abilityPanel.hidden=!ability;
   if(ability){
    abilityName.textContent=ability.name+(feedback.silenced?' · blockiert':'');

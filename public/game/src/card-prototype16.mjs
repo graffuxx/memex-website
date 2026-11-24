@@ -19,7 +19,7 @@ function canvasTexture(draw,width=256,height=width){
  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;draw(canvas.getContext('2d'),width,height);
  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return texture;
 }
-export async function createCardPrototype({owner=null,rotation=0,profile='pepe',frames=null}={}){
+export async function createCardPrototype({owner=null,rotation=0,profile='pepe',frames=null,showCategory=true}={}){
  if(!Object.hasOwn(CARD_PROFILES,profile))throw Error('Unbekanntes Kartenmuster.');
  const p=CARD_PROFILES[profile],group=new T.Group(),geometries=new Set(),materials=new Set(),textures=new Set();
  group.name='Duelverse / '+p.name+' / homepage frame';
@@ -61,7 +61,7 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
   edition.position.set(ALPHA_MARK.x,FRAME_LAYOUT.titleY-ALPHA_MARK.titleOffset,.066);
  }
 
- if(p.prime||p.iconic){const primeTexture=tex(canvasTexture((ctx,w)=>{ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='800 52px Arial';ctx.fillStyle='#f6d7a0';ctx.fillText(p.iconic?'ICONIC':'PRIME',w/2,w/2);},256));const prime=add(geo(new T.PlaneGeometry(.29,.29)),mat(new T.MeshBasicMaterial({map:primeTexture,transparent:true,depthWrite:false,toneMapped:false})),.067);prime.position.y=CARD_SPEC.socketY;}
+ if(showCategory&&(p.prime||p.iconic)){const primeTexture=tex(canvasTexture((ctx,w)=>{ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='800 52px Arial';ctx.fillStyle='#f6d7a0';ctx.fillText(p.iconic?'ICONIC':'PRIME',w/2,w/2);},256));const prime=add(geo(new T.PlaneGeometry(.29,.29)),mat(new T.MeshBasicMaterial({map:primeTexture,transparent:true,depthWrite:false,toneMapped:false})),.067);prime.position.y=CARD_SPEC.socketY;}
  const elementTexture=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(elementSvg(p.element)));
  const element=add(geo(new T.PlaneGeometry(.245,.245)),mat(new T.MeshBasicMaterial({map:elementTexture,transparent:true,depthWrite:false,toneMapped:false})),.065);element.position.y=FRAME_LAYOUT.elementY;
  const accent=new T.LineLoop(geo(new T.BufferGeometry().setFromPoints(cardShape(1.007).getPoints().map(v=>new T.Vector3(v.x,v.y,.048)))),mat(new T.LineBasicMaterial({color:owner===1?'#ff5d72':'#55ed94',toneMapped:false})));accent.visible=owner!==null;group.add(accent);

@@ -47,13 +47,13 @@ const symbols={
  ernie:{color:'#ff8da7',path:'M12 2.5 21 6v5c0 5-4 8.5-9 11-5-2.5-9-6-9-11V6z M12 6c0 3-3 4-3 7a3 3 0 0 0 6 0c0-2-1-3-1-4l-1 2c0-2 0-3-1-5z'},
 };
 
-function iconPath(ability){
+function iconPath(ability,strokeWidth=1.8){
  const icon=Object.hasOwn(symbols,ability)?symbols[ability]:null;
  if(!icon)return '';
- return `<path d="${icon.path}" fill="${icon.solid?icon.color:'none'}" stroke="${icon.solid?'none':icon.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+ return `<path d="${icon.path}" fill="${icon.solid?icon.color:'none'}" stroke="${icon.solid?'none':icon.color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
-export function abilityIconTextureSvg(ability){
- const path=iconPath(ability);
+export function abilityIconTextureSvg(ability,{strokeWidth=1.8}={}){
+ const path=iconPath(ability,strokeWidth);
  return path?`<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24">${path}</svg>`:'';
 }
 export const ABILITY_ICON_KEYS=Object.keys(symbols);

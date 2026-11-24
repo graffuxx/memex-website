@@ -1,6 +1,6 @@
 import {bindSignatureControls} from './signature-controls.mjs?v=final-guard';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=final-guard';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=board-ability-symbols';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -23,7 +23,7 @@ import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=final-guard';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=final-guard';
+import {createTableView} from './table-demo-view-hand17.mjs?v=board-ability-symbols';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=final-guard';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
 import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=final-guard';

@@ -22,7 +22,7 @@ import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
 import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=final-guard';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=final-guard';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=board-ability-symbols';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -105,7 +105,18 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
    card.setAbility(c.ability,ui.selected===c.uid&&ui.plan?.suppressed);
    card.setBoost(ui.selected===c.uid&&['hype','guard'].includes(c.ability)&&!ui.plan?.suppressed?ui.abilityDirection:null);
   }
-  for(const [cell,c]of Object.entries(game.board)){const card=cardMap.get(c.uid);if(!moving.has(c.uid))card.setRotation(ui.plan?.transforms.find(t=>t.cell===cell)?.to??(ui.plan?.pivot?.cell===cell?ui.plan.pivot.to:c.rotation));const rotated=ui.plan?.board[cell]??c;const previewed=ui.plan?.pivot?.cell===cell?{...rotated,rotation:ui.plan.pivot.to,controller:g.turn}:rotated;card.setFieldEffects(boardFeedback(previewed,cell));card.setBoost(guardActive(game,c,cell)?c.guardDirection:null);card.setAbility(c.ability,eventFieldAt(game,cell)?.type==='silence');}
+  for(const [cell,c]of Object.entries(game.board)){
+   const card=cardMap.get(c.uid);
+   const pivot=ui.plan?.pivot?.cell===cell?ui.plan.pivot:null;
+   const transform=ui.plan?.transforms.find(t=>t.cell===cell);
+   if(!moving.has(c.uid))card.setRotation(transform?.to??pivot?.to??c.rotation);
+   const rotated=ui.plan?.board[cell]??c;
+   const previewed=pivot?{...rotated,rotation:pivot.to,controller:g.turn}:rotated;
+   const feedback=boardFeedback(previewed,cell);
+   card.setFieldEffects(feedback);
+   card.setBoost(guardActive(game,c,cell)?c.guardDirection:null);
+   card.setAbility(c.ability,feedback.silenced);
+  }
   const hand=new Set(game.players[0].hand.map(c=>c.uid));for(const [uid,node] of handNodes)if(!hand.has(uid)){node.remove();handNodes.delete(uid);}
   for(const c of game.players[0].hand)if(!handNodes.has(c.uid)){const g=svgNode('g',{'data-hand':c.uid,role:'button',tabindex:'0',class:'hand-card'});g.append(svgNode('polygon',{fill:'transparent',class:'hand-rest-hit'}),svgNode('polygon',{fill:'transparent',class:'hand-hit'}));handLayer.append(g);handNodes.set(c.uid,g);}
   layout();overlays();renderer.shadowMap.needsUpdate=true;dirty=true;
