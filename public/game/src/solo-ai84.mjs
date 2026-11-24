@@ -1,4 +1,4 @@
-import {chooseTactic} from './tactics-ai.mjs?v=jordan-fan-release';
+import {chooseTactic} from './tactics-ai.mjs?v=alpha-primes';
 export function soloAction84(game,difficulty='standard'){
  if(game.finished)return null;
  let seed=(game.seed^Math.imul(game.placements+1,2654435761))>>>0;

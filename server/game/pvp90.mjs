@@ -13,11 +13,11 @@ export const AFK_AFTER129=2,AFK_TURN_MS129=3000,ROUND_BREAK_MS129=8000;
 const gestures=['rock','paper','scissors'];
 const due=(now,s=null,side=null)=>now+(side!==null&&(s?.afkStreak129?.[side]??0)>=AFK_AFTER129?AFK_TURN_MS129:TURN_MS90);
 export function refreshPvpRules129(state,now=Date.now()){if(!state?.game||state.game.eventFieldsEnabled===false&&!(state.phase==='between'&&!state.deadline))return null;const s=structuredClone(state);s.game.eventFieldsEnabled=false;if(s.balance&&s.balance.fingerprint!==BALANCE_FINGERPRINT94){s.balance.mixed=true;s.balance.current=balanceVersion94(now);}if(s.phase==='between'&&!s.deadline)s.deadline=now+ROUND_BREAK_MS129;return s;}
-export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0,releasedPrimeTrio=false,releasedPrimePair=false}={}){
+export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0,releasedPrimeTrio=false,releasedPrimePair=false,allPrimes=false}={}){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
  const balance=balanceVersion94(now);
- if(elementalTrial)balance.patch+=releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
- return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,releasedPrimeTrio,releasedPrimePair,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
+ if(elementalTrial)balance.patch+=allPrimes?'-prime-complete':releasedPrimePair?'-prime-jordan-fan':releasedPrimeTrio?'-prime-trio':iconicAbilityWave>=6?'-iconic-twelve':iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
+ return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,releasedPrimeTrio,releasedPrimePair,allPrimes,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
 }
 function newRound(s,now){
  const loadouts=[LOADOUTS['hype-guard'],LOADOUTS['hype-guard']];
@@ -28,6 +28,7 @@ function newRound(s,now){
  g.iconicAbilityWave=s.iconicAbilityWave??(s.iconicAbilities?1:0);
  g.releasedPrimeTrio=s.releasedPrimeTrio===true;
  g.releasedPrimePair=s.releasedPrimePair===true;
+ g.allPrimes=s.allPrimes===true;
  g=applyPortalDecks(g,s.decks[0].cards,loadouts,{round:s.round,opponentCards:s.decks[1].cards});
  g.elementRules=5;g.rotationLocked=true;g.eventFieldsEnabled=false;g.resonanceOffset=s.seed%5;
  // Opaque per-round card tokens never reveal a hidden motif or rarity.
@@ -83,11 +84,12 @@ function perspectiveGame(game,side,revealUid=null){
  if(!game)return null;const g=structuredClone(game),swap=n=>n===null||n===undefined?n:side===1?1-n:n;
  // Board geometry is public; the seed also shuffles hidden draws and stays server-side.
  delete g.seed;
- const card=c=>{const v={...c};for(const k of ['origin','controller','guardOwner','laughOwner'])if(v[k]!==undefined)v[k]=swap(v[k]);if(v.coverWard)v.coverWard={...v.coverWard,owner:swap(v.coverWard.owner)};return v;};
+ const card=c=>{const v={...c};for(const k of ['origin','controller','guardOwner','laughOwner'])if(v[k]!==undefined)v[k]=swap(v[k]);for(const key of ['coverWard','ernieWard','phalanxLink'])if(v[key])v[key]={...v[key],owner:swap(v[key].owner)};return v;};
  const hidden=c=>({id:'oracle',uid:c.uid,origin:swap(c.origin),controller:swap(c.controller),rotation:0,hidden:true});
  g.players=(side===1?[g.players[1],g.players[0]]:g.players).map((p,i)=>({...p,hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),deck:p.deck.map(hidden)}));
  g.board=Object.fromEntries(Object.entries(g.board).map(([k,c])=>[k,card(c)]));
  if(g.fanReserve)g.fanReserve.owner=swap(g.fanReserve.owner);
+ if(g.blockadeLock)g.blockadeLock.owner=swap(g.blockadeLock.owner);
  for(const k of ['turn','starter','winner'])g[k]=swap(g[k]);
  g.history=g.history.map(e=>({...e,side:swap(e.side)}));if(g.last)g.last={...g.last,side:swap(g.last.side)};
  return g;

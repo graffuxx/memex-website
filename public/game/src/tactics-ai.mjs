@@ -1,18 +1,20 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=jordan-fan-release';
+import {freeCells,neighbors,sideValue} from './rules.mjs?v=alpha-primes';
+import * as currentRules from './table-demo-rules.mjs?v=alpha-primes';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
  const result=[];
- for(const card of game.players[game.turn].hand)for(const cell of freeCells(game))for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
-  const around=neighbors(cell),ability=rules.abilityAt(game,card,cell),relevant=ability==='hype'?around.filter(n=>game.board[n.id]&&game.board[n.id].controller!==game.turn).map(n=>n.dir):ability==='guard'&&rules.GUARD_ARC===6?[0]:(ability==='guard'||ability==='water')?around.filter(n=>n.id!==game.block&&!game.board[n.id]).map(n=>n.dir):[0],directions=relevant.length?relevant:[0];
+ if(game.pendingDraw)return result;
+ for(const card of game.players[game.turn].hand)for(const cell of [...freeCells(game),...(rules.dashTargets?.(game,card,game.block).length?[game.block]:[])])for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
+  const around=neighbors(cell),ability=rules.abilityAt(game,card,cell),relevant=ability==='hype'?around.filter(n=>game.board[n.id]&&game.board[n.id].controller!==game.turn).map(n=>n.dir):ability==='guard'&&rules.GUARD_ARC===6?[0]:ability==='guard'||ability==='water'?around.filter(n=>n.id!==game.block&&!game.board[n.id]).map(n=>n.dir):[0],directions=relevant.length?relevant:[0];
   for(const action of rules.actionOptions(game,card,cell,rotation))if(directions.includes(action.abilityDirection)){const plan=rules.previewEffect(game,action);result.push({action,plan});}
  }return result;
 }
 export function positionalValue(game,{action,plan},rules=currentRules,weights={}){
  let safety=0,contacts=0;
- for(const n of neighbors(action.cell)){if(n.id===game.block)continue;const other=plan.board[n.id];if(!other){const defense=rules.effectStrength(game,plan.card,action.cell,n.dir,{id:'brain'});safety+=Math.min(7,defense.base+defense.field+defense.ability)-4.1;}else if(other.controller===game.turn||plan.flips.includes(n.id))contacts++;}
+ const attackBlock=plan.dash?plan.blockadeMove.to:game.block;
+ for(const n of neighbors(action.cell)){if(n.id===attackBlock)continue;const other=plan.board[n.id];if(!other){const defense=rules.effectStrength(plan.dash?{...game,block:attackBlock}:game,plan.card,action.cell,n.dir,{id:'brain'});safety+=Math.min(7,defense.base+defense.field+defense.ability)-4.1;}else if(other.controller===game.turn||plan.flips.includes(n.id))contacts++;}
  let twistSafety=0;
  for(const transform of plan.transforms){
   if(transform.temporary)continue;
@@ -23,6 +25,22 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
    twistSafety+=sign*(sideValue(after,dir)-sideValue(before,dir))*.18;
   }
  }
+ const edgeChange=(cell,from,to)=>neighbors(cell).reduce((value,{id,dir})=>{
+  if(id===action.cell||id===game.block||game.board[id])return value;
+  return value+(Math.min(7,sideValue(to,dir))-Math.min(7,sideValue(from,dir)))*.18;
+ },0);
+ if(plan.blink)twistSafety+=edgeChange(action.cell,plan.card,{...plan.card,rotation:plan.blink.to});
+ if(plan.pivot){
+  const {cell,to}=plan.pivot,card=cell===action.cell?plan.card:plan.board[cell];
+  twistSafety+=edgeChange(cell,card,{...card,rotation:to});
+ }
+ if(plan.swapCells){
+  const [first,second]=plan.swapCells;
+  const left=first===action.cell?plan.card:plan.board[first];
+  const right=second===action.cell?plan.card:plan.board[second];
+  const side=left.controller===game.turn?1:-1;
+  twistSafety+=side*(edgeChange(first,left,right)+edgeChange(second,right,left));
+ }
  if(plan.relocation){
   const {from,to}=plan.relocation,card=plan.board[from];
   const coverAt=(cell,occupied)=>neighbors(cell).reduce((total,{id,dir})=>{
@@ -31,20 +49,15 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
   },0);
   twistSafety+=(coverAt(to,id=>id!==from&&Boolean(game.board[id]))-coverAt(from,id=>id===to||Boolean(game.board[id])))*.18;
  }
- if(plan.pivot){
-  const rotated={...plan.card,rotation:plan.pivot.to};
-  for(const {id,dir} of neighbors(action.cell)){
-   if(id===game.block||plan.board[id])continue;
-   twistSafety+=(Math.min(7,sideValue(rotated,dir))-Math.min(7,sideValue(plan.card,dir)))*.18;
-  }
- }
- if(plan.swapCells){
-  const [first,second]=plan.swapCells;
-  const edgeChange=(cell,from,to)=>neighbors(cell).reduce((value,{id,dir})=>{
-   if(id===action.cell||id===game.block||game.board[id])return value;
-   return value+(Math.min(7,sideValue(to,dir))-Math.min(7,sideValue(from,dir)))*.18;
+ let blockadeValue=plan.blockadeLock&&game.players[1-game.turn].shifts ? .12 : 0;
+ if(plan.blockadeMove){
+  const cover=cell=>neighbors(cell).reduce((value,{id,dir})=>{
+   const card=id===action.cell?plan.card:plan.board[id];
+   if(!card)return value;
+   const belongs=card.controller===game.turn||plan.flips.includes(id);
+   return value+(belongs?1:-1)*Math.max(0,6-sideValue(card,(dir+3)%6))*.16;
   },0);
-  twistSafety-=edgeChange(first,plan.board[first],plan.board[second])+edgeChange(second,plan.board[second],plan.board[first]);
+  blockadeValue=cover(plan.blockadeMove.to)-cover(plan.blockadeMove.from)-(plan.dash?0:.12);
  }
  const reserveValue=plan.reserve?neighbors(plan.reserve).reduce((value,{id,dir})=>{
   const ally=id===action.cell?plan.card:plan.board[id];
@@ -53,26 +66,34 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
  },0):0;
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
- return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+reserveValue+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0);
+ if(plan.bid!=null)blockadeValue-=.12;
+ return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+blockadeValue+reserveValue+(plan.link ? .14 : 0)+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0)+(plan.awkward?.cell? .12 : 0)+(plan.phalanx?.tiles.length? .36 : 0);
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
- const board={...plan.board,[action.cell]:plan.card};for(const cell of plan.flips)board[cell]={...board[cell],controller:game.turn,guardOwner:undefined,guardUntil:undefined,coverWard:undefined,laughOwner:undefined,laughUntil:undefined};
+ const board={...plan.board,[action.cell]:plan.card};for(const cell of plan.flips)board[cell]={...board[cell],controller:game.turn,guardOwner:undefined,guardUntil:undefined,ernieWard:undefined,coverWard:undefined,awkwardMark:undefined,phalanxLink:undefined,pabloUntil:undefined,jammedUntil:undefined,attachedLink:undefined,laughOwner:undefined,laughUntil:undefined};
+ if(plan.ward)board[plan.ward.cell].ernieWard={dir:plan.ward.dir,owner:game.turn,until:game.placements+2};
+ for(const {cell,dir,kind,amount} of plan.coverWards??[])board[cell]={...board[cell],coverWard:{dir,owner:game.turn,until:game.placements+2,...(kind?{kind,amount}:{})}};
  for(const t of plan.transforms)if(t.temporary)board[t.cell]={...board[t.cell],rotation:t.from};
+ if(plan.pivot)board[plan.pivot.cell]={...board[plan.pivot.cell],rotation:plan.pivot.to};
+ if(plan.swapCells){
+  const [first,second]=plan.swapCells;
+  [board[first],board[second]]=[board[second],board[first]];
+ }
  if(plan.relocation){
   const {from,to}=plan.relocation;
   board[to]=board[from];
   delete board[from];
  }
- if(plan.pivot)board[plan.pivot.cell]={...board[plan.pivot.cell],rotation:plan.pivot.to};
- for(const {cell,dir,kind,amount} of plan.coverWards??[])board[cell]={...board[cell],coverWard:{dir,owner:game.turn,until:game.placements+2,...(kind?{kind,amount}:{})}};
- if(plan.swapCells){
-  const [first,second]=plan.swapCells;
-  [board[first],board[second]]=[board[second],board[first]];
- }
  if(plan.objection)board[plan.objection.cell]={...board[plan.objection.cell],objectionSpent:true};
+ if(plan.attachment)board[plan.attachment.source]={...board[plan.attachment.source],attachedLink:undefined};
+ if(plan.blink){
+  board[plan.blink.source]={...board[plan.blink.source],blinkSpent:true};
+  const attacker=board[action.cell];
+  board[action.cell]={...attacker,rotation:(attacker.rotation+1)%6};
+ }
  if(plan.bailout)board[plan.bailout.protector]={...board[plan.bailout.protector],bailoutSpent:true};
- const future={...game,board,placements:game.placements+1,turn:1-game.turn};
+ const future={...game,board,block:plan.blockadeMove?.to??game.block,placements:game.placements+1,turn:1-game.turn};
  if(plan.reserve)future.fanReserve={cell:plan.reserve,owner:game.turn,until:game.placements+2};
  if(future.placements>=18)return 0;
  // Let the authoritative field resolver advance before examining the next move.

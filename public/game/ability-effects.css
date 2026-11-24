@@ -7,6 +7,8 @@
 .ability-effects g[data-ability=earth]{--ability-color:#ffe2a1;--ability-glow:#bc9355}
 .ability-effects g[data-ability=air]{--ability-color:#b6f8e2;--ability-glow:#5cebc8}
 .ability-effects g[data-ability=storm]{--ability-color:#e5c5ff;--ability-glow:#b377ff}
+.ability-effects g[data-ability=rage]{--ability-color:#ffc58b;--ability-glow:#fc753e}
+.ability-effects g[data-ability=ernie]{--ability-color:#ffe6a9;--ability-glow:#ff475e}
 .ability-effects polyline{fill:none;stroke:var(--ability-color);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px var(--ability-glow))}
 .ability-effects path{fill:#141129;stroke:var(--ability-color);stroke-width:1.3}
 .ability-effects text{fill:var(--ability-color);font:700 11px Arial,sans-serif;text-anchor:middle;dominant-baseline:central}
@@ -15,6 +17,11 @@
 .ability-effects g[data-state=burst]{animation:ability-burst .52s ease-out both;transform-box:fill-box;transform-origin:center}
 @keyframes ability-burst{0%{opacity:.4;transform:scale(.94)}32%{opacity:1;transform:scale(1.12);filter:drop-shadow(0 0 10px var(--ability-glow))}100%{opacity:0;transform:scale(1.2)}}
 @media(prefers-reduced-motion:reduce){.ability-effects g[data-state=burst]{animation:none}}
+.ability-effects g[data-ability=exchange]{--ability-color:#a7f2dd;--ability-glow:#58cbbc}
+.ability-effects g[data-ability=roundhouse]{--ability-color:#ffae76;--ability-glow:#ff7a43}
+.ability-effects g[data-ability=gate]{--ability-color:#fff0aa;--ability-glow:#d7a360}
+.ability-effects g[data-ability=luxury]{--ability-color:#ffe4a3;--ability-glow:#d6a457}
+.ability-effects g[data-ability=wander]{--ability-color:#c1edd6;--ability-glow:#72cead}
 .ability-effects g[data-ability=sidestep]{--ability-color:#b9f3ba;--ability-glow:#6cda8f}
 .ability-effects g[data-ability=laugh]{--ability-color:#ffe29b;--ability-glow:#ff9e55}
 .ability-effects g[data-ability=solitude]{--ability-color:#aee5ff;--ability-glow:#588eff}
@@ -27,8 +34,18 @@
 .ability-effects g[data-ability=cover]{--ability-color:#eddbac;--ability-glow:#ba905b}
 .ability-effects g[data-ability=objection]{--ability-color:#ffb2a6;--ability-glow:#ed645d}
 .ability-effects g[data-ability=thought]{--ability-color:#d8c7ff;--ability-glow:#9b75e2}
+.ability-effects g[data-ability=awkward]{--ability-color:#a5e6f7;--ability-glow:#6ac8f2}
+.ability-effects g[data-ability=ambush]{--ability-color:#eac2ff;--ability-glow:#bb70ef}
+.ability-effects g[data-ability=nested]{--ability-color:#c6d5ff;--ability-glow:#778bff}
+.ability-effects g[data-ability=phalanx]{--ability-color:#ffcd91;--ability-glow:#fb8a4c}
+.ability-effects g[data-ability=pincer]{--ability-color:#aef4ff;--ability-glow:#33d7e8}
+.ability-effects g[data-ability=relay]{--ability-color:#a0eee3;--ability-glow:#3abcae}
+.ability-effects g[data-ability=retry]{--ability-color:#ffe1a8;--ability-glow:#eaa544}
+.ability-effects g[data-ability=dash]{--ability-color:#b0e9ff;--ability-glow:#42b9fa}
 .ability-effects g[data-ability=chorus]{--ability-color:#ffd1ed;--ability-glow:#df73c4}
 .ability-effects g[data-ability=jam]{--ability-color:#ffbc9e;--ability-glow:#ef7050}
-.ability-effects g[data-ability=sandwich]{--ability-color:#ffe09c;--ability-glow:#f2ad50}
 .ability-effects g[data-ability=bailout]{--ability-color:#ccecff;--ability-glow:#63aeef}
+.ability-effects g[data-ability=blink]{--ability-color:#decfff;--ability-glow:#9668fb}
+.ability-effects g[data-ability=cling]{--ability-color:#ffc6e8;--ability-glow:#ed69b1}
 .ability-effects g[data-ability=fan]{--ability-color:#ffd7bb;--ability-glow:#f46d54}
+.ability-effects g[data-ability=sandwich]{--ability-color:#ffe09c;--ability-glow:#f2ad50}

@@ -40,7 +40,12 @@ export function freeCells(game){
 export const scores=g=>[0,1].map(p=>Object.values(g.board).filter(c=>c.controller===p).length);
 export const eventPhase=g=>g.placements>=12?2:g.placements>=6?1:0;
 export function fieldAt(g,cell){if(g.eventFieldsEnabled===false)return null;const f=g.events.find(f=>f.cell===cell);if(!f)return null;const phase=eventPhase(g);return {element:phase===2?({storm:'water',water:'storm'}[f.element]):f.element,bonus:phase===1?2:1};}
-export function sideValue(card,dir,rotation=card.rotation??0){return cardOf(card).values[((dir-rotation)%6+6)%6];}
+export function sideValue(card,dir,rotation=card.rotation??0){
+ const original=((dir-rotation)%6+6)%6;
+ const [first,second]=card.edgeSwap??[];
+ const index=original===first?second:original===second?first:original;
+ return card.edgeCopy?.dir===index?card.edgeCopy.value:cardOf(card).values[index];
+}
 export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,...rankedStrength126(base,fieldBonus+((g.elementRules??3)===3?advantage:0))};}
 export function preview(g,{uid,cell,rotation=0}){
  if(g.finished)throw Error('Die Runde ist beendet.');
@@ -50,7 +55,8 @@ export function preview(g,{uid,cell,rotation=0}){
  const comparisons=neighbors(cell).filter(n=>g.board[n.id]&&g.board[n.id].controller!==g.turn).map(n=>{const other=g.board[n.id],attack=strength(g,incoming,cell,n.dir,other),defend=strength(g,other,n.id,(n.dir+3)%6,incoming);return {cell:n.id,attack,defend,flip:attackWins(attack,defend,g.elementRules??3),name:cardOf(other).name};});
  return {card:incoming,cell,comparisons,flips:comparisons.filter(c=>c.flip).map(c=>c.cell)};
 }
-export function moveTargets(g){return g.finished||!g.players[g.turn].shifts?[]:neighbors(g.block).map(n=>n.id).filter(id=>!g.board[id]);}
+export const blockadeLocked=g=>g.blockadeLock?.owner===1-g.turn&&g.placements<g.blockadeLock.until;
+export function moveTargets(g){return g.finished||g.pendingDraw||blockadeLocked(g)||!g.players[g.turn].shifts?[]:neighbors(g.block).map(n=>n.id).filter(id=>!g.board[id]);}
 export function shiftBlock(g,target){
  if(!moveTargets(g).includes(target))throw Error('Die Blockade kann nur auf ein freies Nachbarfeld verschoben werden.');
  const next=structuredClone(g),from=next.block;next.block=target;next.players[g.turn].shifts--;next.last={type:'shift',side:g.turn,from,to:target};next.history.push(next.last);return next;
