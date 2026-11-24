@@ -152,7 +152,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
     {phase==='manual'&&<button className="button glass" onClick={revealAll}>Reveal all now</button>}
     {(phase==='done'||phase==='manual')&&!preview&&queued.length>0&&<button className="button gold alpha-next-pack" disabled={locked} onClick={openNext}>Open next booster <span className="alpha-next-count">×{queued.length}</span><span aria-hidden="true">→</span></button>}
     {phase==='done'&&preview&&<button className="button gold" onClick={startPreview}>Replay preview</button>}
-    {phase==='done'&&!preview&&queued.length===0&&<a className="button gold" href="/decks">Build a deck</a>}
+    {phase==='done'&&!preview&&queued.length===0&&<a className="button gold" href="/decks" onClick={back}>Build a deck</a>}
    </div>
   </div>
  </dialog>:shop&&category==='shards'?<ShardShop81/>:shop&&category==='arenas'?<ArenaSkins81/>:shop&&(category==='frames'||category==='portraits')?<IdentityCosmetics85 kind={category}/>:<>
