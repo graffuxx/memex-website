@@ -57,7 +57,7 @@ export default function ModernHeader() {
           </nav>
 
           <div className={styles.rightGroup}>
-            <a href={accountHref} className={styles.loginButton} aria-current={accountActive?'page':undefined}>
+            <a href={accountHref} className={signedIn ? `${styles.loginButton} ${styles.accountButton}` : styles.loginButton} aria-current={accountActive?'page':undefined}>
               {accountLabel}
             </a>
 
