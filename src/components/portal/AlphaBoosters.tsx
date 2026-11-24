@@ -10,6 +10,7 @@ import {ShopTabs81,ShardShop81,ArenaSkins81,IdentityCosmetics85,type ShopCategor
 import useBoosterAudio from './useBoosterAudio';
 import BoosterTear from './BoosterTear';
 import BoosterRevealCard from './BoosterRevealCard';
+import CardDetailsDialog from './CardDetailsDialog';
 import BoosterStack from './BoosterStack';
 import usePlayerCollection from './usePlayerCollection';
 import {BoosterPurchaseError,buyAlphaBooster,loadBooster,loadUnopenedBoosters,findBoosterRequest,openAlphaBooster,type BoosterCurrency,type BoosterPurchase} from '@/lib/duelverse/account';
@@ -27,6 +28,7 @@ function readPending(user:string):Pending|null{const key=pendingKey(user);try{co
 export default function AlphaBoosters({shop=false}:{shop?:boolean}){
  const {ready,userId,player,error:accountError,refresh}=usePlayerCollection(),sound=useBoosterAudio();
  const [pack,setPack]=useState<BoosterPurchase|null>(null),[history,setHistory]=useState<BoosterPurchase[]>([]),[stage,setStage]=useState<'sealed'|'opening'>('sealed'),[packOpened,setPackOpened]=useState(false),[preview,setPreview]=useState(false),[shown,setShown]=useState<number[]>([]),[phase,setPhase]=useState<Phase>('idle');
+ const [inspectedCard,setInspectedCard]=useState<string|null>(null);
  const [autoTear,setAutoTear]=useState(false),[revealEffectSlot,setRevealEffectSlot]=useState<number|null>(null);
  const [confirmation,setConfirmation]=useState<BoosterCurrency|null>(null),[pending,setPending]=useState<Pending|null>(null),[busy,setBusy]=useState(false),[loadingHistory,setLoadingHistory]=useState(false),[error,setError]=useState(''),[reload,setReload]=useState(0),[previewRun,setPreviewRun]=useState(0);
  const dialog=useRef<HTMLDialogElement>(null),openingRef=useRef<HTMLDialogElement>(null),generation=useRef(0),openingRun=useRef(0),purchaseLock=useRef(false),historyRef=useRef<BoosterPurchase[]>([]),mounted=useRef(true);
@@ -141,7 +143,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
    <div className="alpha-forge" aria-hidden="true"><div className="alpha-forge-halo"/></div>
    {!packOpened?<BoosterTear key={preview?'preview:'+previewRun:pack?.id} autoStart={autoTear} onOpened={()=>setPackOpened(true)} onOpen={sound.tear} onSkip={sound.stop}/>:<div className="alpha-reveal-stage">
     {revealFinish&&['epic','legendary','mythic'].includes(revealFinish)&&<div key={revealEffectSlot} className="alpha-stage-surge" data-finish={revealFinish} aria-hidden="true"/>}
-    <div className="alpha-reveal-grid" aria-busy={phase==='saving'}>{cards.map((id,i)=><BoosterRevealCard key={(preview?'preview:'+previewRun:pack?.id)+':'+i} id={id} slot={i} visible={shown.includes(i)} celebrateFlip={revealEffectSlot===i} disabled={phase!=='manual'} isNew={!preview&&Boolean(pack?.new_variants.includes(id))} onReveal={()=>revealCard(i)}/>)}</div>
+    <div className="alpha-reveal-grid" aria-busy={phase==='saving'}>{cards.map((id,i)=><BoosterRevealCard key={(preview?'preview:'+previewRun:pack?.id)+':'+i} id={id} slot={i} visible={shown.includes(i)} celebrateFlip={revealEffectSlot===i} disabled={phase!=='manual'} isNew={!preview&&Boolean(pack?.new_variants.includes(id))} onReveal={()=>revealCard(i)} onInspect={()=>setInspectedCard(id)}/>)}</div>
    </div>}
   </div>
   <div className="alpha-pack-finish">
@@ -165,5 +167,6 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
  </>}
  {!opening&&(!shop||category==='boosters')&&<AlphaBoosterOdds/>}
  <dialog ref={dialog} className="card-trade-dialog alpha-purchase-dialog" aria-labelledby="alphaPurchaseTitle" onCancel={e=>{e.preventDefault();if(!busy)setConfirmation(null);}}><h2 id="alphaPurchaseTitle">Buy one Alpha Booster?</h2><AlphaBoosterPack compact/><p>Five cards. At least one Silver or higher. Duplicate protection included.</p><p><strong>{selectedPrice} {confirmation==='pixels'?'Pixels':'Shards'}</strong> will be deducted from your account balance.</p><div className="actions"><button className="button glass" disabled={busy} onClick={()=>setConfirmation(null)}>Cancel</button><button className="button gold" disabled={busy||!confirmation} onClick={()=>confirmation&&purchase(confirmation)}>{busy?'Saving your booster…':`Buy for ${selectedPrice} ${confirmation==='pixels'?'Pixels':'Shards'}`}</button></div></dialog>
+ <CardDetailsDialog variantId={opening&&packOpened?inspectedCard:null} onClose={()=>setInspectedCard(null)}/>
  </section>;
 }

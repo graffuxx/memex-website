@@ -1,0 +1,34 @@
+.dv-portal .deck-preview-dialog{position:fixed;inset:0;margin:auto;width:min(430px,calc(100% - 32px));max-height:90svh;overflow-y:auto;border:1px solid #b393e07a;border-radius:20px;padding:25px 30px 22px;background:radial-gradient(ellipse at top,#312052,#0c081c 70%);color:#f5edff;text-align:center;box-shadow:0 20px 100px #000b}
+.dv-portal .deck-preview-dialog::backdrop{background:#060511c7;backdrop-filter:blur(9px)}
+.dv-portal .deck-preview-dialog .duelverse-card{max-width:295px}
+.dv-portal .deck-preview-dialog h2{font-size:24px;margin:12px 0 6px}
+.dv-portal .deck-preview-dialog p{font-size:13px;color:#c4afd9;margin:6px 0}
+.dv-portal .deck-preview-close{position:absolute;top:8px;right:10px;width:35px;height:35px;border:0;border-radius:50%;background:#c3a3e01a;color:#e4cafa;font-size:24px;cursor:pointer;z-index:2}
+.dv-portal .deck-preview-values{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:16px 0}
+.dv-portal .deck-preview-values span{background:#1b102f;border:1px solid #9878b83b;border-radius:6px;padding:6px 0;color:#a993c0;font-size:10px}
+.dv-portal .deck-preview-values b{display:block;font-size:18px;font-weight:500;color:#e8c67e;margin-top:3px}
+.dv-portal .card-preview-ability {
+  padding: 11px 14px;
+  margin-top: 14px;
+  border: 1px solid #b393e052;
+  border-radius: 10px;
+  background: #1b102f;
+  text-align: left;
+}
+.dv-portal .card-preview-ability strong { color: #f2cf7b; font-size: 14px; }
+.dv-portal .card-preview-ability p { margin: 4px 0 0; line-height: 1.45; }
+.dv-portal .collection-card-preview {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: zoom-in;
+}
+.dv-portal .collection-card-preview:focus-visible,
+.dv-portal .deck-preview-close:focus-visible {
+  outline: 2px solid #d5b3fa;
+  outline-offset: 2px;
+}
+.dv-portal .alpha-reveal-slot.is-revealed .alpha-card-reveal { cursor: zoom-in; }

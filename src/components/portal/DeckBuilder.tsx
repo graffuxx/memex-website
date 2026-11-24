@@ -2,13 +2,13 @@
 import EditionSelector131 from './EditionSelector131';
 import OwnedCardsFilter from './OwnedCardsFilter';
 import {editionContains131,cardCategory131,friendlyInventory131} from '../../../public/game/platform/edition-catalog131.mjs';
-import {printedValue126} from '../../../public/game/platform/card-ranks126.mjs';
 import {ELEMENT_LIST as ELEMENTS} from '../../../public/game/platform/elements53.mjs';
 import {useEffect,useRef,useState,type CSSProperties,type DragEvent} from 'react';
 import {supabase} from '@/lib/supabaseClient';
 import {saveDeck} from '@/lib/duelverse/account';
 import usePlayerCollection from './usePlayerCollection';
 import GameCardFace from './GameCardFace';
+import CardDetailsDialog from './CardDetailsDialog';
 import DeckCardHover,{type DeckCardHoverHandle} from './DeckCardHover';
 import PlayerBalances from './PlayerBalances';
 import BackButton from '@/components/Layout/BackButton';
@@ -40,11 +40,10 @@ function DeckEditor({access,source,friendly}:{access:Access;source:Source;friend
  const [catalogLimit,setCatalogLimit]=useState(60),[edition,setEdition]=useState('alpha');
  const [search,setSearch]=useState(''),[element,setElement]=useState('all'),[rarity,setRarity]=useState('all'),[cardType,setCardType]=useState(()=>['prime','iconic'].includes(new URLSearchParams(window.location.search).get('type')??'')?new URLSearchParams(window.location.search).get('type')!:'all'),[ownedOnly,setOwnedOnly]=useState(false),[saving,setSaving]=useState(false),[status,setStatus]=useState(''),[dragging,setDragging]=useState(false),[preview,setPreview]=useState<string|null>(null);
  const hoverPreview=useRef<DeckCardHoverHandle>(null);
- const alive=useRef(true),busy=useRef(false),dialog=useRef<HTMLDialogElement>(null),lastAdded=useRef<string|null>(null);
+ const alive=useRef(true),busy=useRef(false),lastAdded=useRef<string|null>(null);
  const deck=library.decks.find(d=>d.id===library.selectedId)!,counts=countCards(deck.cards) as Record<string,number>,motifCounts=countMotifs(deck.cards) as Record<string,number>,summary=summarizeDeck(deck.cards),dirty=deckIsDirty(deck),validation=validateDeck(deck.cards,inventory),canSave=validation.valid&&Boolean(deck.name.trim());
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  useEffect(()=>{try{persistDeckLibrary(localStorage,key,library);}catch{setStatus('Browser draft storage is unavailable. Keep this page open until you save.');}},[key,library]);
- useEffect(()=>{if(preview&&!dialog.current?.open)dialog.current?.showModal();},[preview]);
  useEffect(()=>setCatalogLimit(60),[search,element,rarity,ownedOnly,cardType,edition]);
  const filterByOwnership=source!=='sandbox'&&ownedOnly;
  const visible=VARIANTS.filter(v=>{const c=DEFINITIONS.find(c=>c.id===v.definitionId)!;return editionContains131(edition,v)&&(cardType==='all'||(cardType==='standard'?cardCategory131(c.id)==='regular':cardCategory131(c.id)===cardType))&&(!filterByOwnership||(access.inventory[v.id]??0)>0)&&(element==='all'||v.element===element)&&(rarity==='all'||v.rarity===rarity)&&(c.name+(c.prime?' prime':c.iconic?' iconic':'')).toLowerCase().includes(search.toLowerCase());});
@@ -65,7 +64,6 @@ function DeckEditor({access,source,friendly}:{access:Access;source:Source;friend
 
  function drop(event:DragEvent){if(!event.dataTransfer.types.includes(DRAG_TYPE))return;event.preventDefault();setDragging(false);add(event.dataTransfer.getData(DRAG_TYPE));}
  const sourceNote=friendly?'Private-only loans · all playable motifs available; your collection stays unchanged.':source==='account'?'Saved decks sync to your account.':source==='sandbox'?'Sandbox · all cards and finishes unlocked. Decks stay on this browser.':'Guest collection · saved on this browser.';
- const previewData=preview?cardData(preview):null;
  const backButton=<BackButton className="deck-workspace-back" fallback={source==='account'?'/account/private':source==='sandbox'?'/decks':'/collection'}/>;
  return <section className={'portal-section top-space deck-builder'+(expanded?' deck-builder--expanded':'')}
   onPointerOver={event=>{
@@ -118,6 +116,6 @@ function DeckEditor({access,source,friendly}:{access:Access;source:Source;friend
     <footer className="deck-catalog-footer"><span className="deck-catalog-limits">15 unique memes · max. {MAX_ICONICS} Iconics + {MAX_PRIMES} Prime</span><span className="deck-catalog-count">{new Set(visible.map(v=>v.definitionId)).size} memes · {visible.length} variants</span><details><summary>Element advantages</summary><div>{ELEMENTS.map(e=><p key={e.id}><strong style={{color:e.color}}>{e.name}</strong> wins ties against {e.beats.map((id:string)=>ELEMENTS.find(x=>x.id===id)!.name).join(" & ")}</p>)}<p>Compare edge values including field and ability bonuses first. Elements only decide ties; otherwise the higher value wins. Without an elemental advantage, a tie does not flip.</p></div></details><details><summary>Deck tools</summary><div><button disabled={saving||!validateDeck(starterDeck(),inventory).valid} onClick={()=>edit({cards:starterDeck()})}>Use starter deck</button>{source==='sandbox'&&<><button disabled={saving} onClick={()=>edit({cards:elementTestDeck()})}>Use five-element deck</button><button disabled={saving} onClick={()=>edit({cards:expansionTestDeck()})}>Use earlier meme deck</button></>}<button disabled={saving||validation.valid} onClick={()=>edit({cards:rebuildLegalDeck(deck.cards,inventory)})}>Rebuild within limits</button><button disabled={saving||!deck.saved||!dirty} onClick={()=>deck.saved&&edit({name:deck.saved.name,cards:[...deck.saved.cards]})}>Restore saved version</button><p>Each meme is allowed once across all finishes. Up to two Iconics and one Prime per deck. Cards can be reused in other decks.</p></div></details></footer>
    </section>
   </div>
-  <dialog ref={dialog} className="deck-preview-dialog" aria-label="Card preview" onClose={()=>setPreview(null)} onClick={event=>{if(event.target===event.currentTarget)dialog.current?.close();}}>{previewData&&<><button className="deck-preview-close" aria-label="Close card preview" onClick={()=>dialog.current?.close()}>×</button><GameCardFace card={previewData.card} variant={previewData.variant} color={previewData.rarity.color}/><h2>{previewData.card.name}</h2><p>{previewData.rarity.name} · {ELEMENTS.find(e=>e.id===previewData.card.element)!.name}</p><div className="deck-preview-values">{['E','SE','SW','W','NW','NE'].map((direction,i)=><span key={direction}>{direction}<b>{printedValue126(previewData.card.values[i])}</b></span>)}</div><p className="muted">{previewData.card.quote}</p></>}</dialog>
+  <CardDetailsDialog variantId={preview} onClose={()=>setPreview(null)}/>
  </section>;
 }
