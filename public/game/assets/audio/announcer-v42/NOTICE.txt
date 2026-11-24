@@ -4,3 +4,5 @@ Model: Kokoro-82M v1.0, Apache License 2.0, https://huggingface.co/hexgrad/Kokor
 Voice: am_michael (generic synthetic voice; no impersonation).
 Runtime used for offline generation: kokoro-onnx (MIT), https://github.com/thewh1teagle/kokoro-onnx
 The model and runtime are not included in this game. No speech service or microphone is used during play.
+Flip combo lines: Ohhh boooy! / Daaamn son! / Godlike!
+Combo voices: am_fenrir, am_puck and am_michael, with original delivery, synthesized impacts and stereo room reflections.

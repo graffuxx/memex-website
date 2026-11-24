@@ -134,7 +134,27 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
  async function place(uid,cell){const card=cardMap.get(uid),ok=await fly(card,projectCell(cell),600);if(!ok)return false;moving.delete(uid);putOnBoard(card,cell,true);renderer.shadowMap.needsUpdate=true;dirty=true;return true;}
  async function draw(uid,side,duration=500){const token=generation,card=cardMap.get(uid);moving.add(uid);hidden.delete(uid);poseToRoot(card,deckPose(side),true);card.group.visible=true;const index=game.players[side].hand.findIndex(c=>c.uid===uid),ok=await fly(card,handPose(side,index,game.players[side].hand.length),duration,true);if(!ok||token!==generation)return false;moving.delete(uid);layout();return true;}
  async function deal(){const cards=game.players[0].hand.map(c=>c.uid);for(const uid of cards){hidden.add(uid);cardMap.get(uid).group.visible=false;}dirty=true;for(const uid of cards){if(!await draw(uid,0,190))return false;}return true;}
- async function flip(uid,owner){const token=generation,c=cardMap.get(uid);moving.add(uid);let changed=false;const ok=await animate(380,t=>{c.group.rotation.set(-Math.PI/2,Math.sin(t*Math.PI)*Math.PI,0);if(t>=.5&&!changed){c.setOwner(owner);changed=true;}});if(!ok||token!==generation)return false;moving.delete(uid);if(ok){c.group.rotation.set(-Math.PI/2,0,0);c.setOwner(owner);}dirty=true;return ok;}
+ async function flip(uid,owner,{delay=0,accent=false,onImpact}={}){
+  const token=generation,card=cardMap.get(uid),baseHeight=card.group.position.y;
+  const duration=accent?440:380;
+  moving.add(uid);
+  let changed=false;
+  const ok=await animate(duration+delay,progress=>{
+   const t=Math.max(0,progress*(duration+delay)-delay)/duration;
+   const lift=Math.sin(t*Math.PI);
+   const turn=accent?(t<.5?t:t-1)*Math.PI:lift*Math.PI;
+   card.group.rotation.set(-Math.PI/2,turn,0);
+   if(accent)card.group.position.y=baseHeight+lift*.28;
+   if(t>=.5&&!changed){card.setOwner(owner);changed=true;onImpact?.();}
+  });
+  if(!ok||token!==generation)return false;
+  moving.delete(uid);
+  card.group.rotation.set(-Math.PI/2,0,0);
+  card.group.position.y=baseHeight;
+  card.setOwner(owner);
+  dirty=true;
+  return true;
+ }
  async function prepareGame(g){const profiles=new Set([...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)].map(c=>DEMO_PROFILES[c.id]));await Promise.all([...profiles].map(profile=>runtime.prepare(profile)));}
  function initGame(g){cancel();orbitPose={...DEFAULT_ARENA_POSE78};orbitTarget={...DEFAULT_ARENA_POSE78};if(tableArena(arenaId)){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;
   syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key,elementFor:c=>cardOf(c).element,boardUids:new Set(Object.values(g.board).map(c=>c.uid))});

@@ -1,3 +1,4 @@
+import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
 import {bindBoardCardPreview146} from './board-card-preview146.mjs';
 import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
@@ -7,11 +8,11 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=card-preview-146';
+import {createTableView} from './table-demo-view-hand17.mjs?v=flip-combos';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=booster-classes-140';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=void-weather-137';
+import {createTableAudio} from './table-audio.mjs?v=flip-combos-5';
 import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
@@ -24,7 +25,8 @@ lockArenaSelection112($('arenaTheme'));
 const renderSeries129=bindSeriesHud129();
 const atmosphere=createVoidAtmosphere(),audio=createTableAudio(),portraitIntro=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
 bindTableMusic107(audio);
-const presentation=createPresentationRecovery133({cancel:()=>{view?.cancel();ceremony.cancel();portraitIntro.cancel();lastEnd='';}});
+const flipCombo=bindFlipCombo(stage,svg,{audio,motion:()=>$('motion').checked});
+const presentation=createPresentationRecovery133({cancel:()=>{view?.cancel();flipCombo.clear();ceremony.cancel();portraitIntro.cancel();lastEnd='';}});
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(working||animating||presentation.needsSnapshot)return false;if(data?.phase==='between')void move({kind:'ready'});else if(data?.phase==='ended')location.assign('/play');return true;}});
 const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
 const inputState=()=>onlineInput117({game,phase:data?.phase,working,animating:animating||presentation.needsSnapshot,leaving:leaving112});
@@ -69,7 +71,7 @@ async function accept(next){
  if(next.unchanged){remaining=next.remainingMs;receivedAt=Date.now();if(data)data.wallet=next.wallet;clock();return;}
  const recovering=presentation.needsSnapshot,previous=data,changed=recovering||!previous||next.version!==previous.version;data=next;remaining=next.remainingMs;receivedAt=Date.now();profiles();
  if(next.status==='cancelled'||next.phase==='waiting'||next.phase==='preparing'){notice=next.status==='cancelled'?'This search was cancelled. Return to the match lobby.':'Waiting for your opponent. Return to the match lobby to manage the search.';$('loadStatus').querySelector('strong').textContent=notice;$('loadStatus').querySelector('span').textContent='Match lobby: /play';return;}
- if(next.forfeit!=null){if(!recovering&&previous?.version===next.version&&previous.forfeit===next.forfeit){render();return;}portraitIntro.cancel();if($('startDuel').open)$('startDuel').close();$('loadStatus').hidden=true;notice=(next.forfeit===0?'You left the duel.':'Your opponent left the duel.')+(next.kind==='random'?(next.forfeit===0?' Defeat recorded.':' Victory recorded.'):' Private duel · no rewards.');animating=true;try{await presentation.run(async check=>{if(next.game){await view.prepareGame(next.game);check();view.initGame(next.game);}game=next.game;});}finally{animating=false;}render();ceremony.restore(id+':exit');ceremony.finish(id+':exit',{round:next.round,results:next.results,score:next.game?scores(next.game):[0,0],forfeit:next.forfeit,rated:next.kind==='random',motion:$('motion').checked,autoContinueMs:5000});return;}
+ if(next.forfeit!=null){flipCombo.clear();if(!recovering&&previous?.version===next.version&&previous.forfeit===next.forfeit){render();return;}portraitIntro.cancel();if($('startDuel').open)$('startDuel').close();$('loadStatus').hidden=true;notice=(next.forfeit===0?'You left the duel.':'Your opponent left the duel.')+(next.kind==='random'?(next.forfeit===0?' Defeat recorded.':' Victory recorded.'):' Private duel · no rewards.');animating=true;try{await presentation.run(async check=>{if(next.game){await view.prepareGame(next.game);check();view.initGame(next.game);}game=next.game;});}finally{animating=false;}render();ceremony.restore(id+':exit');ceremony.finish(id+':exit',{round:next.round,results:next.results,score:next.game?scores(next.game):[0,0],forfeit:next.forfeit,rated:next.kind==='random',motion:$('motion').checked,autoContinueMs:5000});return;}
  if(!next.game){if(next.phase==='ended'){portraitIntro.cancel();if($('startDuel').open)$('startDuel').close();$('loadStatus').hidden=false;$('loadStatus').querySelector('strong').textContent='The duel was conceded.';$('loadStatus').querySelector('span').textContent='Return to the match lobby: /play';}else rps();return;}
  if(!changed){render();return;}
  clear();animating=true;
@@ -78,8 +80,19 @@ async function accept(next){
  const step=next.step,animate=Boolean(!recovering&&previous?.game&&previous.version+1===next.version&&step&&step.before.placements===previous.game?.placements&&next.round===previous.round);
  if(animate){game=step.before;await view.prepareGame(game);check();view.initGame(game);render();if(step.kind==='place'){await view.place(step.action.uid,step.action.cell);check();audio.play('place');}else{await view.shift(step.cell);check();audio.play('shift');}}
  await view.prepareGame(next.game);check();game=next.game;view.initGame(game);$('loadStatus').hidden=true;notice='';render();
- if(animate&&step.kind==='place'){view.react(game.last);for(const cell of game.last.flips){view.card(game.board[cell].uid)?.setOwner(step.before.board[cell].controller);}await Promise.all(game.last.flips.map(cell=>view.flip(game.board[cell].uid,game.last.side)));check();if(game.last.flips.length){for(const cell of game.last.flips)view.card(game.board[cell].uid)?.setOwner(game.board[cell].controller);audio.play('capture',{side:game.last.side,count:game.last.flips.length});}if(game.last.event!==null){view.eventChange();audio.play('event');}audio.play('draw');}
- if(lastRound!==next.round){$('gameRoundReward').hidden=true;ceremony.cancel();if(game.placements===0&&!game.finished)await ceremony.intro(next.round,{round:next.round,starter:game.starter,motion:$('motion').checked});else ceremony.restore(next.round);check();lastRound=next.round;}
+ if(animate&&step.kind==='place'){
+  const {flips,side,event,transforms,ability,suppressed}=game.last;
+  view.react(game.last);
+  if(transforms?.length)audio.play('twist');
+  if(ability==='guard'&&!suppressed)audio.play('guard');
+  for(const cell of flips)view.card(game.board[cell].uid)?.setOwner(step.before.board[cell].controller);
+  if(flips.length)audio.play('capture',{side,count:flips.length});
+  await animateResolvedFlips(view,game,flipCombo);check();
+  for(const cell of flips)view.card(game.board[cell].uid)?.setOwner(game.board[cell].controller);
+  if(event!==null){view.eventChange();audio.play('event');}
+  audio.play('draw');
+ }
+ if(lastRound!==next.round){flipCombo.clear();$('gameRoundReward').hidden=true;ceremony.cancel();if(game.placements===0&&!game.finished)await ceremony.intro(next.round,{round:next.round,starter:game.starter,motion:$('motion').checked});else ceremony.restore(next.round);check();lastRound=next.round;}
  });}finally{animating=false;}
  render();rps();
  if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked,autoContinueMs:next.phase==='ended'?5000:Math.max(0,next.remainingMs??8000)});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}

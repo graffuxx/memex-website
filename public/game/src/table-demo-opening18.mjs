@@ -1,3 +1,4 @@
+import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
 import {bindBoardCardPreview146} from './board-card-preview146.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
@@ -18,10 +19,10 @@ import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-1
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=void-weather-137';
+import {createTableAudio} from './table-audio.mjs?v=flip-combos-5';
 import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=card-preview-146';
+import {createTableView} from './table-demo-view-hand17.mjs?v=flip-combos';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs?v=booster-classes-140';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=tie-break-63';
@@ -43,6 +44,7 @@ let soundWanted=true;try{soundWanted=localStorage.getItem('duelverse.arena-sound
 function renderSound(){const button=$('arenaSound');button.textContent=soundWanted?'♪ Ton an':'♪ Ton aus';button.setAttribute('aria-pressed',String(soundWanted));button.setAttribute('aria-label',soundWanted?'Spielton ausschalten':'Spielton einschalten');$('soundEnabled').checked=soundWanted;}
 const audio=createTableAudio({onState:({available,running})=>{renderSound();$('soundStatus').textContent=!available?'Ton hier nicht verfügbar':soundWanted&&running?'Sounds & Ansagen aktiv':soundWanted?'Ton startet mit deiner ersten Eingabe':'Stumm';}});
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:advanceRound});
+const flipCombo=bindFlipCombo(stage,svg,{audio,motion:()=>$('motion').checked});
 bindTableMusic107(audio);void audio.preloadAnnouncements();renderSound();
 function unlockSound(e){if(e.isTrusted&&soundWanted&&!audio.running)void audio.setEnabled(true);}
 document.addEventListener('pointerdown',unlockSound,{capture:true});
@@ -143,7 +145,7 @@ async function playAction(a,token,serverNext=null){
  if(next.last.ability==='guard'&&!next.last.suppressed){audio.play('guard');announce('Schutz · gewählte Seite +2');}
  const blocked=resolution.comparisons.filter(c=>!c.setup&&!c.flip&&c.defend.ability>0&&attackWins(c.attack,{...c.defend,total:c.defend.total-c.defend.ability},game.elementRules??3)).map(c=>c.cell);if(blocked.length){audio.play('guard');announce('Abgewehrt · Schutz hält');if(!await view.shieldBlock(blocked)||token!==epoch)return false;}
  view.react(next.last);
- if(next.last.flips.length){audio.play('capture',{side,count:next.last.flips.length});announce((side===0?'Deine Übernahme':'Gegner übernimmt')+' · '+next.last.flips.length);notice=next.last.flips.length+(next.last.flips.length===1?' Karte wechselt':' Karten wechseln')+' die Seite.';render();await Promise.all(next.last.flips.map(cell=>view.flip(next.board[cell].uid,side)));if(token!==epoch)return false;}
+ if(next.last.flips.length){audio.play('capture',{side,count:next.last.flips.length});if(next.last.flips.length===1)announce(side===0?'Deine Übernahme':'Gegner übernimmt');notice=next.last.flips.length+(next.last.flips.length===1?' Karte wechselt':' Karten wechseln')+' die Seite.';render();await animateResolvedFlips(view,next,flipCombo);if(token!==epoch)return false;}
  if(draw){audio.play('draw');notice=(side===0?'Du ziehst':'Der Gegner zieht')+' eine Karte nach.';phase=side===1?'opponent':'drawing';render();if(!await view.draw(draw.uid,side)||token!==epoch)return false;}
  if(next.last.event!==null){view.eventChange();announce('Feldwechsel · neue Resonanz');audio.play('event');}
  if(game.finished){$('arenaMessage').classList.remove('active');ceremony.finish(token,{round,match:isMatch(),results:roundResults,score:scores(game),motion:$('motion').checked,autoContinueMs:series113(roundResults).finished?5000:8000});if(accountGame){const awarded=accountSnapshot?.state.awards[round-1]??0;$('gameRoundReward').hidden=false;$('gameRoundReward').textContent='+'+awarded+' Pixels'+(awarded===5?' · +100 XP':'')+' · Runde '+round+' gutgeschrieben';}}
@@ -162,7 +164,7 @@ async function confirm(){if(expireTurn()||busy)return;if(mode!=='shift'){if(plan
 async function reset({preserveSeries=false}={}){
  if(!view||accountFailed)return;const token=++epoch;startDialog.cancel();ceremony.cancel();
  if(drag){drag.node.classList.remove('dragging');try{drag.node.releasePointerCapture(drag.id);}catch{}drag=null;}
- view.cancel();audio.cancel();clearTimeout(messageTimer);$('arenaMessage').classList.remove('active');
+ view.cancel();flipCombo.clear();audio.cancel();clearTimeout(messageTimer);$('arenaMessage').classList.remove('active');
  if(!preserveSeries){conceded129=false;afkStreak129=0;round=1;roundResults=[];matchSeed=freshMatchSeed(matchSeed);firstStarter=null;}
  busy=true;clear();phase=isMatch()&&!preserveSeries?'opening':'dealing';notice=phase==='opening'?'Spielt das Startrecht aus.':'Neue Karten werden ausgeteilt.';
  let accountData=null;
