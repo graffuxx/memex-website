@@ -41,7 +41,7 @@ test('empty queue fallback, human priority, cancel, reconnect, first-to-two AI r
   assert.equal(randomRules.elementalTrial,true);
   assert.equal(randomRules.iconicAbilityWave,7);
   assert.equal(randomRules.allPrimes,true);
-  assert.ok(randomRules.balance.patch.endsWith('-random-full-abilities'));
+  assert.ok(randomRules.balance.patch.endsWith('-random-full-abilities-earth-support'));
   let expected=0,expectedWins=0,manualMoves=0,lastRequest,lastVersion,lastMove;const restored=await call('a',{op:'poll',id});assert.deepEqual(restored.players,x.players);
   for(let guard=0;x.phase!=='ended'&&guard<150;guard++){
    time+=3000;

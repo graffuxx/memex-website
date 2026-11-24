@@ -69,6 +69,7 @@ test('Full Random abilities persist through queue, IS-MCTS, private draws and re
    x=await move({kind:'gesture',value:['paper','scissors','rock'][botGesture]});
    assert.equal(x.rpsWinner,0);
    x=await move({kind:'starter',side:starter});
+   assert.equal(x.game.earthSupport,true);
    const rounds=[];
    let botMoves=0;
    const draws=[0,0],abilities=[new Set(),new Set()];
@@ -174,7 +175,7 @@ test('Full Random abilities persist through queue, IS-MCTS, private draws and re
    assert.equal(Number(xp),expectedWins*100);
    const balance=(await db.query('select patch,mode,starter,winner from public.dv_balance_rounds94 where match_id=$1 order by round_no',[id])).rows;
    assert.equal(balance.length,rounds.length);
-   assert.ok(balance.every(row=>row.patch.endsWith('-random-full-abilities')&&row.mode==='ai'));
+   assert.ok(balance.every(row=>row.patch.endsWith('-random-full-abilities-earth-support')&&row.mode==='ai'));
    assert.deepEqual(balance.map(row=>row.starter),rounds.map(round=>round.starter));
    report.push({starter,rounds,botMoves,pixels:expectedPixels,xp:Number(xp),draws,abilities:abilities.map(set=>[...set].sort())});
   }

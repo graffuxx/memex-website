@@ -1,5 +1,5 @@
 import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=final-guard';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=duel-feedback';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -7,7 +7,7 @@ const interpolate=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
 const turnArrow=({from,to})=>(to-from+6)%6===5?'↶':'↻';
 const coordinates=p=>`${p.x},${p.y}`;
 
-export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ'}={}){
+export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkLabel='BLINZLER'}={}){
  const markers=[];
  const saved=game?.last?.finalGuard;
  if(saved)markers.push({kind:'final-guard',cell:saved.cell,label:finalGuardLabel});
@@ -21,7 +21,7 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ'}={}){
    const mark=awkwardEdges(game,card,cell);
    if(edge&&ward?.dir!==edge.dir&&!mark?.dirs.includes(edge.dir))markers.push({kind:card.ability,cell,dir:edge.dir,label:`+${edge.amount}`});
    if(card.ability==='bailout'&&!card.bailoutSpent&&!jamActive(game,card))markers.push({kind:'bailout',cell,label:'❖'});
-   if(abilityAt(game,card,cell)==='blink'&&!card.blinkSpent)markers.push({kind:'blink',cell,label:'⟳'});
+   if(abilityAt(game,card,cell)==='blink'&&!card.blinkSpent&&plan?.blink?.source!==cell)markers.push({kind:'blink',cell,label:'⟳'});
    if(abilityAt(game,card,cell)==='cling'&&clingPartner(game,cell,card))markers.push({kind:'cling',cell,label:'∞'});
    if(jamActive(game,card))markers.push({kind:'jam',cell,label:'⌧'});
    if(pabloWaiting(game,card,cell))markers.push({kind:'relay',cell,label:'⌛'});
@@ -36,7 +36,10 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ'}={}){
   if(game.fanReserve&&game.placements<game.fanReserve.until)markers.push({kind:'fan',cell:game.fanReserve.cell,label:'⊠'});
   if(plan?.reserve)markers.push({kind:'fan',cell:plan.reserve,preview:true,label:'⊠'});
   if(plan?.bailout)markers.push({kind:'bailout',cell:plan.bailout.cell,dir:plan.bailout.dir,preview:true,label:'❖'});
-  if(plan?.blink)markers.push({kind:'blink',cell:plan.blink.cell,preview:true,label:'⟳'});
+  if(plan?.blink){
+   markers.push({kind:'blink',cell:plan.blink.source,preview:true,label:blinkLabel});
+   markers.push({kind:'blink',cell:plan.blink.cell,preview:true,label:'↻ 60°'});
+  }
   if(plan?.link)markers.push({kind:'cling',cell:plan.link,preview:true,label:'∞'});
   if(plan?.attachment)markers.push({kind:'cling',cell:plan.attachment.cell,preview:true,label:'∞'});
   for(const formation of phalanxFormations(game)){
@@ -93,7 +96,7 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ'}={}){
  return markers;
 }
 
-export function abilityBursts(game){
+export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
  const last=game?.last;
  if(!game?.abilityTrial||last?.type!=='place'||(last.suppressed&&!last.blink&&!last.attachment))return [];
  if(game.elementalTrial){
@@ -112,7 +115,10 @@ export function abilityBursts(game){
   }
   if(last.reserve)played.push({kind:'fan',cell:last.reserve,label:'⊠'});
   if(last.bailout)played.push({kind:'bailout',cell:last.bailout.cell,dir:last.bailout.dir,label:'❖'});
-  if(last.blink)played.push({kind:'blink',cell:last.blink.cell,label:'⟳'});
+  if(last.blink){
+   played.push({kind:'blink',cell:last.blink.source,label:blinkLabel});
+   played.push({kind:'blink',cell:last.blink.cell,label:'↻ 60°'});
+  }
   if(last.link)played.push({kind:'cling',cell:last.link,label:'∞'});
   if(last.attachment)for(const cell of [last.attachment.target,last.attachment.cell])played.push({kind:'cling',cell,label:'∞'});
   if(last.jam)played.push({kind:'jam',cell:last.jam,label:'⌧'});
@@ -176,7 +182,7 @@ export function createAbilityEffects(layer,options){
    const {stroke,badge,text}=nodes.get(key),geometry=abilityMarkerGeometry(project(marker.cell),marker.dir);
    const {x,y}=geometry.center,size=clamp(Math.hypot(geometry.points[0].x-geometry.points[1].x,geometry.points[0].y-geometry.points[1].y)*.23,9,14);
    stroke.setAttribute('points',(marker.dir===undefined?[...geometry.points,geometry.points[0]]:geometry.points).map(coordinates).join(' '));
-   if(marker.kind==='final-guard'){
+   if(marker.kind==='final-guard'||marker.kind==='blink'&&marker.label.length>1){
     const labelY=Math.max(14,Math.min(...geometry.points.map(point=>point.y))-8);
     const half=marker.label.length*3.7+8;
     badge.setAttribute('d',`M ${x-half+5} ${labelY-9} h ${2*half-10} q 5 0 5 5 v 8 q 0 5 -5 5 h ${10-2*half} q -5 0 -5 -5 v -8 q 0 -5 5 -5 Z`);
@@ -196,7 +202,7 @@ export function createAbilityEffects(layer,options){
   nodes.clear();
  }
  return {paint,clear,burst(game){
-  const markers=abilityBursts(game);
+  const markers=abilityBursts(game,options);
   if(!markers.length||!lastPaint)return;
   clearTimeout(timer);
   for(const [key,{root}] of nodes)if(root.dataset.state==='burst'){root.remove();nodes.delete(key);}

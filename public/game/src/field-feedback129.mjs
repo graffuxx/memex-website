@@ -1,5 +1,5 @@
 import {printedValue126} from '../platform/card-ranks126.mjs';
-import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=final-guard';
+import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=duel-feedback';
 import {cardOf,sideValue} from './rules.mjs?v=final-guard';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);
@@ -29,10 +29,15 @@ export function displayedEdgeValue129(base,{value=base,bonus=0,total}={}){
 export function previewEdgeTotals129(plan,defenderCell=null){
  const totals=[];
  for(const comparison of plan?.comparisons??[]){
-  if(defenderCell!==null&&comparison.cell!==defenderCell)continue;
-  const edge=defenderCell===null?comparison.attack:comparison.defend;
-  const dir=defenderCell===null?comparison.dir:(comparison.dir+3)%6;
-  totals[dir]=edge.total;
+  if(comparison.pincer&&plan.pincer){
+   const {source,dir}=plan.pincer;
+   if(defenderCell===source)totals[dir]=comparison.attack.total;
+   if(defenderCell===comparison.cell)totals[(dir+3)%6]=comparison.defend.total;
+  }else if(defenderCell===null){
+   if(!comparison.pursuit)totals[comparison.dir]=comparison.attack.total;
+  }else if(defenderCell===comparison.cell){
+   totals[(comparison.dir+3)%6]=comparison.defend.total;
+  }
  }
  return totals;
 }

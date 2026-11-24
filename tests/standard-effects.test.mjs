@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DEFINITIONS,starterDeck,expandGameDeck} from '../public/game/platform/catalog.mjs';
-import {newGame,moveTargets} from '../public/game/src/rules.mjs';
-import {placeEffect,previewEffect,standardAbility,twistTargets} from '../public/game/src/table-demo-rules.mjs';
+import {newGame,moveTargets,sideValue} from '../public/game/src/rules.mjs';
+import {abilityEdge,effectStrength,placeEffect,previewEffect,standardAbility,twistTargets} from '../public/game/src/table-demo-rules.mjs';
 import {fieldFeedback129} from '../public/game/src/field-feedback129.mjs';
 import {legalCandidates,positionalValue} from '../public/game/src/tactics-ai.mjs';
 import {abilityBursts} from '../public/game/src/ability-effects.mjs';
@@ -57,6 +57,28 @@ test('Water expires after the opposing move, Earth follows the blockade and Air 
  assert.equal(after.board['-1,0'].controller,0);
  assert.equal(after.last.flips.includes('-1,0'),false);
 });
+test('Earth uses the weakest open edge beside an ally in the late game, with the old rule retained for existing duels',()=>{
+ const game=trial(),earth={...makeCard('roll-safe:common',0,'earth'),controller:0,rotation:0};
+ game.elementalTrial=true;
+ game.placements=13;
+ game.earthSupport=true;
+ const ally={...makeCard('doge:common',0,'fire'),controller:0};
+ const enemy={...makeCard('capybara-chill:common',1,'water'),controller:1};
+ game.board={'0,0':earth,'1,0':ally,'0,1':enemy,'-1,1':enemy,'-1,0':enemy,'0,-1':enemy};
+ const open=abilityEdge(game,earth,'0,0');
+ assert.deepEqual(open,{dir:5,amount:1});
+ assert.equal(effectStrength(game,earth,'0,0',open.dir,enemy).total,sideValue(earth,open.dir)+1);
+ assert.equal(fieldFeedback129(game,earth,'0,0').bonuses[open.dir],1);
+ assert.equal(abilityEdge({...game,earthSupport:false},earth,'0,0'),null);
+ game.board['1,0']={...ally,controller:1};
+ assert.equal(abilityEdge(game,earth,'0,0'),null);
+ game.block='1,0';
+ delete game.board['1,0'];
+ assert.deepEqual(abilityEdge(game,earth,'0,0'),open);
+ game.board['1,-1']=enemy;
+ assert.equal(abilityEdge(game,earth,'0,0'),null);
+});
+
 test('Storm accepts a flanked base 3, but never base 4 or an isolated opponent',()=>{
  const game=trial(),storm=makeCard('distracted:common',0,'storm'),neutral=makeCard('bad-luck-brian:common',0,'storm');
  game.elementalTrial=true;

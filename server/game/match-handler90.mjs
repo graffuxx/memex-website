@@ -35,7 +35,7 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
      const randomAbilities=row.kind==='random';
      let initial=createPvp90([row.host_deck,row.guest_deck],seed(),now(),{
       elementalTrial:true,iconicAbilities:true,iconicAbilityWave:7,
-      releasedPrimeTrio:true,releasedPrimePair:true,allPrimes:true,finalGuard:true,randomAbilities
+      releasedPrimeTrio:true,releasedPrimePair:true,allPrimes:true,finalGuard:true,earthSupport:true,randomAbilities
      });
      if(row.ai_opponent96){initial.bot96={seed:seed(),nextAt:null};initial=armBot96(initial,now());}
      row=await commit(initial);

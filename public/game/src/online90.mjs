@@ -1,6 +1,6 @@
 import {bindSignatureControls} from './signature-controls.mjs?v=final-guard';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=arcade-voices';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=edge-numbers';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=duel-feedback';
 import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
@@ -9,8 +9,8 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=edge-numbers';
-import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=final-guard';
+import {createTableView} from './table-demo-view-hand17.mjs?v=duel-feedback';
+import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=duel-feedback';
 import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
@@ -48,7 +48,7 @@ function render(){
  $('handCount').textContent=game.players[0].hand.length+' / 5';$('enemyHandCount').textContent=game.players[1].hand.length;$('ownDeckCount').textContent=game.players[0].deck.length+' cards';$('enemyDeckCount').textContent=game.players[1].deck.length+' cards';
  $('turnCount').textContent=game.placements+' / 18 cards';$('turnLabel').textContent=data.phase==='ended'?'Duel complete':game.finished?'Round complete':game.turn===1?'Opponent is thinking':busy?'Saving turn…':'Your turn';$('openingBadge').textContent=(data.kind==='random'?'Random':'Private')+' · '+'Round '+data.round;
  const series=series113(data.results);$('seriesStatus').textContent='Round wins '+series.wins[0]+' : '+series.wins[1]+' · First to 2';$('firstMove').textContent='First move: '+(game.starter===0?'you':'opponent');
- $('confirm').disabled=busy||!(p||mode==='shift'&&moveTargets(game).includes(target));$('confirm').textContent=mode==='shift'?'Move blockade':'Play card';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent=blockadeLocked(game)?'⊣ Blockade sealed':'◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
+ $('confirm').hidden=mode!=='shift';$('confirm').disabled=busy||!moveTargets(game).includes(target);$('confirm').textContent='Move blockade';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent=blockadeLocked(game)?'⊣ Blockade sealed':'◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
  $('nextRound').hidden=data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||animating||presentation.needsSnapshot||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Next round starts automatically':'Continue sooner';
  $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?(game.turn===0?'Choose a free field. Escape cancels.':'Inspect your hand while your opponent plays.'):game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
  $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.pursuit?' · No Escape ✓':c.objection?' · Objection holds':c.finalGuard?' · Final Guard holds':c.bailout?' · Last-Second Save':c.redirect?' · Clingy Bond → '+cardOf(game.board[c.redirect]).name:c.pincer?' · Double Trouble ✓':c.phalanx?' · Phalanx ✓':c.sandwich?' · Sandwich ✓':c.ambush?' · Ambush ✓':c.defend.awkward?(c.flip?' · Awkward Silence ✓':' · Awkward Silence'):c.flip?' ✓':c.tieProtected?' · KEKW holds':'')).join(' · '):'';
@@ -68,7 +68,7 @@ function render(){
  signatureControls.update({game,card,target,plan:p,busy:draw?working||animating||presentation.needsSnapshot||leaving112:busy,options:draw?.options,waiting:draw?.side===1});
  if(draw)$('turnLabel').textContent=draw.side===0?'Choose one card to draw':'Opponent is choosing a card';
  if(game.finished&&game.last?.finalGuard)$('statusDetail').textContent='Final Guard saved '+cardOf(game.board[game.last.finalGuard.cell]).name+'.';
- $('controls').dataset.context='active';view.update(game,{selected,target,hover,inspect:null,mode,busy,inspectable:inputState().inspect,cameraBusy:!inputState().camera,plan:p,abilityDirection,twistCell});clock();
+ $('controls').dataset.context='active';view.update(game,{selected,target,hover,inspect:null,mode,busy,confirmPlacement:Boolean(p&&!busy&&!drag?.moved),inspectable:inputState().inspect,cameraBusy:!inputState().camera,plan:p,abilityDirection,twistCell});clock();
 }
 function rps(){
  if(!data)return;
@@ -176,7 +176,7 @@ document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.runnin
 $('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
 async function bootOnline139(){if(booting139||stopped)return;booting139=true;let ready=false;try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
- if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{finalGuardLabel:'FINAL GUARD',getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient($('ambientEnabled').checked);if(!muted)void audio.preloadAnnouncements();}
+ if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{onConfirmPlacement:confirm,confirmPlacementLabel:'Play card',blinkLabel:'BLINK',finalGuardLabel:'FINAL GUARD',getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient($('ambientEnabled').checked);if(!muted)void audio.preloadAnnouncements();}
  $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';ready=true;
 }catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{booting139=false;}if(ready)await poll();}
 void bootOnline139();

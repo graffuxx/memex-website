@@ -25,7 +25,7 @@ export const ABILITIES={
  twist:{name:'Think Again',short:'↻',description:'Einen gegnerischen Nachbarn 60° drehen. Dieses Ziel kann im selben Zug nicht übernommen werden. Optional.'},
  fire:{name:'Fire · Glutstoß',short:'↑',description:'Berührt die Karte genau einen Gegner, erhält die Angriffskante gegen ihn +1.'},
  water:{name:'Water · Wellenschild',short:'◈',description:`Eine gewählte Kante erhält +${WATER_BONUS} Verteidigung bis zum nächsten eigenen Zug.`},
- earth:{name:'Earth · Bollwerk',short:'◆',description:'Neben der Blockade erhält die schwächste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht.'},
+ earth:{name:'Earth · Bollwerk',short:'◆',description:'Grenzt diese Karte an eine eigene Karte oder die Blockade, erhält ihre schwächste offene Kante +1 Verteidigung. Der Bonus wandert mit der schwächsten offenen Kante.'},
  air:{name:'Air · Rückenwind',short:'↻',description:'Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte löst keine Übernahmen aus.'},
  storm:{name:'Storm · Flankenblitz',short:'ϟ',description:`Berührt die Karte mindestens zwei Gegner, erhält die schwächste Angriffskante gegen sie +1, wenn ihr Grundwert höchstens ${STORM_MAX_EDGE} beträgt.`},
  rage:{name:'Iconic · Rage Pivot',short:'◆',description:'Liegst du zurück, kannst du nach dem Ausspielen die Blockade bis zu zwei freie Felder weit verschieben. Das verbraucht deinen Blockadezug dieser Runde.'},
@@ -52,7 +52,7 @@ export const ABILITIES={
  dash:{name:'Prime · Durchbruch',short:'»',description:'Berührt die unversiegelte Blockade eine eigene Karte, kann Sanic auf ihrem Feld landen. Dabei schiebt er die Blockade zuerst auf ein freies Nachbarfeld. Dein normaler Blockadezug bleibt verfügbar.'},
  bailout:{name:'Prime · Rettung in letzter Sekunde',short:'❖',description:`Jordan rettet einmal pro Runde eine benachbarte eigene Standardkarte vor einem direkten Zahlenflip mit höchstens ${JORDAN_MAX_MARGIN} Punkt Vorsprung. Wird Jordan im selben Zug geflippt, greift die Rettung nicht.`},
  fan:{name:'Prime · Leere Ränge',short:'⊠',description:'Reserviere beim Legen ein freies Feld, das an Fan und eine bereits eigene Standardkarte angrenzt. Im nächsten Zug des Gegners bleibt dieses Feld für Karten gesperrt. Andere Spielfelder bleiben bestehen.'},
- blink:{name:'Prime · Blinzler',short:'⟳',description:'Flippt der Gegner genau eine Karte direkt und trifft dabei Blinking Guy oder eine benachbarte eigene Standardkarte, dreht sich die ausgespielte Gegnerkarte nach dem Flip um 60° im Uhrzeigersinn. Einmal pro Runde.'},
+ blink:{name:'Prime · Blinzler',short:'⟳',description:'Einmal pro Runde. Wenn der Gegner genau eine Karte direkt flippt und dabei Blinking Guy oder eine angrenzende eigene Standardkarte trifft, dreht sich die neue Gegnerkarte nach dem Flip um 60° im Uhrzeigersinn. Der Flip zählt. Ab dem nächsten Zug gelten die gedrehten Kanten.'},
  cling:{name:'Prime · Klammergriff',short:'∞',description:'Verbinde beim Legen eine angrenzende eigene Standardkarte mit Overly Attached. Beim ersten direkten Zahlenflip gegen eine der beiden Karten übernimmt der Gegner stattdessen die andere, sofern er sie in diesem Zug noch nicht übernimmt. Gegen S bleibt das ursprüngliche Ziel. Die Verbindung löst sich nach dem ersten Einsatz oder wenn ein Partner verloren geht.'},
  jam:{name:'Prime · Eingabestopp',short:'⌧',description:'Wähle beim Legen eine angrenzende Gegnerkarte. Ihre eigene Fähigkeit pausiert sofort bis zum Ende deines nächsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam.'},
  sandwich:{name:'Prime · Sandwich',short:'⟫',description:`Steht ein eigener Verbündeter direkt oder schräg hinter einer Gegnerkarte, kann sein Überschuss gegen deren Rückseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT} verstärken. Es zählt der erste dadurch mögliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.`},
@@ -122,6 +122,7 @@ export function releasedPrimeAbility(card,includePair=false,allPrimes=false){
  return null;
 }
 export function abilityDescription(game,ability){
+ if(ability==='earth'&&!game?.earthSupport)return 'Neben der Blockade erhält die schwächste erreichbare Kante +1 Verteidigung, solange die Blockade dort bleibt.';
  if(ability==='guard')return `Eine Seite erhält +${guardBonus(game)} Verteidigung bis zum nächsten eigenen Karten-Zug.`;
  return ABILITIES[ability]?.description??'';
 }
@@ -286,8 +287,9 @@ export function abilityEdge(game,card,cell,{attacking=false,direction=null}={}){
  }
  if(ability==='earth'){
   const adjacent=neighbors(cell);
-  if(adjacent.some(n=>n.id===game.block)){
-   const edge=weakestEdge(card,adjacent.filter(n=>n.id!==game.block));
+  const supported=adjacent.some(({id})=>id===game.block||game.earthSupport&&game.board[id]?.controller===card.controller);
+  if(supported){
+   const edge=weakestEdge(card,adjacent.filter(({id})=>id!==game.block&&(!game.earthSupport||!game.board[id])));
    if(edge)return {dir:edge.dir,amount:1};
   }
  }
@@ -791,6 +793,14 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
    const selected=p.bid??p.ambush;
    next.last.abilityEdge=selected!==null?{dir:selected,amount:p.ambush!==null?AMBUSH_BONUS:1}:abilityEdge(working,p.card,p.cell,{attacking:true,direction:p.abilityDirection})??abilityEdge(working,p.card,p.cell);
   }
+ }
+ if(game.elementalTrial){
+  const placed=Object.values(next.board).find(card=>card.uid===p.card.uid);
+  const turnOffset=(placed.rotation-p.card.rotation+6)%6;
+  const attackEdges=p.comparisons
+   .filter(({attack,pursuit,pincer})=>!pursuit&&!pincer&&attack.rank!=='S'&&(attack.ability||attack.formation||attack.sandwich))
+   .map(({dir,attack})=>({dir:(dir+turnOffset)%6,total:attack.total}));
+  if(attackEdges.length)next.last.attackEdges=attackEdges;
  }
  next.history.push(next.last);
  if(freeCells(next).length===0){next.finished=true;const s=scores(next);next.winner=s[0]===s[1]?null:s[0]>s[1]?0:1;}

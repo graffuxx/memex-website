@@ -26,7 +26,7 @@ export const glossary = [
 const explanations = {
  fire:['Ember Strike','Play a Regular Fire card touching exactly one enemy.','Its edge facing that enemy gains +1 attack for this play.'],
  water:['Wave Shield','Select a Regular Water card, target a hex and choose the edge to protect. Confirm the play.',`That edge gains +${WATER_BONUS} defence until your next turn.`],
- earth:['Bulwark','Place a Regular Earth card next to the blockade, or move the blockade next to one.','The weakest eligible edge gains +1 defence for as long as it borders the blockade.'],
+ earth:['Bulwark','A Regular Earth card touches an allied card or the blockade.','Its weakest open edge gains +1 defence. The protected edge updates as the board changes.'],
  air:['Tailwind','When placing a Regular Air card, you may select one adjacent ally to rotate.','The ally turns 60° without triggering any captures.'],
  storm:['Flanking Lightning','Play a Regular Storm card touching at least two enemies.',`Its weakest enemy-facing edge gains +1 attack if its base value is ${STORM_MAX_EDGE} or less.`],
  rage:['Rage Pivot','Place Rage Guy while behind on the board with your blockade move unused. Choose an available destination.','Move the blockade up to two free hexes. This uses your blockade move for the round.'],
@@ -53,7 +53,7 @@ const explanations = {
  dash:['Breakthrough','Target the unsealed blockade with Sanic. It must touch an allied card and have a free neighbouring hex.','Push the blockade into a free neighbour and play Sanic on its old hex. Your normal blockade move remains available.'],
  bailout:['Last-Second Save','The enemy would capture a Regular next to Crying Jordan with a numbered edge. Jordan must stay yours.',`Once per round, Jordan saves that ally if the attacker’s edge is at most ${JORDAN_MAX_MARGIN} higher.`],
  fan:['Empty Seats','Place Fan beside a Regular you control and choose a free hex touching them both.','The opponent cannot place a card on that hex on their next turn.'],
- blink:['Blink','An enemy play directly captures exactly one card, either Blinking Guy or an adjacent allied Regular.','Once per round, the attacking card rotates 60° clockwise after the capture.'],
+ blink:['Blink','An enemy play directly captures exactly one card, either Blinking Guy or an adjacent allied Regular.','Once per round, the attacking card rotates 60° clockwise after the capture. The capture still counts. The rotated edges apply on later turns.'],
  cling:['Clingy Bond','When placing Overly Attached, choose an adjacent allied Regular to link.','The first direct numbered capture against either linked card is redirected to the partner if eligible. S is not redirected. The link ends when used or a partner is lost.'],
  jam:['Input Lock','When placing Keyboard Crusher, select an adjacent enemy with an active ability.','The enemy’s own ability is muted immediately through the end of your next turn. Its values, element and protection from other cards still work.'],
  sandwich:['Sandwich','Attack an enemy with an ally on its far side. The ally’s touching value must exceed the target’s opposing edge.',`Add up to ${SANDWICH_MAX_SUPPORT} attack on the first numbered edge that wins with the support. S edges are excluded.`],

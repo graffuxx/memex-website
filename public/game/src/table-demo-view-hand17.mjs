@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=edge-numbers';
-import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=edge-numbers';
+import {createAbilityEffects} from './ability-effects.mjs?v=duel-feedback';
+import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=duel-feedback';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -20,9 +20,9 @@ import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets,PHALANX_BONUS} from './table-demo-rules.mjs?v=final-guard';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=duel-feedback';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=edge-numbers';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=duel-feedback';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -31,8 +31,17 @@ const tableArena=id=>id==='voidforge'||flatArena(id);
 let hudMaskSerial105=0;
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
-export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null}={}){
+export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',blinkLabel='BLINZLER'}={}){
  const syncDuelControl=bindDuelControl105(stage.ownerDocument);
+ const placementButton=onConfirmPlacement?stage.ownerDocument.createElement('button'):null;
+ if(placementButton){
+  placementButton.type='button';
+  placementButton.className='placement-confirm';
+  placementButton.textContent=confirmPlacementLabel;
+  placementButton.hidden=true;
+  placementButton.onclick=onConfirmPlacement;
+  stage.append(placementButton);
+ }
  const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.75));renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.domElement.className='table-canvas';renderer.domElement.setAttribute('aria-hidden','true');stage.prepend(renderer.domElement);
  const paintedBackdrop=showcase?null:await createPaintedBackdrop(renderer),illustratedBackdrop=showcase?null:createIllustratedBackdrop67(renderer);
  const envFaces=Array.from({length:6},(_,i)=>{const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d'),g=ctx.createLinearGradient(0,0,0,64);g.addColorStop(0,i===2?'#b4a5c4':'#736881');g.addColorStop(1,'#1f182c');ctx.fillStyle=g;ctx.fillRect(0,0,64,64);return c;});const voidEnvironment=new T.CubeTexture(envFaces);voidEnvironment.colorSpace=T.SRGBColorSpace;voidEnvironment.needsUpdate=true;
@@ -68,7 +77,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
  let forgeWorld=null,navigation=null,orbitPose={...DEFAULT_ARENA_POSE78},orbitTarget={...DEFAULT_ARENA_POSE78};
  const fieldNodes=new Map(),handNodes=new Map(),cardMap=new Map(),moving=new Set(),hidden=new Set(),tweens=[];
  const fieldLayer=svgNode('g',{'class':'board-hits'}),handLayer=svgNode('g',{'class':'hand-hits'}),abilityLayer=svgNode('g',{class:'ability-effects','aria-hidden':'true'});
- const abilityEffects=createAbilityEffects(abilityLayer,{finalGuardLabel});
+ const abilityEffects=createAbilityEffects(abilityLayer,{finalGuardLabel,blinkLabel});
  let attackFlash=null,attackFlashTimer=null;
  // SVG field outlines otherwise sit above the entire WebGL canvas, including HUD cards.
  // Cut their actual, animated silhouettes out of the field overlay, not out of the cards.
@@ -117,7 +126,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
    const feedback=boardFeedback(previewed,cell);
    card.setFieldEffects(feedback);
    card.setBoost(guardActive(game,c,cell)?c.guardDirection:null);
-   card.setAbility(c.ability,feedback.silenced);
+   card.setAbility(c.ability,feedback.silenced||c.blinkSpent);
   }
   const hand=new Set(game.players[0].hand.map(c=>c.uid));for(const [uid,node] of handNodes)if(!hand.has(uid)){node.remove();handNodes.delete(uid);}
   for(const c of game.players[0].hand)if(!handNodes.has(c.uid)){const g=svgNode('g',{'data-hand':c.uid,role:'button',tabindex:'0',class:'hand-card'});g.append(svgNode('polygon',{fill:'transparent',class:'hand-rest-hit'}),svgNode('polygon',{fill:'transparent',class:'hand-hit'}));handLayer.append(g);handNodes.set(c.uid,g);}
@@ -131,6 +140,16 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
    const owner=node.querySelector('.owner-label');owner.textContent='';if(held)node.dataset.owner=String(held.controller);else delete node.dataset.owner;
   }
   handOverlay();
+  if(placementButton){
+   placementButton.hidden=!ui.confirmPlacement;
+   if(ui.confirmPlacement){
+    const cell=CELLS.find(tile=>tile.id===ui.plan.cell);
+    const points=projectHex(camera,cell,width,boardHeight,.99,.39);
+    const center=projectCell(ui.plan.cell);
+    placementButton.style.left=T.MathUtils.clamp(center.x,74,width-74)+'px';
+    placementButton.style.top=Math.min(height-48,Math.max(...points.map(point=>point.y))+boardTop+5)+'px';
+   }
+  }
   abilityEffects.paint(game,ui.plan,cell=>projectHex(camera,CELLS.find(c=>c.id===cell),width,boardHeight,.99,.39).map(p=>({x:p.x,y:p.y+boardTop})));
  }
  function handOverlay(){if(!game)return;hudCamera.updateMatrixWorld();
@@ -155,10 +174,11 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   const cover=ui.plan?.coverWards?.find(target=>target.cell===cell);
   const previewCard=cover?{...card,coverWard:{dir:cover.dir,owner:card.controller,until:game.placements+2}}
    :ward?.cell===cell?{...card,ernieWard:{dir:ward.dir,owner:card.controller,until:game.placements+2}}:card;
-  const feedback=fieldFeedback129(game,previewCard,cell);
+  const previewGame=ui.plan?{...game,board:ui.plan.board,block:ui.plan.blockadeMove?.to??game.block}:game;
+  const feedback=fieldFeedback129(previewGame,previewCard,cell);
   if(ui.plan?.pivot?.cell!==cell)feedback.totals=previewEdgeTotals129(ui.plan,cell);
-  if(attackFlash?.uid===card.uid&&attackFlash.placement===game.placements){
-   for(const {dir,amount} of attackFlash.edges)feedback.bonuses[dir]+=amount;
+  if(!ui.plan&&attackFlash?.uid===card.uid&&attackFlash.placement===game.placements){
+   for(const {dir,total} of attackFlash.edges)feedback.totals[dir]=total;
   }
   return feedback;
  }
@@ -166,15 +186,14 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   if(motion)abilityEffects.burst(resolved);
   const move=resolved.last;
   if(!resolved.elementalTrial)return;
-  const edges=[
-   ['fire','storm','bid','ambush'].includes(move.ability)&&move.abilityEdge,
-   move.rally&&{dir:move.rally.dir,amount:PHALANX_BONUS},
-   move.sandwich&&{dir:move.sandwich.dir,amount:move.sandwich.amount},
-  ].filter(Boolean);
+  const edges=move.attackEdges??[];
   if(!edges.length)return;
+  const placed=Object.entries(resolved.board).find(([,card])=>card.uid===move.uid);
+  if(!placed)return;
+  const [cell]=placed;
   const refresh=()=>{
-   const card=game?.board[move.cell];
-   if(card?.uid===move.uid)cardMap.get(move.uid)?.setFieldEffects(boardFeedback(card,move.cell));
+   const card=game?.board[cell];
+   if(card?.uid===move.uid)cardMap.get(move.uid)?.setFieldEffects(boardFeedback(card,cell));
    dirty=true;
   };
   clearTimeout(attackFlashTimer);
@@ -194,7 +213,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   moving.delete(uid);
   return true;
  }
- function cancel(){generation++;abilityEffects.clear();clearTimeout(attackFlashTimer);attackFlash=null;while(tweens.length)tweens.shift().resolve(false);moving.clear();hidden.clear();dirty=true;}
+ function cancel(){if(placementButton)placementButton.hidden=true;generation++;abilityEffects.clear();clearTimeout(attackFlashTimer);attackFlash=null;while(tweens.length)tweens.shift().resolve(false);moving.clear();hidden.clear();dirty=true;}
  function projectCell(cell){const p=tileCenter(CELLS.find(c=>c.id===cell));if(arenaId==='voidforge')return boardCardProjection78(camera,new T.Vector3(p.x,.30,p.z),width,boardHeight,boardTop);const center=new T.Vector3(p.x,.30,p.z).project(camera),right=new T.Vector3(p.x+.92,.30,p.z).project(camera),up=new T.Vector3(p.x,.30,p.z-.92).project(camera),sx=(right.x-center.x)*width/2,sy=(up.y-center.y)*boardHeight/2;return {x:(center.x+1)*width/2,y:(1-center.y)*boardHeight/2+boardTop,scale:Math.abs(sx),tilt:-Math.acos(Math.min(1,Math.abs(sy/sx)))};}
  function fly(card,to,duration=780,flip=false){
   moving.add(card.uid);card.target=null;card.group.visible=true;const start=card.group.position.clone(),fromScale=card.group.scale.x,fromQ=card.group.quaternion.clone(),target=new T.Vector3(to.x-width/2,height/2-to.y,HUD_DEPTH.flight),toQ=to.quaternion??new T.Quaternion().setFromEuler(new T.Euler(to.tilt??0,0,0)),targetScale=to.scale??to.h/2;
@@ -237,5 +256,5 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   if(zoomPending!==null&&!moving.size&&!tweens.length){const value=zoomPending;zoomPending=null;requestZoom(value);}if(tableArena(arenaId)&&!moving.size&&!tweens.length&&Math.abs(zoomDesired-zoomLevel)>.0001){zoomLevel=motion?T.MathUtils.lerp(zoomLevel,zoomDesired,1-Math.exp(-dt*10)):zoomDesired;if(Math.abs(zoomDesired-zoomLevel)<.0005)zoomLevel=zoomDesired;resize();active=true;}if(arenaId==='voidforge'&&!moving.size&&!tweens.length){const delta=Math.atan2(Math.sin(orbitTarget.yaw-orbitPose.yaw),Math.cos(orbitTarget.yaw-orbitPose.yaw));if(Math.abs(delta)+Math.abs(orbitTarget.pitch-orbitPose.pitch)+Math.abs(orbitTarget.panX-orbitPose.panX)+Math.abs(orbitTarget.panZ-orbitPose.panZ)>.0001){const k=motion?1-Math.exp(-dt*18):1;orbitPose=normalizeArenaPose78({yaw:orbitPose.yaw+delta*k,pitch:T.MathUtils.lerp(orbitPose.pitch,orbitTarget.pitch,k),panX:T.MathUtils.lerp(orbitPose.panX,orbitTarget.panX,k),panZ:T.MathUtils.lerp(orbitPose.panZ,orbitTarget.panZ,k)});resize();active=true;}}blockade.frame(dt,motion);runtime.frame(dt,motion,c=>c.group.parent===hudScene?hudCamera:camera);if(!dirty&&!motion&&!active)return;world.frame(now,dt,motion);if(arenaId==='voidforge')forgeWorld?.frame(dt,camera,motion,getMusicTimeline());if(flatArena(arenaId)){(isIllustratedArena(arenaId)?illustratedBackdrop:paintedBackdrop)?.frame(now,dt,motion);}eventPulse=Math.max(0,eventPulse-dt*.65);for(const [id,ring]of eventRings){if(ring.visible)ring.material.opacity=.48+(motion?.1*Math.sin(now*.002+id.length):0)+eventPulse*.35;}for(const ring of shieldRings.values())if(ring.visible)ring.material.opacity=.35+(motion?.12*Math.sin(now*.004):0);const renderCamera=arenaId==='voidforge'?expandedArenaCamera79(arenaRenderCamera,camera,height,boardTop,boardHeight):camera,renderViewport=arenaId==='voidforge'?[0,0,width,height]:[0,height-boardTop-boardHeight,width,boardHeight];renderer.setViewport(0,0,width,height);renderer.setScissorTest(false);renderer.autoClear=false;renderer.clear();if(arenaId==='voidforge'){forgeWorld.renderBackground(width,height);renderer.clearDepth();}if(flatArena(arenaId)){(isIllustratedArena(arenaId)?illustratedBackdrop:paintedBackdrop)?.render(renderer);renderer.clearDepth();}if(arenaId==='voidforge'){forgeWorld.render(renderCamera,renderViewport);renderer.autoClear=false;renderer.clearDepth();}renderer.setViewport(...renderViewport);renderer.setScissor(...renderViewport);renderer.setScissorTest(true);renderer.render(worldScene,renderCamera);renderer.setScissorTest(false);renderer.clearDepth();renderer.setViewport(0,0,width,height);renderer.autoClear=false;if(!showcase)renderer.render(hudScene,hudCamera);renderer.autoClear=true;handOverlay();dirty=false;
  }
  const observer=new ResizeObserver(resize);observer.observe(stage);resize();raf=requestAnimationFrame(frame);
- return {prepareGame,initGame,update,animate,cancel,place,draw,deal,flip,slideCard,abilityBurst,async setArena(id){const token=++arenaSelectionToken,next=id==='voidforge'?'voidforge':isIllustratedArena(id)&&illustratedBackdrop?id:id==='painted'&&paintedBackdrop?'painted':id==='void'?'void':ARENA_THEMES[id]?id:'grove';if(isIllustratedArena(next)){const ready=await illustratedBackdrop.setArena(next);if(!ready||token!==arenaSelectionToken)return false;}if(next==='voidforge'&&!forgeWorld){const loaded=await createVoidforge77(renderer);if(token!==arenaSelectionToken){loaded.dispose();return false;}forgeWorld=loaded;}if(token!==arenaSelectionToken)return false;arenaId=next;const isForge=arenaId==='voidforge',isPainted=flatArena(arenaId),isTable=tableArena(arenaId),isVoid=isForge||isPainted||arenaId==='void',theme=isVoid?{fog:'#241732',side:isPainted?'#51465e':'#3c324d',trim:'#c5aa83'}:ARENA_THEMES[arenaId];zoomDesired=T.MathUtils.clamp(zoomDesired,PAINTED_MIN_ZOOM,isForge?VOIDFORGE_ZOOM79.max:PAINTED_MAX_ZOOM);zoomLevel=T.MathUtils.clamp(zoomLevel,PAINTED_MIN_ZOOM,isForge?VOIDFORGE_ZOOM79.max:PAINTED_MAX_ZOOM);zoomPending=null;camera=isIllustratedArena(arenaId)?illustratedCamera:isPainted?paintedCamera:perspectiveCamera;legacyWorld.setVisible(!isVoid);voidWorld.setVisible(isVoid&&!isPainted&&!isForge);paintedBackdrop?.setVisible(arenaId==='painted');illustratedBackdrop?.setVisible(isIllustratedArena(arenaId));deckPlinth?.setVisible(isTable);enemyDeckPlinth?.setVisible(isTable);zoomControls?.setVisible(isTable);zoomControls?.setNavigation(isForge);blend.visible=true;blend.material.map=isTable?paintedHandTexture:blendTexture;blend.material.needsUpdate=true;etchedGrid.visible=isPainted;for(const {tile}of tiles.values()){tile.visible=!isForge;tile.geometry=isPainted?paintedTileGeo:tileGeo;tile.material=isPainted?paintedGroundMaterial:[stone,side];tile.position.y=isPainted?.235:0;tile.castShadow=!isPainted;tile.receiveShadow=!isPainted;}stone.map=isPainted?paintedTexture:surfaceTexture;stone.needsUpdate=true;if(!isVoid)legacyWorld.setTheme(arenaId);for(const m of [podium,rimPlate,plate])m.visible=!isVoid;worldScene.environment=isVoid?voidEnvironment:null;renderer.toneMappingExposure=isForge?1.08:isVoid?.90:1.15;worldScene.children.forEach(light=>{if(light.isHemisphereLight){light.intensity=isVoid?1.55:2.3;light.color.set(isVoid?'#d8cdf3':'#d7e6ed');}if(light.name==='table-key'){light.intensity=isVoid?2.6:3.4;light.color.set(isVoid?'#eee1ff':'#fff0d3');}if(light.name==='table-rim'){light.intensity=isVoid?2.1:2.2;light.color.set(isVoid?'#b29be1':'#86d1d3');}});worldScene.fog.color.set(theme.fog);worldScene.fog.density=isVoid?.012:.025;side.color.set(theme.side);gold.color.set(theme.trim);stone.color.set(isPainted?'#ddd8e7':isVoid?'#d4c8e0':arenaId==='grove'?'#b6c2c0':'#c1b1bc');stage.dataset.arena=arenaId;resize();dirty=true;return true;},setCamera(view){if(!showcase)return;cameraView=['a','b','top'].includes(view)?view:'a';voidWorld.setView(cameraView);resize();dirty=true;},async turnCard(uid,from,to){const token=generation,card=cardMap.get(uid);moving.add(uid);card.setRotation(from);const base=card.group.position.y;let changed=false;const ok=await animate(420,t=>{card.group.position.y=base+Math.sin(t*Math.PI)*.18;card.group.rotation.z=Math.sin(t*Math.PI)*.18*((to-from+6)%6===5?-1:1);if(t>=.5&&!changed){card.setRotation(to);changed=true;}});if(!ok||token!==generation)return false;if(ok){card.setRotation(to);card.group.position.y=base;card.group.rotation.z=0;}moving.delete(uid);dirty=true;return ok;},async shieldBlock(cells){const token=generation;for(const cell of cells)shieldRings.get(cell).visible=true;const ok=await animate(350,t=>{for(const cell of cells)shieldRings.get(cell).scale.setScalar(1+Math.sin(t*Math.PI)*.25);});if(!ok||token!==generation)return false;for(const cell of cells){const ring=shieldRings.get(cell);ring.scale.setScalar(1);ring.visible=Boolean(game.board[cell]&&guardActive(game,game.board[cell],cell));}dirty=true;return true;},eventChange(){eventPulse=motion?1:0;dirty=true;},async shift(cell){const from=rock.position.clone(),p=tileCenter(CELLS.find(c=>c.id===cell));return animate(450,t=>{rock.position.set(T.MathUtils.lerp(from.x,p.x,t),.30+Math.sin(t*Math.PI)*.2,T.MathUtils.lerp(from.z,p.z,t));});},layout,react:action=>world.react(action),card:uid=>cardMap.get(uid),hide:uid=>hidden.add(uid),hold:uid=>moving.add(uid),setRotation(uid,r){cardMap.get(uid).setRotation(r);dirty=true;},setMotion(v){motion=Boolean(v);if(!motion)eventPulse=0;dirty=true;},drag(uid,x,y){const c=cardMap.get(uid);moving.add(uid);hudScene.add(c.group);c.group.visible=true;c.group.position.set(x-width/2,height/2-y,HUD_DEPTH.drag);c.group.rotation.set(0,0,0);c.target=null;c.group.scale.setScalar(Math.min(width<500?45:56,projectCell('0,0').scale*.92));dirty=true;},release(uid){moving.delete(uid);layout();},dispose(){cancelAnimationFrame(raf);defs.remove();observer.disconnect();cancel();runtime.dispose();ownershipFields.dispose();navigation?.dispose();forgeWorld?.dispose();zoomControls?.dispose();paintedBackdrop?.dispose();illustratedBackdrop?.dispose();deckPlinth?.dispose();enemyDeckPlinth?.dispose();blockade.dispose();paintedHandTexture.dispose();blendTexture.dispose();blend.geometry.dispose();blend.material.dispose();surfaceTexture.dispose();paintedTexture.dispose();paintedTileGeo.dispose();paintedGroundMaterial.dispose();etchGeometry.dispose();etchMaterial.dispose();tileGeo.dispose();voidEnvironment.dispose();for(const t of fieldTextures.values())t.dispose();world.dispose();renderer.dispose();renderer.domElement.remove();}};
+ return {prepareGame,initGame,update,animate,cancel,place,draw,deal,flip,slideCard,abilityBurst,async setArena(id){const token=++arenaSelectionToken,next=id==='voidforge'?'voidforge':isIllustratedArena(id)&&illustratedBackdrop?id:id==='painted'&&paintedBackdrop?'painted':id==='void'?'void':ARENA_THEMES[id]?id:'grove';if(isIllustratedArena(next)){const ready=await illustratedBackdrop.setArena(next);if(!ready||token!==arenaSelectionToken)return false;}if(next==='voidforge'&&!forgeWorld){const loaded=await createVoidforge77(renderer);if(token!==arenaSelectionToken){loaded.dispose();return false;}forgeWorld=loaded;}if(token!==arenaSelectionToken)return false;arenaId=next;const isForge=arenaId==='voidforge',isPainted=flatArena(arenaId),isTable=tableArena(arenaId),isVoid=isForge||isPainted||arenaId==='void',theme=isVoid?{fog:'#241732',side:isPainted?'#51465e':'#3c324d',trim:'#c5aa83'}:ARENA_THEMES[arenaId];zoomDesired=T.MathUtils.clamp(zoomDesired,PAINTED_MIN_ZOOM,isForge?VOIDFORGE_ZOOM79.max:PAINTED_MAX_ZOOM);zoomLevel=T.MathUtils.clamp(zoomLevel,PAINTED_MIN_ZOOM,isForge?VOIDFORGE_ZOOM79.max:PAINTED_MAX_ZOOM);zoomPending=null;camera=isIllustratedArena(arenaId)?illustratedCamera:isPainted?paintedCamera:perspectiveCamera;legacyWorld.setVisible(!isVoid);voidWorld.setVisible(isVoid&&!isPainted&&!isForge);paintedBackdrop?.setVisible(arenaId==='painted');illustratedBackdrop?.setVisible(isIllustratedArena(arenaId));deckPlinth?.setVisible(isTable);enemyDeckPlinth?.setVisible(isTable);zoomControls?.setVisible(isTable);zoomControls?.setNavigation(isForge);blend.visible=true;blend.material.map=isTable?paintedHandTexture:blendTexture;blend.material.needsUpdate=true;etchedGrid.visible=isPainted;for(const {tile}of tiles.values()){tile.visible=!isForge;tile.geometry=isPainted?paintedTileGeo:tileGeo;tile.material=isPainted?paintedGroundMaterial:[stone,side];tile.position.y=isPainted?.235:0;tile.castShadow=!isPainted;tile.receiveShadow=!isPainted;}stone.map=isPainted?paintedTexture:surfaceTexture;stone.needsUpdate=true;if(!isVoid)legacyWorld.setTheme(arenaId);for(const m of [podium,rimPlate,plate])m.visible=!isVoid;worldScene.environment=isVoid?voidEnvironment:null;renderer.toneMappingExposure=isForge?1.08:isVoid?.90:1.15;worldScene.children.forEach(light=>{if(light.isHemisphereLight){light.intensity=isVoid?1.55:2.3;light.color.set(isVoid?'#d8cdf3':'#d7e6ed');}if(light.name==='table-key'){light.intensity=isVoid?2.6:3.4;light.color.set(isVoid?'#eee1ff':'#fff0d3');}if(light.name==='table-rim'){light.intensity=isVoid?2.1:2.2;light.color.set(isVoid?'#b29be1':'#86d1d3');}});worldScene.fog.color.set(theme.fog);worldScene.fog.density=isVoid?.012:.025;side.color.set(theme.side);gold.color.set(theme.trim);stone.color.set(isPainted?'#ddd8e7':isVoid?'#d4c8e0':arenaId==='grove'?'#b6c2c0':'#c1b1bc');stage.dataset.arena=arenaId;resize();dirty=true;return true;},setCamera(view){if(!showcase)return;cameraView=['a','b','top'].includes(view)?view:'a';voidWorld.setView(cameraView);resize();dirty=true;},async turnCard(uid,from,to){const token=generation,card=cardMap.get(uid);moving.add(uid);card.setRotation(from);const base=card.group.position.y;let changed=false;const ok=await animate(420,t=>{card.group.position.y=base+Math.sin(t*Math.PI)*.18;card.group.rotation.z=Math.sin(t*Math.PI)*.18*((to-from+6)%6===5?-1:1);if(t>=.5&&!changed){card.setRotation(to);changed=true;}});if(!ok||token!==generation)return false;if(ok){card.setRotation(to);card.group.position.y=base;card.group.rotation.z=0;}moving.delete(uid);dirty=true;return ok;},async shieldBlock(cells){const token=generation;for(const cell of cells)shieldRings.get(cell).visible=true;const ok=await animate(350,t=>{for(const cell of cells)shieldRings.get(cell).scale.setScalar(1+Math.sin(t*Math.PI)*.25);});if(!ok||token!==generation)return false;for(const cell of cells){const ring=shieldRings.get(cell);ring.scale.setScalar(1);ring.visible=Boolean(game.board[cell]&&guardActive(game,game.board[cell],cell));}dirty=true;return true;},eventChange(){eventPulse=motion?1:0;dirty=true;},async shift(cell){const from=rock.position.clone(),p=tileCenter(CELLS.find(c=>c.id===cell));return animate(450,t=>{rock.position.set(T.MathUtils.lerp(from.x,p.x,t),.30+Math.sin(t*Math.PI)*.2,T.MathUtils.lerp(from.z,p.z,t));});},layout,react:action=>world.react(action),card:uid=>cardMap.get(uid),hide:uid=>hidden.add(uid),hold:uid=>moving.add(uid),setRotation(uid,r){cardMap.get(uid).setRotation(r);dirty=true;},setMotion(v){motion=Boolean(v);if(!motion)eventPulse=0;dirty=true;},drag(uid,x,y){const c=cardMap.get(uid);moving.add(uid);hudScene.add(c.group);c.group.visible=true;c.group.position.set(x-width/2,height/2-y,HUD_DEPTH.drag);c.group.rotation.set(0,0,0);c.target=null;c.group.scale.setScalar(Math.min(width<500?45:56,projectCell('0,0').scale*.92));dirty=true;},release(uid){moving.delete(uid);layout();},dispose(){cancelAnimationFrame(raf);defs.remove();observer.disconnect();cancel();placementButton?.remove();runtime.dispose();ownershipFields.dispose();navigation?.dispose();forgeWorld?.dispose();zoomControls?.dispose();paintedBackdrop?.dispose();illustratedBackdrop?.dispose();deckPlinth?.dispose();enemyDeckPlinth?.dispose();blockade.dispose();paintedHandTexture.dispose();blendTexture.dispose();blend.geometry.dispose();blend.material.dispose();surfaceTexture.dispose();paintedTexture.dispose();paintedTileGeo.dispose();paintedGroundMaterial.dispose();etchGeometry.dispose();etchMaterial.dispose();tileGeo.dispose();voidEnvironment.dispose();for(const t of fieldTextures.values())t.dispose();world.dispose();renderer.dispose();renderer.domElement.remove();}};
 }

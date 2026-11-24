@@ -2,12 +2,12 @@ import {DEFINITIONS,getVariant} from '../platform/catalog.mjs';
 import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=final-guard';
+import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=duel-feedback';
 import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=board-ability-symbols';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {displayedEdgeValue129,fieldFeedback129} from './field-feedback129.mjs?v=edge-numbers';
+import {displayedEdgeValue129,fieldFeedback129} from './field-feedback129.mjs?v=duel-feedback';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -25,7 +25,8 @@ export function boardPreviewFace146(game,cell){
  if(!variant||!rules)return null;
  const definition=definitions.get(variant.definitionId),feedback=fieldFeedback129(game,card,cell);
  const ability=ABILITIES[card.ability];
- return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)+(card.objectionSpent?' · Einspruch verbraucht.':'')}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
+ const blinkStatus=card.ability==='blink'?(card.blinkSpent?' · Blinzler verbraucht.':' · Blinzler bereit.'):'';
+ return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)+(card.objectionSpent?' · Einspruch verbraucht.':'')+blinkStatus}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
 }
 
 export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChange=()=>{}}){
@@ -75,7 +76,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    <defs><clipPath id="board-preview-art"><polygon points="${hex}"/></clipPath></defs>
    <image href="${escape(variant.image)}" x="${-.96-(crop?.x??0)*width}" y="${-.96-(crop?.y??0)*height+(variant.artOffsetY??0)}" width="${width}" height="${height}" preserveAspectRatio="${crop?'none':'xMidYMid slice'}" clip-path="url(#board-preview-art)"/>
    <image data-frame href="${fallbackFrame}" x="${-FRAME_LAYOUT.width/2}" y="${-FRAME_LAYOUT.height/2}" width="${FRAME_LAYOUT.width}" height="${FRAME_LAYOUT.height}" preserveAspectRatio="none"/>
-   ${abilityIcon?`<g opacity="${feedback.silenced?.45:1}">${abilityIcon}</g>`:''}
+   ${abilityIcon?`<g opacity="${(feedback.silenced||card.blinkSpent)?0.45:1}">${abilityIcon}</g>`:''}
    <g fill="#17150d" font-size=".1995">${FRAME_LAYOUT.values.map(([x,y],i)=>{
     const {label,changed}=displayedEdgeValue129(sideValue(printedCard,i),{total:values[i]});
     return `<text x="${x}" y="${-y+.0093}"${changed?' fill="#401859"':''}>${label}</text>`;

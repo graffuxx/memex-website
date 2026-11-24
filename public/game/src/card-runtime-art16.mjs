@@ -7,7 +7,7 @@ import {RECRUITER_VARIANTS95} from '../platform/quests95.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
 import {createCardFinishLayer} from './card-finish-layer16.mjs?v=board-ownership-62';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
-import {displayedEdgeValue129} from './field-feedback129.mjs?v=edge-numbers';
+import {displayedEdgeValue129} from './field-feedback129.mjs?v=duel-feedback';
 import * as T from '../vendor/three.module.min.js';
 import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=board-ability-symbols';
 
@@ -92,7 +92,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
  function spawn(uid,profile,owner,rotation=0,rarity='common',element=PROFILES[profile].element,variantId=null){
   const group=new T.Group();group.name=uid;
   const side=new T.Mesh(body,metal);side.castShadow=true;group.add(side);
-  const frontMaterial=new T.MeshBasicMaterial({map:bake(profile,rotation,false,rarity,variantId),transparent:true,alphaTest:.025,toneMapped:false}),front=new T.Mesh(face,frontMaterial);front.position.z=.035;group.add(front);
+  const frontMaterial=new T.MeshBasicMaterial({map:bake(profile,rotation,false,rarity,variantId),alphaTest:.025,alphaToCoverage:true,toneMapped:false}),front=new T.Mesh(face,frontMaterial);front.position.z=.035;group.add(front);
   const back=new T.Mesh(face,backMaterial);back.rotation.y=Math.PI;back.position.z=-.035;group.add(back);
   const finish=createCardFinishLayer(rarity,owner,uid);group.add(finish.root);
   const ownerTitleMaterial=new T.MeshBasicMaterial({map:ownerTitleTexture(profile,owner),transparent:true,depthWrite:false,toneMapped:false}),ownerTitle=new T.Mesh(ownerTitleGeometry,ownerTitleMaterial);ownerTitle.position.set(-.49,FRAME_LAYOUT.titleY,.079);ownerTitle.visible=owner===0||owner===1;group.add(ownerTitle);

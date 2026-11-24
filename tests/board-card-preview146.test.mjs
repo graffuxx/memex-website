@@ -35,6 +35,51 @@ test('temporary and permanent modifiers display as numbers in their original slo
  assert.deepEqual(previewEdgeTotals129(plan,'-1,0'),[]);
 });
 
+test('a chase keeps the direct attack value on the card and previews the second defender separately',()=>{
+ const plan={comparisons:[
+  {cell:'1,0',dir:1,attack:{total:8},defend:{total:7}},
+  {cell:'2,0',dir:1,attack:{total:6},defend:{total:5},pursuit:true},
+ ]};
+ assert.equal(previewEdgeTotals129(plan)[1],8);
+ assert.equal(previewEdgeTotals129(plan,'1,0')[4],7);
+ assert.equal(previewEdgeTotals129(plan,'2,0')[4],5);
+});
+
+test('pincer previews the value on the supporting card and on the edge that actually defends',()=>{
+ const plan={
+  pincer:{source:'1,-1',cell:'1,0',dir:2},
+  comparisons:[{cell:'1,0',dir:1,attack:{total:7},defend:{total:5},pincer:true}],
+ };
+ assert.deepEqual(previewEdgeTotals129(plan),[]);
+ assert.equal(previewEdgeTotals129(plan,'1,-1')[2],7);
+ assert.equal(previewEdgeTotals129(plan,'1,0')[5],5);
+ assert.equal(previewEdgeTotals129(plan,'1,0')[4],undefined);
+});
+
+test('both players see the same weakened edges while an Awkward Penguin mark is active',()=>{
+ const state=createPvp90([{cards:starterDeck()},{cards:starterDeck()}],146,1,{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:7,allPrimes:true});
+ const game=createTacticsMatch({seed:146,starter:0});
+ game.elementalTrial=true;
+ game.eventFieldsEnabled=false;
+ const cell='0,0',card={...expandGameDeck(['doge:common'],0)[0],controller:0,rotation:1};
+ const dir=1,base=sideValue(card,dir);
+ assert.ok(base>2);
+ card.awkwardMark={owner:0,localDirections:[0],from:3,until:4,amount:2};
+ game.board={[cell]:card};
+ game.placements=3;
+ const row={id:'awkward-defense',kind:'random',state:{...state,game},host_id:'host',guest_id:'guest',identities:[{},{}]};
+ for(const viewer of ['host','guest']){
+  const board=projectPvp90(row,viewer,5).game;
+  assert.equal(boardPreviewFace146(board,cell).values[dir],base-2);
+  assert.equal(fieldFeedback129(board,board.board[cell],cell).bonuses[dir],-2);
+ }
+ game.placements=4;
+ for(const viewer of ['host','guest']){
+  const board=projectPvp90(row,viewer,5).game;
+  assert.equal(boardPreviewFace146(board,cell).values[dir],base);
+ }
+});
+
 for(const starter of [0,1])test('Yo Dawg copies a Regular value into the same edge for both players, starter '+starter,()=>{
  const cards=[...starterDeck().slice(0,14),'yo-dawg:common'];
  let state=createPvp90([{cards},{cards}],146,1,{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:7,allPrimes:true,finalGuard:true});

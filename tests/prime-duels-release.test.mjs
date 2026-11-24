@@ -6,6 +6,7 @@ import {createMatchHandler90} from '../server/game/match-handler90.mjs';
 import {createPvp90,advancePvp90} from '../server/game/pvp90.mjs';
 import {DEFINITIONS} from '../public/game/platform/catalog.mjs';
 import {abilityBursts,abilityMarkers} from '../public/game/src/ability-effects.mjs';
+import {boardPreviewFace146} from '../public/game/src/board-card-preview146.mjs';
 import {abilityIconTextureSvg} from '../public/game/src/card-ability-icon.mjs';
 import {releasedPrimeAbility,previewEffect,ABILITIES} from '../public/game/src/table-demo-rules.mjs';
 import {legalCandidates} from '../public/game/src/tactics-ai.mjs';
@@ -82,6 +83,7 @@ test('Prime abilities and Final Guard resolve through a real private invite in b
    const res=await handler(new Request('https://private-fixture.test/api/duel',{method:'POST',headers:{Authorization:'Bearer '+side},body:JSON.stringify(data)}));
    const body=await res.json();assert.ok(res.ok,JSON.stringify({data,error:body.error}));return body;
   }
+  let blinkWithAttackBonus=false;
   for(const fixture of [...fixtures,...finalGuardFixtures.fixtures]){
    const closing=fixture.ability==='final-guard';
    await db.exec('reset role');
@@ -114,6 +116,23 @@ test('Prime abilities and Final Guard resolve through a real private invite in b
     const local=previewEffect(game,{...action,uid:played.uid});
     last=await move(side,{kind:'place',action:{...action,uid:played.uid}},state);
     assert.deepEqual(last.game.last.flips,local.flips,fixture.motif);
+    if(local.blink){
+     const {source,cell}=local.blink;
+     const preview=abilityMarkers(game,local,{blinkLabel:'BLINK'}).filter(marker=>marker.kind==='blink'&&marker.preview);
+     assert.deepEqual(preview.map(marker=>[marker.cell,marker.label]),[[source,'BLINK'],[cell,'↻ 60°']]);
+     assert.match(boardPreviewFace146(game,source).ability.description,/Blinzler bereit/);
+     assert.match(boardPreviewFace146(last.game,source).ability.description,/Blinzler verbraucht/);
+     assert.ok(abilityBursts(last.game,{blinkLabel:'BLINK'}).some(marker=>marker.cell===cell&&marker.label==='↻ 60°'));
+    }
+    if(local.blink&&local.card.ability==='storm'){
+     const boosted=local.comparisons.find(({attack})=>attack.ability>0);
+     if(boosted){
+      const expected=[{dir:(boosted.dir+1)%6,total:boosted.attack.total}];
+      assert.deepEqual(last.game.last.attackEdges,expected);
+      assert.deepEqual((await poll(1-side)).game.last.attackEdges,expected);
+      blinkWithAttackBonus=true;
+     }
+    }
    }
    const other=await poll(1-fixture.moves.at(-1).side);
    if(closing){
@@ -171,5 +190,6 @@ test('Prime abilities and Final Guard resolve through a real private invite in b
    }
    await request(0,{op:'leave',id});
   }
+  assert.ok(blinkWithAttackBonus,'the fixture tests Storm after Blinking Guy rotates the placed card');
  }finally{await close();}
 });
