@@ -3,11 +3,12 @@ import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES} from './table-demo-rules.mjs?v=tie-break-63';
+import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=standard-effects-147';
+import {cardAbilityIconMarkup} from './card-ability-icon.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {fieldFeedback129} from './field-feedback129.mjs';
+import {fieldFeedback129} from './field-feedback129.mjs?v=standard-effects-147';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -24,20 +25,23 @@ export function boardPreviewFace146(game,cell){
  const variant=getVariant(card.variantId)??getVariant(id+':'+(card.rarity??'common'))??getVariant(id+':common');
  if(!variant||!rules)return null;
  const definition=definitions.get(variant.definitionId),feedback=fieldFeedback129(game,card,cell);
- return {card,variant,rules,definition,feedback,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
+ const ability=ABILITIES[card.ability];
+ return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
 }
 
 export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChange=()=>{}}){
- const panel=document.createElement('aside'),face=document.createElement('div'),title=document.createElement('strong'),details=document.createElement('small'),closeButton=document.createElement('button');
+ const panel=document.createElement('aside'),face=document.createElement('div'),title=document.createElement('strong'),details=document.createElement('small'),abilityPanel=document.createElement('div'),abilityName=document.createElement('b'),abilityText=document.createElement('p'),closeButton=document.createElement('button');
  panel.className='board-card-preview';
  panel.hidden=true;
  panel.setAttribute('aria-label','Kartenvorschau');
  face.className='board-card-preview__face';
+ abilityPanel.className='board-card-preview__ability';
+ abilityPanel.append(abilityName,abilityText);
  closeButton.className='board-card-preview__close';
  closeButton.type='button';
  closeButton.textContent='×';
  closeButton.setAttribute('aria-label','Kartenvorschau schließen');
- panel.append(face,title,details,closeButton);
+ panel.append(face,title,details,abilityPanel,closeButton);
  stage.append(panel);
  let hovered=null,pinned=null,key='',revision=0;
 
@@ -49,14 +53,14 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    if(!getGame()?.board[pinned])pinned=null;
    return;
   }
-  const {card,variant,rules,definition,feedback,values}=data,material=materialOf(variant.rarity);
+  const {card,variant,rules,definition,feedback,ability,values}=data,material=materialOf(variant.rarity);
   const node=svg.querySelector(`[data-cell="${CSS.escape(cell)}"]`);
   const rect=stage.getBoundingClientRect(),anchor=node?.getBoundingClientRect();
   panel.dataset.side=anchor&&anchor.left+anchor.width/2>rect.left+rect.width/2?'left':'right';
   panel.dataset.pinned=String(Boolean(pinned));
   panel.setAttribute('aria-hidden',String(!pinned));
   closeButton.hidden=!pinned;
-  const next=JSON.stringify([variant.id,card.uid,card.controller,values,feedback,card.ability]);
+  const next=JSON.stringify([variant.id,card.uid,card.controller,values,feedback,card.ability,ability]);
   if(next===key)return;
   key=next;
   const current=++revision;
@@ -70,6 +74,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    <defs><clipPath id="board-preview-art"><polygon points="${hex}"/></clipPath></defs>
    <image href="${escape(variant.image)}" x="${-.96-(crop?.x??0)*width}" y="${-.96-(crop?.y??0)*height+(variant.artOffsetY??0)}" width="${width}" height="${height}" preserveAspectRatio="${crop?'none':'xMidYMid slice'}" clip-path="url(#board-preview-art)"/>
    <image data-frame href="${fallbackFrame}" x="${-FRAME_LAYOUT.width/2}" y="${-FRAME_LAYOUT.height/2}" width="${FRAME_LAYOUT.width}" height="${FRAME_LAYOUT.height}" preserveAspectRatio="none"/>
+   ${cardAbilityIconMarkup(card.ability)}
    ${category?`<text x="0" y="-.748" fill="#ffe1a0" font-size=".06">${category}</text>`:''}
    <g fill="#17150d" font-size=".1995">${FRAME_LAYOUT.values.map(([x,y],i)=>{
     const boosted=feedback.bonuses[i]>0,value=boosted?values[i]:printedValue126(values[i]);
@@ -82,7 +87,12 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
   panel.style.setProperty('--preview-finish',material.color);
   panel.dataset.owner=String(card.controller);
   title.textContent=rules.name;
-  details.textContent=[material.name,ELEMENTS[rules.element]?.name,card.controller===0?'Deine Karte':'Gegnerische Karte',card.ability&&ABILITIES[card.ability]?.name,feedback.silenced&&'Fähigkeit blockiert'].filter(Boolean).join(' · ');
+  details.textContent=[material.name,ELEMENTS[rules.element]?.name,card.controller===0?'Deine Karte':'Gegnerische Karte'].filter(Boolean).join(' · ');
+  abilityPanel.hidden=!ability;
+  if(ability){
+   abilityName.textContent=ability.name+(feedback.silenced?' · blockiert':'');
+   abilityText.textContent=ability.description;
+  }
   void materialFrameUrl(variant.rarity).then(url=>{
    if(revision===current)face.querySelector('[data-frame]')?.setAttribute('href',url);
   }).catch(()=>{});

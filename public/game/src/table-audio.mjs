@@ -6,7 +6,7 @@ const CARD_RECORDINGS={
  place:new URL('../assets/audio/arena-card-place.wav',import.meta.url),
  draw:new URL('../assets/audio/arena-card-draw.wav',import.meta.url)
 };
-export function createTableAudio({onState=()=>{}}={}){
+export function createTableAudio({onState=()=>{},muted=false}={}){
  let ctx=null,master=null,compressor=null,enabled=false,volume=.35,ambient=false,ambientVoice=null,arena='grove',speechEpoch=0,comboEpoch=0,comboUntil=0,comboPlayback=null,disposed=false,music=null,musicEnabled=true,musicVolume=.16;const voices=new Set(),timers=new Set(),recordings=new Map(),decoded=new Map(),cardSamples=new Map();let noiseBuffer=null;
  const effectsLevel=()=>volume*.29;
  function state(){onState({enabled,available:Boolean(window.AudioContext||window.webkitAudioContext),running:ctx?.state==='running'});}
@@ -104,7 +104,7 @@ export function createTableAudio({onState=()=>{}}={}){
  function syncAmbient(){stopAmbient();if(!ambient||!enabled||ctx?.state!=='running')return;const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();source.buffer=noiseBuffer;source.loop=true;filter.type='lowpass';filter.frequency.value=arena==='grove'?420:160;gain.gain.value=.045;source.connect(filter).connect(gain).connect(master);source.start();ambientVoice={source,nodes:[source,filter,gain]};}
  async function setEnabled(value){
   if(disposed)return false;
-  enabled=Boolean(value);if(!enabled){cancel();stopAmbient();void music?.setActive(false);if(ctx)master.gain.setTargetAtTime(0,ctx.currentTime,.015);state();return false;}
+  enabled=!muted&&Boolean(value);if(!enabled){cancel();stopAmbient();void music?.setActive(false);if(ctx)master.gain.setTargetAtTime(0,ctx.currentTime,.015);state();return false;}
   try{if(!ctx){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('Audio nicht verfügbar');ctx=new Audio({latencyHint:'interactive'});master=ctx.createGain();master.gain.value=0;compressor=ctx.createDynamicsCompressor();compressor.threshold.value=-18;compressor.knee.value=15;compressor.ratio.value=5;compressor.attack.value=.004;compressor.release.value=.12;master.connect(compressor).connect(ctx.destination);noiseBuffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);const data=noiseBuffer.getChannelData(0);let n=8673;for(let i=0;i<data.length;i++){n=(Math.imul(n,1664525)+1013904223)>>>0;data[i]=(n/4294967296*2-1)*.65;}}
    if(ctx.state!=='running')await ctx.resume();if(disposed||!enabled)return false;
    preloadCards();

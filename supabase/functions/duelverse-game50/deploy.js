@@ -2807,6 +2807,36 @@ function neighbors2(id) {
   return c ? DIRECTIONS2.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet2.has(n.id)) : [];
 }
 var freeCells2 = (g) => CELLS2.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
+function sideValue(card, dir, rotation = card.rotation ?? 0) {
+  return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
+}
+
+// public/game/src/rules.mjs?v=standard-effects-147
+var ELEMENTS5 = { ...ELEMENTS, stone: ELEMENTS.earth };
+var DIRECTIONS3 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
+var CATALOG3 = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
+var CELLS3 = [];
+for (let r = -2; r <= 2; r++) for (let q = -2; q <= 2; q++) if (Math.abs(q + r) <= 2) CELLS3.push({ id: q + "," + r, q, r });
+var CARD_INDEX3 = new Map(CATALOG3.map((c) => [c.id, Object.freeze({ ...c, element: normalizeElement(c.element) })]));
+var ELEMENT_CARD_INDEX2 = /* @__PURE__ */ new Map();
+function cardOf2(card) {
+  const base = CARD_INDEX3.get(card.id);
+  if (!base) return void 0;
+  const variant = card.variantId ? getVariant(card.variantId) : null;
+  if (card.variantId && (!variant || DEFINITIONS.find((c) => c.id === variant.definitionId)?.ruleId !== card.id)) return void 0;
+  const element = variant?.element ?? normalizeElement(card.element ?? base.element);
+  if (!Object.hasOwn(ELEMENTS, element)) return void 0;
+  if (element === base.element) return base;
+  const key = base.id + ":" + element;
+  if (!ELEMENT_CARD_INDEX2.has(key)) ELEMENT_CARD_INDEX2.set(key, Object.freeze({ ...base, element }));
+  return ELEMENT_CARD_INDEX2.get(key);
+}
+var cellSet3 = new Set(CELLS3.map((c) => c.id));
+function neighbors3(id) {
+  const c = CELLS3.find((c2) => c2.id === id);
+  return c ? DIRECTIONS3.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet3.has(n.id)) : [];
+}
+var freeCells3 = (g) => CELLS3.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
 var scores2 = (g) => [0, 1].map((p) => Object.values(g.board).filter((c) => c.controller === p).length);
 var eventPhase = (g) => g.placements >= 12 ? 2 : g.placements >= 6 ? 1 : 0;
 function fieldAt(g, cell) {
@@ -2816,53 +2846,38 @@ function fieldAt(g, cell) {
   const phase = eventPhase(g);
   return { element: phase === 2 ? { storm: "water", water: "storm" }[f.element] : f.element, bonus: phase === 1 ? 2 : 1 };
 }
-function sideValue(card, dir, rotation = card.rotation ?? 0) {
-  return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
+function sideValue2(card, dir, rotation = card.rotation ?? 0) {
+  return cardOf2(card).values[((dir - rotation) % 6 + 6) % 6];
 }
 function strength(g, card, cell, dir, opponent) {
-  const base = sideValue(card, dir), field = fieldAt(g, cell), fieldBonus = field?.element === cardOf(card).element ? field.bonus : 0, advantage = elementAdvantage(cardOf(card).element, cardOf(opponent).element, g.elementRules ?? 3) ? 1 : 0;
+  const base = sideValue2(card, dir), field = fieldAt(g, cell), fieldBonus = field?.element === cardOf2(card).element ? field.bonus : 0, advantage = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, g.elementRules ?? 3) ? 1 : 0;
   return { base, field: fieldBonus, element: advantage, ...rankedStrength126(base, fieldBonus + ((g.elementRules ?? 3) === 3 ? advantage : 0)) };
 }
 function preview(g, { uid, cell, rotation = 0 }) {
   if (g.finished) throw Error("Die Runde ist beendet.");
   const card = g.players[g.turn].hand.find((c) => c.uid === uid);
-  if (!card || !cellSet2.has(cell) || cell === g.block || g.board[cell] || !Number.isInteger(rotation) || rotation < 0 || rotation > 5) throw Error("Diese Platzierung ist nicht m\xF6glich.");
+  if (!card || !cellSet3.has(cell) || cell === g.block || g.board[cell] || !Number.isInteger(rotation) || rotation < 0 || rotation > 5) throw Error("Diese Platzierung ist nicht m\xF6glich.");
   const incoming = { ...card, rotation, controller: g.turn, flips: 0 };
-  const comparisons = neighbors2(cell).filter((n) => g.board[n.id] && g.board[n.id].controller !== g.turn).map((n) => {
+  const comparisons = neighbors3(cell).filter((n) => g.board[n.id] && g.board[n.id].controller !== g.turn).map((n) => {
     const other = g.board[n.id], attack = strength(g, incoming, cell, n.dir, other), defend = strength(g, other, n.id, (n.dir + 3) % 6, incoming);
-    return { cell: n.id, attack, defend, flip: attackWins(attack, defend, g.elementRules ?? 3), name: cardOf(other).name };
+    return { cell: n.id, attack, defend, flip: attackWins(attack, defend, g.elementRules ?? 3), name: cardOf2(other).name };
   });
   return { card: incoming, cell, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell) };
 }
 
 // public/game/src/table-demo-rules.mjs?v=tie-break-63
-var table_demo_rules_exports = {};
-__export(table_demo_rules_exports, {
-  ABILITIES: () => ABILITIES,
-  ABILITY_FOR: () => ABILITY_FOR,
-  DIRECTION_NAMES: () => DIRECTION_NAMES,
-  FIELD_TYPES: () => FIELD_TYPES,
-  GUARD_BONUS: () => GUARD_BONUS,
-  LOADOUTS: () => LOADOUTS,
-  TACTIC_BEATS: () => TACTIC_BEATS,
-  abilityAt: () => abilityAt,
-  actionOptions: () => actionOptions,
-  effectStrength: () => effectStrength,
-  eventFieldAt: () => eventFieldAt,
-  eventFields: () => eventFields,
-  fieldText: () => fieldText,
-  guardActive: () => guardActive,
-  nextEvent: () => nextEvent,
-  placeEffect: () => placeEffect,
-  previewEffect: () => previewEffect,
-  twistTargets: () => twistTargets
-});
 var TACTIC_BEATS = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
-var GUARD_BONUS = 2;
+var WATER_BONUS = 2;
+var STORM_MAX_EDGE = 3;
 var ABILITIES = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
   guard: { name: "Feels Bad", short: "S", description: "Eine Seite erh\xE4lt +2 Verteidigung bis zum n\xE4chsten eigenen Karten-Zug." },
-  twist: { name: "Think Again", short: "\u21BB", description: "Einen gegnerischen Nachbarn 60\xB0 drehen. Dieses Ziel kann im selben Zug nicht \xFCbernommen werden. Optional." }
+  twist: { name: "Think Again", short: "\u21BB", description: "Einen gegnerischen Nachbarn 60\xB0 drehen. Dieses Ziel kann im selben Zug nicht \xFCbernommen werden. Optional." },
+  fire: { name: "Fire \xB7 Glutsto\xDF", short: "\u2191", description: "Ber\xFChrt die Karte genau einen Gegner, erh\xE4lt die Angriffskante gegen ihn +1." },
+  water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
+  earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
+  air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE} betr\xE4gt.` }
 };
 var LOADOUTS = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -2870,6 +2885,69 @@ var LOADOUTS = {
   "guard-twist": { name: "Pepe + Roll Safe", abilities: ["guard", "twist"] }
 };
 var ABILITY_FOR = { brain: "hype", oracle: "guard", trust: "twist" };
+
+// public/game/src/table-demo-rules.mjs?v=standard-effects-147
+var table_demo_rules_exports = {};
+__export(table_demo_rules_exports, {
+  ABILITIES: () => ABILITIES2,
+  ABILITY_FOR: () => ABILITY_FOR2,
+  DIRECTION_NAMES: () => DIRECTION_NAMES,
+  FIELD_TYPES: () => FIELD_TYPES,
+  GUARD_BONUS: () => GUARD_BONUS,
+  LOADOUTS: () => LOADOUTS2,
+  STORM_MAX_EDGE: () => STORM_MAX_EDGE2,
+  TACTIC_BEATS: () => TACTIC_BEATS2,
+  WATER_BONUS: () => WATER_BONUS2,
+  abilityAt: () => abilityAt,
+  abilityDescription: () => abilityDescription,
+  abilityEdge: () => abilityEdge,
+  actionOptions: () => actionOptions,
+  aimsAbility: () => aimsAbility,
+  effectStrength: () => effectStrength,
+  eventFieldAt: () => eventFieldAt,
+  eventFields: () => eventFields,
+  fieldText: () => fieldText,
+  guardActive: () => guardActive,
+  guardBonus: () => guardBonus,
+  nextEvent: () => nextEvent,
+  placeEffect: () => placeEffect,
+  previewEffect: () => previewEffect,
+  standardAbility: () => standardAbility,
+  turnsCards: () => turnsCards,
+  twistTargets: () => twistTargets
+});
+var TACTIC_BEATS2 = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
+var GUARD_BONUS = 2;
+var WATER_BONUS2 = 2;
+var STORM_MAX_EDGE2 = 3;
+var guardBonus = (game) => game.abilityTrial ? 1 : GUARD_BONUS;
+var ABILITIES2 = {
+  hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
+  guard: { name: "Feels Bad", short: "S", description: "Eine Seite erh\xE4lt +2 Verteidigung bis zum n\xE4chsten eigenen Karten-Zug." },
+  twist: { name: "Think Again", short: "\u21BB", description: "Einen gegnerischen Nachbarn 60\xB0 drehen. Dieses Ziel kann im selben Zug nicht \xFCbernommen werden. Optional." },
+  fire: { name: "Fire \xB7 Glutsto\xDF", short: "\u2191", description: "Ber\xFChrt die Karte genau einen Gegner, erh\xE4lt die Angriffskante gegen ihn +1." },
+  water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS2} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
+  earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
+  air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE2} betr\xE4gt.` }
+};
+var LOADOUTS2 = {
+  "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
+  "hype-twist": { name: "Doge + Roll Safe", abilities: ["hype", "twist"] },
+  "guard-twist": { name: "Pepe + Roll Safe", abilities: ["guard", "twist"] }
+};
+var ABILITY_FOR2 = { brain: "hype", oracle: "guard", trust: "twist" };
+var aimsAbility = (ability) => ["hype", "guard", "water"].includes(ability);
+var turnsCards = (ability) => ability === "twist" || ability === "air";
+var guardsEdge = (ability) => ability === "guard" || ability === "water";
+function standardAbility(card) {
+  const definition = cardOf2(card);
+  return definition && !definition.prime && !definition.iconic ? definition.element : null;
+}
+function abilityDescription(game, ability) {
+  if (ability === "guard") return `Eine Seite erh\xE4lt +${guardBonus(game)} Verteidigung bis zum n\xE4chsten eigenen Karten-Zug.`;
+  return ABILITIES2[ability]?.description ?? "";
+}
 var DIRECTION_NAMES = ["Ost", "S\xFCdost", "S\xFCdwest", "West", "Nordwest", "Nordost"];
 var FIELD_TYPES = {
   resonance: { name: "Resonanz", color: "#ba93ff", symbol: "\u03DF", description: "Passendes Element: +1 auf alle sechs Seiten." },
@@ -2902,21 +2980,48 @@ function nextEvent(game) {
 }
 function fieldText(f) {
   if (!f) return "Normales Feld";
-  return FIELD_TYPES[f.type].name + (f.type === "resonance" ? " \xB7 " + ELEMENTS4[f.element].name + " +1" : f.type === "crossfire" ? " \xB7 " + f.directions.map((d) => DIRECTION_NAMES[d]).join("/") + " +1" : " \xB7 F\xE4higkeiten aus");
+  return FIELD_TYPES[f.type].name + (f.type === "resonance" ? " \xB7 " + ELEMENTS5[f.element].name + " +1" : f.type === "crossfire" ? " \xB7 " + f.directions.map((d) => DIRECTION_NAMES[d]).join("/") + " +1" : " \xB7 F\xE4higkeiten aus");
 }
 function abilityAt(game, card, cell) {
   return card.ability && eventFieldAt(game, cell)?.type !== "silence" ? card.ability : null;
 }
 function guardActive(game, card, cell) {
-  return abilityAt(game, card, cell) === "guard" && card.guardOwner === card.controller && game.placements < card.guardUntil;
+  return guardsEdge(abilityAt(game, card, cell)) && card.guardOwner === card.controller && game.placements < card.guardUntil;
 }
-function twistTargets(game, cell) {
-  return neighbors2(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
+function twistTargets(game, cell, ability = "twist") {
+  return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
+}
+function weakestEdge(card, edges) {
+  return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
+}
+function abilityEdge(game, card, cell, { attacking = false, direction = null } = {}) {
+  const ability = abilityAt(game, card, cell);
+  if (attacking) {
+    if (ability === "hype" && Number.isInteger(direction)) return { dir: direction, amount: 1 };
+    if (ability !== "fire" && ability !== "storm") return null;
+    const enemies = neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== card.controller);
+    if (ability === "fire" && enemies.length === 1) return { dir: enemies[0].dir, amount: 1 };
+    if (ability === "storm" && enemies.length >= 2) {
+      const edge = weakestEdge(card, enemies);
+      if (sideValue2(card, edge.dir) <= STORM_MAX_EDGE2) return { dir: edge.dir, amount: 1 };
+    }
+    return null;
+  }
+  if (guardActive(game, card, cell)) return { dir: card.guardDirection, amount: ability === "water" ? WATER_BONUS2 : guardBonus(game) };
+  if (ability === "earth") {
+    const adjacent = neighbors3(cell);
+    if (adjacent.some((n) => n.id === game.block)) {
+      const edge = weakestEdge(card, adjacent.filter((n) => n.id !== game.block));
+      if (edge) return { dir: edge.dir, amount: 1 };
+    }
+  }
+  return null;
 }
 function effectStrength(game, card, cell, dir, opponent, { attacking = false, abilityDirection = null } = {}) {
-  const f = eventFieldAt(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
-  const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
-  const ability = attacking ? abilityAt(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS : 0;
+  const f = eventFieldAt(game, cell), base = sideValue2(card, dir), field = f?.type === "resonance" && f.element === cardOf2(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
+  const element = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, game.elementRules ?? 3) ? 1 : 0;
+  const bonus = abilityEdge(game, card, cell, { attacking, direction: abilityDirection });
+  const ability = bonus?.dir === dir ? bonus.amount : 0;
   return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
 }
 function previewEffect(game, action) {
@@ -2934,20 +3039,20 @@ function previewEffect(game, action) {
   }
   const card = { ...working.players[game.turn].hand.find((c) => c.uid === uid), rotation, controller: game.turn, flips: 0 }, ability = abilityAt(working, card, cell), transforms = [];
   if (twistCell !== null) {
-    if (ability !== "twist" || !twistTargets(working, cell).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
+    if (!turnsCards(ability) || !twistTargets(working, cell, ability).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
     const target = { ...working.board[twistCell] };
     working.board[twistCell] = target;
     transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
     target.rotation = (target.rotation + 1) % 6;
   }
-  if (ability === "guard") {
+  if (guardsEdge(ability)) {
     card.guardDirection = abilityDirection;
     card.guardOwner = game.turn;
     card.guardUntil = game.placements + 2;
   }
-  const comparisons = neighbors2(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
+  const comparisons = neighbors3(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf(other).name };
+    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf2(other).name };
   });
   return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
 }
@@ -2966,9 +3071,16 @@ function placeEffect(game, action) {
   }
   player.flips += p.flips.length;
   next.placements++;
-  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf2(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  if (game.abilityTrial && p.ability) {
+    next.last.abilityDirection = p.abilityDirection;
+    if (game.elementalTrial) {
+      const working = { ...game, board: p.board };
+      next.last.abilityEdge = abilityEdge(working, p.card, p.cell, { attacking: true, direction: p.abilityDirection }) ?? abilityEdge(working, p.card, p.cell);
+    }
+  }
   next.history.push(next.last);
-  if (freeCells2(next).length === 0) {
+  if (freeCells3(next).length === 0) {
     next.finished = true;
     const s = scores2(next);
     next.winner = s[0] === s[1] ? null : s[0] > s[1] ? 0 : 1;
@@ -2976,11 +3088,11 @@ function placeEffect(game, action) {
   return next;
 }
 function actionOptions(game, card, cell, rotation) {
-  const ability = abilityAt(game, card, cell), directions = ["hype", "guard"].includes(ability) ? [0, 1, 2, 3, 4, 5] : [0], targets = ability === "twist" ? [null, ...twistTargets(game, cell)] : [null];
+  const ability = abilityAt(game, card, cell), directions = aimsAbility(ability) ? [0, 1, 2, 3, 4, 5] : [0], targets = turnsCards(ability) ? [null, ...twistTargets(game, cell, ability)] : [null];
   return directions.flatMap((abilityDirection) => targets.map((twistCell) => ({ uid: card.uid, cell, rotation, abilityDirection, twistCell })));
 }
 
-// public/game/src/tactics-ai.mjs?v=tie-break-63
+// public/game/src/tactics-ai.mjs?v=standard-effects-147
 var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 
 // public/game/src/table-demo-state.mjs
@@ -3073,9 +3185,16 @@ function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = nu
       return state / 4294967296;
     };
     const deck = expandGameDeck(side === 0 ? cards : opponentCards ?? starterDeck(), side);
-    for (const ability of loadouts[side].abilities) {
-      const candidates = deck.filter((c) => ({ oracle: "guard", brain: "hype", trust: "twist" })[c.id] === ability);
-      if (candidates.length) candidates[Math.floor(random2() * candidates.length)].ability = ability;
+    if (next.elementalTrial) {
+      for (const card of deck) {
+        const ability = standardAbility(card);
+        if (ability) card.ability = ability;
+      }
+    } else {
+      for (const ability of loadouts[side].abilities) {
+        const candidates = deck.filter((c) => ABILITY_FOR2[c.id] === ability);
+        if (candidates.length) candidates[Math.floor(random2() * candidates.length)].ability = ability;
+      }
     }
     if (round > 1) state = (state ^ Math.imul(round - 1, 2654435769)) >>> 0;
     for (let i = deck.length - 1; i > 0; i--) {
@@ -3089,13 +3208,28 @@ function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = nu
 }
 
 // public/game/src/table-demo-rules.mjs
-var TACTIC_BEATS2 = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
+var TACTIC_BEATS3 = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
 var GUARD_BONUS2 = 2;
-var LOADOUTS2 = {
+var WATER_BONUS3 = 2;
+var STORM_MAX_EDGE3 = 3;
+var guardBonus2 = (game) => game.abilityTrial ? 1 : GUARD_BONUS2;
+var ABILITIES3 = {
+  hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
+  guard: { name: "Feels Bad", short: "S", description: "Eine Seite erh\xE4lt +2 Verteidigung bis zum n\xE4chsten eigenen Karten-Zug." },
+  twist: { name: "Think Again", short: "\u21BB", description: "Einen gegnerischen Nachbarn 60\xB0 drehen. Dieses Ziel kann im selben Zug nicht \xFCbernommen werden. Optional." },
+  fire: { name: "Fire \xB7 Glutsto\xDF", short: "\u2191", description: "Ber\xFChrt die Karte genau einen Gegner, erh\xE4lt die Angriffskante gegen ihn +1." },
+  water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS3} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
+  earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
+  air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE3} betr\xE4gt.` }
+};
+var LOADOUTS3 = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
   "hype-twist": { name: "Doge + Roll Safe", abilities: ["hype", "twist"] },
   "guard-twist": { name: "Pepe + Roll Safe", abilities: ["guard", "twist"] }
 };
+var turnsCards2 = (ability) => ability === "twist" || ability === "air";
+var guardsEdge2 = (ability) => ability === "guard" || ability === "water";
 var FIELD_PHASES2 = [
   [{ cell: "-1,0", type: "resonance", element: "storm" }, { cell: "0,1", type: "crossfire", directions: [0, 3] }],
   [{ cell: "-1,0", type: "silence" }, { cell: "0,1", type: "resonance", element: "fire" }],
@@ -3119,15 +3253,42 @@ function abilityAt2(game, card, cell) {
   return card.ability && eventFieldAt2(game, cell)?.type !== "silence" ? card.ability : null;
 }
 function guardActive2(game, card, cell) {
-  return abilityAt2(game, card, cell) === "guard" && card.guardOwner === card.controller && game.placements < card.guardUntil;
+  return guardsEdge2(abilityAt2(game, card, cell)) && card.guardOwner === card.controller && game.placements < card.guardUntil;
 }
-function twistTargets2(game, cell) {
-  return neighbors2(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
+function twistTargets2(game, cell, ability = "twist") {
+  return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
+}
+function weakestEdge2(card, edges) {
+  return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
+}
+function abilityEdge2(game, card, cell, { attacking = false, direction = null } = {}) {
+  const ability = abilityAt2(game, card, cell);
+  if (attacking) {
+    if (ability === "hype" && Number.isInteger(direction)) return { dir: direction, amount: 1 };
+    if (ability !== "fire" && ability !== "storm") return null;
+    const enemies = neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== card.controller);
+    if (ability === "fire" && enemies.length === 1) return { dir: enemies[0].dir, amount: 1 };
+    if (ability === "storm" && enemies.length >= 2) {
+      const edge = weakestEdge2(card, enemies);
+      if (sideValue2(card, edge.dir) <= STORM_MAX_EDGE3) return { dir: edge.dir, amount: 1 };
+    }
+    return null;
+  }
+  if (guardActive2(game, card, cell)) return { dir: card.guardDirection, amount: ability === "water" ? WATER_BONUS3 : guardBonus2(game) };
+  if (ability === "earth") {
+    const adjacent = neighbors3(cell);
+    if (adjacent.some((n) => n.id === game.block)) {
+      const edge = weakestEdge2(card, adjacent.filter((n) => n.id !== game.block));
+      if (edge) return { dir: edge.dir, amount: 1 };
+    }
+  }
+  return null;
 }
 function effectStrength2(game, card, cell, dir, opponent, { attacking = false, abilityDirection = null } = {}) {
-  const f = eventFieldAt2(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
-  const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
-  const ability = attacking ? abilityAt2(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive2(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS2 : 0;
+  const f = eventFieldAt2(game, cell), base = sideValue2(card, dir), field = f?.type === "resonance" && f.element === cardOf2(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
+  const element = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, game.elementRules ?? 3) ? 1 : 0;
+  const bonus = abilityEdge2(game, card, cell, { attacking, direction: abilityDirection });
+  const ability = bonus?.dir === dir ? bonus.amount : 0;
   return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
 }
 function previewEffect2(game, action) {
@@ -3145,20 +3306,20 @@ function previewEffect2(game, action) {
   }
   const card = { ...working.players[game.turn].hand.find((c) => c.uid === uid), rotation, controller: game.turn, flips: 0 }, ability = abilityAt2(working, card, cell), transforms = [];
   if (twistCell !== null) {
-    if (ability !== "twist" || !twistTargets2(working, cell).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
+    if (!turnsCards2(ability) || !twistTargets2(working, cell, ability).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
     const target = { ...working.board[twistCell] };
     working.board[twistCell] = target;
     transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
     target.rotation = (target.rotation + 1) % 6;
   }
-  if (ability === "guard") {
+  if (guardsEdge2(ability)) {
     card.guardDirection = abilityDirection;
     card.guardOwner = game.turn;
     card.guardUntil = game.placements + 2;
   }
-  const comparisons = neighbors2(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
+  const comparisons = neighbors3(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength2(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength2(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf(other).name };
+    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf2(other).name };
   });
   return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
 }
@@ -3177,9 +3338,16 @@ function placeEffect2(game, action) {
   }
   player.flips += p.flips.length;
   next.placements++;
-  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf2(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
+  if (game.abilityTrial && p.ability) {
+    next.last.abilityDirection = p.abilityDirection;
+    if (game.elementalTrial) {
+      const working = { ...game, board: p.board };
+      next.last.abilityEdge = abilityEdge2(working, p.card, p.cell, { attacking: true, direction: p.abilityDirection }) ?? abilityEdge2(working, p.card, p.cell);
+    }
+  }
   next.history.push(next.last);
-  if (freeCells2(next).length === 0) {
+  if (freeCells3(next).length === 0) {
     next.finished = true;
     const s = scores2(next);
     next.winner = s[0] === s[1] ? null : s[0] > s[1] ? 0 : 1;
@@ -3192,7 +3360,7 @@ var ARCHETYPES2 = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.rule
 function legalCandidates(game, rules = table_demo_rules_exports) {
   const result = [];
   for (const card of game.players[game.turn].hand) for (const cell of freeCells2(game)) for (const rotation of game.rotationLocked ? [0] : [0, 1, 2, 3, 4, 5]) {
-    const around = neighbors2(cell), ability = rules.abilityAt(game, card, cell), relevant = ability === "hype" ? around.filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.dir) : ability === "guard" && rules.GUARD_ARC === 6 ? [0] : ability === "guard" ? around.filter((n) => n.id !== game.block && !game.board[n.id]).map((n) => n.dir) : [0], directions = relevant.length ? relevant : [0];
+    const around = neighbors2(cell), ability = rules.abilityAt(game, card, cell), relevant = ability === "hype" ? around.filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.dir) : ability === "guard" && rules.GUARD_ARC === 6 ? [0] : ability === "guard" || ability === "water" ? around.filter((n) => n.id !== game.block && !game.board[n.id]).map((n) => n.dir) : [0], directions = relevant.length ? relevant : [0];
     for (const action of rules.actionOptions(game, card, cell, rotation)) if (directions.includes(action.abilityDirection)) {
       const plan = rules.previewEffect(game, action);
       result.push({ action, plan });
@@ -3211,10 +3379,14 @@ function positionalValue(game, { action, plan }, rules = table_demo_rules_export
     } else if (other.controller === game.turn || plan.flips.includes(n.id)) contacts++;
   }
   let twistSafety = 0;
-  for (const t of plan.transforms) {
-    if (t.temporary) continue;
-    const before = game.board[t.cell], after = plan.board[t.cell];
-    for (const n of neighbors2(t.cell)) if (!game.board[n.id] && n.id !== game.block) twistSafety += (sideValue(before, n.dir) - sideValue(after, n.dir)) * 0.18;
+  for (const transform of plan.transforms) {
+    if (transform.temporary) continue;
+    const before = game.board[transform.cell], after = plan.board[transform.cell];
+    const sign = before.controller === game.turn ? 1 : -1;
+    for (const { id, dir } of neighbors2(transform.cell)) {
+      if (id === action.cell || id === game.block || game.board[id]) continue;
+      twistSafety += sign * (sideValue(after, dir) - sideValue(before, dir)) * 0.18;
+    }
   }
   const closing = weights.capture === void 0 ? 0 : Math.max(0, (game.placements - 12) / 5);
   return plan.flips.length * ((weights.capture ?? 2) + closing) + safety * (weights.safety ?? 0.42) + contacts * (weights.contacts ?? 0.16) + twistSafety * (weights.twist ?? 1);
@@ -3236,6 +3408,7 @@ function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
     if (!enemies.length) continue;
     for (const id of ARCHETYPES2) for (const element of game.elementRules === 5 ? ELEMENT_IDS : [void 0]) for (const rotation of game.rotationLocked ? [0] : [0, 1, 2, 3, 4, 5]) {
       const card = { id, element, rotation, controller: future.turn };
+      if (future.elementalTrial) card.ability = rules.standardAbility?.(card);
       let flips = 0;
       for (const n of enemies) {
         const other = board[n.id], a = rules.effectStrength(future, card, cell, n.dir, other, { attacking: true }), d = rules.effectStrength(future, other, n.id, (n.dir + 3) % 6, card);
@@ -3282,8 +3455,23 @@ function chooseTactic2(game, { rules = table_demo_rules_exports, policy = "reply
 }
 
 // public/game/src/table-demo-rules.mjs?v=random-layout-1
-var TACTIC_BEATS3 = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
+var TACTIC_BEATS4 = Object.freeze(Object.fromEntries(ELEMENT_IDS.map((id) => [id, ELEMENTS[id].beats])));
 var GUARD_BONUS3 = 2;
+var WATER_BONUS4 = 2;
+var STORM_MAX_EDGE4 = 3;
+var guardBonus3 = (game) => game.abilityTrial ? 1 : GUARD_BONUS3;
+var ABILITIES4 = {
+  hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
+  guard: { name: "Feels Bad", short: "S", description: "Eine Seite erh\xE4lt +2 Verteidigung bis zum n\xE4chsten eigenen Karten-Zug." },
+  twist: { name: "Think Again", short: "\u21BB", description: "Einen gegnerischen Nachbarn 60\xB0 drehen. Dieses Ziel kann im selben Zug nicht \xFCbernommen werden. Optional." },
+  fire: { name: "Fire \xB7 Glutsto\xDF", short: "\u2191", description: "Ber\xFChrt die Karte genau einen Gegner, erh\xE4lt die Angriffskante gegen ihn +1." },
+  water: { name: "Water \xB7 Wellenschild", short: "\u25C8", description: `Eine gew\xE4hlte Kante erh\xE4lt +${WATER_BONUS4} Verteidigung bis zum n\xE4chsten eigenen Zug.` },
+  earth: { name: "Earth \xB7 Bollwerk", short: "\u25C6", description: "Neben der Blockade erh\xE4lt die schw\xE4chste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht." },
+  air: { name: "Air \xB7 R\xFCckenwind", short: "\u21BB", description: "Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte l\xF6st keine \xDCbernahmen aus." },
+  storm: { name: "Storm \xB7 Flankenblitz", short: "\u03DF", description: `Ber\xFChrt die Karte mindestens zwei Gegner, erh\xE4lt die schw\xE4chste Angriffskante gegen sie +1, wenn ihr Grundwert h\xF6chstens ${STORM_MAX_EDGE4} betr\xE4gt.` }
+};
+var turnsCards3 = (ability) => ability === "twist" || ability === "air";
+var guardsEdge3 = (ability) => ability === "guard" || ability === "water";
 var FIELD_PHASES3 = [
   [{ cell: "-1,0", type: "resonance", element: "storm" }, { cell: "0,1", type: "crossfire", directions: [0, 3] }],
   [{ cell: "-1,0", type: "silence" }, { cell: "0,1", type: "resonance", element: "fire" }],
@@ -3307,15 +3495,42 @@ function abilityAt3(game, card, cell) {
   return card.ability && eventFieldAt3(game, cell)?.type !== "silence" ? card.ability : null;
 }
 function guardActive3(game, card, cell) {
-  return abilityAt3(game, card, cell) === "guard" && card.guardOwner === card.controller && game.placements < card.guardUntil;
+  return guardsEdge3(abilityAt3(game, card, cell)) && card.guardOwner === card.controller && game.placements < card.guardUntil;
 }
-function twistTargets3(game, cell) {
-  return neighbors2(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== game.turn).map((n) => n.id);
+function twistTargets3(game, cell, ability = "twist") {
+  return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
+}
+function weakestEdge3(card, edges) {
+  return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
+}
+function abilityEdge3(game, card, cell, { attacking = false, direction = null } = {}) {
+  const ability = abilityAt3(game, card, cell);
+  if (attacking) {
+    if (ability === "hype" && Number.isInteger(direction)) return { dir: direction, amount: 1 };
+    if (ability !== "fire" && ability !== "storm") return null;
+    const enemies = neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller !== card.controller);
+    if (ability === "fire" && enemies.length === 1) return { dir: enemies[0].dir, amount: 1 };
+    if (ability === "storm" && enemies.length >= 2) {
+      const edge = weakestEdge3(card, enemies);
+      if (sideValue2(card, edge.dir) <= STORM_MAX_EDGE4) return { dir: edge.dir, amount: 1 };
+    }
+    return null;
+  }
+  if (guardActive3(game, card, cell)) return { dir: card.guardDirection, amount: ability === "water" ? WATER_BONUS4 : guardBonus3(game) };
+  if (ability === "earth") {
+    const adjacent = neighbors3(cell);
+    if (adjacent.some((n) => n.id === game.block)) {
+      const edge = weakestEdge3(card, adjacent.filter((n) => n.id !== game.block));
+      if (edge) return { dir: edge.dir, amount: 1 };
+    }
+  }
+  return null;
 }
 function effectStrength3(game, card, cell, dir, opponent, { attacking = false, abilityDirection = null } = {}) {
-  const f = eventFieldAt3(game, cell), base = sideValue(card, dir), field = f?.type === "resonance" && f.element === cardOf(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
-  const element = elementAdvantage(cardOf(card).element, cardOf(opponent).element, game.elementRules ?? 3) ? 1 : 0;
-  const ability = attacking ? abilityAt3(game, card, cell) === "hype" && dir === abilityDirection ? 1 : 0 : guardActive3(game, card, cell) && dir === card.guardDirection ? GUARD_BONUS3 : 0;
+  const f = eventFieldAt3(game, cell), base = sideValue2(card, dir), field = f?.type === "resonance" && f.element === cardOf2(card).element ? 1 : f?.type === "crossfire" && f.directions.includes(dir) ? 1 : 0;
+  const element = elementAdvantage(cardOf2(card).element, cardOf2(opponent).element, game.elementRules ?? 3) ? 1 : 0;
+  const bonus = abilityEdge3(game, card, cell, { attacking, direction: abilityDirection });
+  const ability = bonus?.dir === dir ? bonus.amount : 0;
   return { base, field, element, ability, ...rankedStrength126(base, field + ability + ((game.elementRules ?? 3) === 3 ? element : 0)) };
 }
 function previewEffect3(game, action) {
@@ -3333,20 +3548,20 @@ function previewEffect3(game, action) {
   }
   const card = { ...working.players[game.turn].hand.find((c) => c.uid === uid), rotation, controller: game.turn, flips: 0 }, ability = abilityAt3(working, card, cell), transforms = [];
   if (twistCell !== null) {
-    if (ability !== "twist" || !twistTargets3(working, cell).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
+    if (!turnsCards3(ability) || !twistTargets3(working, cell, ability).includes(twistCell)) throw Error("Kein g\xFCltiges Drehziel.");
     const target = { ...working.board[twistCell] };
     working.board[twistCell] = target;
     transforms.push({ cell: twistCell, uid: target.uid, from: target.rotation, to: (target.rotation + 1) % 6 });
     target.rotation = (target.rotation + 1) % 6;
   }
-  if (ability === "guard") {
+  if (guardsEdge3(ability)) {
     card.guardDirection = abilityDirection;
     card.guardOwner = game.turn;
     card.guardUntil = game.placements + 2;
   }
-  const comparisons = neighbors2(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
+  const comparisons = neighbors3(cell).filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength3(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength3(working, other, n.id, (n.dir + 3) % 6, card);
-    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf(other).name };
+    return { cell: n.id, dir: n.dir, attack, defend, setup: n.id === twistCell, flip: n.id !== twistCell && attackWins(attack, defend, game.elementRules ?? 3), name: cardOf2(other).name };
   });
   return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips: comparisons.filter((c) => c.flip).map((c) => c.cell), board: working.board };
 }
@@ -3379,10 +3594,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-23.7";
+var BALANCE_PATCH94 = "alpha-2026-11-24.8";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 7,
+  revision: 8,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -3400,7 +3615,7 @@ var BALANCE_RULES94 = Object.freeze({
   maxPrimes: MAX_PRIMES,
   maxIconics: MAX_ICONICS,
   sRankElementOnly: true,
-  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60 },
+  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 } },
   cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);
@@ -3416,7 +3631,7 @@ var balanceVersion94 = (now = Date.now()) => ({ patch: BALANCE_PATCH94, fingerpr
 var RULESET = "account-50";
 function createAccountDuel({ deck, inventory, seed, starter, loadouts = ["hype-guard", "hype-twist"] }) {
   if (!deck || !validateDeck(deck.cards, inventory).valid) throw Error("Saved deck is not playable.");
-  if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295 || ![0, 1].includes(starter) || !Array.isArray(loadouts) || loadouts.length !== 2 || loadouts.some((l) => !Object.hasOwn(LOADOUTS2, l))) throw Error("Invalid duel settings.");
+  if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295 || ![0, 1].includes(starter) || !Array.isArray(loadouts) || loadouts.length !== 2 || loadouts.some((l) => !Object.hasOwn(LOADOUTS3, l))) throw Error("Invalid duel settings.");
   const state = { ruleset: RULESET, balance: balanceVersion94(), elementRules: 5, deck: { id: deck.id, name: deck.name, cards: [...deck.cards] }, seed, starter, loadouts: [...loadouts], round: 1, results: [], awards: [], game: null };
   state.game = roundGame(state);
   return state;
@@ -3424,7 +3639,7 @@ function createAccountDuel({ deck, inventory, seed, starter, loadouts = ["hype-g
 function roundGame(state) {
   const starter = seriesStarter113(state.starter, state.round);
   let game = createTacticsMatch({ seed: state.seed, starter, loadouts: state.loadouts });
-  game = applyPortalDecks(game, state.deck.cards, state.loadouts.map((id) => LOADOUTS2[id]), { round: state.round });
+  game = applyPortalDecks(game, state.deck.cards, state.loadouts.map((id) => LOADOUTS3[id]), { round: state.round });
   game.elementRules = state.elementRules ?? state.game?.elementRules ?? 3;
   game.resonanceOffset = (state.seed % (game.elementRules === 5 ? 5 : 3) + (game.elementRules === 5 ? 5 : 3)) % (game.elementRules === 5 ? 5 : 3);
   game.rotationLocked = true;

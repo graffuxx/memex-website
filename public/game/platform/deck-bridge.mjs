@@ -1,4 +1,5 @@
 import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
+import {standardAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=standard-effects-147';
 import {soloSettings84} from './solo84.mjs';
 export const PLAY_DECK_KEY='duelverse.play-deck.v1';
 export function readPlayDeck(storage){
@@ -15,8 +16,11 @@ export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null
  next.players=next.players.map((p,side)=>{
   let state=(next.seed*53+side*8017+111)>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
   const deck=expandGameDeck(side===0?cards:opponentCards??starterDeck(),side);
-  // Preserve the current prototype's maximum of two ability cards per side.
-  for(const ability of loadouts[side].abilities){const candidates=deck.filter(c=>({oracle:'guard',brain:'hype',trust:'twist'})[c.id]===ability);if(candidates.length)candidates[Math.floor(random()*candidates.length)].ability=ability;}
+  if(next.elementalTrial){
+   for(const card of deck){const ability=standardAbility(card);if(ability)card.ability=ability;}
+  }else{
+   for(const ability of loadouts[side].abilities){const candidates=deck.filter(c=>ABILITY_FOR[c.id]===ability);if(candidates.length)candidates[Math.floor(random()*candidates.length)].ability=ability;}
+  }
   // Keep the physical cards/abilities and arena, but reshuffle both decks for each subsequent round.
   if(round>1)state=(state^Math.imul(round-1,0x9e3779b9))>>>0;
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}

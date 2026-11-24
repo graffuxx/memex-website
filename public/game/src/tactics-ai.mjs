@@ -1,19 +1,28 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=tie-break-63';
+import * as currentRules from './table-demo-rules.mjs?v=standard-effects-147';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
  const result=[];
  for(const card of game.players[game.turn].hand)for(const cell of freeCells(game))for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
-  const around=neighbors(cell),ability=rules.abilityAt(game,card,cell),relevant=ability==='hype'?around.filter(n=>game.board[n.id]&&game.board[n.id].controller!==game.turn).map(n=>n.dir):ability==='guard'&&rules.GUARD_ARC===6?[0]:ability==='guard'?around.filter(n=>n.id!==game.block&&!game.board[n.id]).map(n=>n.dir):[0],directions=relevant.length?relevant:[0];
+  const around=neighbors(cell),ability=rules.abilityAt(game,card,cell),relevant=ability==='hype'?around.filter(n=>game.board[n.id]&&game.board[n.id].controller!==game.turn).map(n=>n.dir):ability==='guard'&&rules.GUARD_ARC===6?[0]:(ability==='guard'||ability==='water')?around.filter(n=>n.id!==game.block&&!game.board[n.id]).map(n=>n.dir):[0],directions=relevant.length?relevant:[0];
   for(const action of rules.actionOptions(game,card,cell,rotation))if(directions.includes(action.abilityDirection)){const plan=rules.previewEffect(game,action);result.push({action,plan});}
  }return result;
 }
 export function positionalValue(game,{action,plan},rules=currentRules,weights={}){
  let safety=0,contacts=0;
  for(const n of neighbors(action.cell)){if(n.id===game.block)continue;const other=plan.board[n.id];if(!other){const defense=rules.effectStrength(game,plan.card,action.cell,n.dir,{id:'brain'});safety+=Math.min(7,defense.base+defense.field+defense.ability)-4.1;}else if(other.controller===game.turn||plan.flips.includes(n.id))contacts++;}
- let twistSafety=0;for(const t of plan.transforms){if(t.temporary)continue;const before=game.board[t.cell],after=plan.board[t.cell];for(const n of neighbors(t.cell))if(!game.board[n.id]&&n.id!==game.block)twistSafety+=(sideValue(before,n.dir)-sideValue(after,n.dir))*.18;}
+ let twistSafety=0;
+ for(const transform of plan.transforms){
+  if(transform.temporary)continue;
+  const before=game.board[transform.cell],after=plan.board[transform.cell];
+  const sign=before.controller===game.turn?1:-1;
+  for(const {id,dir} of neighbors(transform.cell)){
+   if(id===action.cell||id===game.block||game.board[id])continue;
+   twistSafety+=sign*(sideValue(after,dir)-sideValue(before,dir))*.18;
+  }
+ }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
  return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
@@ -29,7 +38,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
  let worst=0;
  for(const cell of freeCells(future)){const enemies=neighbors(cell).filter(n=>board[n.id]?.controller===game.turn);if(!enemies.length)continue;
   for(const id of ARCHETYPES)for(const element of game.elementRules===5?ELEMENT_IDS:[undefined])for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
-   const card={id,element,rotation,controller:future.turn};let flips=0;
+   const card={id,element,rotation,controller:future.turn};if(future.elementalTrial)card.ability=rules.standardAbility?.(card);let flips=0;
    for(const n of enemies){const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);if(attackWins(a,d,future.elementRules??3))flips++;}worst=Math.max(worst,flips);
   }
  }return worst;

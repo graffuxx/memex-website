@@ -25,3 +25,13 @@
 .board-card-preview__close{position:absolute;z-index:1;top:4px;right:4px;width:32px;height:32px;padding:0;border:1px solid #bf9bec80;border-radius:50%;background:#150c23;color:#f0e3f9;font:20px/1 Arial,sans-serif;cursor:pointer;pointer-events:auto}
 .board-card-preview__close:hover{background:#432962}
 #interaction .board-cell[data-owner][aria-disabled=false]{cursor:zoom-in}
+.board-card-preview__ability{
+ margin-top:8px;
+ padding-top:7px;
+ border-top:1px solid #c6affb40;
+ text-align:left;
+ font-size:clamp(10px,1.05vw,12px);
+ line-height:1.4;
+}
+.board-card-preview__ability b{color:#f9dba1}
+.board-card-preview__ability p{margin:3px 0 0;color:#e4d7f1}

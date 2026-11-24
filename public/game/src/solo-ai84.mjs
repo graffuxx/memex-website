@@ -1,4 +1,4 @@
-import {chooseTactic} from './tactics-ai.mjs';
+import {chooseTactic} from './tactics-ai.mjs?v=standard-effects-147';
 export function soloAction84(game,difficulty='standard'){
  if(game.finished)return null;
  let seed=(game.seed^Math.imul(game.placements+1,2654435761))>>>0;
