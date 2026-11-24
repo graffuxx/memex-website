@@ -2,7 +2,7 @@ import {fieldFeedback129} from './field-feedback129.mjs';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
-import {createVoidforge77,fitVoidforgeCamera77,VOIDFORGE_ZOOM79} from './voidforge-arena77.mjs?v=void-weather-137';
+import {createVoidforge77,fitVoidforgeCamera77,VOIDFORGE_ZOOM79} from './voidforge-arena77.mjs?v=venom-weather';
 import {ILLUSTRATED_ARENAS,isIllustratedArena,createIllustratedCamera67,fitIllustratedCamera67} from './illustrated-arenas67.mjs';
 import {createIllustratedBackdrop67} from './illustrated-backdrop67.mjs';
 import {starterDeck} from '../platform/catalog.mjs';

@@ -1,5 +1,5 @@
 import {arenaCameraPose78} from './arena-navigation78.mjs?v=void-storm-79';
-import {createVoidNebula78} from './void-nebula78.mjs?v=void-weather-137';
+import {createVoidNebula78} from './void-nebula78.mjs?v=venom-weather';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS} from './rules.mjs';
 import {tileCenter} from './arena-projection.mjs';

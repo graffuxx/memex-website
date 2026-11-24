@@ -1,4 +1,4 @@
-import {createTableMusic107} from './table-music107.mjs?v=void-weather-137';
+import {createTableMusic107,WEATHER_URL107} from './table-music107.mjs?v=venom-live';
 const ANNOUNCEMENTS=['intro','rematch','victory','defeat','draw','flip-double','flip-triple','flip-quad'];
 // Card Foley is edited from "Playing cards on a wooden table" by snuq (CC0).
 // https://freesound.org/people/snuq/sounds/564128/
@@ -109,7 +109,8 @@ export function createTableAudio({onState=()=>{}}={}){
    if(ctx.state!=='running')await ctx.resume();if(disposed||!enabled)return false;
    preloadCards();
    if(!music){
-    music=createTableMusic107({context:ctx,output:compressor});
+    music=createTableMusic107({context:ctx,output:compressor,weatherUrl:WEATHER_URL107});
+    music.setWeatherEnabled(ambient&&arena==='voidforge');
     void music.setVolume(musicVolume);void music.setMasterVolume(volume);
    }
    master.gain.setTargetAtTime(effectsLevel(),ctx.currentTime,.025);syncAmbient();void music.setActive(musicEnabled&&!document.hidden);state();return ctx.state==='running';
@@ -156,5 +157,5 @@ export function createTableAudio({onState=()=>{}}={}){
  function cancel(){cancelAnnouncements();comboEpoch++;comboUntil=0;comboPlayback=null;for(const timer of timers)clearTimeout(timer);timers.clear();for(const v of voices)stopVoice(v);}
  function test(){cancel();for(const [i,kind]of ['draw','place','capture','guard','round-start','win'].entries()){const timer=setTimeout(()=>{timers.delete(timer);play(kind,{count:kind==='capture'?3:1});},i*750);timers.add(timer);}}
  const visibility=()=>{if(document.hidden){cancel();stopAmbient();void music?.setActive(false);}else{syncAmbient();void music?.setActive(enabled&&musicEnabled);}};document.addEventListener('visibilitychange',visibility);
- return {setEnabled,play,say,sayCombo,cancelAnnouncements,preloadAnnouncements(){return Promise.all(ANNOUNCEMENTS.map(recording));},get running(){return enabled&&ctx?.state==='running';},get musicPlaying(){return Boolean(music?.playing);},getMusicTimeline(){return music?.getTimeline()??null;},test,cancel,setVolume(v){volume=Math.max(0,Math.min(1,Number(v)||0));if(ctx)master.gain.setTargetAtTime(enabled?effectsLevel():0,ctx.currentTime,.025);void music?.setMasterVolume(volume);},setMusicEnabled(v){musicEnabled=Boolean(v);void music?.setActive(enabled&&musicEnabled&&!document.hidden);},setMusicVolume(v){musicVolume=Math.max(0,Math.min(1,Number(v)||0));void music?.setVolume(musicVolume);},setAmbient(v){ambient=Boolean(v);syncAmbient();},setArena(v){arena=v;syncAmbient();},dispose(){if(disposed)return;disposed=true;cancel();stopAmbient();music?.dispose();cardSamples.clear();document.removeEventListener('visibilitychange',visibility);ctx?.close();}};
+ return {setEnabled,play,say,sayCombo,cancelAnnouncements,preloadAnnouncements(){return Promise.all(ANNOUNCEMENTS.map(recording));},get running(){return enabled&&ctx?.state==='running';},get musicPlaying(){return Boolean(music?.playing);},getMusicTimeline(){return music?.getTimeline()??null;},test,cancel,setVolume(v){volume=Math.max(0,Math.min(1,Number(v)||0));if(ctx)master.gain.setTargetAtTime(enabled?effectsLevel():0,ctx.currentTime,.025);void music?.setMasterVolume(volume);},setMusicEnabled(v){musicEnabled=Boolean(v);void music?.setActive(enabled&&musicEnabled&&!document.hidden);},setMusicVolume(v){musicVolume=Math.max(0,Math.min(1,Number(v)||0));void music?.setVolume(musicVolume);},setAmbient(v){ambient=Boolean(v);music?.setWeatherEnabled(ambient&&arena==='voidforge');syncAmbient();},setArena(v){arena=v;music?.setWeatherEnabled(ambient&&arena==='voidforge');syncAmbient();},dispose(){if(disposed)return;disposed=true;cancel();stopAmbient();music?.dispose();cardSamples.clear();document.removeEventListener('visibilitychange',visibility);ctx?.close();}};
 }

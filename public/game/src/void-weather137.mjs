@@ -1,10 +1,10 @@
-// Cue positions from the approved Quiet Orbit / Void Weather v2 master.
-// Visuals read the actual audio playhead, not accumulated render-frame time.
-export const VOID_MUSIC137=Object.freeze({duration:192,title:'Quiet Orbit · Void Weather'});
+// The separate thunder stem and the arena shader use these same score positions.
+const bpm=110,barSeconds=4*60/bpm;
+export const VOID_MUSIC137=Object.freeze({duration:40*barSeconds,bpm,title:'Venom'});
 export const VOID_WEATHER_CUES137=Object.freeze([
- [4,-.35],[26,.38],[49,-.18],[70.5,.3],[96,.12],
- [119,-.38],[143.5,.34],[168,-.1],[187,-.28]
-].map(([at,pan])=>Object.freeze({at,pan})));
+ [2,-.44,.24],[7,.46,.27],[12,-.22,.19],[18,.34,.20],
+ [23,-.41,.25],[29,.44,.29],[34,-.25,.22],[38,.29,.25]
+].map(([bar,pan,thunderDelay])=>Object.freeze({at:bar*barSeconds,pan,thunderDelay})));
 const duration=2.7,peakAt=Math.atan(2*Math.PI/duration)*duration/Math.PI;
 const peak=Math.sin(Math.PI*peakAt/duration)**2*Math.exp(-peakAt);
 export function voidMusicWeather137(timeline,animated=true){
@@ -12,7 +12,7 @@ export function voidMusicWeather137(timeline,animated=true){
  const time=((timeline.position/timeline.duration*VOID_MUSIC137.duration)%VOID_MUSIC137.duration+VOID_MUSIC137.duration)%VOID_MUSIC137.duration;
  let left=0,right=0;
  for(const {at,pan}of VOID_WEATHER_CUES137){
-  const age=(time-(at-.9)+VOID_MUSIC137.duration)%VOID_MUSIC137.duration;
+  const age=(time-(at-peakAt)+VOID_MUSIC137.duration)%VOID_MUSIC137.duration;
   if(age>=duration)continue;
   const pulse=Math.min(1,Math.sin(Math.PI*age/duration)**2*Math.exp(-age)/peak);
   if(pan<0)left=Math.max(left,pulse);else right=Math.max(right,pulse);

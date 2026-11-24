@@ -8,12 +8,12 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=flip-combos';
+import {createTableView} from './table-demo-view-hand17.mjs?v=venom-live';
 import {previewEffect,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=tie-break-63';
 import {scores,moveTargets,cardOf} from './rules.mjs?v=booster-classes-140';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=flip-combos-5';
-import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
+import {createTableAudio} from './table-audio.mjs?v=venom-live';
+import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
@@ -137,7 +137,7 @@ document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.runnin
 $('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
 async function bootOnline139(){if(booting139||stopped)return;booting139=true;let ready=false;try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
- if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient(true);void audio.preloadAnnouncements();}
+ if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient($('ambientEnabled').checked);void audio.preloadAnnouncements();}
  $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';ready=true;
 }catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{booting139=false;}if(ready)await poll();}
 void bootOnline139();

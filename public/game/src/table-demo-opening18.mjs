@@ -19,10 +19,10 @@ import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-1
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=flip-combos-5';
-import {bindTableMusic107} from './table-music107.mjs?v=void-weather-137';
+import {createTableAudio} from './table-audio.mjs?v=venom-live';
+import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=flip-combos';
+import {createTableView} from './table-demo-view-hand17.mjs?v=venom-live';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,sideValue} from './rules.mjs?v=booster-classes-140';
 import {previewEffect,placeEffect,ABILITIES,LOADOUTS,DIRECTION_NAMES,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,guardActive} from './table-demo-rules.mjs?v=tie-break-63';
@@ -45,7 +45,7 @@ function renderSound(){const button=$('arenaSound');button.textContent=soundWant
 const audio=createTableAudio({onState:({available,running})=>{renderSound();$('soundStatus').textContent=!available?'Ton hier nicht verfügbar':soundWanted&&running?'Sounds & Ansagen aktiv':soundWanted?'Ton startet mit deiner ersten Eingabe':'Stumm';}});
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:advanceRound});
 const flipCombo=bindFlipCombo(stage,svg,{audio,motion:()=>$('motion').checked});
-bindTableMusic107(audio);void audio.preloadAnnouncements();renderSound();
+bindTableMusic107(audio);audio.setAmbient($('ambientEnabled').checked);void audio.preloadAnnouncements();renderSound();
 function unlockSound(e){if(e.isTrusted&&soundWanted&&!audio.running)void audio.setEnabled(true);}
 document.addEventListener('pointerdown',unlockSound,{capture:true});
 document.addEventListener('keydown',unlockSound,{capture:true});
