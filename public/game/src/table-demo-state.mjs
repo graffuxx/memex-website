@@ -1,7 +1,7 @@
 import {createTacticsLayout} from './tactics-layout.mjs?v=random-layout-1';
 import {newGame,placeCard,freeCells} from './rules.mjs?v=tie-break-63';
 import {LOADOUTS,ABILITY_FOR} from './table-demo-rules.mjs?v=tie-break-63';
-import {chooseTactic} from './tactics-ai.mjs?v=greg-kekw-release';
+import {chooseTactic} from './tactics-ai.mjs?v=rainbow-pair-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 export const DEMO_PROFILES=Object.fromEntries(DEFINITIONS.map(c=>[c.ruleId,c.id]));
 export function createTableDemo(loadout='hype-guard'){

@@ -76,10 +76,10 @@ for(const seat of [0,1]){
 }
 
 
-test('Greg and KEKW are the only released Iconic powers and start in newly opted-in private matches',()=>{
- const deck=[...starterDeck().slice(0,12),'good-guy-greg:epic','kekw:mythic','evil-ernie:rare'];
+test('New private duels start the latest ability wave and older games retain their original wave',()=>{
+ const deck=[...starterDeck().slice(0,10),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','evil-ernie:rare'];
  const decks=[{cards:deck},{cards:deck}];
- for(const flags of [{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
+ for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
   let state=createPvp90(decks,9,1,flags);
   state=advancePvp90(state,0,{kind:'gesture',value:'rock'},2);
   state=advancePvp90(state,1,{kind:'gesture',value:'scissors'},3);
@@ -88,9 +88,59 @@ test('Greg and KEKW are the only released Iconic powers and start in newly opted
    const assigned=[...player.hand,...player.deck];
    assert.equal(assigned.find(c=>c.variantId==='good-guy-greg:epic').ability,flags.iconicAbilities?'sidestep':undefined);
    assert.equal(assigned.find(c=>c.variantId==='kekw:mythic').ability,flags.iconicAbilities?'laugh':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='forever-alone:common').ability,flags.iconicAbilityWave===2?'solitude':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='double-rainbow:rare').ability,flags.iconicAbilityWave===2?'rainbow':undefined);
    assert.equal(assigned.find(c=>c.variantId==='evil-ernie:rare').ability,undefined);
   }
  }
  const released=DEFINITIONS.filter(d=>releasedIconicAbility(makeCard(d.id+':common',0))).map(d=>d.id).sort();
  assert.deepEqual(released,['good-guy-greg','kekw']);
 });
+for(const seat of [0,1]){
+ test(`Forever Alone defends its weakest available edge only when isolated for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat;
+  Object.assign(game,{turn:other,starter:seat,elementalTrial:true,elementRules:5});
+  const defender={...makeCard('forever-alone:common',seat,'solitude'),controller:seat};
+  const attacker=makeCard('diamond-hands:common',other);
+  game.board['0,0']=defender;
+  game.players[other].hand=[attacker];
+  const play={uid:attacker.uid,cell:'0,1'};
+  assert.equal(previewEffect(game,play).comparisons[0].defend.ability,1);
+  assert.equal(previewEffect(game,play).comparisons[0].flip,false);
+  assert.deepEqual(abilityMarkers(game,null),[{kind:'solitude',cell:'0,0',dir:1,label:'+1'}]);
+  assert.equal(fieldFeedback129(game,defender,'0,0').bonuses[1],1);
+  game.board['1,0']={...makeCard('doge:common',seat),controller:seat};
+  assert.equal(previewEffect(game,play).comparisons.find(c=>c.cell==='0,0').flip,true);
+  game.board['1,0'].controller=other;
+  assert.equal(previewEffect(game,play).comparisons.find(c=>c.cell==='0,0').flip,false);
+  game.block='0,1';
+  assert.equal(abilityMarkers(game,null).find(m=>m.kind==='solitude').dir,2);
+ });
+
+ test(`Double Rainbow adds at most one numeric tie in clockwise order and respects KEKW for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat;
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  const double=makeCard('double-rainbow:common',seat,'rainbow');
+  const enemy={...makeCard('bad-luck-brian:common',other),controller:other};
+  game.players[seat].hand=[double];
+  game.board={'1,0':{...enemy,uid:'east'},'-1,0':{...makeCard('triggered:common',other),controller:other},'0,1':{...makeCard('side-eye:common',other),controller:other}};
+  const move={uid:double.uid,cell:'0,0'};
+  const plan=previewEffect(game,move);
+  assert.deepEqual(plan.flips,['1,0','-1,0']);
+  assert.deepEqual(plan.rainbow,{cell:'-1,0',dir:3});
+  assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='rainbow'&&m.dir===3));
+  const placed=placeEffect(game,move);
+  assert.equal(placed.board['0,1'].controller,other);
+  assert.deepEqual(abilityBursts(placed),[{kind:'rainbow',cell:'-1,0',dir:0,label:'⌒'}]);
+  delete game.board['1,0'];
+  assert.deepEqual(previewEffect(game,move).flips,[]);
+  game.board['1,0']={...enemy,uid:'east'};
+  game.board['-1,0']={...makeCard('kekw:common',other,'laugh'),controller:other,rotation:1,laughOwner:other,laughUntil:2};
+  assert.deepEqual(previewEffect(game,move).flips,['1,0']);
+  assert.equal(previewEffect(game,move).rainbow,null);
+  game.board['-1,0']={...makeCard('triggered:common',other),controller:other};
+  game.board['0,1']={...makeCard('coffin-dance:common',other),controller:other};
+  assert.deepEqual(previewEffect(game,move).flips,['1,0','0,1']);
+  assert.deepEqual(previewEffect(game,move).rainbow,{cell:'0,1',dir:1});
+ });
+}

@@ -1,6 +1,6 @@
 import {rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=greg-kekw-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=rainbow-pair-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -16,8 +16,10 @@ export const ABILITIES={
  earth:{name:'Earth · Bollwerk',short:'◆',description:'Neben der Blockade erhält die schwächste erreichbare Kante +1 Verteidigung. Der Bonus endet, sobald die Blockade wegzieht.'},
  air:{name:'Air · Rückenwind',short:'↻',description:'Drehe optional eine eigene benachbarte Karte um 60 Grad. Die gedrehte Karte löst keine Übernahmen aus.'},
  storm:{name:'Storm · Flankenblitz',short:'ϟ',description:`Berührt die Karte mindestens zwei Gegner, erhält die schwächste Angriffskante gegen sie +1, wenn ihr Grundwert höchstens ${STORM_MAX_EDGE} beträgt.`},
- sidestep:{name:'Iconic · Platz machen',short:'↝',description:'Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte behält ihre Ausrichtung. Eben geflippte Karten können erst in späteren Zügen verschoben werden.'},
+ sidestep:{name:'Iconic · Platz machen',short:'↝',description:'Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte behält ihre Ausrichtung. Eben geflippte Karten bleiben liegen.'},
  laugh:{name:'Iconic · Letztes Lachen',short:'◉',description:'Im nächsten gegnerischen Zug hält KEKW numerische Gleichstände auch gegen das stärkere Element. Höhere Werte und S-Kanten greifen nach den normalen Regeln an.'},
+ solitude:{name:'Iconic · Allein auf weiter Flur',short:'◇',description:'Solange keine eigene Karte angrenzt, erhält die schwächste offene Kante +1 Verteidigung.'},
+ rainbow:{name:'Iconic · Zweiter Bogen',short:'⌒',description:'Bei genau einem regulären Flip übernimmt Double Rainbow höchstens eine zweite Karte bei einem numerischen Gleichstand. Es zählt der erste ungeschützte Gleichstand im Uhrzeigersinn ab dem ersten Flip.'},
 };
 export const LOADOUTS={
  'hype-guard':{name:'Doge + Pepe',abilities:['hype','guard']},
@@ -32,9 +34,15 @@ export function standardAbility(card){
  const definition=cardOf(card);
  return definition&&!definition.prime&&!definition.iconic?definition.element:null;
 }
-export function releasedIconicAbility(card){
- const id=cardOf(card)?.id;
- return id==='iconic-good-guy-greg'?'sidestep':id==='iconic-kekw'?'laugh':null;
+const RELEASED_ICONICS={
+ 'iconic-good-guy-greg':'sidestep',
+ 'iconic-kekw':'laugh',
+ 'iconic-forever-alone':'solitude',
+ 'iconic-double-rainbow':'rainbow',
+};
+export function releasedIconicAbility(card,wave=1){
+ const ability=RELEASED_ICONICS[cardOf(card)?.id]??null;
+ return wave>=2||ability==='sidestep'||ability==='laugh'?ability:null;
 }
 export function abilityDescription(game,ability){
  if(ability==='guard')return `Eine Seite erhält +${guardBonus(game)} Verteidigung bis zum nächsten eigenen Karten-Zug.`;
@@ -103,6 +111,12 @@ export function abilityEdge(game,card,cell,{attacking=false,direction=null}={}){
   return null;
  }
  if(guardActive(game,card,cell))return {dir:card.guardDirection,amount:ability==='water'?WATER_BONUS:guardBonus(game)};
+ if(ability==='solitude'){
+  const adjacent=neighbors(cell);
+  if(adjacent.some(n=>game.board[n.id]?.controller===card.controller))return null;
+  const edge=weakestEdge(card,adjacent.filter(n=>n.id!==game.block&&!game.board[n.id]));
+  if(edge)return {dir:edge.dir,amount:1};
+ }
  if(ability==='earth'){
   const adjacent=neighbors(cell);
   if(adjacent.some(n=>n.id===game.block)){
@@ -138,11 +152,25 @@ export function previewEffect(game,action){
   const tieProtected=!setup&&stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
   return {cell:n.id,dir:n.dir,attack,defend,setup,flip:!setup&&effectAttackWins(attack,defend,elementRules),name:cardOf(other).name,...(tieProtected?{tieProtected:true}:{})};
  });
+ let rainbow=null;
+ if(ability==='rainbow'){
+  const initialFlips=comparisons.filter(c=>c.flip);
+  if(initialFlips.length===1){
+   const firstDir=initialFlips[0].dir;
+   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
+    .sort((a,b)=>(a.dir-firstDir+6)%6-(b.dir-firstDir+6)%6)[0];
+   if(tied){
+    tied.flip=true;
+    tied.rainbow=true;
+    rainbow={cell:tied.cell,dir:tied.dir};
+   }
+  }
+ }
  const flips=comparisons.filter(c=>c.flip).map(c=>c.cell);
  const steps=ability==='sidestep'?sidestepTargets(working,cell):[];
  if(stepCells!==null&&(!Array.isArray(stepCells)||stepCells.length!==2||!steps.some(([from,to])=>from===stepCells[0]&&to===stepCells[1])))throw Error('Kein gültiges Ziel für Platz machen.');
  const relocation=stepCells===null?null:{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid};
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
@@ -157,6 +185,7 @@ export function placeEffect(game,action){
  player.flips+=p.flips.length;next.placements++;
  next.last={type:'place',side,cell:action.cell,uid:action.uid,name:cardOf(p.card).name,flips:p.flips,transforms:p.transforms,ability:p.ability,suppressed:p.suppressed,event:game.eventFieldsEnabled===false?null:eventPhase(next)!==eventPhase(game)?eventPhase(next):null};
  if(p.relocation)next.last.relocation=p.relocation;
+ if(p.rainbow)next.last.rainbow=p.rainbow;
  const tieBlocks=p.comparisons.filter(c=>c.tieProtected).map(c=>({cell:c.cell,dir:(c.dir+3)%6}));
  if(tieBlocks.length)next.last.tieBlocks=tieBlocks;
  if(game.abilityTrial&&p.ability){

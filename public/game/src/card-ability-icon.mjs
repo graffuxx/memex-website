@@ -13,6 +13,8 @@ const symbols={
 
  sidestep:{color:'#b9f3ba',path:'M4 18h7m-6-5 3 5-3 5M10 18c7 0 9-3 9-8V4m-4 4 4-4 4 4'},
  laugh:{color:'#ffd584',path:'M4 9c2-2 4-2 6 0m4 0c2-2 4-2 6 0M5 13h14c-1 6-4 8-7 8s-6-2-7-8Z'},
+ solitude:{color:'#aee5ff',path:'m12 4 4 8-4 8-4-8zM3 12h.1m18 0h.1'},
+ rainbow:{color:'#f8b9f0',path:'M3 17a9 9 0 0 1 18 0M7 17a5 5 0 0 1 10 0m-6 0a1 1 0 0 1 2 0'},
 };
 
 function iconPath(ability){

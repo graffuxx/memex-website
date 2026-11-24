@@ -1,4 +1,4 @@
-import {abilityEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=greg-kekw-release';
+import {abilityEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=rainbow-pair-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -24,6 +24,7 @@ export function abilityMarkers(game,plan){
     markers.push({kind:'sidestep',cell:plan.relocation.to,preview:true,label:'◆'});
    }
 
+   if(plan.rainbow)markers.push({kind:'rainbow',cell:plan.cell,dir:plan.rainbow.dir,preview:true,label:'⌒'});
   }
   return markers;
  }
@@ -47,6 +48,7 @@ export function abilityBursts(game){
   const {ability,abilityEdge:edge}=last;
   const markers=(last.tieBlocks??[]).map(stop=>({kind:'laugh',...stop,label:'='}));
   if(last.relocation)markers.push({kind:'sidestep',cell:last.relocation.to,label:'↗'});
+  if(last.rainbow)markers.push({kind:'rainbow',cell:last.rainbow.cell,dir:(last.rainbow.dir+3)%6,label:'⌒'});
   if(edge)markers.push({kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`});
   return [...markers,...(last.transforms??[]).map(target=>({kind:ability,cell:target.cell,label:'↻'}))];
  }
@@ -88,7 +90,7 @@ export function createAbilityEffects(layer){
    const {stroke,badge,text}=nodes.get(key),geometry=abilityMarkerGeometry(project(marker.cell),marker.dir);
    const {x,y}=geometry.center,size=clamp(Math.hypot(geometry.points[0].x-geometry.points[1].x,geometry.points[0].y-geometry.points[1].y)*.23,9,14);
    stroke.setAttribute('points',(marker.dir===undefined?[...geometry.points,geometry.points[0]]:geometry.points).map(coordinates).join(' '));
-   badge.setAttribute('d',['guard','water','earth'].includes(marker.kind)
+   badge.setAttribute('d',['guard','water','earth','solitude'].includes(marker.kind)
     ?`M ${x-size} ${y-size*.75} h ${size*2} v ${size} l ${-size} ${size*.6} l ${-size} ${-size*.6} Z`
     :`M ${x} ${y-size} l ${size} ${size} l ${-size} ${size} l ${-size} ${-size} Z`);
    text.setAttribute('x',x);text.setAttribute('y',y);text.textContent=marker.label;

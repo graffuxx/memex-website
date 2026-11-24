@@ -17,3 +17,5 @@
 @media(prefers-reduced-motion:reduce){.ability-effects g[data-state=burst]{animation:none}}
 .ability-effects g[data-ability=sidestep]{--ability-color:#b9f3ba;--ability-glow:#6cda8f}
 .ability-effects g[data-ability=laugh]{--ability-color:#ffe29b;--ability-glow:#ff9e55}
+.ability-effects g[data-ability=solitude]{--ability-color:#aee5ff;--ability-glow:#588eff}
+.ability-effects g[data-ability=rainbow]{--ability-color:#f8b9f0;--ability-glow:#a267fa}

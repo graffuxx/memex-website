@@ -1,4 +1,4 @@
-import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=greg-kekw-release';
+import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=rainbow-pair-release';
 import {ELEMENT_IDS,ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {CARD_PROFILES as PROFILES} from './card-profiles27.mjs';
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
