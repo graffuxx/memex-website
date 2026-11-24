@@ -4,5 +4,14 @@ Model: Kokoro-82M v1.0, Apache License 2.0, https://huggingface.co/hexgrad/Kokor
 Voice: am_michael (generic synthetic voice; no impersonation).
 Runtime used for offline generation: kokoro-onnx (MIT), https://github.com/thewh1teagle/kokoro-onnx
 The model and runtime are not included in this game. No speech service or microphone is used during play.
-Flip combo lines: Ohhh boooy! / Daaamn son! / Godlike!
-Combo voices: am_fenrir, am_puck and am_michael, with original delivery, synthesized impacts and stereo room reflections.
+Flip combo voice samples, edited for Duelverse:
+Wooow! — "Surprised - Wow 2" by Sadiquecat (CC0), time/pitch edited and mixed with original SFX.
+https://freesound.org/people/Sadiquecat/sounds/801212/
+Naaaice! — "Joyful - Nice 2" by Sadiquecat (CC0), time/pitch edited and mixed with original SFX.
+https://freesound.org/people/Sadiquecat/sounds/801285/
+Godlike! — from "Old-school arena FPS announcer voice lines" by jkerman (CC BY 4.0), cropped, time edited and mixed with original SFX.
+https://freesound.org/people/jkerman/sounds/718360/
+https://creativecommons.org/licenses/by/4.0/
+Crowd layers for Wooow! and Naaaice! — "Woo 1 just guys" and "Woo 3" by jayfrosting (CC0), cropped and mixed.
+https://freesound.org/people/jayfrosting/sounds/333418/
+https://freesound.org/people/jayfrosting/sounds/333420/

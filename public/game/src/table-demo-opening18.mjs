@@ -1,5 +1,5 @@
 import {bindSignatureControls} from './signature-controls.mjs?v=final-guard';
-import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
+import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=arcade-voices';
 import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=board-ability-symbols';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
@@ -20,7 +20,7 @@ import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-1
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=turn-clock-12';
 import {freshMatchSeed} from './tactics-layout.mjs?v=random-layout-1';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=final-guard';
+import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {createTableView} from './table-demo-view-hand17.mjs?v=board-ability-symbols';

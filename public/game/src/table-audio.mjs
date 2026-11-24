@@ -15,7 +15,7 @@ export function createTableAudio({onState=()=>{},muted=false}={}){
   if(!ANNOUNCEMENTS.includes(kind))return null;
   if(!recordings.has(kind)){
    const url=new URL(`../assets/audio/announcer-v42/${kind}.wav`,import.meta.url);
-   if(kind.startsWith('flip-'))url.searchParams.set('v','5');
+   if(kind.startsWith('flip-'))url.searchParams.set('v','arcade-voices');
    recordings.set(kind,fetch(url).then(response=>response.ok?response.arrayBuffer():null).catch(()=>null));
   }
   return recordings.get(kind);

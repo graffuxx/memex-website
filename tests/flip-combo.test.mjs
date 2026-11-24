@@ -6,7 +6,7 @@ test('only resolved multi-flips have a callout and four or more use the Godlike 
   assert.equal(flipComboTier(0), null);
   assert.equal(flipComboTier(1), null);
   assert.deepEqual([2, 3, 4, 5, 6].map(count => flipComboTier(count).line),
-    ['Ohhh boooy!', 'Daaamn son!', 'GODLIKE!', 'GODLIKE!', 'GODLIKE!']);
+    ['Wooow!', 'Naaaice!', 'GODLIKE!', 'GODLIKE!', 'GODLIKE!']);
   assert.equal(flipComboTier(5).label, '5× FLIP');
 });
 

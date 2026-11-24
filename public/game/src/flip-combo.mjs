@@ -1,5 +1,5 @@
-const DOUBLE = { id: 'double', label: 'DOUBLE FLIP', line: 'Ohhh boooy!', duration: 1240 };
-const TRIPLE = { id: 'triple', label: 'TRIPLE FLIP', line: 'Daaamn son!', duration: 1500 };
+const DOUBLE = { id: 'double', label: 'DOUBLE FLIP', line: 'Wooow!', duration: 1240 };
+const TRIPLE = { id: 'triple', label: 'TRIPLE FLIP', line: 'Naaaice!', duration: 1500 };
 const QUAD = { id: 'quad', label: 'QUAD FLIP', line: 'GODLIKE!', duration: 1760 };
 
 export function flipComboTier(count) {
