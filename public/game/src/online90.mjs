@@ -1,6 +1,6 @@
-import {bindReleasedIconicControls} from './released-iconic-controls.mjs?v=prime-trio-release';
+import {bindReleasedIconicControls} from './released-iconic-controls.mjs?v=jordan-fan-release';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=4';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=prime-trio-release';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=jordan-fan-release';
 import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
@@ -9,11 +9,11 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=prime-trio-release';
-import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=prime-trio-release';
-import {scores,moveTargets,cardOf} from './rules.mjs?v=booster-classes-140';
+import {createTableView} from './table-demo-view-hand17.mjs?v=jordan-fan-release';
+import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,DIRECTION_NAMES,twistTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=jordan-fan-release';
+import {scores,moveTargets,cardOf,reservedCell} from './rules.mjs?v=jordan-fan-release';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
-import {createTableAudio} from './table-audio.mjs?v=prime-trio-release';
+import {createTableAudio} from './table-audio.mjs?v=jordan-fan-release';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
@@ -51,7 +51,7 @@ function render(){
  $('confirm').disabled=busy||!(p||mode==='shift'&&moveTargets(game).includes(target));$('confirm').textContent=mode==='shift'?'Move blockade':'Play card';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent='◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
  $('nextRound').hidden=data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||animating||presentation.needsSnapshot||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Next round starts automatically':'Continue sooner';
  $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?(game.turn===0?'Choose a free field. Escape cancels.':'Inspect your hand while your opponent plays.'):game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
- $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.pursuit?' · No Escape ✓':c.objection?' · Objection holds':c.sandwich?' · Sandwich ✓':c.flip?' ✓':c.tieProtected?' · KEKW holds':'')).join(' · '):'';
+ $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.pursuit?' · No Escape ✓':c.objection?' · Objection holds':c.bailout?' · Last-Second Save':c.sandwich?' · Sandwich ✓':c.flip?' ✓':c.tieProtected?' · KEKW holds':'')).join(' · '):'';
  $('abilityOptions').hidden=!card?.ability||mode==='shift';$('abilityLabel').textContent=card?.ability?ABILITIES[card.ability].name:'';$('abilityHint').textContent=abilityDescription(game,card?.ability);$('directionLabel').hidden=!aimsAbility(card?.ability);$('twistLabel').hidden=!turnsCards(card?.ability);
  iconicControls.update(game,card,p,busy);
  if(turnsCards(card?.ability)){const opts=target?twistTargets(game,target,card.ability):[];$('twistTarget').replaceChildren(new Option('No rotation',''),...opts.map(c=>new Option(c,c)));$('twistTarget').value=twistCell??'';}
@@ -114,7 +114,7 @@ function field(cell){
  if(game?.elementalTrial&&!locked()&&target&&turnsCards(ability)&&twistTargets(game,target,ability).includes(cell)){
   boardPreview.clear();twistCell=twistCell===cell?null:cell;render();return;
  }
- if(boardPreview.toggle(cell))return;boardPreview.clear();if(locked())return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;}else if(selected&&!game.board[cell]&&game.block!==cell){if(target!==cell)iconicControls.clear();target=cell;twistCell=null;}render();}
+ if(boardPreview.toggle(cell))return;boardPreview.clear();if(locked())return;if(mode==='shift'){target=moveTargets(game).includes(cell)?cell:null;}else if(selected&&!game.board[cell]&&game.block!==cell&&cell!==reservedCell(game)){if(target!==cell)iconicControls.clear();target=cell;twistCell=null;}render();}
 function confirm(){if(locked())return;if(mode==='shift'){if(moveTargets(game).includes(target))void move({kind:'shift',cell:target});}else if(plan())void move({kind:'place',action:action()});}
 $('confirm').onclick=confirm;$('cancel').onclick=()=>{if(!locked()){clear();render();}};$('shiftBlock').onclick=()=>{if(locked())return;const old=mode;clear();mode=old==='shift'?'card':'shift';render();};
 $('abilityDirection').replaceChildren(...DIRECTION_NAMES.map((n,i)=>new Option(n,String(i))));$('abilityDirection').onchange=()=>{abilityDirection=Number($('abilityDirection').value);render();};$('twistTarget').onchange=()=>{twistCell=$('twistTarget').value||null;render();};
@@ -129,7 +129,7 @@ svg.addEventListener('pointermove',e=>{
  if(drag&&e.pointerId===drag.id){
   if(locked())return;
   if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){const d=drag;choose(d.uid);drag=d;drag.moved=true;drag.node.classList.add('dragging');}
-  if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const cell=boardCellAt117(svg,e.clientX,e.clientY);target=cell&&!game.board[cell]&&cell!==game.block?cell:null;twistCell=null;render();}return;
+  if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const cell=boardCellAt117(svg,e.clientX,e.clientY);target=cell&&!game.board[cell]&&cell!==game.block&&cell!==reservedCell(game)?cell:null;twistCell=null;render();}return;
  }
  const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(uid!==hover){hover=uid;render();}
 });
@@ -140,7 +140,7 @@ function release(e,cancelled=false){
  d.node.classList.remove('dragging');try{d.node.releasePointerCapture(e.pointerId);}catch{}
  if(cancelled){view.release(d.uid);clear();render();return;}
  if(!d.moved){choose(d.uid);return;}
- view.release(d.uid);iconicControls.clear();target=cell&&!game.board[cell]&&cell!==game.block?cell:null;twistCell=null;
+ view.release(d.uid);iconicControls.clear();target=cell&&!game.board[cell]&&cell!==game.block&&cell!==reservedCell(game)?cell:null;twistCell=null;
  const pending=locked()?null:plan();
  if(pending&&(['water','air'].includes(pending.ability)||pending.steps?.length||pending.pivotTarget||pending.bidTargets?.length||pending.swaps?.length))render();
  else if(pending)confirm();

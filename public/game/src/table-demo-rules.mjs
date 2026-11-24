@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=prime-trio-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=jordan-fan-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -13,6 +13,7 @@ export const OBJECTION_MAX_MARGIN=2;
 export const CHORUS_DUET_GUARD=2;
 export const JAM_PLACEMENTS=3;
 export const SANDWICH_MAX_SUPPORT=3;
+export const JORDAN_MAX_MARGIN=1;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -35,6 +36,8 @@ export const ABILITIES={
  cover:{name:'Iconic · Rückendeckung',short:'◈',description:'Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schwächsten offenen Kante bis zum nächsten eigenen Zug. Schutzboni stapeln sich nicht.'},
  objection:{name:'Iconic · Einspruch',short:'!',description:`Würde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf höchstens ${OBJECTION_MAX_MARGIN} Punkte höher sein. Gegen S greift der Einspruch nicht.`},
  thought:{name:'Iconic · Gedankenexperiment',short:'⇄',description:'Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch löst keine Flips aus.'},
+ bailout:{name:'Prime · Rettung in letzter Sekunde',short:'❖',description:`Jordan rettet einmal pro Runde eine benachbarte eigene Standardkarte vor einem direkten Zahlenflip mit höchstens ${JORDAN_MAX_MARGIN} Punkt Vorsprung. Wird Jordan im selben Zug geflippt, greift die Rettung nicht.`},
+ fan:{name:'Prime · Leere Ränge',short:'⊠',description:'Reserviere beim Legen ein freies Feld, das an Fan und eine bereits eigene Standardkarte angrenzt. Im nächsten Zug des Gegners bleibt dieses Feld für Karten gesperrt. Andere Spielfelder bleiben bestehen.'},
  jam:{name:'Prime · Eingabestopp',short:'⌧',description:'Wähle beim Legen eine angrenzende Gegnerkarte. Ihre eigene Fähigkeit pausiert sofort bis zum Ende deines nächsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam.'},
  sandwich:{name:'Prime · Sandwich',short:'⟫',description:`Steht ein eigener Verbündeter direkt oder schräg hinter einer Gegnerkarte, kann sein Überschuss gegen deren Rückseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT} verstärken. Es zählt der erste dadurch mögliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.`},
  chorus:{name:'Prime · Choreografie',short:'♫',description:`Drehe beim Legen eine eigene angrenzende Standardkarte um 60° und schütze ihre schwächste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD} Schutz bis zu deinem nächsten Zug. Die Drehung löst keine Flips aus.`},
@@ -70,11 +73,13 @@ export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
  return entry&&wave>=entry[0]?entry[1]:null;
 }
-export function releasedPrimeAbility(card){
+export function releasedPrimeAbility(card,includePair=false){
  const id=cardOf(card)?.id;
  if(id==='prime-numa-numa')return 'chorus';
  if(id==='prime-keyboard-crusher')return 'jam';
  if(id==='prime-idiot-sandwich')return 'sandwich';
+ if(includePair&&id==='prime-crying-jordan')return 'bailout';
+ if(includePair&&id==='prime-disappointed-fan')return 'fan';
  return null;
 }
 export function abilityDescription(game,ability){
@@ -108,6 +113,15 @@ export function nextEvent(game){if(game.eventFieldsEnabled===false)return null;c
 export function fieldText(f){if(!f)return 'Normales Feld';return FIELD_TYPES[f.type].name+(f.type==='resonance'?' · '+ELEMENTS[f.element].name+' +1':f.type==='crossfire'?' · '+f.directions.map(d=>DIRECTION_NAMES[d]).join('/')+' +1':' · Fähigkeiten aus');}
 export const jamActive=(game,card)=>game.placements<card.jammedUntil;
 export function abilityAt(game,card,cell){return card.ability&&!jamActive(game,card)&&eventFieldAt(game,cell)?.type!=='silence'?card.ability:null;}
+export function fanTargets(game,cell){
+ if(freeCells(game).length<=2)return [];
+ const allies=neighbors(cell).filter(({id})=>{
+  const card=game.board[id];
+  return card?.controller===game.turn&&Boolean(standardAbility(card));
+ });
+ const shared=new Set(allies.flatMap(({id})=>neighbors(id).map(n=>n.id)));
+ return neighbors(cell).filter(({id})=>id!==game.block&&!game.board[id]&&shared.has(id)).map(({id})=>[id]);
+}
 function jamTargets(game,cell){
  return neighbors(cell).filter(({id})=>{
   const card=game.board[id];
@@ -226,12 +240,13 @@ export function previewEffect(game,action){
  if(ability==='laugh'){card.laughOwner=game.turn;card.laughUntil=game.placements+2;}
  if(guardsEdge(ability)){card.guardDirection=abilityDirection;card.guardOwner=game.turn;card.guardUntil=game.placements+2;}
  const surrounding=neighbors(cell);
- const steps=ability==='sidestep'?sidestepTargets(working,cell):ability==='chorus'?chorusTargets(working,cell):ability==='jam'?jamTargets(working,cell):[];
+ const steps=ability==='sidestep'?sidestepTargets(working,cell):ability==='chorus'?chorusTargets(working,cell):ability==='jam'?jamTargets(working,cell):ability==='fan'?fanTargets(working,cell):[];
  if(stepCells!==null&&(!Array.isArray(stepCells)||!steps.some(pair=>pair.length===stepCells.length&&pair.every((id,index)=>id===stepCells[index])))){
-  const name=ability==='chorus'?'Choreografie':ability==='jam'?'Eingabestopp':'Platz machen';
+  const name=ability==='chorus'?'Choreografie':ability==='jam'?'Eingabestopp':ability==='fan'?'Leere Ränge':'Platz machen';
   throw Error('Kein gültiges Ziel für '+name+'.');
  }
  const jam=ability==='jam'&&stepCells?stepCells[0]:null;
+ const reserve=ability==='fan'&&stepCells?stepCells[0]:null;
  if(jam)working.board[jam]={...working.board[jam],jammedUntil:game.placements+JAM_PLACEMENTS};
  const comparisons=surrounding.filter(n=>working.board[n.id]&&working.board[n.id].controller!==game.turn).map(n=>{
   const other=working.board[n.id],attack=effectStrength(working,card,cell,n.dir,other,{attacking:true,abilityDirection}),defend=effectStrength(working,other,n.id,(n.dir+3)%6,card);
@@ -341,6 +356,22 @@ export function previewEffect(game,action){
    break;
   }
  }
+ let bailout=null;
+ for(const attempt of comparisons){
+  const {attack,defend,cell:target}=attempt;
+  if(!attempt.flip||attempt.pursuit||attempt.pincer||attack.rank==='S'||defend.rank==='S'||attack.total-defend.total>JORDAN_MAX_MARGIN)continue;
+  const rescued=working.board[target];
+  if(!standardAbility(rescued))continue;
+  const protector=neighbors(target).find(({id})=>{
+   const defender=working.board[id];
+   return defender?.controller===rescued.controller&&!defender.bailoutSpent&&abilityAt(working,defender,id)==='bailout'
+    &&!comparisons.some(hit=>hit.flip&&hit.cell===id);
+  });
+  if(!protector)continue;
+  attempt.flip=false;attempt.bailout=true;
+  bailout={cell:target,protector:protector.id,dir:(attempt.dir+3)%6};
+  break;
+ }
  const flips=comparisons.filter(c=>c.flip).map(c=>c.cell);
  const pivotTarget=ability==='encore'&&flips.length===1?cell:null;
  if(![-1,0,1].includes(pivotDirection)||pivotDirection!==0&&!pivotTarget)throw Error('Keine Karte für die Drehung erobert.');
@@ -365,13 +396,15 @@ export function previewEffect(game,action){
   return edge?[{cell:id,dir:edge.dir,...(ability==='chorus'?{kind:'chorus',amount:duet?CHORUS_DUET_GUARD:1}:{})}]:[];
  }).slice(0,2);
 
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,objection,swapCells,swaps,jam,sandwich,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,objection,swapCells,swaps,jam,sandwich,bailout,reserve,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
  player.hand=player.hand.filter(c=>c.uid!==action.uid);if(player.deck.length)player.hand.push(player.deck.shift());
  next.board[action.cell]={...p.card,flips:p.flips.length};
  if(p.objection)next.board[p.objection.cell].objectionSpent=true;
+ if(p.bailout)next.board[p.bailout.protector].bailoutSpent=true;
+ if(p.reserve)next.fanReserve={cell:p.reserve,owner:side,until:game.placements+2};
  for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.laughOwner;delete c.laughUntil;delete c.coverWard;delete c.jammedUntil;}
  for(const {cell,dir,kind,amount} of p.coverWards)next.board[cell].coverWard={dir,owner:side,until:game.placements+2,...(kind?{kind,amount}:{})};
  if(p.swapCells){
@@ -385,6 +418,7 @@ export function placeEffect(game,action){
  }
  if(p.bid!==null)player.shifts--;
  player.flips+=p.flips.length;next.placements++;
+ if(next.fanReserve?.until<=next.placements)delete next.fanReserve;
  next.last={type:'place',side,cell:action.cell,uid:action.uid,name:cardOf(p.card).name,flips:p.flips,transforms:p.transforms,ability:p.ability,suppressed:p.suppressed,event:game.eventFieldsEnabled===false?null:eventPhase(next)!==eventPhase(game)?eventPhase(next):null};
  if(p.relocation)next.last.relocation=p.relocation;
  if(p.rainbow)next.last.rainbow=p.rainbow;
@@ -395,6 +429,8 @@ export function placeEffect(game,action){
  if(p.objection)next.last.objection=p.objection;
  if(p.jam)next.last.jam=p.jam;
  if(p.sandwich)next.last.sandwich=p.sandwich;
+ if(p.bailout)next.last.bailout=p.bailout;
+ if(p.reserve)next.last.reserve=p.reserve;
  if(p.swapCells)next.last.swapCells=p.swapCells;
  if(p.coverWards.length)next.last.coverWards=p.coverWards;
  if(p.pivot){
@@ -420,9 +456,9 @@ export function actionOptions(game,card,cell,rotation){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   return previewEffect(game,action).pivotTarget?[action,{...action,pivotDirection:-1},{...action,pivotDirection:1}]:[action];
  }
- if(ability==='sidestep'||ability==='chorus'||ability==='jam'){
+ if(ability==='sidestep'||ability==='chorus'||ability==='jam'||ability==='fan'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
-  const steps=ability==='chorus'?chorusTargets(game,cell):ability==='jam'?jamTargets(game,cell):sidestepTargets(game,cell);
+  const steps=ability==='chorus'?chorusTargets(game,cell):ability==='jam'?jamTargets(game,cell):ability==='fan'?fanTargets(game,cell):sidestepTargets(game,cell);
   return [action,...steps.map(stepCells=>({...action,stepCells}))];
  }
  if(ability==='bid'){

@@ -3,12 +3,12 @@ import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=prime-trio-release';
+import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=jordan-fan-release';
 import {cardAbilityIconMarkup} from './card-ability-icon.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {fieldFeedback129} from './field-feedback129.mjs?v=prime-trio-release';
+import {fieldFeedback129} from './field-feedback129.mjs?v=jordan-fan-release';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=prime-trio-release';
-import {fieldFeedback129} from './field-feedback129.mjs?v=prime-trio-release';
+import {createAbilityEffects} from './ability-effects.mjs?v=jordan-fan-release';
+import {fieldFeedback129} from './field-feedback129.mjs?v=jordan-fan-release';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -19,10 +19,10 @@ import {createPaintedBackdrop} from './painted-backdrop-glow8.mjs?v=home-rift-25
 import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
-import {CELLS,ELEMENTS,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=prime-trio-release';
+import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=jordan-fan-release';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=jordan-fan-release';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=prime-trio-release';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=jordan-fan-release';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -102,10 +102,10 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   for(const c of game.players[0].hand)if(!handNodes.has(c.uid)){const g=svgNode('g',{'data-hand':c.uid,role:'button',tabindex:'0',class:'hand-card'});g.append(svgNode('title',{}),svgNode('polygon',{fill:'transparent',class:'hand-rest-hit'}),svgNode('polygon',{fill:'transparent',class:'hand-hit'}));handLayer.append(g);handNodes.set(c.uid,g);}
   layout();overlays();renderer.shadowMap.needsUpdate=true;dirty=true;
  }
- function overlays(){if(!game)return;const shifts=ui.mode==='shift'?moveTargets(game):[];for(const c of CELLS){
+ function overlays(){if(!game)return;const shifts=ui.mode==='shift'?moveTargets(game):[];const reserved=reservedCell(game);for(const c of CELLS){
    const node=fieldNodes.get(c.id),held=game.board[c.id],blocked=game.block===c.id,f=eventFieldAt(game,c.id),pts=projectHex(camera,c,width,boardHeight,arenaId==='voidforge'?.88:.96,flatArena(arenaId)?(held ? .30 : .235):.36),points=pts.map(p=>p.x+','+(p.y+boardTop)).join(' '),cx=pts.reduce((n,p)=>n+p.x,0)/6,top=Math.min(...pts.map(p=>p.y))+boardTop,bottom=Math.max(...pts.map(p=>p.y))+boardTop;
-   const label=(blocked?'Versiegelte Karte · Blockade':held?CARD_PROFILES[DEMO_PROFILES[held.id]].name+', '+['deine Karte','gegnerische Karte'][held.controller]:'Freies Feld '+c.id)+(f?', '+fieldText(f):'')+(held?.ability?', '+ABILITIES[held.ability].name:'')+(held?', '+rarityOf(held).label:'');
-   if(held)node.dataset.rarity=rarityOf(held).key;else delete node.dataset.rarity;node.setAttribute('aria-label',label);node.setAttribute('aria-disabled',String((held?!(ui.inspectable??!ui.busy):Boolean(ui.busy))||showcase));node.querySelector('title')?.remove();node.querySelector('polygon').setAttribute('points',points);node.classList.toggle('targeted',ui.target===c.id);node.classList.toggle('available',ui.mode==='shift'?shifts.includes(c.id):Boolean(ui.selected)&&!held&&!blocked);node.classList.toggle('will-flip',Boolean(ui.plan?.flips.includes(c.id)));node.classList.toggle('twist-target',ui.twistCell===c.id);node.classList.toggle('inspect-target',ui.inspect===c.id);node.classList.toggle('shift-target',shifts.includes(c.id));
+   const label=(blocked?'Versiegelte Karte · Blockade':held?CARD_PROFILES[DEMO_PROFILES[held.id]].name+', '+['deine Karte','gegnerische Karte'][held.controller]:reserved===c.id?'Reserviertes Feld '+c.id:'Freies Feld '+c.id)+(f?', '+fieldText(f):'')+(held?.ability?', '+ABILITIES[held.ability].name:'')+(held?', '+rarityOf(held).label:'');
+   if(held)node.dataset.rarity=rarityOf(held).key;else delete node.dataset.rarity;node.setAttribute('aria-label',label);node.setAttribute('aria-disabled',String((held?!(ui.inspectable??!ui.busy):Boolean(ui.busy)||reserved===c.id&&ui.mode!=='shift')||showcase));node.querySelector('title')?.remove();node.querySelector('polygon').setAttribute('points',points);node.classList.toggle('targeted',ui.target===c.id);node.classList.toggle('available',ui.mode==='shift'?shifts.includes(c.id):Boolean(ui.selected)&&!held&&!blocked&&reserved!==c.id);node.classList.toggle('will-flip',Boolean(ui.plan?.flips.includes(c.id)));node.classList.toggle('twist-target',ui.twistCell===c.id);node.classList.toggle('inspect-target',ui.inspect===c.id);node.classList.toggle('shift-target',shifts.includes(c.id));
    const text=node.querySelector('.field-label');text.textContent=f?(held?FIELD_TYPES[f.type].symbol:FIELD_TYPES[f.type].name.toUpperCase()+(f.type==='resonance'?' +1':f.type==='crossfire'?' +1':' ×')):'';text.setAttribute('x',cx);text.setAttribute('y',bottom-3);text.setAttribute('fill',f?FIELD_TYPES[f.type].color:'#fff');
    const owner=node.querySelector('.owner-label');owner.textContent='';if(held)node.dataset.owner=String(held.controller);else delete node.dataset.owner;
   }

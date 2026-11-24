@@ -1,4 +1,4 @@
-import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive,jamActive} from './table-demo-rules.mjs?v=prime-trio-release';
+import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive,jamActive} from './table-demo-rules.mjs?v=jordan-fan-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -12,11 +12,14 @@ export function abilityMarkers(game,plan){
   for(const [cell,card] of Object.entries(game.board)){
    const edge=abilityEdge(game,card,cell);
    const cover=coverEdge(game,card,cell);
+   if(card.ability==='bailout'&&!card.bailoutSpent&&!jamActive(game,card))markers.push({kind:'bailout',cell,label:'❖'});
    if(jamActive(game,card))markers.push({kind:'jam',cell,label:'⌧'});
-   if(cover&&(!edge||edge.dir!==cover.dir))markers.push({kind:'cover',cell,dir:cover.dir,label:'+1'});
+   if(cover&&(!edge||edge.dir!==cover.dir))markers.push({kind:cover.kind,cell,dir:cover.dir,label:`+${cover.amount}`});
    if(edge)markers.push({kind:card.ability,cell,dir:edge.dir,label:`+${edge.amount}`});
    if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:'='});
   }
+  if(game.fanReserve&&game.placements<game.fanReserve.until)markers.push({kind:'fan',cell:game.fanReserve.cell,label:'⊠'});
+  if(plan?.bailout)markers.push({kind:'bailout',cell:plan.bailout.cell,dir:plan.bailout.dir,preview:true,label:'❖'});
   if(plan?.ability){
    const working={...game,board:plan.board};
    const edge=abilityEdge(working,plan.card,plan.cell,{attacking:true,direction:plan.abilityDirection})??abilityEdge(working,plan.card,plan.cell);
@@ -32,6 +35,7 @@ export function abilityMarkers(game,plan){
    if(plan.swapCells)for(const cell of plan.swapCells)markers.push({kind:'thought',cell,preview:true,label:'⇄'});
    if(plan.decoy)markers.push({kind:'decoy',...plan.decoy,preview:true,label:`−${plan.decoy.amount}`});
    if(plan.pursuit)markers.push({kind:'chase',...plan.pursuit,preview:true,label:'»'});
+   if(plan.reserve)markers.push({kind:'fan',cell:plan.reserve,preview:true,label:'⊠'});
    if(plan.jam)markers.push({kind:'jam',cell:plan.jam,preview:true,label:'⌧'});
    if(plan.sandwich){
     markers.push({kind:'sandwich',cell:plan.cell,dir:plan.sandwich.dir,preview:true,label:`+${plan.sandwich.amount}`});
@@ -68,10 +72,12 @@ export function abilityBursts(game){
   if(last.swapCells)for(const cell of last.swapCells)markers.push({kind:'thought',cell,label:'⇄'});
   if(last.decoy)markers.push({kind:'decoy',...last.decoy,label:`−${last.decoy.amount}`});
   if(last.pursuit)markers.push({kind:'chase',...last.pursuit,label:'»'});
-  if(last.jam)played.push({kind:'jam',cell:last.jam,label:'⌧'});
+  if(last.reserve)markers.push({kind:'fan',cell:last.reserve,label:'⊠'});
+  if(last.bailout)markers.push({kind:'bailout',cell:last.bailout.cell,dir:last.bailout.dir,label:'❖'});
+  if(last.jam)markers.push({kind:'jam',cell:last.jam,label:'⌧'});
   if(last.sandwich){
-   played.push({kind:'sandwich',cell:last.cell,dir:last.sandwich.dir,label:`+${last.sandwich.amount}`});
-   played.push({kind:'sandwich',cell:last.sandwich.source,dir:last.sandwich.sourceDir??(last.sandwich.dir+3)%6,label:'⟫'});
+   markers.push({kind:'sandwich',cell:last.cell,dir:last.sandwich.dir,label:`+${last.sandwich.amount}`});
+   markers.push({kind:'sandwich',cell:last.sandwich.source,dir:last.sandwich.sourceDir??(last.sandwich.dir+3)%6,label:'⟫'});
   }
   for(const ward of last.coverWards??[])markers.push({kind:'cover',...ward,label:`+${ward.amount??1}`});
   if(last.swipe)markers.push({kind:'swipe',cell:last.swipe.cell,dir:(last.swipe.dir+3)%6,label:`−${last.swipe.amount}`});

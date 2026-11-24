@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=prime-trio-release';
+import * as currentRules from './table-demo-rules.mjs?v=jordan-fan-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -46,9 +46,14 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
   },0);
   twistSafety-=edgeChange(first,plan.board[first],plan.board[second])+edgeChange(second,plan.board[second],plan.board[first]);
  }
+ const reserveValue=plan.reserve?neighbors(plan.reserve).reduce((value,{id,dir})=>{
+  const ally=id===action.cell?plan.card:plan.board[id];
+  if(!ally||ally.controller!==game.turn&&!plan.flips.includes(id))return value;
+  return value+Math.max(0,7-sideValue(ally,(dir+3)%6))*.12;
+ },0):0;
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
- return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0);
+ return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+reserveValue+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0);
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
@@ -66,7 +71,9 @@ export function replyRisk(game,{action,plan},rules=currentRules){
   [board[first],board[second]]=[board[second],board[first]];
  }
  if(plan.objection)board[plan.objection.cell]={...board[plan.objection.cell],objectionSpent:true};
+ if(plan.bailout)board[plan.bailout.protector]={...board[plan.bailout.protector],bailoutSpent:true};
  const future={...game,board,placements:game.placements+1,turn:1-game.turn};
+ if(plan.reserve)future.fanReserve={cell:plan.reserve,owner:game.turn,until:game.placements+2};
  if(future.placements>=18)return 0;
  // Let the authoritative field resolver advance before examining the next move.
  if(game.demoFields&&game.auditOrientation!==undefined){const copy={...future};delete copy.demoFields;future.demoFields=rules.eventFields(copy).map(f=>rotateField(f,game.auditOrientation));}

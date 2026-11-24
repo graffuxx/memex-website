@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {DEFINITIONS,expandGameDeck} from '../public/game/platform/catalog.mjs';
 import {newGame} from '../public/game/src/rules.mjs';
 import {previewEffect,placeEffect,abilityAt,releasedPrimeAbility} from '../public/game/src/table-demo-rules.mjs';
-import {abilityMarkers} from '../public/game/src/ability-effects.mjs';
+import {abilityMarkers,abilityBursts} from '../public/game/src/ability-effects.mjs';
 import {fieldFeedback129} from '../public/game/src/field-feedback129.mjs';
 import {legalCandidates} from '../public/game/src/tactics-ai.mjs';
 import {applyPortalDecks} from '../public/game/platform/deck-bridge.mjs';
@@ -86,6 +86,7 @@ for(const seat of [0,1]){
   assert.equal(game.board['1,0'].jammedUntil,undefined);
   assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='jam'&&m.cell==='1,0'));
   assert.equal(placeEffect(game,choice).board['1,0'].jammedUntil,undefined);
+  assert.ok(abilityBursts(placeEffect(game,choice)).some(mark=>mark.kind==='jam'));
   foe.coverWard={dir:3,owner:other,until:5};
   const warded=previewEffect(game,choice);
   assert.equal(warded.comparisons[0].defend.total,6);
@@ -113,6 +114,7 @@ for(const seat of [0,1]){
   assert.deepEqual(plan.flips,['-1,0']);
   assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='sandwich'&&m.label==='+3'));
   assert.equal(placeEffect(game,action).board['-1,0'].controller,seat);
+  assert.ok(abilityBursts(placeEffect(game,action)).some(mark=>mark.kind==='sandwich'));
   game.board['-2,0']=card('doge',seat);
   assert.equal(previewEffect(game,action).sandwich,null);
   game.board['-2,1']=card('rage-guy',seat,5);

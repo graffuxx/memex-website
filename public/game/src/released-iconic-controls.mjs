@@ -42,14 +42,15 @@ export function bindReleasedIconicControls(abilities,{english=false,onChange}){
     thought.value=swapCells?.join('|')??'';
     thought.disabled=busy||!pairs.length;
    }
-   const chorus=card?.ability==='chorus',jam=card?.ability==='jam';
-   label.hidden=card?.ability!=='sidestep'&&!chorus&&!jam;
+   const chorus=card?.ability==='chorus',jam=card?.ability==='jam',fan=card?.ability==='fan';
+   label.hidden=card?.ability!=='sidestep'&&!chorus&&!jam&&!fan;
    if(label.hidden)return;
-   label.firstChild.textContent=chorus?(english?'Choose dance partners':'Tanzpartner wählen'):jam?(english?'Mute an enemy card':'Gegnerkarte stummschalten'):(english?'Move an allied card':'Eigene Karte verschieben');
+   label.firstChild.textContent=chorus?(english?'Choose dance partners':'Tanzpartner wählen'):jam?(english?'Mute an enemy card':'Gegnerkarte stummschalten'):fan?(english?'Reserve a field':'Feld reservieren'):(english?'Move an allied card':'Eigene Karte verschieben');
    const pairs=plan?.steps??[];
-   const unchanged=chorus?(english?'Keep orientation':'Ausrichtung behalten'):jam?(english?'No mute':'Fähigkeit aktiv lassen'):(english?'Keep positions':'Positionen behalten');
+   const unchanged=chorus?(english?'Keep orientation':'Ausrichtung behalten'):jam?(english?'No mute':'Fähigkeit aktiv lassen'):fan?(english?'Leave fields open':'Felder freilassen'):(english?'Keep positions':'Positionen behalten');
    const labelAt=cell=>cardOf(game.board[cell]).name+' · '+cell;
    const describe=([from,to])=>{
+    if(fan)return from;
     if(jam)return labelAt(from);
     if(!chorus)return labelAt(from)+' → '+to;
     if(to==='cw'||to==='ccw')return (to==='cw'?'↻ ':'↶ ')+labelAt(from);

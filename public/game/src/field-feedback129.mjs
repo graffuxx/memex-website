@@ -1,4 +1,4 @@
-import {eventFieldAt,abilityEdge,coverEdge,jamActive} from './table-demo-rules.mjs?v=prime-trio-release';
+import {eventFieldAt,abilityEdge,coverEdge,jamActive} from './table-demo-rules.mjs?v=jordan-fan-release';
 import {cardOf,sideValue} from './rules.mjs';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);

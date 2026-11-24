@@ -2726,7 +2726,14 @@ function neighbors(id) {
   const c = CELLS.find((c2) => c2.id === id);
   return c ? DIRECTIONS.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet.has(n.id)) : [];
 }
-var freeCells = (g) => CELLS.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
+function reservedCell(game) {
+  const reserve = game.fanReserve;
+  return reserve && game.placements < reserve.until && game.turn !== reserve.owner ? reserve.cell : null;
+}
+function freeCells(game) {
+  const reserved = reservedCell(game);
+  return CELLS.filter((c) => c.id !== game.block && c.id !== reserved && !game.board[c.id]).map((c) => c.id);
+}
 var scores = (g) => [0, 1].map((p) => Object.values(g.board).filter((c) => c.controller === p).length);
 function moveTargets(g) {
   return g.finished || !g.players[g.turn].shifts ? [] : neighbors(g.block).map((n) => n.id).filter((id) => !g.board[id]);
@@ -2806,12 +2813,19 @@ function neighbors2(id) {
   const c = CELLS2.find((c2) => c2.id === id);
   return c ? DIRECTIONS2.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet2.has(n.id)) : [];
 }
-var freeCells2 = (g) => CELLS2.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
+function reservedCell2(game) {
+  const reserve = game.fanReserve;
+  return reserve && game.placements < reserve.until && game.turn !== reserve.owner ? reserve.cell : null;
+}
+function freeCells2(game) {
+  const reserved = reservedCell2(game);
+  return CELLS2.filter((c) => c.id !== game.block && c.id !== reserved && !game.board[c.id]).map((c) => c.id);
+}
 function sideValue(card, dir, rotation = card.rotation ?? 0) {
   return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
 }
 
-// public/game/src/rules.mjs?v=prime-trio-release
+// public/game/src/rules.mjs?v=jordan-fan-release
 var ELEMENTS5 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS3 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
 var CATALOG3 = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
@@ -2836,7 +2850,14 @@ function neighbors3(id) {
   const c = CELLS3.find((c2) => c2.id === id);
   return c ? DIRECTIONS3.map(([q, r], dir) => ({ id: c.q + q + "," + (c.r + r), dir })).filter((n) => cellSet3.has(n.id)) : [];
 }
-var freeCells3 = (g) => CELLS3.filter((c) => c.id !== g.block && !g.board[c.id]).map((c) => c.id);
+function reservedCell3(game) {
+  const reserve = game.fanReserve;
+  return reserve && game.placements < reserve.until && game.turn !== reserve.owner ? reserve.cell : null;
+}
+function freeCells3(game) {
+  const reserved = reservedCell3(game);
+  return CELLS3.filter((c) => c.id !== game.block && c.id !== reserved && !game.board[c.id]).map((c) => c.id);
+}
 var scores2 = (g) => [0, 1].map((p) => Object.values(g.board).filter((c) => c.controller === p).length);
 var eventPhase = (g) => g.placements >= 12 ? 2 : g.placements >= 6 ? 1 : 0;
 function fieldAt(g, cell) {
@@ -2856,7 +2877,7 @@ function strength(g, card, cell, dir, opponent) {
 function preview(g, { uid, cell, rotation = 0 }) {
   if (g.finished) throw Error("Die Runde ist beendet.");
   const card = g.players[g.turn].hand.find((c) => c.uid === uid);
-  if (!card || !cellSet3.has(cell) || cell === g.block || g.board[cell] || !Number.isInteger(rotation) || rotation < 0 || rotation > 5) throw Error("Diese Platzierung ist nicht m\xF6glich.");
+  if (!card || !cellSet3.has(cell) || cell === g.block || cell === reservedCell3(g) || g.board[cell] || !Number.isInteger(rotation) || rotation < 0 || rotation > 5) throw Error("Diese Platzierung ist nicht m\xF6glich.");
   const incoming = { ...card, rotation, controller: g.turn, flips: 0 };
   const comparisons = neighbors3(cell).filter((n) => g.board[n.id] && g.board[n.id].controller !== g.turn).map((n) => {
     const other = g.board[n.id], attack = strength(g, incoming, cell, n.dir, other), defend = strength(g, other, n.id, (n.dir + 3) % 6, incoming);
@@ -2875,6 +2896,7 @@ var CHASE_PENALTY = 2;
 var OBJECTION_MAX_MARGIN = 2;
 var CHORUS_DUET_GUARD = 2;
 var SANDWICH_MAX_SUPPORT = 3;
+var JORDAN_MAX_MARGIN = 1;
 var ABILITIES = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
   guard: { name: "Feels Bad", short: "S", description: "Eine Seite erh\xE4lt +2 Verteidigung bis zum n\xE4chsten eigenen Karten-Zug." },
@@ -2896,6 +2918,8 @@ var ABILITIES = {
   cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
   objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
   thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." },
+  bailout: { name: "Prime \xB7 Rettung in letzter Sekunde", short: "\u2756", description: `Jordan rettet einmal pro Runde eine benachbarte eigene Standardkarte vor einem direkten Zahlenflip mit h\xF6chstens ${JORDAN_MAX_MARGIN} Punkt Vorsprung. Wird Jordan im selben Zug geflippt, greift die Rettung nicht.` },
+  fan: { name: "Prime \xB7 Leere R\xE4nge", short: "\u22A0", description: "Reserviere beim Legen ein freies Feld, das an Fan und eine bereits eigene Standardkarte angrenzt. Im n\xE4chsten Zug des Gegners bleibt dieses Feld f\xFCr Karten gesperrt. Andere Spielfelder bleiben bestehen." },
   jam: { name: "Prime \xB7 Eingabestopp", short: "\u2327", description: "W\xE4hle beim Legen eine angrenzende Gegnerkarte. Ihre eigene F\xE4higkeit pausiert sofort bis zum Ende deines n\xE4chsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam." },
   sandwich: { name: "Prime \xB7 Sandwich", short: "\u27EB", description: `Steht ein eigener Verb\xFCndeter direkt oder schr\xE4g hinter einer Gegnerkarte, kann sein \xDCberschuss gegen deren R\xFCckseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT} verst\xE4rken. Es z\xE4hlt der erste dadurch m\xF6gliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.` },
   chorus: { name: "Prime \xB7 Choreografie", short: "\u266B", description: `Drehe beim Legen eine eigene angrenzende Standardkarte um 60\xB0 und sch\xFCtze ihre schw\xE4chste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD} Schutz bis zu deinem n\xE4chsten Zug. Die Drehung l\xF6st keine Flips aus.` }
@@ -2907,7 +2931,7 @@ var LOADOUTS = {
 };
 var ABILITY_FOR = { brain: "hype", oracle: "guard", trust: "twist" };
 
-// public/game/src/table-demo-rules.mjs?v=prime-trio-release
+// public/game/src/table-demo-rules.mjs?v=jordan-fan-release
 var table_demo_rules_exports = {};
 __export(table_demo_rules_exports, {
   ABILITIES: () => ABILITIES2,
@@ -2918,6 +2942,7 @@ __export(table_demo_rules_exports, {
   FIELD_TYPES: () => FIELD_TYPES,
   GUARD_BONUS: () => GUARD_BONUS,
   JAM_PLACEMENTS: () => JAM_PLACEMENTS,
+  JORDAN_MAX_MARGIN: () => JORDAN_MAX_MARGIN2,
   LOADOUTS: () => LOADOUTS2,
   OBJECTION_MAX_MARGIN: () => OBJECTION_MAX_MARGIN2,
   PIGEON_MAX_REDUCTION: () => PIGEON_MAX_REDUCTION2,
@@ -2938,6 +2963,7 @@ __export(table_demo_rules_exports, {
   effectStrength: () => effectStrength,
   eventFieldAt: () => eventFieldAt,
   eventFields: () => eventFields,
+  fanTargets: () => fanTargets,
   fieldText: () => fieldText,
   guardActive: () => guardActive,
   guardBonus: () => guardBonus,
@@ -2965,6 +2991,7 @@ var OBJECTION_MAX_MARGIN2 = 2;
 var CHORUS_DUET_GUARD2 = 2;
 var JAM_PLACEMENTS = 3;
 var SANDWICH_MAX_SUPPORT2 = 3;
+var JORDAN_MAX_MARGIN2 = 1;
 var guardBonus = (game) => game.abilityTrial ? 1 : GUARD_BONUS;
 var ABILITIES2 = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
@@ -2987,6 +3014,8 @@ var ABILITIES2 = {
   cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
   objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN2} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
   thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." },
+  bailout: { name: "Prime \xB7 Rettung in letzter Sekunde", short: "\u2756", description: `Jordan rettet einmal pro Runde eine benachbarte eigene Standardkarte vor einem direkten Zahlenflip mit h\xF6chstens ${JORDAN_MAX_MARGIN2} Punkt Vorsprung. Wird Jordan im selben Zug geflippt, greift die Rettung nicht.` },
+  fan: { name: "Prime \xB7 Leere R\xE4nge", short: "\u22A0", description: "Reserviere beim Legen ein freies Feld, das an Fan und eine bereits eigene Standardkarte angrenzt. Im n\xE4chsten Zug des Gegners bleibt dieses Feld f\xFCr Karten gesperrt. Andere Spielfelder bleiben bestehen." },
   jam: { name: "Prime \xB7 Eingabestopp", short: "\u2327", description: "W\xE4hle beim Legen eine angrenzende Gegnerkarte. Ihre eigene F\xE4higkeit pausiert sofort bis zum Ende deines n\xE4chsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam." },
   sandwich: { name: "Prime \xB7 Sandwich", short: "\u27EB", description: `Steht ein eigener Verb\xFCndeter direkt oder schr\xE4g hinter einer Gegnerkarte, kann sein \xDCberschuss gegen deren R\xFCckseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT2} verst\xE4rken. Es z\xE4hlt der erste dadurch m\xF6gliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.` },
   chorus: { name: "Prime \xB7 Choreografie", short: "\u266B", description: `Drehe beim Legen eine eigene angrenzende Standardkarte um 60\xB0 und sch\xFCtze ihre schw\xE4chste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD2} Schutz bis zu deinem n\xE4chsten Zug. Die Drehung l\xF6st keine Flips aus.` }
@@ -3022,11 +3051,13 @@ function releasedIconicAbility(card, wave = 1) {
   const entry = RELEASED_ICONICS[cardOf2(card)?.id];
   return entry && wave >= entry[0] ? entry[1] : null;
 }
-function releasedPrimeAbility(card) {
+function releasedPrimeAbility(card, includePair = false) {
   const id = cardOf2(card)?.id;
   if (id === "prime-numa-numa") return "chorus";
   if (id === "prime-keyboard-crusher") return "jam";
   if (id === "prime-idiot-sandwich") return "sandwich";
+  if (includePair && id === "prime-crying-jordan") return "bailout";
+  if (includePair && id === "prime-disappointed-fan") return "fan";
   return null;
 }
 function abilityDescription(game, ability) {
@@ -3070,6 +3101,15 @@ function fieldText(f) {
 var jamActive = (game, card) => game.placements < card.jammedUntil;
 function abilityAt(game, card, cell) {
   return card.ability && !jamActive(game, card) && eventFieldAt(game, cell)?.type !== "silence" ? card.ability : null;
+}
+function fanTargets(game, cell) {
+  if (freeCells3(game).length <= 2) return [];
+  const allies = neighbors3(cell).filter(({ id }) => {
+    const card = game.board[id];
+    return card?.controller === game.turn && Boolean(standardAbility(card));
+  });
+  const shared = new Set(allies.flatMap(({ id }) => neighbors3(id).map((n) => n.id)));
+  return neighbors3(cell).filter(({ id }) => id !== game.block && !game.board[id] && shared.has(id)).map(({ id }) => [id]);
 }
 function jamTargets(game, cell) {
   return neighbors3(cell).filter(({ id }) => {
@@ -3213,12 +3253,13 @@ function previewEffect(game, action) {
     card.guardUntil = game.placements + 2;
   }
   const surrounding = neighbors3(cell);
-  const steps = ability === "sidestep" ? sidestepTargets(working, cell) : ability === "chorus" ? chorusTargets(working, cell) : ability === "jam" ? jamTargets(working, cell) : [];
+  const steps = ability === "sidestep" ? sidestepTargets(working, cell) : ability === "chorus" ? chorusTargets(working, cell) : ability === "jam" ? jamTargets(working, cell) : ability === "fan" ? fanTargets(working, cell) : [];
   if (stepCells !== null && (!Array.isArray(stepCells) || !steps.some((pair) => pair.length === stepCells.length && pair.every((id, index) => id === stepCells[index])))) {
-    const name = ability === "chorus" ? "Choreografie" : ability === "jam" ? "Eingabestopp" : "Platz machen";
+    const name = ability === "chorus" ? "Choreografie" : ability === "jam" ? "Eingabestopp" : ability === "fan" ? "Leere R\xE4nge" : "Platz machen";
     throw Error("Kein g\xFCltiges Ziel f\xFCr " + name + ".");
   }
   const jam = ability === "jam" && stepCells ? stepCells[0] : null;
+  const reserve = ability === "fan" && stepCells ? stepCells[0] : null;
   if (jam) working.board[jam] = { ...working.board[jam], jammedUntil: game.placements + JAM_PLACEMENTS };
   const comparisons = surrounding.filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength(working, other, n.id, (n.dir + 3) % 6, card);
@@ -3333,6 +3374,22 @@ function previewEffect(game, action) {
       break;
     }
   }
+  let bailout = null;
+  for (const attempt of comparisons) {
+    const { attack, defend, cell: target } = attempt;
+    if (!attempt.flip || attempt.pursuit || attempt.pincer || attack.rank === "S" || defend.rank === "S" || attack.total - defend.total > JORDAN_MAX_MARGIN2) continue;
+    const rescued = working.board[target];
+    if (!standardAbility(rescued)) continue;
+    const protector = neighbors3(target).find(({ id }) => {
+      const defender = working.board[id];
+      return defender?.controller === rescued.controller && !defender.bailoutSpent && abilityAt(working, defender, id) === "bailout" && !comparisons.some((hit) => hit.flip && hit.cell === id);
+    });
+    if (!protector) continue;
+    attempt.flip = false;
+    attempt.bailout = true;
+    bailout = { cell: target, protector: protector.id, dir: (attempt.dir + 3) % 6 };
+    break;
+  }
   const flips = comparisons.filter((c) => c.flip).map((c) => c.cell);
   const pivotTarget = ability === "encore" && flips.length === 1 ? cell : null;
   if (![-1, 0, 1].includes(pivotDirection) || pivotDirection !== 0 && !pivotTarget) throw Error("Keine Karte f\xFCr die Drehung erobert.");
@@ -3356,7 +3413,7 @@ function previewEffect(game, action) {
     const edge = weakestEdge(ally, neighbors3(id).filter((n) => n.id !== cell && n.id !== working.block && !working.board[n.id]));
     return edge ? [{ cell: id, dir: edge.dir, ...ability === "chorus" ? { kind: "chorus", amount: duet ? CHORUS_DUET_GUARD2 : 1 } : {} }] : [];
   }).slice(0, 2);
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, jam, sandwich, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, jam, sandwich, bailout, reserve, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 function placeEffect(game, action) {
   const p = previewEffect(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3365,6 +3422,8 @@ function placeEffect(game, action) {
   if (player.deck.length) player.hand.push(player.deck.shift());
   next.board[action.cell] = { ...p.card, flips: p.flips.length };
   if (p.objection) next.board[p.objection.cell].objectionSpent = true;
+  if (p.bailout) next.board[p.bailout.protector].bailoutSpent = true;
+  if (p.reserve) next.fanReserve = { cell: p.reserve, owner: side, until: game.placements + 2 };
   for (const cell of p.flips) {
     const c = next.board[cell];
     c.controller = side;
@@ -3389,6 +3448,7 @@ function placeEffect(game, action) {
   if (p.bid !== null) player.shifts--;
   player.flips += p.flips.length;
   next.placements++;
+  if (next.fanReserve?.until <= next.placements) delete next.fanReserve;
   next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf2(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
   if (p.relocation) next.last.relocation = p.relocation;
   if (p.rainbow) next.last.rainbow = p.rainbow;
@@ -3399,6 +3459,8 @@ function placeEffect(game, action) {
   if (p.objection) next.last.objection = p.objection;
   if (p.jam) next.last.jam = p.jam;
   if (p.sandwich) next.last.sandwich = p.sandwich;
+  if (p.bailout) next.last.bailout = p.bailout;
+  if (p.reserve) next.last.reserve = p.reserve;
   if (p.swapCells) next.last.swapCells = p.swapCells;
   if (p.coverWards.length) next.last.coverWards = p.coverWards;
   if (p.pivot) {
@@ -3428,9 +3490,9 @@ function actionOptions(game, card, cell, rotation) {
     const action = { uid: card.uid, cell, rotation, abilityDirection: 0 };
     return previewEffect(game, action).pivotTarget ? [action, { ...action, pivotDirection: -1 }, { ...action, pivotDirection: 1 }] : [action];
   }
-  if (ability === "sidestep" || ability === "chorus" || ability === "jam") {
+  if (ability === "sidestep" || ability === "chorus" || ability === "jam" || ability === "fan") {
     const action = { uid: card.uid, cell, rotation, abilityDirection: 0 };
-    const steps = ability === "chorus" ? chorusTargets(game, cell) : ability === "jam" ? jamTargets(game, cell) : sidestepTargets(game, cell);
+    const steps = ability === "chorus" ? chorusTargets(game, cell) : ability === "jam" ? jamTargets(game, cell) : ability === "fan" ? fanTargets(game, cell) : sidestepTargets(game, cell);
     return [action, ...steps.map((stepCells) => ({ ...action, stepCells }))];
   }
   if (ability === "bid") {
@@ -3444,7 +3506,7 @@ function actionOptions(game, card, cell, rotation) {
   return directions.flatMap((abilityDirection) => targets.map((twistCell) => ({ uid: card.uid, cell, rotation, abilityDirection, twistCell })));
 }
 
-// public/game/src/tactics-ai.mjs?v=prime-trio-release
+// public/game/src/tactics-ai.mjs?v=jordan-fan-release
 var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 
 // public/game/src/table-demo-state.mjs
@@ -3539,7 +3601,7 @@ function applyPortalDecks(game, cards, loadouts, { round = 1, opponentCards = nu
     const deck = expandGameDeck(side === 0 ? cards : opponentCards ?? starterDeck(), side);
     if (next.elementalTrial) {
       for (const card of deck) {
-        const ability = standardAbility(card) ?? (next.iconicAbilities ? releasedIconicAbility(card, next.iconicAbilityWave) : null) ?? (next.releasedPrimeTrio ? releasedPrimeAbility(card) : null);
+        const ability = standardAbility(card) ?? (next.iconicAbilities ? releasedIconicAbility(card, next.iconicAbilityWave) : null) ?? (next.releasedPrimeTrio ? releasedPrimeAbility(card, next.releasedPrimePair) : null);
         if (ability) card.ability = ability;
       }
     } else {
@@ -3571,6 +3633,7 @@ var OBJECTION_MAX_MARGIN3 = 2;
 var CHORUS_DUET_GUARD3 = 2;
 var JAM_PLACEMENTS2 = 3;
 var SANDWICH_MAX_SUPPORT3 = 3;
+var JORDAN_MAX_MARGIN3 = 1;
 var guardBonus2 = (game) => game.abilityTrial ? 1 : GUARD_BONUS2;
 var ABILITIES3 = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
@@ -3593,6 +3656,8 @@ var ABILITIES3 = {
   cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
   objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN3} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
   thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." },
+  bailout: { name: "Prime \xB7 Rettung in letzter Sekunde", short: "\u2756", description: `Jordan rettet einmal pro Runde eine benachbarte eigene Standardkarte vor einem direkten Zahlenflip mit h\xF6chstens ${JORDAN_MAX_MARGIN3} Punkt Vorsprung. Wird Jordan im selben Zug geflippt, greift die Rettung nicht.` },
+  fan: { name: "Prime \xB7 Leere R\xE4nge", short: "\u22A0", description: "Reserviere beim Legen ein freies Feld, das an Fan und eine bereits eigene Standardkarte angrenzt. Im n\xE4chsten Zug des Gegners bleibt dieses Feld f\xFCr Karten gesperrt. Andere Spielfelder bleiben bestehen." },
   jam: { name: "Prime \xB7 Eingabestopp", short: "\u2327", description: "W\xE4hle beim Legen eine angrenzende Gegnerkarte. Ihre eigene F\xE4higkeit pausiert sofort bis zum Ende deines n\xE4chsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam." },
   sandwich: { name: "Prime \xB7 Sandwich", short: "\u27EB", description: `Steht ein eigener Verb\xFCndeter direkt oder schr\xE4g hinter einer Gegnerkarte, kann sein \xDCberschuss gegen deren R\xFCckseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT3} verst\xE4rken. Es z\xE4hlt der erste dadurch m\xF6gliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.` },
   chorus: { name: "Prime \xB7 Choreografie", short: "\u266B", description: `Drehe beim Legen eine eigene angrenzende Standardkarte um 60\xB0 und sch\xFCtze ihre schw\xE4chste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD3} Schutz bis zu deinem n\xE4chsten Zug. Die Drehung l\xF6st keine Flips aus.` }
@@ -3630,6 +3695,15 @@ function eventFieldAt2(game, cell) {
 var jamActive2 = (game, card) => game.placements < card.jammedUntil;
 function abilityAt2(game, card, cell) {
   return card.ability && !jamActive2(game, card) && eventFieldAt2(game, cell)?.type !== "silence" ? card.ability : null;
+}
+function fanTargets2(game, cell) {
+  if (freeCells3(game).length <= 2) return [];
+  const allies = neighbors3(cell).filter(({ id }) => {
+    const card = game.board[id];
+    return card?.controller === game.turn && Boolean(standardAbility2(card));
+  });
+  const shared = new Set(allies.flatMap(({ id }) => neighbors3(id).map((n) => n.id)));
+  return neighbors3(cell).filter(({ id }) => id !== game.block && !game.board[id] && shared.has(id)).map(({ id }) => [id]);
 }
 function jamTargets2(game, cell) {
   return neighbors3(cell).filter(({ id }) => {
@@ -3773,12 +3847,13 @@ function previewEffect2(game, action) {
     card.guardUntil = game.placements + 2;
   }
   const surrounding = neighbors3(cell);
-  const steps = ability === "sidestep" ? sidestepTargets2(working, cell) : ability === "chorus" ? chorusTargets2(working, cell) : ability === "jam" ? jamTargets2(working, cell) : [];
+  const steps = ability === "sidestep" ? sidestepTargets2(working, cell) : ability === "chorus" ? chorusTargets2(working, cell) : ability === "jam" ? jamTargets2(working, cell) : ability === "fan" ? fanTargets2(working, cell) : [];
   if (stepCells !== null && (!Array.isArray(stepCells) || !steps.some((pair) => pair.length === stepCells.length && pair.every((id, index) => id === stepCells[index])))) {
-    const name = ability === "chorus" ? "Choreografie" : ability === "jam" ? "Eingabestopp" : "Platz machen";
+    const name = ability === "chorus" ? "Choreografie" : ability === "jam" ? "Eingabestopp" : ability === "fan" ? "Leere R\xE4nge" : "Platz machen";
     throw Error("Kein g\xFCltiges Ziel f\xFCr " + name + ".");
   }
   const jam = ability === "jam" && stepCells ? stepCells[0] : null;
+  const reserve = ability === "fan" && stepCells ? stepCells[0] : null;
   if (jam) working.board[jam] = { ...working.board[jam], jammedUntil: game.placements + JAM_PLACEMENTS2 };
   const comparisons = surrounding.filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength2(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength2(working, other, n.id, (n.dir + 3) % 6, card);
@@ -3893,6 +3968,22 @@ function previewEffect2(game, action) {
       break;
     }
   }
+  let bailout = null;
+  for (const attempt of comparisons) {
+    const { attack, defend, cell: target } = attempt;
+    if (!attempt.flip || attempt.pursuit || attempt.pincer || attack.rank === "S" || defend.rank === "S" || attack.total - defend.total > JORDAN_MAX_MARGIN3) continue;
+    const rescued = working.board[target];
+    if (!standardAbility2(rescued)) continue;
+    const protector = neighbors3(target).find(({ id }) => {
+      const defender = working.board[id];
+      return defender?.controller === rescued.controller && !defender.bailoutSpent && abilityAt2(working, defender, id) === "bailout" && !comparisons.some((hit) => hit.flip && hit.cell === id);
+    });
+    if (!protector) continue;
+    attempt.flip = false;
+    attempt.bailout = true;
+    bailout = { cell: target, protector: protector.id, dir: (attempt.dir + 3) % 6 };
+    break;
+  }
   const flips = comparisons.filter((c) => c.flip).map((c) => c.cell);
   const pivotTarget = ability === "encore" && flips.length === 1 ? cell : null;
   if (![-1, 0, 1].includes(pivotDirection) || pivotDirection !== 0 && !pivotTarget) throw Error("Keine Karte f\xFCr die Drehung erobert.");
@@ -3916,7 +4007,7 @@ function previewEffect2(game, action) {
     const edge = weakestEdge2(ally, neighbors3(id).filter((n) => n.id !== cell && n.id !== working.block && !working.board[n.id]));
     return edge ? [{ cell: id, dir: edge.dir, ...ability === "chorus" ? { kind: "chorus", amount: duet ? CHORUS_DUET_GUARD3 : 1 } : {} }] : [];
   }).slice(0, 2);
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, jam, sandwich, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, jam, sandwich, bailout, reserve, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 function placeEffect2(game, action) {
   const p = previewEffect2(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3925,6 +4016,8 @@ function placeEffect2(game, action) {
   if (player.deck.length) player.hand.push(player.deck.shift());
   next.board[action.cell] = { ...p.card, flips: p.flips.length };
   if (p.objection) next.board[p.objection.cell].objectionSpent = true;
+  if (p.bailout) next.board[p.bailout.protector].bailoutSpent = true;
+  if (p.reserve) next.fanReserve = { cell: p.reserve, owner: side, until: game.placements + 2 };
   for (const cell of p.flips) {
     const c = next.board[cell];
     c.controller = side;
@@ -3949,6 +4042,7 @@ function placeEffect2(game, action) {
   if (p.bid !== null) player.shifts--;
   player.flips += p.flips.length;
   next.placements++;
+  if (next.fanReserve?.until <= next.placements) delete next.fanReserve;
   next.last = { type: "place", side, cell: action.cell, uid: action.uid, name: cardOf2(p.card).name, flips: p.flips, transforms: p.transforms, ability: p.ability, suppressed: p.suppressed, event: game.eventFieldsEnabled === false ? null : eventPhase(next) !== eventPhase(game) ? eventPhase(next) : null };
   if (p.relocation) next.last.relocation = p.relocation;
   if (p.rainbow) next.last.rainbow = p.rainbow;
@@ -3959,6 +4053,8 @@ function placeEffect2(game, action) {
   if (p.objection) next.last.objection = p.objection;
   if (p.jam) next.last.jam = p.jam;
   if (p.sandwich) next.last.sandwich = p.sandwich;
+  if (p.bailout) next.last.bailout = p.bailout;
+  if (p.reserve) next.last.reserve = p.reserve;
   if (p.swapCells) next.last.swapCells = p.swapCells;
   if (p.coverWards.length) next.last.coverWards = p.coverWards;
   if (p.pivot) {
@@ -4039,8 +4135,13 @@ function positionalValue(game, { action, plan }, rules = table_demo_rules_export
     }, 0);
     twistSafety -= edgeChange(first, plan.board[first], plan.board[second]) + edgeChange(second, plan.board[second], plan.board[first]);
   }
+  const reserveValue = plan.reserve ? neighbors2(plan.reserve).reduce((value, { id, dir }) => {
+    const ally = id === action.cell ? plan.card : plan.board[id];
+    if (!ally || ally.controller !== game.turn && !plan.flips.includes(id)) return value;
+    return value + Math.max(0, 7 - sideValue(ally, (dir + 3) % 6)) * 0.12;
+  }, 0) : 0;
   const closing = weights.capture === void 0 ? 0 : Math.max(0, (game.placements - 12) / 5);
-  return plan.flips.length * ((weights.capture ?? 2) + closing) - (plan.bid != null ? 0.12 : 0) + safety * (weights.safety ?? 0.42) + contacts * (weights.contacts ?? 0.16) + twistSafety * (weights.twist ?? 1) + (plan.coverWards ?? []).reduce((total, ward) => total + (ward.amount ?? 1) * 0.12, 0);
+  return plan.flips.length * ((weights.capture ?? 2) + closing) - (plan.bid != null ? 0.12 : 0) + safety * (weights.safety ?? 0.42) + contacts * (weights.contacts ?? 0.16) + twistSafety * (weights.twist ?? 1) + reserveValue + (plan.coverWards ?? []).reduce((total, ward) => total + (ward.amount ?? 1) * 0.12, 0);
 }
 function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
   const board = { ...plan.board, [action.cell]: plan.card };
@@ -4058,7 +4159,9 @@ function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
     [board[first], board[second]] = [board[second], board[first]];
   }
   if (plan.objection) board[plan.objection.cell] = { ...board[plan.objection.cell], objectionSpent: true };
+  if (plan.bailout) board[plan.bailout.protector] = { ...board[plan.bailout.protector], bailoutSpent: true };
   const future = { ...game, board, placements: game.placements + 1, turn: 1 - game.turn };
+  if (plan.reserve) future.fanReserve = { cell: plan.reserve, owner: game.turn, until: game.placements + 2 };
   if (future.placements >= 18) return 0;
   if (game.demoFields && game.auditOrientation !== void 0) {
     const copy = { ...future };
@@ -4131,6 +4234,7 @@ var OBJECTION_MAX_MARGIN4 = 2;
 var CHORUS_DUET_GUARD4 = 2;
 var JAM_PLACEMENTS3 = 3;
 var SANDWICH_MAX_SUPPORT4 = 3;
+var JORDAN_MAX_MARGIN4 = 1;
 var guardBonus3 = (game) => game.abilityTrial ? 1 : GUARD_BONUS3;
 var ABILITIES4 = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
@@ -4153,6 +4257,8 @@ var ABILITIES4 = {
   cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
   objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN4} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
   thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." },
+  bailout: { name: "Prime \xB7 Rettung in letzter Sekunde", short: "\u2756", description: `Jordan rettet einmal pro Runde eine benachbarte eigene Standardkarte vor einem direkten Zahlenflip mit h\xF6chstens ${JORDAN_MAX_MARGIN4} Punkt Vorsprung. Wird Jordan im selben Zug geflippt, greift die Rettung nicht.` },
+  fan: { name: "Prime \xB7 Leere R\xE4nge", short: "\u22A0", description: "Reserviere beim Legen ein freies Feld, das an Fan und eine bereits eigene Standardkarte angrenzt. Im n\xE4chsten Zug des Gegners bleibt dieses Feld f\xFCr Karten gesperrt. Andere Spielfelder bleiben bestehen." },
   jam: { name: "Prime \xB7 Eingabestopp", short: "\u2327", description: "W\xE4hle beim Legen eine angrenzende Gegnerkarte. Ihre eigene F\xE4higkeit pausiert sofort bis zum Ende deines n\xE4chsten Zugs. Gedruckte Werte, Elemente und Schutz von anderen Karten bleiben wirksam." },
   sandwich: { name: "Prime \xB7 Sandwich", short: "\u27EB", description: `Steht ein eigener Verb\xFCndeter direkt oder schr\xE4g hinter einer Gegnerkarte, kann sein \xDCberschuss gegen deren R\xFCckseite deinen Angriff um bis zu ${SANDWICH_MAX_SUPPORT4} verst\xE4rken. Es z\xE4hlt der erste dadurch m\xF6gliche Zahlenflip im Uhrzeigersinn. S-Kanten sind ausgenommen.` },
   chorus: { name: "Prime \xB7 Choreografie", short: "\u266B", description: `Drehe beim Legen eine eigene angrenzende Standardkarte um 60\xB0 und sch\xFCtze ihre schw\xE4chste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD4} Schutz bis zu deinem n\xE4chsten Zug. Die Drehung l\xF6st keine Flips aus.` }
@@ -4185,6 +4291,15 @@ function eventFieldAt3(game, cell) {
 var jamActive3 = (game, card) => game.placements < card.jammedUntil;
 function abilityAt3(game, card, cell) {
   return card.ability && !jamActive3(game, card) && eventFieldAt3(game, cell)?.type !== "silence" ? card.ability : null;
+}
+function fanTargets3(game, cell) {
+  if (freeCells3(game).length <= 2) return [];
+  const allies = neighbors3(cell).filter(({ id }) => {
+    const card = game.board[id];
+    return card?.controller === game.turn && Boolean(standardAbility3(card));
+  });
+  const shared = new Set(allies.flatMap(({ id }) => neighbors3(id).map((n) => n.id)));
+  return neighbors3(cell).filter(({ id }) => id !== game.block && !game.board[id] && shared.has(id)).map(({ id }) => [id]);
 }
 function jamTargets3(game, cell) {
   return neighbors3(cell).filter(({ id }) => {
@@ -4328,12 +4443,13 @@ function previewEffect3(game, action) {
     card.guardUntil = game.placements + 2;
   }
   const surrounding = neighbors3(cell);
-  const steps = ability === "sidestep" ? sidestepTargets3(working, cell) : ability === "chorus" ? chorusTargets3(working, cell) : ability === "jam" ? jamTargets3(working, cell) : [];
+  const steps = ability === "sidestep" ? sidestepTargets3(working, cell) : ability === "chorus" ? chorusTargets3(working, cell) : ability === "jam" ? jamTargets3(working, cell) : ability === "fan" ? fanTargets3(working, cell) : [];
   if (stepCells !== null && (!Array.isArray(stepCells) || !steps.some((pair) => pair.length === stepCells.length && pair.every((id, index) => id === stepCells[index])))) {
-    const name = ability === "chorus" ? "Choreografie" : ability === "jam" ? "Eingabestopp" : "Platz machen";
+    const name = ability === "chorus" ? "Choreografie" : ability === "jam" ? "Eingabestopp" : ability === "fan" ? "Leere R\xE4nge" : "Platz machen";
     throw Error("Kein g\xFCltiges Ziel f\xFCr " + name + ".");
   }
   const jam = ability === "jam" && stepCells ? stepCells[0] : null;
+  const reserve = ability === "fan" && stepCells ? stepCells[0] : null;
   if (jam) working.board[jam] = { ...working.board[jam], jammedUntil: game.placements + JAM_PLACEMENTS3 };
   const comparisons = surrounding.filter((n) => working.board[n.id] && working.board[n.id].controller !== game.turn).map((n) => {
     const other = working.board[n.id], attack = effectStrength3(working, card, cell, n.dir, other, { attacking: true, abilityDirection }), defend = effectStrength3(working, other, n.id, (n.dir + 3) % 6, card);
@@ -4448,6 +4564,22 @@ function previewEffect3(game, action) {
       break;
     }
   }
+  let bailout = null;
+  for (const attempt of comparisons) {
+    const { attack, defend, cell: target } = attempt;
+    if (!attempt.flip || attempt.pursuit || attempt.pincer || attack.rank === "S" || defend.rank === "S" || attack.total - defend.total > JORDAN_MAX_MARGIN4) continue;
+    const rescued = working.board[target];
+    if (!standardAbility3(rescued)) continue;
+    const protector = neighbors3(target).find(({ id }) => {
+      const defender = working.board[id];
+      return defender?.controller === rescued.controller && !defender.bailoutSpent && abilityAt3(working, defender, id) === "bailout" && !comparisons.some((hit) => hit.flip && hit.cell === id);
+    });
+    if (!protector) continue;
+    attempt.flip = false;
+    attempt.bailout = true;
+    bailout = { cell: target, protector: protector.id, dir: (attempt.dir + 3) % 6 };
+    break;
+  }
   const flips = comparisons.filter((c) => c.flip).map((c) => c.cell);
   const pivotTarget = ability === "encore" && flips.length === 1 ? cell : null;
   if (![-1, 0, 1].includes(pivotDirection) || pivotDirection !== 0 && !pivotTarget) throw Error("Keine Karte f\xFCr die Drehung erobert.");
@@ -4471,7 +4603,7 @@ function previewEffect3(game, action) {
     const edge = weakestEdge3(ally, neighbors3(id).filter((n) => n.id !== cell && n.id !== working.block && !working.board[n.id]));
     return edge ? [{ cell: id, dir: edge.dir, ...ability === "chorus" ? { kind: "chorus", amount: duet ? CHORUS_DUET_GUARD4 : 1 } : {} }] : [];
   }).slice(0, 2);
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, jam, sandwich, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, jam, sandwich, bailout, reserve, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 
 // public/game/src/turn-clock.mjs
@@ -4502,10 +4634,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-24.34";
+var BALANCE_PATCH94 = "alpha-2026-11-24.36";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 34,
+  revision: 36,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -4523,7 +4655,7 @@ var BALANCE_RULES94 = Object.freeze({
   maxPrimes: MAX_PRIMES,
   maxIconics: MAX_ICONICS,
   sRankElementOnly: true,
-  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1, solitudeDefense: 1, rainbowMaxBonusFlips: 1, swipeMaxDefense: SWIPE_MAX_DEFENSE3, encoreDegrees: [-60, 60], bidBoost: 1, pigeonMaxReduction: PIGEON_MAX_REDUCTION3, chasePenalty: CHASE_PENALTY3, coverMaxAllies: 2, objectionMaxMargin: OBJECTION_MAX_MARGIN3, thoughtReach: 2 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 }, privatePrimeTrio: { chorusSolo: 1, chorusDuet: CHORUS_DUET_GUARD3, chorusReach: 2, jamPlacements: JAM_PLACEMENTS2, sandwichMaxSupport: SANDWICH_MAX_SUPPORT3, sandwichSupportArc: 3 } },
+  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1, solitudeDefense: 1, rainbowMaxBonusFlips: 1, swipeMaxDefense: SWIPE_MAX_DEFENSE3, encoreDegrees: [-60, 60], bidBoost: 1, pigeonMaxReduction: PIGEON_MAX_REDUCTION3, chasePenalty: CHASE_PENALTY3, coverMaxAllies: 2, objectionMaxMargin: OBJECTION_MAX_MARGIN3, thoughtReach: 2 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 }, privatePrimeTrio: { chorusSolo: 1, chorusDuet: CHORUS_DUET_GUARD3, chorusReach: 2, jamPlacements: JAM_PLACEMENTS2, sandwichMaxSupport: SANDWICH_MAX_SUPPORT3, sandwichSupportArc: 3 }, privatePrimePair: { jordanMaxMargin: JORDAN_MAX_MARGIN3, fanReserveOpponentTurns: 1 } },
   cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);

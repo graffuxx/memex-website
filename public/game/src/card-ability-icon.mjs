@@ -23,6 +23,8 @@ const symbols={
  cover:{color:'#e8d3a2',path:'M4 20V9l8-5 8 5v11M8 20v-7l4-3 4 3v7'},
  objection:{color:'#ffab9f',path:'M12 3v11m0 4v.1M4 20 2 11 12 3l10 8-2 9z'},
  thought:{color:'#cdbbff',path:'M4 7h15l-4-4m5 14H5l4 4M8 8c1 3 7 5 8 8M8 16c1-3 7-5 8-8'},
+ bailout:{color:'#b2e0ff',path:'M12 3 20 9v10l-8 3-8-3V9zm0 4v10m-4-5h8'},
+ fan:{color:'#f8bfa4',path:'M4 6h16v12H4zM4 6l16 12m0-12L4 18'},
  jam:{color:'#ffbf9e',path:'M3 6h18v12H3zM6 9h1m3 0h1m3 0h1m3 0h1M6 12h1m10 0h1m-9 3h6M9 7l6 10'},
  sandwich:{color:'#f8d998',path:'M3 7l9-4 9 4-9 4zM3 12l9 4 9-4M3 17l9 4 9-4'},
  chorus:{color:'#ffb6e9',path:'M4 9l3-3 3 3M7 6v10m7-1 3 3 3-3m-3 3V8M11 8h2m-2 8h2'},
