@@ -90,7 +90,7 @@
   position: relative;
   z-index: 3;
   width: 100%;
-  padding: 10px 14px;
+  padding: 5px 14px;
 
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -125,32 +125,13 @@
 .navbar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-
+  gap: clamp(4px, 0.65vw, 10px);
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 0 6px;
-
-  /* weiches Fade nur im Nav-Bereich */
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    #000 8%,
-    #000 92%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    #000 8%,
-    #000 92%,
-    transparent 100%
-  );
-
-  scrollbar-width: none; /* Firefox */
+  padding: 6px;
+  scrollbar-width: none;
 }
 
 .navbar::-webkit-scrollbar {
@@ -349,35 +330,106 @@
   filter: brightness(0.98) !important;
 }
 
-/* Mobile: Desktop-Bar ausblenden – MobileMenu übernimmt */
-@media (max-width: 768px) {
-  .header {
-    top: 0;
-    padding: 0;
-  }
-
-  .bar {
-    width: 100%;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-
-  .container {
-    grid-template-columns: 1fr;
-    justify-content: flex-end;
-    padding: 10px 12px;
-  }
-
-  .leftGroup,
-  .navbar,
-  .rightGroup {
-    display: none;
-  }
+.playCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 10px;
+  min-width: 134px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid #e0c5ff;
+  border-radius: 999px;
+  background: linear-gradient(112deg, #5834c5, #7835dc 60%, #9d49db);
+  color: #fff;
+  box-shadow: 0 0 18px #9062fe9c, inset 0 1px 0 #fff6;
+  font: 800 16px/1 Arial, sans-serif;
+  letter-spacing: .12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background .16s ease, box-shadow .16s ease;
 }
-.mobileLocation{display:none}
-.navItem:focus-visible,.loginButton:focus-visible{outline:2px solid #e6bcff;outline-offset:3px}
-@media(max-width:768px){.mobileLocation{position:fixed;left:16px;top:12px;display:flex;align-items:center;gap:10px;color:#ffdc92;font:600 14px Arial,sans-serif;letter-spacing:.1em;z-index:3}.mobileLocation img{width:36px;height:36px;border-radius:50%}}
 
-.header .mobileBack{display:none}
-@media(max-width:768px){.header .mobileBack{position:fixed;display:inline-flex;right:72px;top:12px;z-index:4;min-height:38px}.mobileBack span{display:none}.mobileBack{width:40px;padding:8px}.mobileLocation{max-width:calc(100% - 146px);overflow:hidden;white-space:nowrap}.mobileLocation img{flex-shrink:0}}
+.playCta::before {
+  content: '';
+  width: 11px;
+  height: 12px;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.playCta:hover,
+.playCta[aria-current="page"] {
+  background: linear-gradient(112deg, #623ad3, #8240e5 60%, #aa52e5);
+  box-shadow: 0 0 19px #ac75ffb3, inset 0 1px 0 #fff5;
+}
+
+.secondaryNav { margin-inline-start: auto; }
+.secondaryNav:not([aria-current="page"]) { color: #c1b5d3; }
+
+.navItem:focus-visible,
+.loginButton:focus-visible,
+.playCta:focus-visible,
+.mobileLocation:focus-visible {
+  outline: 2px solid #e6bcff;
+  outline-offset: 3px;
+}
+
+.mobileRow { display: none; }
+
+/* Keep the full navigation off narrow headers and leave Play one tap away. */
+@media (max-width: 980px) {
+  .header {
+    min-height: 60px;
+    padding: 0;
+    background: linear-gradient(#080418f5, #080418b5);
+    border-bottom: 1px solid #a06eff38;
+  }
+
+  .bar { display: none; }
+
+  .mobileRow {
+    position: absolute;
+    inset: 0 63px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobileLocation {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+    color: #ffdc92;
+    font: 600 clamp(10px, 1.8vw, 14px)/1 Arial, sans-serif;
+    letter-spacing: .08em;
+    text-decoration: none;
+  }
+
+  .mobileLocation img {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+  }
+
+  .mobileLocation span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobileRow .playCta {
+    gap: 8px;
+    min-width: 94px;
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+  .mobileRow .mobileBack { width: 36px; padding: 7px; }
+  .mobileBack span { display: none; }
+}

@@ -11,6 +11,11 @@ import {supabase} from '@/lib/supabaseClient';
 export default function ModernHeader() {
   const [scrolled, setScrolled] = useState(false);
   const path=usePathname(),[signedIn,setSignedIn]=useState(false);
+  const playing=activeNav(path,'/play');
+  const accountHref=signedIn?'/account/private':'/account';
+  const accountLabel=signedIn?'MY ACCOUNT':'LOGIN';
+  const accountActive=activeNav(path,'/account/private');
+  const backFallback=signedIn&&path!=='/account/private'?'/account/private':'/';
   const current=NAV_LINKS.find(([url])=>activeNav(path,url));
   useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>setSignedIn(Boolean(session)));return()=>subscription.unsubscribe();},[]);
 
@@ -22,14 +27,20 @@ export default function ModernHeader() {
 
   return (
     <header className={styles.header}>
-      <MobileMenu />
-      {path!=='/'&&<BackButton className={styles.mobileBack} fallback={signedIn&&path!=='/account/private'?'/account/private':'/'}/>}
-      <a className={styles.mobileLocation} href={current?.[0]??'/'}><img src="/background-card.png" alt=""/>{current?.[1]??'MEMEX'}</a>
+      <MobileMenu accountHref={accountHref} accountLabel={accountLabel}/>
+      <div className={styles.mobileRow}>
+        <a className={styles.mobileLocation} href={accountActive?accountHref:current?.[0]??'/'}>
+          <img src="/background-card.png" alt=""/>
+          <span>{accountActive?accountLabel:current?.[1]??'MEMEX'}</span>
+        </a>
+        {path!=='/'&&<BackButton className={styles.mobileBack} fallback={backFallback}/>}
+        {!playing&&<a className={styles.playCta} href="/play">Play</a>}
+      </div>
 
       <div className={`${styles.bar} ${scrolled ? styles.barScrolled : ''}`}>
         <div className={styles.container}>
           <div className={styles.leftGroup}>
-            {path!=='/'&&<BackButton fallback={signedIn&&path!=='/account/private'?'/account/private':'/'}/> }
+            {path!=='/'&&<BackButton fallback={backFallback}/> }
             <a href="/" className={styles.logoLink}>
               <img
                 src="/background-card.png"
@@ -40,12 +51,18 @@ export default function ModernHeader() {
           </div>
 
           <nav className={styles.navbar} aria-label="Main navigation">
-            {NAV_LINKS.map(([url,label])=><a key={url} href={url} className={`${styles.navItem} ${activeNav(path,url)?styles.navItemActive:''}`} aria-current={activeNav(path,url)?'page':undefined}>{label}</a>)}
+            {NAV_LINKS.map(([url,label])=>{
+              const active=activeNav(path,url);
+              const style=url==='/play'
+                ? styles.playCta
+                : [styles.navItem,active?styles.navItemActive:'',url==='/socials'?styles.secondaryNav:''].filter(Boolean).join(' ');
+              return <a key={url} href={url} className={style} aria-current={active?'page':undefined}>{label}</a>;
+            })}
           </nav>
 
           <div className={styles.rightGroup}>
-            <a href={signedIn?'/account/private':'/account'} className={styles.loginButton}>
-              {signedIn?'MY ACCOUNT':'LOGIN'}
+            <a href={accountHref} className={styles.loginButton} aria-current={accountActive?'page':undefined}>
+              {accountLabel}
             </a>
 
           </div>

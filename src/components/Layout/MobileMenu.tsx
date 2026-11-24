@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import styles from './MobileMenu.module.css';
+import headerStyles from './ModernHeader.module.css';
 import {usePathname} from 'next/navigation';
 import {NAV_LINKS,activeNav} from './navigation';
 
-export default function MobileMenu() {
+export default function MobileMenu({accountHref,accountLabel}:{accountHref:string;accountLabel:string}) {
   const [open, setOpen] = useState(false);
   const path=usePathname();
 
@@ -38,19 +39,20 @@ export default function MobileMenu() {
                 />
                 <span className={styles.menuLogoText}>MEMEX</span>
               </div>
-              <button
+              <a
                 className={styles.loginOption}
-                onClick={() => {
-                  close();
-                  window.location.href = '/account';
-                }}
+                href={accountHref}
+                onClick={close}
+                aria-current={activeNav(path,'/account/private')?'page':undefined}
               >
-                Email Login
-              </button>
+                {accountLabel}
+              </a>
             </div>
 
             <nav id="mobile-main-navigation" className={styles.menuNav} aria-label="Mobile navigation">
-              {NAV_LINKS.map(([url,label])=><a key={url} href={url} onClick={close} aria-current={activeNav(path,url)?'page':undefined}>{label}</a>)}
+              {NAV_LINKS.map(([url,label])=><a key={url} href={url} onClick={close}
+                className={url==='/play'?`${headerStyles.playCta} ${styles.playLink}`:url==='/socials'?styles.secondaryLink:undefined}
+                aria-current={activeNav(path,url)?'page':undefined}>{label}</a>)}
           </nav>
           </div>
         </div>
