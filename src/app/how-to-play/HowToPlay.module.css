@@ -7,3 +7,208 @@
 .basics p,.deckText li,.ruleGrid p,.elementDetail>p{font-size:16px}
 
 .specialCards136{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:24px 0}.specialCards136 figure{margin:0;text-align:center}.specialCards136 figcaption{font-size:13px;line-height:1.5;color:var(--muted);margin-top:8px}.specialCards136 figure>div{max-width:225px;margin:auto}
+
+.referenceSection {
+  padding: 58px 0 10px;
+}
+.referenceSection .sectionHeading {
+  align-items: center;
+  margin-bottom: 20px;
+}
+.referenceSection .sectionHeading h2 {
+  margin: 0;
+}
+.referenceSection .sectionHeading p {
+  margin: 10px 0 0;
+  font-size: 16px;
+}
+.glossaryGrid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.glossaryGrid > div {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-top-color: #ae88d484;
+  border-radius: 14px;
+  background: linear-gradient(150deg, #291b3ed9, #161025);
+}
+.glossaryGrid dt, .abilitySteps dt {
+  color: var(--gold);
+  font-weight: 700;
+}
+.glossaryGrid small, .abilityTitle small {
+  color: #ba9fd0;
+  font-weight: 400;
+  font-size: .85em;
+}
+.glossaryGrid small::before, .abilityTitle small::before {
+  content: " · ";
+}
+.glossaryGrid dd, .abilitySteps dd {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.moreTerms {
+  margin-top: 14px;
+}
+.moreTerms > summary {
+  width: fit-content;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: #eadbf5;
+  cursor: pointer;
+}
+.moreTerms .glossaryGrid {
+  margin-top: 12px;
+}
+.referencePanel {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #191027bc;
+}
+.referenceToolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 14px;
+}
+.referenceSearch {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 275px;
+  max-width: 410px;
+  color: #ebdef2;
+  font-size: 14px;
+}
+.referenceSearch input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #b59acb70;
+  border-radius: 9px;
+  background: #10091c;
+  color: #f5edff;
+}
+.referenceFilters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.referenceFilters button {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #110a1e;
+  color: #e3d3ef;
+  cursor: pointer;
+  font-size: 14px;
+}
+.referenceFilters button[aria-pressed="true"] {
+  border-color: #d6b372;
+  color: #ffe6b1;
+  background: #473242;
+}
+.referenceFilters span {
+  margin-left: 2px;
+  font-size: 12px;
+  color: #c8b1d8;
+}
+.referencePanel .referenceCount {
+  margin: 16px 0 8px;
+  font-size: 13px;
+}
+.referencePanel .referenceEmpty {
+  margin: 12px 0 0;
+  font-size: 15px;
+}
+.abilityList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 8px;
+}
+.abilityEntry {
+  border: 1px solid #b392cc44;
+  border-radius: 11px;
+  background: #110b20;
+}
+.abilityEntry summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  list-style: none;
+  cursor: pointer;
+}
+.abilityEntry summary::-webkit-details-marker {
+  display: none;
+}
+.abilityEntry summary::after {
+  content: "+";
+  color: var(--gold);
+  font-size: 19px;
+}
+.abilityEntry[open] summary::after {
+  content: "−";
+}
+.abilityEntry[open] summary {
+  border-bottom: 1px solid #b392cc36;
+}
+.referenceIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 38px;
+  clip-path: polygon(50% 0, 97% 25%, 97% 75%, 50% 100%, 3% 75%, 3% 25%);
+  background: #37254d;
+}
+.referenceIcon svg {
+  width: 21px;
+  height: 21px;
+}
+.abilityTitle {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.abilityTitle > span {
+  color: #d7c2eb;
+  font-size: 13px;
+}
+.abilitySteps {
+  margin: 0;
+  padding: 13px 15px 15px;
+  display: grid;
+  gap: 12px;
+}
+.abilitySteps dt {
+  font-size: 13px;
+}
+.abilitySteps dd {
+  margin-top: 3px;
+}
+.referenceSection .referenceModes {
+  margin: 12px 0 0;
+  font-size: 14px;
+}
+.referenceSection input:focus-visible, .referenceSection summary:focus-visible {
+  outline: 2px solid #f5d594;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+@media(max-width: 800px) {
+  .referenceSection .sectionHeading { align-items: flex-start; }
+  .glossaryGrid, .abilityList { grid-template-columns: 1fr; }
+  .referenceSection { padding-top: 48px; }
+  .referencePanel { padding: 14px; }
+}
