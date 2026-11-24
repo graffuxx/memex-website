@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=pigeon-pair-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=no-escape-pair-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -8,6 +8,7 @@ export const WATER_BONUS=2;
 export const STORM_MAX_EDGE=3;
 export const SWIPE_MAX_DEFENSE=2;
 export const PIGEON_MAX_REDUCTION=2;
+export const CHASE_PENALTY=2;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -26,6 +27,8 @@ export const ABILITIES={
  encore:{name:'Iconic · Zugabe',short:'♫',description:'Nach genau einem Flip darfst du Epic Sax Guy um 60° nach links oder rechts drehen. Die Drehung ändert nur die Ausrichtung für folgende Züge.'},
  bid:{name:'Iconic · Nachschlag',short:'+1',description:'Wenn du zurückliegst, kannst du deinen ungenutzten Blockadezug für +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen.'},
  decoy:{name:'Iconic · Falsche Kante',short:'◇',description:`Pigeon verwechselt eine gegnerische Kante mit ihrer schwächeren Nachbarkante. Das senkt den Grundwert für diesen Angriff um höchstens ${PIGEON_MAX_REDUCTION}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn zählt. Schutzboni und S-Kanten gelten weiterhin.`},
+ chase:{name:'Iconic · Kein Entkommen',short:'»',description:`Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY} Angriffspunkte. Höchstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.`},
+ cover:{name:'Iconic · Rückendeckung',short:'◈',description:'Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schwächsten offenen Kante bis zum nächsten eigenen Zug. Schutzboni stapeln sich nicht.'},
 };
 export const LOADOUTS={
  'hype-guard':{name:'Doge + Pepe',abilities:['hype','guard']},
@@ -49,6 +52,8 @@ const RELEASED_ICONICS={
  'iconic-epic-sax-guy':[3,'encore'],
  'iconic-take-my-money':[4,'bid'],
  'iconic-is-this-a-pigeon':[4,'decoy'],
+ 'iconic-why-are-you-running':[5,'chase'],
+ 'iconic-overly-manly-man':[5,'cover'],
 };
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
@@ -136,11 +141,17 @@ export function abilityEdge(game,card,cell,{attacking=false,direction=null}={}){
  }
  return null;
 }
+export function coverEdge(game,card,cell){
+ const ward=card.coverWard;
+ return ward&&ward.owner===card.controller&&game.placements<ward.until&&eventFieldAt(game,cell)?.type!=='silence'
+  ?{dir:ward.dir,amount:1,kind:'cover'}:null;
+}
 export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abilityDirection=null}={}){
  const f=eventFieldAt(game,cell),base=sideValue(card,dir),field=f?.type==='resonance'&&f.element===cardOf(card).element?1:f?.type==='crossfire'&&f.directions.includes(dir)?1:0;
  const element=elementAdvantage(cardOf(card).element,cardOf(opponent).element,game.elementRules??3)?1:0;
  const bonus=abilityEdge(game,card,cell,{attacking,direction:abilityDirection});
- const ability=bonus?.dir===dir?bonus.amount:0;
+ const cover=attacking?null:coverEdge(game,card,cell);
+ const ability=Math.max(bonus?.dir===dir?bonus.amount:0,cover?.dir===dir?cover.amount:0);
  return {base,field,element,ability,...rankedStrength126(base,field+ability+((game.elementRules??3)===3?element:0)),
   ...(!attacking&&laughActive(game,card,cell)?{holdsTie:true}:{})};
 }
@@ -219,6 +230,23 @@ export function previewEffect(game,action){
    }
   }
  }
+ let pursuit=null;
+ if(ability==='chase'){
+  for(const primary of comparisons){
+   if(!primary.flip)continue;
+   const dir=primary.dir;
+   const behind=neighbors(primary.cell).find(n=>n.dir===dir)?.id;
+   const target=working.board[behind];
+   if(!target||target.controller===game.turn)continue;
+   const base=effectStrength(working,card,cell,dir,target,{attacking:true,abilityDirection});
+   const defend=effectStrength(working,target,behind,(dir+3)%6,card);
+   const attack={...base,total:base.total-CHASE_PENALTY,distancePenalty:CHASE_PENALTY};
+   if(base.rank==='S'||!effectAttackWins(attack,defend,game.elementRules??3))continue;
+   comparisons.push({cell:behind,dir,attack,defend,setup:false,flip:true,name:cardOf(target).name,pursuit:true});
+   pursuit={cell:behind,dir:(dir+3)%6,through:primary.cell};
+   break;
+  }
+ }
  const flips=comparisons.filter(c=>c.flip).map(c=>c.cell);
  const pivotTarget=ability==='encore'&&flips.length===1?cell:null;
  if(![-1,0,1].includes(pivotDirection)||pivotDirection!==0&&!pivotTarget)throw Error('Keine Karte für die Drehung erobert.');
@@ -226,13 +254,20 @@ export function previewEffect(game,action){
  const steps=ability==='sidestep'?sidestepTargets(working,cell):[];
  if(stepCells!==null&&(!Array.isArray(stepCells)||stepCells.length!==2||!steps.some(([from,to])=>from===stepCells[0]&&to===stepCells[1])))throw Error('Kein gültiges Ziel für Platz machen.');
  const relocation=stepCells===null?null:{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid};
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+ const coverWards=ability==='cover'?neighbors(cell).flatMap(({id})=>{
+  const ally=working.board[id];
+  if(ally?.controller!==game.turn||!standardAbility(ally))return [];
+  const edge=weakestEdge(ally,neighbors(id).filter(n=>n.id!==cell&&n.id!==working.block&&!working.board[n.id]));
+  return edge?[{cell:id,dir:edge.dir}]:[];
+ }).slice(0,2):[];
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
  player.hand=player.hand.filter(c=>c.uid!==action.uid);if(player.deck.length)player.hand.push(player.deck.shift());
  next.board[action.cell]={...p.card,flips:p.flips.length};
- for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.laughOwner;delete c.laughUntil;}
+ for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.laughOwner;delete c.laughUntil;delete c.coverWard;}
+ for(const {cell,dir} of p.coverWards)next.board[cell].coverWard={dir,owner:side,until:game.placements+2};
  if(p.relocation){
   const {from,to}=p.relocation;
   next.board[to]=next.board[from];
@@ -246,6 +281,8 @@ export function placeEffect(game,action){
  if(p.swipe)next.last.swipe=p.swipe;
  if(p.bid!==null)next.last.bid=p.bid;
  if(p.decoy)next.last.decoy=p.decoy;
+ if(p.pursuit)next.last.pursuit=p.pursuit;
+ if(p.coverWards.length)next.last.coverWards=p.coverWards;
  if(p.pivot){
   next.board[action.cell].rotation=p.pivot.to;
   next.last.transforms.push(p.pivot);

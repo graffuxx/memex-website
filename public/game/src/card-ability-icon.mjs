@@ -19,6 +19,8 @@ const symbols={
  encore:{color:'#fada90',path:'M9 17V6l11-3v12M9 7l11-3M9 17a3 2 0 1 1-6 0 3 2 0 1 1 6 0m11-2a3 2 0 1 1-6 0 3 2 0 1 1 6 0'},
  bid:{color:'#ffca85',path:'M3 7h18v11H3zM7 11h.1m9 3h.1M12 10v5m-2-2.5h4'},
  decoy:{color:'#bdf1e4',path:'M3 12c4-7 14-7 18 0-4 7-14 7-18 0zm9-4v4l4 1m-4 3h.1'},
+ chase:{color:'#ffb077',path:'M2 8h5m-4 8h5m0-4h13m-5-5 5 5-5 5'},
+ cover:{color:'#e8d3a2',path:'M4 20V9l8-5 8 5v11M8 20v-7l4-3 4 3v7'},
 };
 
 function iconPath(ability){

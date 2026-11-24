@@ -16,7 +16,7 @@ export function refreshPvpRules129(state,now=Date.now()){if(!state?.game||state.
 export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,iconicAbilities=false,iconicAbilityWave=iconicAbilities?1:0}={}){
  if(decks.length!==2||decks.some(d=>d.cards?.length!==15))throw Error('Two saved 15-card decks required.');
  const balance=balanceVersion94(now);
- if(elementalTrial)balance.patch+=iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
+ if(elementalTrial)balance.patch+=iconicAbilityWave>=5?'-iconic-ten':iconicAbilityWave>=4?'-iconic-eight':iconicAbilityWave>=3?'-iconic-six':iconicAbilityWave>=2?'-iconic-four':iconicAbilities?'-greg-kekw':'-standard-effects';
  return {ruleset:PVP_RULE90,balance,elementalTrial,iconicAbilities,iconicAbilityWave,decks,seed,phase:'rps',round:1,starter:null,results:[],choices:[null,null],ready:[false,false],attempt:1,lastRps:null,deadline:due(now),game:null,step:null,afkStreak129:[0,0]};
 }
 function newRound(s,now){
@@ -81,7 +81,7 @@ function perspectiveGame(game,side,revealUid=null){
  if(!game)return null;const g=structuredClone(game),swap=n=>n===null||n===undefined?n:side===1?1-n:n;
  // Board geometry is public; the seed also shuffles hidden draws and stays server-side.
  delete g.seed;
- const card=c=>{const v={...c};for(const k of ['origin','controller','guardOwner','laughOwner'])if(v[k]!==undefined)v[k]=swap(v[k]);return v;};
+ const card=c=>{const v={...c};for(const k of ['origin','controller','guardOwner','laughOwner'])if(v[k]!==undefined)v[k]=swap(v[k]);if(v.coverWard)v.coverWard={...v.coverWard,owner:swap(v.coverWard.owner)};return v;};
  const hidden=c=>({id:'oracle',uid:c.uid,origin:swap(c.origin),controller:swap(c.controller),rotation:0,hidden:true});
  g.players=(side===1?[g.players[1],g.players[0]]:g.players).map((p,i)=>({...p,hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),deck:p.deck.map(hidden)}));
  g.board=Object.fromEntries(Object.entries(g.board).map(([k,c])=>[k,card(c)]));

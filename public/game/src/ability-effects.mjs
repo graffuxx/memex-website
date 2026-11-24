@@ -1,4 +1,4 @@
-import {abilityEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=pigeon-pair-release';
+import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=no-escape-pair-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -11,6 +11,8 @@ export function abilityMarkers(game,plan){
  if(game.elementalTrial){
   for(const [cell,card] of Object.entries(game.board)){
    const edge=abilityEdge(game,card,cell);
+   const cover=coverEdge(game,card,cell);
+   if(cover&&(!edge||edge.dir!==cover.dir))markers.push({kind:'cover',cell,dir:cover.dir,label:'+1'});
    if(edge)markers.push({kind:card.ability,cell,dir:edge.dir,label:`+${edge.amount}`});
    if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:'='});
   }
@@ -26,6 +28,8 @@ export function abilityMarkers(game,plan){
 
    if(plan.bid!=null)markers.push({kind:'bid',cell:plan.cell,dir:plan.bid,preview:true,label:'+1'});
    if(plan.decoy)markers.push({kind:'decoy',...plan.decoy,preview:true,label:`−${plan.decoy.amount}`});
+   if(plan.pursuit)markers.push({kind:'chase',...plan.pursuit,preview:true,label:'»'});
+   for(const ward of plan.coverWards??[])markers.push({kind:'cover',...ward,preview:true,label:'+1'});
    if(plan.pivot)markers.push({kind:'encore',cell:plan.cell,preview:true,label:plan.pivot.to===(plan.pivot.from+5)%6?'↶':'↻'});
    if(plan.swipe)markers.push({kind:'swipe',cell:plan.swipe.cell,dir:(plan.swipe.dir+3)%6,preview:true,label:`−${plan.swipe.amount}`});
    if(plan.rainbow)markers.push({kind:'rainbow',cell:plan.cell,dir:plan.rainbow.dir,preview:true,label:'⌒'});
@@ -53,6 +57,8 @@ export function abilityBursts(game){
   const markers=(last.tieBlocks??[]).map(stop=>({kind:'laugh',...stop,label:'='}));
   if(last.relocation)markers.push({kind:'sidestep',cell:last.relocation.to,label:'↗'});
   if(last.decoy)markers.push({kind:'decoy',...last.decoy,label:`−${last.decoy.amount}`});
+  if(last.pursuit)markers.push({kind:'chase',...last.pursuit,label:'»'});
+  for(const ward of last.coverWards??[])markers.push({kind:'cover',...ward,label:'+1'});
   if(last.swipe)markers.push({kind:'swipe',cell:last.swipe.cell,dir:(last.swipe.dir+3)%6,label:`−${last.swipe.amount}`});
   if(last.rainbow)markers.push({kind:'rainbow',cell:last.rainbow.cell,dir:(last.rainbow.dir+3)%6,label:'⌒'});
   if(edge)markers.push({kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`});
@@ -96,7 +102,7 @@ export function createAbilityEffects(layer){
    const {stroke,badge,text}=nodes.get(key),geometry=abilityMarkerGeometry(project(marker.cell),marker.dir);
    const {x,y}=geometry.center,size=clamp(Math.hypot(geometry.points[0].x-geometry.points[1].x,geometry.points[0].y-geometry.points[1].y)*.23,9,14);
    stroke.setAttribute('points',(marker.dir===undefined?[...geometry.points,geometry.points[0]]:geometry.points).map(coordinates).join(' '));
-   badge.setAttribute('d',['guard','water','earth','solitude'].includes(marker.kind)
+   badge.setAttribute('d',['guard','water','earth','solitude','cover'].includes(marker.kind)
     ?`M ${x-size} ${y-size*.75} h ${size*2} v ${size} l ${-size} ${size*.6} l ${-size} ${-size*.6} Z`
     :`M ${x} ${y-size} l ${size} ${size} l ${-size} ${size} l ${-size} ${-size} Z`);
    text.setAttribute('x',x);text.setAttribute('y',y);text.textContent=marker.label;

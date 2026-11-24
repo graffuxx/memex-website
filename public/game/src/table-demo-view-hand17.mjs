@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=pigeon-pair-release';
-import {fieldFeedback129} from './field-feedback129.mjs?v=pigeon-pair-release';
+import {createAbilityEffects} from './ability-effects.mjs?v=no-escape-pair-release';
+import {fieldFeedback129} from './field-feedback129.mjs?v=no-escape-pair-release';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -20,9 +20,9 @@ import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf} from './rules.mjs?v=tie-break-63';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=pigeon-pair-release';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive} from './table-demo-rules.mjs?v=no-escape-pair-release';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=pigeon-pair-release';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=no-escape-pair-release';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
@@ -130,7 +130,9 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   }const order=handHitOrder(game.players[0].hand.map(c=>c.uid),ui.hover,ui.selected);for(const [index,uid]of order.entries()){const node=handNodes.get(uid);if(node&&handLayer.children[index]!==node)handLayer.insertBefore(node,handLayer.children[index]??null);}}
  function animate(duration,fn){return new Promise(resolve=>{if(!motion){fn(1);dirty=true;resolve(true);return;}tweens.push({start:performance.now(),duration,fn,resolve});dirty=true;});}
  function boardFeedback(card,cell){
-  const feedback=fieldFeedback129(game,card,cell);
+  const cover=ui.plan?.coverWards?.find(target=>target.cell===cell);
+  const previewCard=cover?{...card,coverWard:{dir:cover.dir,owner:card.controller,until:game.placements+2}}:card;
+  const feedback=fieldFeedback129(game,previewCard,cell);
   if(attackFlash?.uid===card.uid&&attackFlash.placement===game.placements){
    feedback.bonuses[attackFlash.dir]+=attackFlash.amount;
    feedback.effects=[...(feedback.effects??[]),{dir:attackFlash.dir,ability:attackFlash.ability}];

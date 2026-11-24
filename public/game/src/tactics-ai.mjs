@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=pigeon-pair-release';
+import * as currentRules from './table-demo-rules.mjs?v=no-escape-pair-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -40,11 +40,11 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
  }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
- return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1);
+ return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+(plan.coverWards?.length??0)*.12;
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
- const board={...plan.board,[action.cell]:plan.card};for(const cell of plan.flips)board[cell]={...board[cell],controller:game.turn,guardOwner:undefined,guardUntil:undefined,laughOwner:undefined,laughUntil:undefined};
+ const board={...plan.board,[action.cell]:plan.card};for(const cell of plan.flips)board[cell]={...board[cell],controller:game.turn,guardOwner:undefined,guardUntil:undefined,coverWard:undefined,laughOwner:undefined,laughUntil:undefined};
  for(const t of plan.transforms)if(t.temporary)board[t.cell]={...board[t.cell],rotation:t.from};
  if(plan.relocation){
   const {from,to}=plan.relocation;
@@ -52,6 +52,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
   delete board[from];
  }
  if(plan.pivot)board[plan.pivot.cell]={...board[plan.pivot.cell],rotation:plan.pivot.to};
+ for(const {cell,dir} of plan.coverWards??[])board[cell]={...board[cell],coverWard:{dir,owner:game.turn,until:game.placements+2}};
  const future={...game,board,placements:game.placements+1,turn:1-game.turn};
  if(future.placements>=18)return 0;
  // Let the authoritative field resolver advance before examining the next move.

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DEFINITIONS,starterDeck,expandGameDeck} from '../public/game/platform/catalog.mjs';
-import {newGame,moveTargets,sideValue,freeCells} from '../public/game/src/rules.mjs';
+import {CELLS,newGame,moveTargets,sideValue,freeCells} from '../public/game/src/rules.mjs';
 import {placeEffect,previewEffect,standardAbility,releasedIconicAbility,sidestepTargets,laughActive} from '../public/game/src/table-demo-rules.mjs';
 import {createTableAudio} from '../public/game/src/table-audio.mjs';
 import {fieldFeedback129} from '../public/game/src/field-feedback129.mjs';
@@ -77,9 +77,9 @@ for(const seat of [0,1]){
 
 
 test('New private duels start the latest ability wave and older games retain their original wave',()=>{
- const deck=[...starterDeck().slice(0,6),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','take-my-money:rare','is-this-a-pigeon:common','evil-ernie:rare'];
+ const deck=[...starterDeck().slice(0,4),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','take-my-money:rare','is-this-a-pigeon:common','why-are-you-running:rare','overly-manly-man:common','evil-ernie:rare'];
  const decks=[{cards:deck},{cards:deck}];
- for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:4},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
+ for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:5},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:4},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
   let state=createPvp90(decks,9,1,flags);
   state=advancePvp90(state,0,{kind:'gesture',value:'rock'},2);
   state=advancePvp90(state,1,{kind:'gesture',value:'scissors'},3);
@@ -92,8 +92,10 @@ test('New private duels start the latest ability wave and older games retain the
    assert.equal(assigned.find(c=>c.variantId==='double-rainbow:rare').ability,flags.iconicAbilityWave>=2?'rainbow':undefined);
    assert.equal(assigned.find(c=>c.variantId==='scumbag-steve:rare').ability,flags.iconicAbilityWave>=3?'swipe':undefined);
    assert.equal(assigned.find(c=>c.variantId==='epic-sax-guy:common').ability,flags.iconicAbilityWave>=3?'encore':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='take-my-money:rare').ability,flags.iconicAbilityWave===4?'bid':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='is-this-a-pigeon:common').ability,flags.iconicAbilityWave===4?'decoy':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='take-my-money:rare').ability,flags.iconicAbilityWave>=4?'bid':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='is-this-a-pigeon:common').ability,flags.iconicAbilityWave>=4?'decoy':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='why-are-you-running:rare').ability,flags.iconicAbilityWave===5?'chase':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='overly-manly-man:common').ability,flags.iconicAbilityWave===5?'cover':undefined);
    assert.equal(assigned.find(c=>c.variantId==='evil-ernie:rare').ability,undefined);
   }
  }
@@ -261,5 +263,64 @@ for(const seat of [0,1]){
   game.board={'0,1':enemy('kekw',{ability:'laugh',rotation:3,laughOwner:other,laughUntil:2})};
   assert.deepEqual(previewEffect(game,action).flips,[]);
   assert.deepEqual(previewEffect({...game,placements:2},action).flips,['0,1']);
+ });
+}
+for(const seat of [0,1]){
+ test(`Kein Entkommen works on the last open cell with at most one extra flip for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat,chaser=makeCard('why-are-you-running:common',seat,'chase');
+  Object.assign(game,{turn:seat,starter:seat,block:'2,-2',elementalTrial:true,elementRules:5,placements:17});
+  game.players[seat].hand=[chaser];
+  const cardAt=(id,controller,cell)=>({...makeCard(id+':common',controller),uid:id+'@'+cell,controller});
+  game.board=Object.fromEntries(CELLS.filter(c=>c.id!==game.block&&c.id!=='0,0').map(c=>[c.id,cardAt('doge',seat,c.id)]));
+  game.board['-1,0']=cardAt('side-eye',other,'-1,0');
+  game.board['-2,0']=cardAt('roll-safe',other,'-2,0');
+  game.board['0,-1']=cardAt('pepe',other,'0,-1');
+  game.board['0,-2']=cardAt('diamond-hands',other,'0,-2');
+  const action={uid:chaser.uid,cell:'0,0'};
+  assert.deepEqual(freeCells(game),['0,0']);
+  const plan=previewEffect(game,action);
+  assert.deepEqual(plan.flips,['-1,0','0,-1','-2,0']);
+  assert.deepEqual(plan.pursuit,{cell:'-2,0',dir:0,through:'-1,0'});
+  const ranged=plan.comparisons.find(c=>c.pursuit);
+  assert.deepEqual([ranged.attack.total,ranged.defend.total],[6,5]);
+  assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='chase'&&m.cell==='-2,0'));
+  const next=placeEffect(game,action);
+  assert.equal(next.finished,true);
+  assert.equal(next.board['0,-2'].controller,other);
+  assert.equal(next.board['-2,0'].controller,seat);
+  assert.deepEqual(next.last.pursuit,plan.pursuit);
+  assert.ok(abilityBursts(next).some(m=>m.kind==='chase'&&m.cell==='-2,0'));
+
+  delete game.board['0,-1'];
+  game.board['-2,0']=cardAt('evil-ernie',other,'-2,0');
+  assert.deepEqual(previewEffect(game,action).flips,['-1,0']);
+  game.board['-1,0']=cardAt('evil-ernie',other,'-1,0');
+  game.board['-2,0']=cardAt('roll-safe',other,'-2,0');
+  assert.deepEqual(previewEffect(game,action).flips,[]);
+ });
+
+ test(`Rückendeckung protects up to two Regular allies for one opposing turn for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat,manly=makeCard('overly-manly-man:common',seat,'cover');
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  const ally=id=>({...makeCard(id+':common',seat),controller:seat,rotation:0});
+  game.board={'1,0':ally('doge'),'0,1':ally('side-eye'),'-1,0':ally('pepe')};
+  game.players[seat].hand=[manly];
+  const attacker=makeCard('rage-hamster:common',other);
+  game.players[other].hand=[attacker];
+  const action={uid:manly.uid,cell:'0,0'};
+  const plan=previewEffect(game,action);
+  assert.deepEqual(plan.coverWards,[{cell:'1,0',dir:1},{cell:'0,1',dir:2}]);
+  assert.equal(abilityMarkers(game,plan).filter(m=>m.kind==='cover'&&m.label==='+1').length,2);
+  const next=placeEffect(game,action);
+  assert.equal(next.board['-1,0'].coverWard,undefined);
+  assert.equal(next.board['1,0'].coverWard.owner,seat);
+  assert.equal(fieldFeedback129(next,next.board['1,0'],'1,0').bonuses[1],1);
+  const reply={uid:attacker.uid,cell:'1,1'};
+  assert.equal(previewEffect(next,reply).comparisons.find(c=>c.cell==='1,0').flip,false);
+  const after=placeEffect(next,reply);
+  assert.equal(fieldFeedback129(after,after.board['1,0'],'1,0').bonuses[1],0);
+  const state={...createPvp90([{cards:starterDeck()},{cards:starterDeck()}],7),game:next};
+  const guest=projectPvp90({id:'trial',kind:'private',host_id:'host',guest_id:'guest',identities:[{},{}],state},'guest');
+  assert.equal(guest.game.board['1,0'].coverWard.owner,other);
  });
 }

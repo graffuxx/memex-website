@@ -23,3 +23,5 @@
 .ability-effects g[data-ability=encore]{--ability-color:#fada90;--ability-glow:#ebb755}
 .ability-effects g[data-ability=bid]{--ability-color:#ffca85;--ability-glow:#f48942}
 .ability-effects g[data-ability=decoy]{--ability-color:#bdf1e4;--ability-glow:#5bccbb}
+.ability-effects g[data-ability=chase]{--ability-color:#ffbd80;--ability-glow:#ff7040}
+.ability-effects g[data-ability=cover]{--ability-color:#eddbac;--ability-glow:#ba905b}
