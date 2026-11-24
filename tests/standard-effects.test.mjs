@@ -6,6 +6,7 @@ import {abilityEdge,effectStrength,placeEffect,previewEffect,standardAbility,twi
 import {fieldFeedback129} from '../public/game/src/field-feedback129.mjs';
 import {legalCandidates,positionalValue} from '../public/game/src/tactics-ai.mjs';
 import {abilityBursts} from '../public/game/src/ability-effects.mjs';
+import {createTacticsLayout} from '../public/game/src/tactics-layout.mjs';
 import {advancePvp90,createPvp90,projectPvp90} from '../server/game/pvp90.mjs';
 
 const makeCard=(variant,seat,ability)=>({...expandGameDeck([variant],seat)[0],uid:seat+':'+variant,ability});
@@ -16,6 +17,23 @@ function trial(){
  game.players[1].hand=[];game.players[1].deck=[];
  return game;
 }
+test('each round has a fresh blockade and the rematch always starts inside the board',()=>{
+ const all=new Set(),rematches=new Set();
+ for(let seed=1;seed<=250;seed++){
+  const starts=Array.from({length:4},(_,i)=>createTacticsLayout(seed,i+1));
+  assert.equal(new Set(starts.map(layout=>layout.block)).size,starts.length);
+  for(const layout of starts){
+   assert.ok(!layout.eventCells.includes(layout.block));
+   all.add(layout.block);
+  }
+  const [q,r]=starts[1].block.split(',').map(Number);
+  assert.ok(Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<2);
+  rematches.add(starts[1].block);
+ }
+ assert.equal(all.size,19);
+ assert.equal(rematches.size,7);
+});
+
 test('Fire and Storm resolve their automatic edge and publish the matching displayed value',()=>{
  const game=trial();
  game.elementalTrial=true;
@@ -89,6 +107,16 @@ test('Storm accepts a flanked base 3, but never base 4 or an isolated opponent',
  game.board['0,1']={...makeCard('pepe:common',1),controller:1,rotation:0};
  assert.equal(previewEffect(game,move).comparisons.find(c=>c.dir===0).attack.ability,1);
  assert.ok(previewEffect(game,{...move,uid:neutral.uid}).comparisons.every(c=>c.attack.ability===0));
+ const brianMove={...move,uid:neutral.uid};
+ game.board['-1,1']={...makeCard('roll-safe:common',1),controller:1,rotation:0};
+ const plan=previewEffect(game,brianMove);
+ const protectedEdge=plan.comparisons.find(c=>c.dir===2);
+ assert.equal(protectedEdge.attack.base,3);
+ assert.equal(protectedEdge.attack.total,4);
+ assert.equal(protectedEdge.attack.ability,1);
+ assert.ok(plan.flips.includes('-1,1'));
+ assert.equal(fieldFeedback129(game,plan.card,'0,0',0).bonuses[2],1);
+ assert.deepEqual(placeEffect(game,brianMove).last.attackEdges,[{dir:2,total:4}]);
 });
 test('only Regular cards gain native abilities in newly created private-element rooms',()=>{
  const cards=[...starterDeck().slice(0,13),'evil-ernie:common','rage-guy:common'];

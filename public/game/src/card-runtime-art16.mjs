@@ -9,7 +9,7 @@ import {createCardFinishLayer} from './card-finish-layer16.mjs?v=board-ownership
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
 import {displayedEdgeValue129} from './field-feedback129.mjs?v=duel-feedback';
 import * as T from '../vendor/three.module.min.js';
-import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=board-ability-symbols';
+import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=round-emblems';
 
 // Render the approved sculpted face once, then reuse it on thin 3D bodies.
 // This retains the exact artwork/layout while keeping a full table inexpensive to draw.
@@ -24,7 +24,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
  const frames=new Map(await Promise.all(Object.keys(CARD_MATERIALS).map(async key=>{const texture=await new T.TextureLoader().loadAsync(await materialFrameUrl(key));texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=8;return [key,texture];})));
  const requested=variants===null?null:new Set(variants.map(id=>getVariant(id)?.definitionId).filter(Boolean));
  const profiles=Object.keys(CARD_PROFILES).filter(id=>requested===null||['pepe','doge','roll-safe'].includes(id)||requested.has(id));
- const templates=await Promise.all(profiles.map(profile=>createCardPrototype({profile,frames,showCategory:false}))),scene=new T.Scene();
+ const templates=await Promise.all(profiles.map(profile=>createCardPrototype({profile,frames}))),scene=new T.Scene();
  scene.add(new T.HemisphereLight('#e6e1ff','#241d31',2.6));const key=new T.DirectionalLight('#fff0cd',3.5);key.position.set(-3,4,5);scene.add(key);const rim=new T.DirectionalLight('#a58aff',2.6);rim.position.set(3,1,-2);scene.add(rim);
  for(const m of templates)scene.add(m.group);
  const artworkTextures=new Map(templates.map(m=>[artworkFor(m.profile.id),m.artworkTexture]));
@@ -43,7 +43,7 @@ export async function createCardRuntime(renderer,{variants=null}={}){
   if(!Object.hasOwn(CARD_PROFILES,profile))throw Error('Unknown card motif.');
   if(preparing.has(profile))return preparing.get(profile);
   const pending=(async()=>{
-   if(!templates.some(m=>m.profile.id===profile)){const model=await createCardPrototype({profile,frames,showCategory:false});templates.push(model);scene.add(model.group);artworkTextures.set(artworkFor(profile),model.artworkTexture);if(model.profile.artAtlas)atlasBases.set(profile,model.artworkTexture);}
+   if(!templates.some(m=>m.profile.id===profile)){const model=await createCardPrototype({profile,frames});templates.push(model);scene.add(model.group);artworkTextures.set(artworkFor(profile),model.artworkTexture);if(model.profile.artAtlas)atlasBases.set(profile,model.artworkTexture);}
    await Promise.all(Object.keys(CARD_ART[profile]).filter(tier=>!artworkTextures.has(artworkFor(profile,tier))).map(async tier=>{const path=artworkFor(profile,tier),texture=await loadArtwork(profile,tier);artworkTextures.set(path,texture);}));
   })();preparing.set(profile,pending);
   try{await pending;}catch(error){preparing.delete(profile);throw error;}

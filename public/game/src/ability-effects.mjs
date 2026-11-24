@@ -1,5 +1,5 @@
 import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=duel-feedback';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=storm-tie-shield';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -7,7 +7,7 @@ const interpolate=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
 const turnArrow=({from,to})=>(to-from+6)%6===5?'↶':'↻';
 const coordinates=p=>`${p.x},${p.y}`;
 
-export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkLabel='BLINZLER'}={}){
+export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkLabel='BLINZLER',tieShieldLabel='SCHUTZ BEI PATT'}={}){
  const markers=[];
  const saved=game?.last?.finalGuard;
  if(saved)markers.push({kind:'final-guard',cell:saved.cell,label:finalGuardLabel});
@@ -25,7 +25,7 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(abilityAt(game,card,cell)==='cling'&&clingPartner(game,cell,card))markers.push({kind:'cling',cell,label:'∞'});
    if(jamActive(game,card))markers.push({kind:'jam',cell,label:'⌧'});
    if(pabloWaiting(game,card,cell))markers.push({kind:'relay',cell,label:'⌛'});
-   if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:'='});
+   if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:tieShieldLabel});
    if(ward&&!mark?.dirs.includes(ward.dir))markers.push({kind:ward.kind,cell,dir:ward.dir,label:`+${ward.amount}`});
    if(mark&&!mark.active)markers.push({kind:'awkward',cell,label:'…'});
    if(mark?.active)for(const dir of mark.dirs){
@@ -182,7 +182,7 @@ export function createAbilityEffects(layer,options){
    const {stroke,badge,text}=nodes.get(key),geometry=abilityMarkerGeometry(project(marker.cell),marker.dir);
    const {x,y}=geometry.center,size=clamp(Math.hypot(geometry.points[0].x-geometry.points[1].x,geometry.points[0].y-geometry.points[1].y)*.23,9,14);
    stroke.setAttribute('points',(marker.dir===undefined?[...geometry.points,geometry.points[0]]:geometry.points).map(coordinates).join(' '));
-   if(marker.kind==='final-guard'||marker.kind==='blink'&&marker.label.length>1){
+   if(marker.kind==='final-guard'||(marker.kind==='blink'||marker.kind==='laugh')&&marker.label.length>1){
     const labelY=Math.max(14,Math.min(...geometry.points.map(point=>point.y))-8);
     const half=marker.label.length*3.7+8;
     badge.setAttribute('d',`M ${x-half+5} ${labelY-9} h ${2*half-10} q 5 0 5 5 v 8 q 0 5 -5 5 h ${10-2*half} q -5 0 -5 -5 v -8 q 0 -5 5 -5 Z`);

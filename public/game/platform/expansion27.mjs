@@ -12,7 +12,7 @@ export const EXPANSION_CARDS=Object.freeze([
  {id:'aliens-guy',name:'Ancient Aliens Guy',short:'Aliens Guy',element:'storm',values:[3,5,4,3,6,3],artOffsetY:-.09,quote:'The explanation is obvious.'},
  {id:'smudge',name:'Smudge the Cat',short:'Smudge',element:'fire',values:[3,3,6,2,4,4],quote:'I specifically ordered no salad.'},
  {id:'confused',name:'Confused Nick Young',short:'Confused',element:'storm',values:[5,3,4,4,5,3],artOffsetY:-.04,quote:'Wait. That was your move?'},
- {id:'bad-luck-brian',name:'Bad Luck Brian',short:'Bad Luck Brian',element:'storm',values:[4,4,4,4,4,4],artOffsetY:-.045,quote:'Finally gets a good hand. Wrong table.'},
+ {id:'bad-luck-brian',name:'Bad Luck Brian',short:'Bad Luck Brian',element:'storm',values:[4,4,3,4,4,5],artOffsetY:-.045,quote:'Finally gets a good hand. Wrong table.'},
  ...NEW_ALPHA_CARDS,
  ...ALPHA_ADDITIONS,
  ...ELEMENT_CARDS

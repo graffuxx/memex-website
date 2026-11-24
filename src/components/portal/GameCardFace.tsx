@@ -7,6 +7,7 @@ import {materialFrameUrl,materialOf} from '../../../public/game/src/card-materia
 import {alphaNameplateMarkup} from '../../../public/game/platform/edition36.mjs';
 import {FRAME_LAYOUT} from '../../../public/game/src/card-layout21.mjs';
 import {cardAbilityIconMarkup} from '../../../public/game/src/card-ability-icon.mjs';
+import {cardClassMarkMarkup} from '../../../public/game/src/card-class-mark.mjs';
 import {releasedPortalAbility} from './cardAbilities';
 
 type Props={
@@ -37,9 +38,11 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
  const title=(card.short??card.name).toUpperCase();
  const ability=releasedPortalAbility(card.ruleId,variant.id);
  const abilityIcon=cardAbilityIconMarkup(ability);
+ const category=card.prime?'prime':card.iconic?'iconic':null;
+ const classMark=cardClassMarkMarkup(category);
  const artId=`${id}-art`,foilId=`${id}-foil`,elementId=`${id}-element`;
  return <div ref={face} className={'duelverse-card'+(compact?' duelverse-card--mini':'')} data-finish={variant.rarity} style={{'--card-finish':color,'--foil-strength':variant.rarity==='epic'?.35:variant.rarity==='legendary'?.30:variant.rarity==='mythic'?.23:.55} as CSSProperties}>
-  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.map(printedValue126).join(', ')}${(variant.edition==='alpha'||variant.edition==='recruiter')?' · Alpha edition':''}`}>
+  <svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label={`${card.name}${category?' · '+category:''} · ${materialOf(variant.rarity).name} · ${elementIdValue} · Edge values: ${card.values.map(printedValue126).join(', ')}${(variant.edition==='alpha'||variant.edition==='recruiter')?' · Alpha edition':''}`}>
    <defs>
     <clipPath id={artId}><polygon points={hex(.96)}/></clipPath>
     <linearGradient id={foilId} x1="0" y1="1" x2="1" y2="0"><stop offset="20%" stopColor={color} stopOpacity="0"/><stop offset="48%" stopColor={color} stopOpacity=".12"/><stop offset="52%" stopColor="#fff" stopOpacity=".22"/><stop offset="75%" stopColor={color} stopOpacity="0"/></linearGradient>
@@ -52,7 +55,6 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
    </g>
    <image href={frame} x={-FRAME_LAYOUT.width/2} y={-FRAME_LAYOUT.height/2} width={FRAME_LAYOUT.width} height={FRAME_LAYOUT.height} preserveAspectRatio="none"/>
    {abilityIcon&&<g dangerouslySetInnerHTML={{__html:abilityIcon}}/>}
-   {!abilityIcon&&(card.prime||card.iconic)&&<text x="0" y="-.748" textAnchor="middle" dominantBaseline="central" fontFamily="Arial,sans-serif" fontSize=".06" fontWeight="800" fill="#f6d7a0">{card.iconic?'ICONIC':'PRIME'}</text>}
    <polygon className="duelverse-card__rarity" points={hex(.983)} fill="none" stroke={color} strokeWidth=".009"/>
    <g fill="#17150d" fontFamily="Arial,sans-serif" fontWeight="800" textAnchor="middle" dominantBaseline="central">
     {FRAME_LAYOUT.values.map(([x,y],i)=><text key={i} x={x} y={-y+.0093} fontSize=".1995">{printedValue126(card.values[i])}</text>)}
@@ -63,6 +65,7 @@ export default function GameCardFace({card,variant,color,compact=false}:Props){
     <path d={element.path} fill={element.stroke?'none':`url(#${elementId})`} stroke={element.stroke?`url(#${elementId})`:'#ffd876'} strokeWidth={element.stroke?16:5} strokeLinecap="round" strokeLinejoin="round"/>
    </svg>
    {!compact&&effectsVisible&&<CardParticleEffects rarity={variant.rarity} id={id}/>}
+   {classMark&&<g dangerouslySetInnerHTML={{__html:classMark}}/>}
   </svg>
  </div>;
 }

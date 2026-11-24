@@ -1,10 +1,11 @@
+import {cardClassMarkMarkup} from './card-class-mark.mjs';
 import {DEFINITIONS,getVariant} from '../platform/catalog.mjs';
 import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=duel-feedback';
+import {ABILITIES,abilityDescription,laughActive} from './table-demo-rules.mjs?v=storm-tie-shield';
 import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=board-ability-symbols';
-import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
+import {DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
 import {displayedEdgeValue129,fieldFeedback129} from './field-feedback129.mjs?v=duel-feedback';
@@ -26,7 +27,8 @@ export function boardPreviewFace146(game,cell){
  const definition=definitions.get(variant.definitionId),feedback=fieldFeedback129(game,card,cell);
  const ability=ABILITIES[card.ability];
  const blinkStatus=card.ability==='blink'?(card.blinkSpent?' · Blinzler verbraucht.':' · Blinzler bereit.'):'';
- return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)+(card.objectionSpent?' · Einspruch verbraucht.':'')+blinkStatus}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
+ const laughStatus=card.ability==='laugh'?(laughActive(game,card,cell)?' · Gleichstandsschutz aktiv.':' · Gleichstandsschutz inaktiv.'):'';
+ return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)+(card.objectionSpent?' · Einspruch verbraucht.':'')+blinkStatus+laughStatus}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
 }
 
 export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChange=()=>{}}){
@@ -70,6 +72,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    .replace('width="256" height="256"',`x="-.1225" y="${-FRAME_LAYOUT.elementY-.1225}" width=".245" height=".245"`)
    .replace('id="e"', 'id="board-preview-element"').replaceAll('url(#e)', 'url(#board-preview-element)');
   const category=definition?.prime?'Prime':definition?.iconic?'Iconic':'';
+  const classMark=cardClassMarkMarkup(category.toLowerCase());
   const abilityIcon=cardAbilityIconMarkup(card.ability);
   const printedCard={...card,edgeCopy:undefined,edgeSwap:undefined};
   face.innerHTML=`<svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label="${escape(rules.name)}">
@@ -84,6 +87,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
    <text x="0" y="${-FRAME_LAYOUT.titleY+.004}" fill="#17150d" font-size=".105"${label.length>10?' textLength=".66" lengthAdjust="spacingAndGlyphs"':''}>${escape(label)}</text>
    ${variant.edition==='alpha'||variant.edition==='recruiter'?alphaNameplateMarkup(FRAME_LAYOUT.titleY):''}
    ${element}
+   ${classMark}
   </svg>`;
   panel.style.setProperty('--preview-finish',material.color);
   panel.dataset.owner=String(card.controller);

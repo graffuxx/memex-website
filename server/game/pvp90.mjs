@@ -24,7 +24,7 @@ export function createPvp90(decks,seed,now=Date.now(),{elementalTrial=false,icon
 }
 function newRound(s,now){
  const loadouts=[LOADOUTS['hype-guard'],LOADOUTS['hype-guard']];
- let g=createTacticsMatch({seed:s.seed,starter:seriesStarter113(s.starter,s.round),loadouts:['hype-guard','hype-guard']});
+ let g=createTacticsMatch({seed:s.seed,round:s.round,starter:seriesStarter113(s.starter,s.round),loadouts:['hype-guard','hype-guard']});
  g.elementalTrial=s.elementalTrial===true;
  g.abilityTrial=g.elementalTrial;
  g.iconicAbilities=s.iconicAbilities===true;

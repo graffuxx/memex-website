@@ -1,4 +1,4 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=duel-feedback';
+import {createAbilityEffects} from './ability-effects.mjs?v=storm-tie-shield';
 import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=duel-feedback';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
@@ -20,18 +20,18 @@ import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=duel-feedback';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=storm-tie-shield';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=duel-feedback';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=round-emblems';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
-import {DEMO_PROFILES} from './table-demo-state.mjs?v=element-53';
+import {DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
 const flatArena=id=>id==='painted'||isIllustratedArena(id);
 const tableArena=id=>id==='voidforge'||flatArena(id);
 let hudMaskSerial105=0;
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
-export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',blinkLabel='BLINZLER'}={}){
+export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',blinkLabel='BLINZLER',tieShieldLabel='SCHUTZ BEI PATT'}={}){
  const syncDuelControl=bindDuelControl105(stage.ownerDocument);
  const placementButton=onConfirmPlacement?stage.ownerDocument.createElement('button'):null;
  if(placementButton){
@@ -77,7 +77,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
  let forgeWorld=null,navigation=null,orbitPose={...DEFAULT_ARENA_POSE78},orbitTarget={...DEFAULT_ARENA_POSE78};
  const fieldNodes=new Map(),handNodes=new Map(),cardMap=new Map(),moving=new Set(),hidden=new Set(),tweens=[];
  const fieldLayer=svgNode('g',{'class':'board-hits'}),handLayer=svgNode('g',{'class':'hand-hits'}),abilityLayer=svgNode('g',{class:'ability-effects','aria-hidden':'true'});
- const abilityEffects=createAbilityEffects(abilityLayer,{finalGuardLabel,blinkLabel});
+ const abilityEffects=createAbilityEffects(abilityLayer,{finalGuardLabel,blinkLabel,tieShieldLabel});
  let attackFlash=null,attackFlashTimer=null;
  // SVG field outlines otherwise sit above the entire WebGL canvas, including HUD cards.
  // Cut their actual, animated silhouettes out of the field overlay, not out of the cards.
@@ -245,7 +245,10 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
   return true;
  }
  async function prepareGame(g){const profiles=new Set([...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)].map(c=>DEMO_PROFILES[c.id]));await Promise.all([...profiles].map(profile=>runtime.prepare(profile)));}
- function initGame(g){cancel();orbitPose={...DEFAULT_ARENA_POSE78};orbitTarget={...DEFAULT_ARENA_POSE78};if(tableArena(arenaId)){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}game=g;
+ function initGame(g,{keepCamera=false}={}){
+  cancel();
+  if(!keepCamera){orbitPose={...DEFAULT_ARENA_POSE78};orbitTarget={...DEFAULT_ARENA_POSE78};if(tableArena(arenaId)){zoomLevel=zoomDesired=PAINTED_DEFAULT_ZOOM;zoomPending=null;panOffset={x:0,y:0};}}
+  game=g;
   syncTableCards(cardMap,[...g.players.flatMap(p=>[...p.hand,...p.deck]),...Object.values(g.board)],{spawn:runtime.spawn,profileFor:c=>DEMO_PROFILES[c.id],rarityFor:c=>rarityOf(c).key,elementFor:c=>cardOf(c).element,boardUids:new Set(Object.values(g.board).map(c=>c.uid))});
   eventPulse=0;
   update(g,{});resize();layout(true);renderer.shadowMap.needsUpdate=true;dirty=true;

@@ -1,4 +1,4 @@
-import {createTacticsLayout} from './tactics-layout.mjs?v=random-layout-1';
+import {createTacticsLayout} from './tactics-layout.mjs?v=round-emblems';
 import {newGame,placeCard,freeCells} from './rules.mjs?v=tie-break-63';
 import {LOADOUTS,ABILITY_FOR} from './table-demo-rules.mjs?v=duel-feedback';
 import {chooseTactic} from './tactics-ai.mjs?v=duel-feedback';
@@ -15,9 +15,9 @@ export function createTableDemo(loadout='hype-guard'){
 }
 // Bounded public-board lookahead; no access to the opponent's hidden hand.
 export function demoAction(game){return game.finished?null:chooseTactic(game).chosen?.action??null;}
-export function createTacticsMatch({loadouts=['hype-guard','hype-twist'],seed=20261117,starter=0,swap=false,disableRole=null,eventFieldsEnabled=false}={}){
+export function createTacticsMatch({loadouts=['hype-guard','hype-twist'],seed=20261117,round=1,starter=0,swap=false,disableRole=null,eventFieldsEnabled=false}={}){
  if(loadouts.length!==2||loadouts.some(id=>!Object.hasOwn(LOADOUTS,id)))throw Error('Ungültige Deckauswahl.');
- const game=newGame({seed,starter});game.eventFieldsEnabled=eventFieldsEnabled;Object.assign(game,createTacticsLayout(seed));game.events=[];game.resonanceOffset=((seed%5)+5)%5;game.mode='match';game.loadouts=swap?[...loadouts].reverse():[...loadouts];
+ const game=newGame({seed,starter});game.eventFieldsEnabled=eventFieldsEnabled;Object.assign(game,createTacticsLayout(seed,round));game.events=[];game.resonanceOffset=((seed%5)+5)%5;game.mode='match';game.loadouts=swap?[...loadouts].reverse():[...loadouts];
  game.players=loadouts.map((loadout,role)=>{let state=(seed*53+role*8017+111)>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;},side=swap?1-role:role;
   const cards=Array.from({length:9},(_,i)=>({id:['oracle','brain','trust'][i%3],uid:`demo-${side}-${i}`,origin:side}));
   for(const ability of LOADOUTS[loadout].abilities){const list=cards.filter(c=>ABILITY_FOR[c.id]===ability);list[Math.floor(random()*list.length)].ability=ability;}

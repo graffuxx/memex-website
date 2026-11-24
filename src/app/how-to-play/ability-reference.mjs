@@ -8,7 +8,7 @@ import {
 } from '../../../public/game/src/table-demo-rules.mjs';
 
 export const glossary = [
- {term:'Blockade',text:'The face-down card marks a blocked hex. Before playing a card, you can move the blockade to a free neighbouring hex once per round. It does not use up your card play.'},
+ {term:'Blockade',text:'The face-down card marks a blocked hex. It starts on a different hex each round and starts inside the board in the second round. Before playing a card, you can move the blockade to a free neighbouring hex once per round. It does not use up your card play.'},
  {term:'Shield',alias:'Schild',text:'A shield raises defence on a specific edge or prevents a capture if its conditions are met. Check the card’s ability for the amount and duration. Water’s Wave Shield gives one edge +2 through the opponent’s next move.'},
  {term:'Phase',text:'A stage of the older event-field system. Random event fields and their changing bonuses are currently disabled in Random, Private Duels and Deck Test. There is no Phase action to activate.'},
  {term:'Edge and base value',alias:'Kante und Grundwert',text:'An edge is one of the six numbered sides. The base value is the number printed on it. The value used in a capture can change through ability bonuses or penalties.'},
@@ -35,7 +35,7 @@ const explanations = {
  luxury:['First World Problem','Before playing, choose a 4 and a 2 on the card. One must face an enemy and the other a free hex.','The two edge values trade places and stay swapped.'],
  wander:['Wrong Turn','Choose an empty hex that touches no enemy. Before playing, you may choose a direction.','Confused Travolta rotates 60° left or right as it is played.'],
  sidestep:['Make Room','When playing Greg, choose an allied Regular next to him and a free hex adjacent to both cards.','That ally moves one hex without changing its facing. A card captured in this play cannot be moved.'],
- laugh:['Last Laugh','Play KEKW. The effect applies on the opponent’s next turn.','Equal numbered attacks fail even if the attacker has the stronger element. A higher number or S can still win.'],
+ laugh:['Last Laugh','Play KEKW to shield it from numeric ties for the opponent’s next turn.','4 vs 4 holds even against the stronger element. 5 vs 4 captures KEKW even with a weaker element. S beats a numbered edge.'],
  solitude:['All Alone','Keep Forever Alone without an adjacent allied card.','Its weakest open edge gains +1 defence while the condition holds.'],
  rainbow:['Second Rainbow','Score exactly one direct flip with Double Rainbow and have an eligible equal-value enemy edge.','It can capture one more card, taking the first unprotected numeric tie clockwise from the first capture.'],
  swipe:['Shield Swipe','Attack an enemy with a defence bonus that Steve can overcome by ignoring part of it.',`Steve ignores up to ${SWIPE_MAX_DEFENSE} points of ability defence on one edge if that earns a flip. S edges are exempt.`],

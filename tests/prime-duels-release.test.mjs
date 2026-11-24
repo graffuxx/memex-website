@@ -177,6 +177,8 @@ test('Concurrent opening choices, Prime abilities and Final Guard resolve throug
     await move(0,{kind:'ready'});
     const next=await move(1,{kind:'ready'});
     assert.equal(next.round,2);
+    assert.notEqual(next.game.block,started.game.block);
+    assert.equal((await poll(0)).game.block,next.game.block);
     assert.equal(next.game.starter,fixture.starter);
     assert.ok(next.game.finalGuard);
     assert.equal(next.game.last?.finalGuard,undefined);
@@ -214,6 +216,8 @@ test('Concurrent opening choices, Prime abilities and Final Guard resolve throug
     await move(0,{kind:'ready'},view);
     const next=await move(1,{kind:'ready'});
     assert.equal(next.round,2);
+    assert.notEqual(next.game.block,started.game.block);
+    assert.equal((await poll(0)).game.block,next.game.block);
     assert.equal(next.game.starter,fixture.starter);
     assert.ok(next.game.allPrimes);
    }
