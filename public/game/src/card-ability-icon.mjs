@@ -21,6 +21,8 @@ const symbols={
  decoy:{color:'#bdf1e4',path:'M3 12c4-7 14-7 18 0-4 7-14 7-18 0zm9-4v4l4 1m-4 3h.1'},
  chase:{color:'#ffb077',path:'M2 8h5m-4 8h5m0-4h13m-5-5 5 5-5 5'},
  cover:{color:'#e8d3a2',path:'M4 20V9l8-5 8 5v11M8 20v-7l4-3 4 3v7'},
+ objection:{color:'#ffab9f',path:'M12 3v11m0 4v.1M4 20 2 11 12 3l10 8-2 9z'},
+ thought:{color:'#cdbbff',path:'M4 7h15l-4-4m5 14H5l4 4M8 8c1 3 7 5 8 8M8 16c1-3 7-5 8-8'},
 };
 
 function iconPath(ability){

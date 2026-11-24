@@ -11,16 +11,19 @@ export function bindReleasedIconicControls(abilities,{english=false,onChange}){
  const bidLabel=document.createElement('label'),bid=document.createElement('select');
  bidLabel.append(english?'Spend blockade move':'Blockadezug einsetzen',bid);
  const directions=english?['E','SE','SW','W','NW','NE']:['Ost','Südost','Südwest','West','Nordwest','Nordost'];
- label.hidden=encoreLabel.hidden=bidLabel.hidden=true;
- abilities.append(label,encoreLabel,bidLabel);
- let cells=null,pivotDirection=0,bidDirection=null;
+ const thoughtLabel=document.createElement('label'),thought=document.createElement('select');
+ thoughtLabel.append(english?'Swap enemy cards':'Gegnerkarten tauschen',thought);
+ label.hidden=encoreLabel.hidden=bidLabel.hidden=thoughtLabel.hidden=true;
+ abilities.append(label,encoreLabel,bidLabel,thoughtLabel);
+ let cells=null,pivotDirection=0,bidDirection=null,swapCells=null;
+ thought.onchange=()=>{swapCells=thought.value?thought.value.split('|'):null;onChange();};
  bid.onchange=()=>{bidDirection=bid.value===''?null:Number(bid.value);onChange();};
  encore.onchange=()=>{pivotDirection=Number(encore.value);onChange();};
  select.onchange=()=>{cells=select.value?select.value.split('|'):null;onChange();};
  return {
-  clear(){cells=null;pivotDirection=0;bidDirection=null;},
-  set(action){cells=action.stepCells??null;pivotDirection=action.pivotDirection??0;bidDirection=action.bidDirection??null;},
-  action(){return {stepCells:cells,pivotDirection,bidDirection};},
+  clear(){cells=null;pivotDirection=0;bidDirection=null;swapCells=null;},
+  set(action){cells=action.stepCells??null;pivotDirection=action.pivotDirection??0;bidDirection=action.bidDirection??null;swapCells=action.swapCells??null;},
+  action(){return {stepCells:cells,pivotDirection,bidDirection,swapCells};},
   update(game,card,plan,busy){
    encoreLabel.hidden=card?.ability!=='encore';
    encore.disabled=busy||!plan?.pivotTarget;
@@ -31,6 +34,13 @@ export function bindReleasedIconicControls(abilities,{english=false,onChange}){
     bid.replaceChildren(new Option(english?'Keep blockade move':'Blockadezug behalten',''),...available.map(dir=>new Option(directions[dir]+' · +1',String(dir))));
     bid.value=bidDirection===null?'':String(bidDirection);
     bid.disabled=busy||!available.length;
+   }
+   thoughtLabel.hidden=card?.ability!=='thought';
+   if(!thoughtLabel.hidden){
+    const pairs=plan?.swaps??[];
+    thought.replaceChildren(new Option(english?'Keep positions':'Positionen behalten',''),...pairs.map(pair=>new Option(pair.map(id=>cardOf(game.board[id]).name+' · '+id).join(' ↔ '),pair.join('|'))));
+    thought.value=swapCells?.join('|')??'';
+    thought.disabled=busy||!pairs.length;
    }
    label.hidden=card?.ability!=='sidestep';
    if(label.hidden)return;

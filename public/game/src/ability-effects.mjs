@@ -1,4 +1,4 @@
-import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=no-escape-pair-release';
+import {abilityEdge,coverEdge,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=objection-pair-release';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -27,6 +27,8 @@ export function abilityMarkers(game,plan){
    }
 
    if(plan.bid!=null)markers.push({kind:'bid',cell:plan.cell,dir:plan.bid,preview:true,label:'+1'});
+   if(plan.objection)markers.push({kind:'objection',...plan.objection,preview:true,label:'!'});
+   if(plan.swapCells)for(const cell of plan.swapCells)markers.push({kind:'thought',cell,preview:true,label:'⇄'});
    if(plan.decoy)markers.push({kind:'decoy',...plan.decoy,preview:true,label:`−${plan.decoy.amount}`});
    if(plan.pursuit)markers.push({kind:'chase',...plan.pursuit,preview:true,label:'»'});
    for(const ward of plan.coverWards??[])markers.push({kind:'cover',...ward,preview:true,label:'+1'});
@@ -56,6 +58,8 @@ export function abilityBursts(game){
   const {ability,abilityEdge:edge}=last;
   const markers=(last.tieBlocks??[]).map(stop=>({kind:'laugh',...stop,label:'='}));
   if(last.relocation)markers.push({kind:'sidestep',cell:last.relocation.to,label:'↗'});
+  if(last.objection)markers.push({kind:'objection',...last.objection,label:'!'});
+  if(last.swapCells)for(const cell of last.swapCells)markers.push({kind:'thought',cell,label:'⇄'});
   if(last.decoy)markers.push({kind:'decoy',...last.decoy,label:`−${last.decoy.amount}`});
   if(last.pursuit)markers.push({kind:'chase',...last.pursuit,label:'»'});
   for(const ward of last.coverWards??[])markers.push({kind:'cover',...ward,label:'+1'});

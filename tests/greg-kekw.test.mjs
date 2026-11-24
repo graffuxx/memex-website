@@ -77,9 +77,9 @@ for(const seat of [0,1]){
 
 
 test('New private duels start the latest ability wave and older games retain their original wave',()=>{
- const deck=[...starterDeck().slice(0,4),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','take-my-money:rare','is-this-a-pigeon:common','why-are-you-running:rare','overly-manly-man:common','evil-ernie:rare'];
+ const deck=[...starterDeck().slice(0,2),'good-guy-greg:epic','kekw:mythic','forever-alone:common','double-rainbow:rare','scumbag-steve:rare','epic-sax-guy:common','take-my-money:rare','is-this-a-pigeon:common','why-are-you-running:rare','overly-manly-man:common','no-god-please-no:rare','philosoraptor:common','evil-ernie:rare'];
  const decks=[{cards:deck},{cards:deck}];
- for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:5},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:4},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
+ for(const flags of [{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:6},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:5},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:4},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:3},{elementalTrial:true,iconicAbilities:true,iconicAbilityWave:2},{elementalTrial:true,iconicAbilities:true},{elementalTrial:true},{}]){
   let state=createPvp90(decks,9,1,flags);
   state=advancePvp90(state,0,{kind:'gesture',value:'rock'},2);
   state=advancePvp90(state,1,{kind:'gesture',value:'scissors'},3);
@@ -94,8 +94,10 @@ test('New private duels start the latest ability wave and older games retain the
    assert.equal(assigned.find(c=>c.variantId==='epic-sax-guy:common').ability,flags.iconicAbilityWave>=3?'encore':undefined);
    assert.equal(assigned.find(c=>c.variantId==='take-my-money:rare').ability,flags.iconicAbilityWave>=4?'bid':undefined);
    assert.equal(assigned.find(c=>c.variantId==='is-this-a-pigeon:common').ability,flags.iconicAbilityWave>=4?'decoy':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='why-are-you-running:rare').ability,flags.iconicAbilityWave===5?'chase':undefined);
-   assert.equal(assigned.find(c=>c.variantId==='overly-manly-man:common').ability,flags.iconicAbilityWave===5?'cover':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='why-are-you-running:rare').ability,flags.iconicAbilityWave>=5?'chase':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='overly-manly-man:common').ability,flags.iconicAbilityWave>=5?'cover':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='no-god-please-no:rare').ability,flags.iconicAbilityWave===6?'objection':undefined);
+   assert.equal(assigned.find(c=>c.variantId==='philosoraptor:common').ability,flags.iconicAbilityWave===6?'thought':undefined);
    assert.equal(assigned.find(c=>c.variantId==='evil-ernie:rare').ability,undefined);
   }
  }
@@ -322,5 +324,67 @@ for(const seat of [0,1]){
   const state={...createPvp90([{cards:starterDeck()},{cards:starterDeck()}],7),game:next};
   const guest=projectPvp90({id:'trial',kind:'private',host_id:'host',guest_id:'guest',identities:[{},{}],state},'guest');
   assert.equal(guest.game.board['1,0'].coverWard.owner,other);
+ });
+}
+for(const seat of [0,1]){
+ test(`Einspruch stops one close direct flip in a multi-capture once per round for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat;
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  const rainbow=makeCard('double-rainbow:common',seat,'rainbow');
+  const ernie=makeCard('evil-ernie:common',seat,'ernie');
+  const objector={...makeCard('no-god-please-no:common',other,'objection'),controller:other,rotation:0};
+  const defender=id=>({...makeCard(id+':common',other),controller:other,rotation:0});
+  game.players[seat].hand=[rainbow,ernie];
+  game.board={'1,0':objector,'-1,0':defender('capybara-chill')};
+  const action={uid:rainbow.uid,cell:'0,0'};
+  const plan=previewEffect(game,action);
+  assert.deepEqual(plan.flips,['-1,0']);
+  assert.deepEqual(plan.objection,{cell:'1,0',dir:3});
+  assert.deepEqual(plan.comparisons.map(c=>[c.attack.total,c.defend.total]),[[8,7],[4,3]]);
+  assert.equal(game.board['1,0'].objectionSpent,undefined);
+  assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='objection'&&m.cell==='1,0'));
+  const next=placeEffect(game,action);
+  assert.equal(next.board['1,0'].controller,other);
+  assert.equal(next.board['1,0'].objectionSpent,true);
+  assert.ok(abilityBursts(next).some(m=>m.kind==='objection'&&m.cell==='1,0'));
+  game.board['1,0'].objectionSpent=true;
+  assert.deepEqual(previewEffect(game,action).flips,['1,0','-1,0']);
+  game.board['1,0'].objectionSpent=false;
+  game.board['1,0'].rotation=1;
+  assert.equal(previewEffect(game,action).objection,null);
+  game.board['1,0'].rotation=0;
+  game.board['-1,0']=defender('nyan-cat');
+  assert.deepEqual(previewEffect(game,{...action,uid:ernie.uid}).flips,['1,0','-1,0']);
+  delete game.board['-1,0'];
+  assert.deepEqual(previewEffect(game,action).flips,['1,0']);
+ });
+
+ test(`Gedankenexperiment swaps only two unflipped enemy Regulars and keeps orientation for starter ${seat}`,()=>{
+  const game=trial(),other=1-seat,thinker=makeCard('philosoraptor:common',seat,'thought');
+  Object.assign(game,{turn:seat,starter:seat,elementalTrial:true,elementRules:5});
+  game.players[seat].hand=[thinker];
+  const enemy=(id,extras={})=>({...makeCard(id+':common',other),controller:other,rotation:0,...extras});
+  const first=enemy('nyan-cat',{rotation:2}),second=enemy('side-eye');
+  game.board={'1,0':first,'0,1':second,'-1,0':enemy('capybara-chill')};
+  const action={uid:thinker.uid,cell:'0,0'};
+  const before=structuredClone(game);
+  const choice={...action,swapCells:['1,0','0,1']};
+  const plan=previewEffect(game,choice);
+  assert.deepEqual(plan.swaps,[['0,1','1,0']]);
+  assert.deepEqual(plan.flips,['-1,0']);
+  assert.deepEqual(game,before);
+  assert.ok(abilityMarkers(game,plan).some(m=>m.kind==='thought'&&m.cell==='1,0'));
+  const after=placeEffect(game,choice);
+  assert.deepEqual(after.board['0,1'],first);
+  assert.deepEqual(after.board['1,0'],second);
+  assert.equal(after.board['-1,0'].controller,seat);
+  assert.ok(legalCandidates(game).some(({action:a})=>a.cell==='0,0'&&a.swapCells));
+  assert.throws(()=>previewEffect(game,{...action,swapCells:['1,0','-1,0']}),/Kartentausch/);
+  game.board['1,0']=enemy('kekw');
+  assert.deepEqual(previewEffect(game,action).swaps,[]);
+  game.board['0,2']=enemy('doge');
+  const follow=placeEffect(game,{...action,swapCells:['0,1','0,2']});
+  assert.equal(follow.board['0,2'].uid,second.uid);
+  assert.equal(follow.board['0,1'].variantId,'doge:common');
  });
 }

@@ -25,3 +25,5 @@
 .ability-effects g[data-ability=decoy]{--ability-color:#bdf1e4;--ability-glow:#5bccbb}
 .ability-effects g[data-ability=chase]{--ability-color:#ffbd80;--ability-glow:#ff7040}
 .ability-effects g[data-ability=cover]{--ability-color:#eddbac;--ability-glow:#ba905b}
+.ability-effects g[data-ability=objection]{--ability-color:#ffb2a6;--ability-glow:#ed645d}
+.ability-effects g[data-ability=thought]{--ability-color:#d8c7ff;--ability-glow:#9b75e2}

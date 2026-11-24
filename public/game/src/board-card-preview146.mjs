@@ -3,12 +3,12 @@ import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=no-escape-pair-release';
+import {ABILITIES,abilityDescription} from './table-demo-rules.mjs?v=objection-pair-release';
 import {cardAbilityIconMarkup} from './card-ability-icon.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=tie-break-63';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {fieldFeedback129} from './field-feedback129.mjs?v=no-escape-pair-release';
+import {fieldFeedback129} from './field-feedback129.mjs?v=objection-pair-release';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -26,7 +26,7 @@ export function boardPreviewFace146(game,cell){
  if(!variant||!rules)return null;
  const definition=definitions.get(variant.definitionId),feedback=fieldFeedback129(game,card,cell);
  const ability=ABILITIES[card.ability];
- return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
+ return {card,variant,rules,definition,feedback,ability:ability?{name:ability.name,description:abilityDescription(game,card.ability)+(card.objectionSpent?' · Einspruch verbraucht.':'')}:null,values:feedback.bonuses.map((bonus,side)=>sideValue(card,side)+bonus)};
 }
 
 export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChange=()=>{}}){

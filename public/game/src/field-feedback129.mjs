@@ -1,4 +1,4 @@
-import {eventFieldAt,abilityEdge,coverEdge} from './table-demo-rules.mjs?v=no-escape-pair-release';
+import {eventFieldAt,abilityEdge,coverEdge} from './table-demo-rules.mjs?v=objection-pair-release';
 import {cardOf,sideValue} from './rules.mjs';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);

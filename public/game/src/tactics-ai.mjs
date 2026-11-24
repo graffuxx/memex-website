@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {freeCells,neighbors,sideValue} from './rules.mjs?v=tie-break-63';
-import * as currentRules from './table-demo-rules.mjs?v=no-escape-pair-release';
+import * as currentRules from './table-demo-rules.mjs?v=objection-pair-release';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -38,6 +38,14 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
    twistSafety+=(Math.min(7,sideValue(rotated,dir))-Math.min(7,sideValue(plan.card,dir)))*.18;
   }
  }
+ if(plan.swapCells){
+  const [first,second]=plan.swapCells;
+  const edgeChange=(cell,from,to)=>neighbors(cell).reduce((value,{id,dir})=>{
+   if(id===action.cell||id===game.block||game.board[id])return value;
+   return value+(Math.min(7,sideValue(to,dir))-Math.min(7,sideValue(from,dir)))*.18;
+  },0);
+  twistSafety-=edgeChange(first,plan.board[first],plan.board[second])+edgeChange(second,plan.board[second],plan.board[first]);
+ }
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
  return plan.flips.length*((weights.capture??2)+closing)-(plan.bid!=null?.12:0)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+(plan.coverWards?.length??0)*.12;
@@ -53,6 +61,11 @@ export function replyRisk(game,{action,plan},rules=currentRules){
  }
  if(plan.pivot)board[plan.pivot.cell]={...board[plan.pivot.cell],rotation:plan.pivot.to};
  for(const {cell,dir} of plan.coverWards??[])board[cell]={...board[cell],coverWard:{dir,owner:game.turn,until:game.placements+2}};
+ if(plan.swapCells){
+  const [first,second]=plan.swapCells;
+  [board[first],board[second]]=[board[second],board[first]];
+ }
+ if(plan.objection)board[plan.objection.cell]={...board[plan.objection.cell],objectionSpent:true};
  const future={...game,board,placements:game.placements+1,turn:1-game.turn};
  if(future.placements>=18)return 0;
  // Let the authoritative field resolver advance before examining the next move.
@@ -60,8 +73,15 @@ export function replyRisk(game,{action,plan},rules=currentRules){
  let worst=0;
  for(const cell of freeCells(future)){const enemies=neighbors(cell).filter(n=>board[n.id]?.controller===game.turn);if(!enemies.length)continue;
   for(const id of ARCHETYPES)for(const element of game.elementRules===5?ELEMENT_IDS:[undefined])for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5]){
-   const card={id,element,rotation,controller:future.turn};if(future.elementalTrial)card.ability=rules.standardAbility?.(card);let flips=0;
-   for(const n of enemies){const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);if((rules.effectAttackWins??attackWins)(a,d,future.elementRules??3))flips++;}worst=Math.max(worst,flips);
+   const card={id,element,rotation,controller:future.turn};if(future.elementalTrial)card.ability=rules.standardAbility?.(card);
+   let flips=0,objection=false;
+   for(const n of enemies){
+    const other=board[n.id],a=rules.effectStrength(future,card,cell,n.dir,other,{attacking:true}),d=rules.effectStrength(future,other,n.id,(n.dir+3)%6,card);
+    if(!(rules.effectAttackWins??attackWins)(a,d,future.elementRules??3))continue;
+    flips++;
+    objection||=Boolean(rules.canObject?.(future,other,n.id,a,d));
+   }
+   worst=Math.max(worst,flips>1&&objection?flips-1:flips);
   }
  }return worst;
 }

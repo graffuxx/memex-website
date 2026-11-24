@@ -2811,7 +2811,7 @@ function sideValue(card, dir, rotation = card.rotation ?? 0) {
   return cardOf(card).values[((dir - rotation) % 6 + 6) % 6];
 }
 
-// public/game/src/rules.mjs?v=no-escape-pair-release
+// public/game/src/rules.mjs?v=objection-pair-release
 var ELEMENTS5 = { ...ELEMENTS, stone: ELEMENTS.earth };
 var DIRECTIONS3 = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
 var CATALOG3 = Object.freeze(DEFINITIONS.map((c) => Object.freeze({ ...c, id: c.ruleId, face: { pepe: "hood", doge: "cat", "roll-safe": "frog" }[c.id] ?? "robot" })));
@@ -2872,6 +2872,7 @@ var STORM_MAX_EDGE = 3;
 var SWIPE_MAX_DEFENSE = 2;
 var PIGEON_MAX_REDUCTION = 2;
 var CHASE_PENALTY = 2;
+var OBJECTION_MAX_MARGIN = 2;
 var ABILITIES = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
   guard: { name: "Feels Bad", short: "S", description: "Eine Seite erh\xE4lt +2 Verteidigung bis zum n\xE4chsten eigenen Karten-Zug." },
@@ -2890,7 +2891,9 @@ var ABILITIES = {
   bid: { name: "Iconic \xB7 Nachschlag", short: "+1", description: "Wenn du zur\xFCckliegst, kannst du deinen ungenutzten Blockadezug f\xFCr +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen." },
   decoy: { name: "Iconic \xB7 Falsche Kante", short: "\u25C7", description: `Pigeon verwechselt eine gegnerische Kante mit ihrer schw\xE4cheren Nachbarkante. Das senkt den Grundwert f\xFCr diesen Angriff um h\xF6chstens ${PIGEON_MAX_REDUCTION}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn z\xE4hlt. Schutzboni und S-Kanten gelten weiterhin.` },
   chase: { name: "Iconic \xB7 Kein Entkommen", short: "\xBB", description: `Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY} Angriffspunkte. H\xF6chstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.` },
-  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." }
+  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
+  objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
+  thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." }
 };
 var LOADOUTS = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -2899,7 +2902,7 @@ var LOADOUTS = {
 };
 var ABILITY_FOR = { brain: "hype", oracle: "guard", trust: "twist" };
 
-// public/game/src/table-demo-rules.mjs?v=no-escape-pair-release
+// public/game/src/table-demo-rules.mjs?v=objection-pair-release
 var table_demo_rules_exports = {};
 __export(table_demo_rules_exports, {
   ABILITIES: () => ABILITIES2,
@@ -2909,6 +2912,7 @@ __export(table_demo_rules_exports, {
   FIELD_TYPES: () => FIELD_TYPES,
   GUARD_BONUS: () => GUARD_BONUS,
   LOADOUTS: () => LOADOUTS2,
+  OBJECTION_MAX_MARGIN: () => OBJECTION_MAX_MARGIN2,
   PIGEON_MAX_REDUCTION: () => PIGEON_MAX_REDUCTION2,
   STORM_MAX_EDGE: () => STORM_MAX_EDGE2,
   SWIPE_MAX_DEFENSE: () => SWIPE_MAX_DEFENSE2,
@@ -2919,6 +2923,7 @@ __export(table_demo_rules_exports, {
   abilityEdge: () => abilityEdge,
   actionOptions: () => actionOptions,
   aimsAbility: () => aimsAbility,
+  canObject: () => canObject,
   coverEdge: () => coverEdge,
   effectAttackWins: () => effectAttackWins,
   effectStrength: () => effectStrength,
@@ -2945,6 +2950,7 @@ var STORM_MAX_EDGE2 = 3;
 var SWIPE_MAX_DEFENSE2 = 2;
 var PIGEON_MAX_REDUCTION2 = 2;
 var CHASE_PENALTY2 = 2;
+var OBJECTION_MAX_MARGIN2 = 2;
 var guardBonus = (game) => game.abilityTrial ? 1 : GUARD_BONUS;
 var ABILITIES2 = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
@@ -2964,7 +2970,9 @@ var ABILITIES2 = {
   bid: { name: "Iconic \xB7 Nachschlag", short: "+1", description: "Wenn du zur\xFCckliegst, kannst du deinen ungenutzten Blockadezug f\xFCr +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen." },
   decoy: { name: "Iconic \xB7 Falsche Kante", short: "\u25C7", description: `Pigeon verwechselt eine gegnerische Kante mit ihrer schw\xE4cheren Nachbarkante. Das senkt den Grundwert f\xFCr diesen Angriff um h\xF6chstens ${PIGEON_MAX_REDUCTION2}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn z\xE4hlt. Schutzboni und S-Kanten gelten weiterhin.` },
   chase: { name: "Iconic \xB7 Kein Entkommen", short: "\xBB", description: `Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY2} Angriffspunkte. H\xF6chstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.` },
-  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." }
+  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
+  objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN2} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
+  thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." }
 };
 var LOADOUTS2 = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -2989,7 +2997,9 @@ var RELEASED_ICONICS = {
   "iconic-take-my-money": [4, "bid"],
   "iconic-is-this-a-pigeon": [4, "decoy"],
   "iconic-why-are-you-running": [5, "chase"],
-  "iconic-overly-manly-man": [5, "cover"]
+  "iconic-overly-manly-man": [5, "cover"],
+  "iconic-no-god-please-no": [6, "objection"],
+  "iconic-philosoraptor": [6, "thought"]
 };
 function releasedIconicAbility(card, wave = 1) {
   const entry = RELEASED_ICONICS[cardOf2(card)?.id];
@@ -3042,6 +3052,22 @@ function guardActive(game, card, cell) {
 function twistTargets(game, cell, ability = "twist") {
   return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
 }
+function thoughtTargets(game, cell, flips) {
+  const eligible = (id) => {
+    const card = game.board[id];
+    return card && card.controller !== game.turn && standardAbility(card) && !flips.includes(id);
+  };
+  const touching = neighbors3(cell).map((n) => n.id).filter(eligible), pairs = /* @__PURE__ */ new Map();
+  for (const first of touching) {
+    const candidates = /* @__PURE__ */ new Set([...touching, ...neighbors3(first).map((n) => n.id)]);
+    for (const second of candidates) {
+      if (first === second || !eligible(second)) continue;
+      const pair = [first, second].sort();
+      pairs.set(pair.join("|"), pair);
+    }
+  }
+  return [...pairs.values()];
+}
 function sidestepTargets(game, cell) {
   const ring = neighbors3(cell).map((n) => n.id), empty = new Set(ring.filter((id) => id !== game.block && !game.board[id]));
   return ring.filter((id) => {
@@ -3057,6 +3083,9 @@ function stopsElementTie(attack, defend) {
 }
 function effectAttackWins(attack, defend, elementRules) {
   return !stopsElementTie(attack, defend) && attackWins(attack, defend, elementRules);
+}
+function canObject(game, card, cell, attack, defend) {
+  return abilityAt(game, card, cell) === "objection" && !card.objectionSpent && attack.rank !== "S" && defend.rank !== "S" && attack.total - defend.total <= OBJECTION_MAX_MARGIN2;
 }
 function weakestEdge(card, edges) {
   return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
@@ -3110,7 +3139,7 @@ function effectStrength(game, card, cell, dir, opponent, { attacking = false, ab
   };
 }
 function previewEffect(game, action) {
-  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null, pivotDirection = 0, bidDirection = null } = action;
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null, pivotDirection = 0, bidDirection = null, swapCells = null } = action;
   if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
   preview(game, { uid, cell, rotation });
   if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
@@ -3145,8 +3174,15 @@ function previewEffect(game, action) {
     const tieProtected = !setup && stopsElementTie(attack, defend) && attackWins(attack, defend, elementRules);
     return { cell: n.id, dir: n.dir, attack, defend, setup, flip: !setup && effectAttackWins(attack, defend, elementRules), name: cardOf2(other).name, ...tieProtected ? { tieProtected: true } : {} };
   });
+  const directWins = comparisons.filter((c) => c.flip);
+  const blocked = directWins.length >= 2 ? directWins.find((c) => canObject(working, working.board[c.cell], c.cell, c.attack, c.defend)) : null;
+  const objection = blocked ? { cell: blocked.cell, dir: (blocked.dir + 3) % 6 } : null;
+  if (blocked) {
+    blocked.flip = false;
+    blocked.objection = true;
+  }
   const currentScores = ability === "bid" ? scores2(game) : null;
-  const bids = currentScores && currentScores[game.turn] < currentScores[1 - game.turn] && game.players[game.turn].shifts > 0 ? comparisons.filter((c) => !c.flip && !c.setup && c.attack.rank !== "S" && effectAttackWins({ ...c.attack, total: c.attack.total + 1 }, c.defend, game.elementRules ?? 3)) : [];
+  const bids = currentScores && currentScores[game.turn] < currentScores[1 - game.turn] && game.players[game.turn].shifts > 0 ? comparisons.filter((c) => !c.flip && !c.setup && !c.objection && c.attack.rank !== "S" && effectAttackWins({ ...c.attack, total: c.attack.total + 1 }, c.defend, game.elementRules ?? 3)) : [];
   const bid = bidDirection === null ? null : bids.find((c) => c.dir === bidDirection);
   if (bidDirection !== null && !bid) throw Error("Kein g\xFCltiger Nachschlag.");
   if (bid) {
@@ -3159,7 +3195,7 @@ function previewEffect(game, action) {
   if (ability === "decoy") {
     for (const comparison of comparisons) {
       const { attack, defend, dir, cell: enemyCell } = comparison;
-      if (comparison.flip || comparison.setup || defend.rank === "S") continue;
+      if (comparison.flip || comparison.setup || comparison.objection || defend.rank === "S") continue;
       const target = working.board[enemyCell];
       const edge = (dir + 3) % 6;
       const adjacent = [(edge + 1) % 6, (edge + 5) % 6];
@@ -3180,7 +3216,7 @@ function previewEffect(game, action) {
   if (ability === "swipe") {
     for (const comparison of comparisons) {
       const { attack, defend } = comparison;
-      if (comparison.flip || comparison.setup || defend.ability < 1 || defend.rank === "S") continue;
+      if (comparison.flip || comparison.setup || comparison.objection || defend.ability < 1 || defend.rank === "S") continue;
       const amount = Math.min(defend.ability, SWIPE_MAX_DEFENSE2);
       const weaker = { ...defend, total: defend.total - amount, ability: defend.ability - amount };
       if (!effectAttackWins(attack, weaker, game.elementRules ?? 3)) continue;
@@ -3196,7 +3232,7 @@ function previewEffect(game, action) {
     const initialFlips = comparisons.filter((c) => c.flip);
     if (initialFlips.length === 1) {
       const firstDir = initialFlips[0].dir;
-      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
+      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
       if (tied) {
         tied.flip = true;
         tied.rainbow = true;
@@ -3225,6 +3261,8 @@ function previewEffect(game, action) {
   const pivotTarget = ability === "encore" && flips.length === 1 ? cell : null;
   if (![-1, 0, 1].includes(pivotDirection) || pivotDirection !== 0 && !pivotTarget) throw Error("Keine Karte f\xFCr die Drehung erobert.");
   const pivot = pivotDirection ? { cell, uid, from: rotation, to: (rotation + pivotDirection + 6) % 6 } : null;
+  const swaps = ability === "thought" ? thoughtTargets(working, cell, flips) : [];
+  if (swapCells !== null && (!Array.isArray(swapCells) || swapCells.length !== 2 || !swaps.some((pair) => pair.every((id) => swapCells.includes(id))))) throw Error("Kein g\xFCltiger Kartentausch.");
   const steps = ability === "sidestep" ? sidestepTargets(working, cell) : [];
   if (stepCells !== null && (!Array.isArray(stepCells) || stepCells.length !== 2 || !steps.some(([from, to]) => from === stepCells[0] && to === stepCells[1]))) throw Error("Kein g\xFCltiges Ziel f\xFCr Platz machen.");
   const relocation = stepCells === null ? null : { from: stepCells[0], to: stepCells[1], uid: working.board[stepCells[0]].uid };
@@ -3234,7 +3272,7 @@ function previewEffect(game, action) {
     const edge = weakestEdge(ally, neighbors3(id).filter((n) => n.id !== cell && n.id !== working.block && !working.board[n.id]));
     return edge ? [{ cell: id, dir: edge.dir }] : [];
   }).slice(0, 2) : [];
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 function placeEffect(game, action) {
   const p = previewEffect(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3242,6 +3280,7 @@ function placeEffect(game, action) {
   player.hand = player.hand.filter((c) => c.uid !== action.uid);
   if (player.deck.length) player.hand.push(player.deck.shift());
   next.board[action.cell] = { ...p.card, flips: p.flips.length };
+  if (p.objection) next.board[p.objection.cell].objectionSpent = true;
   for (const cell of p.flips) {
     const c = next.board[cell];
     c.controller = side;
@@ -3253,6 +3292,10 @@ function placeEffect(game, action) {
     delete c.coverWard;
   }
   for (const { cell, dir } of p.coverWards) next.board[cell].coverWard = { dir, owner: side, until: game.placements + 2 };
+  if (p.swapCells) {
+    const [first, second] = p.swapCells;
+    [next.board[first], next.board[second]] = [next.board[second], next.board[first]];
+  }
   if (p.relocation) {
     const { from, to } = p.relocation;
     next.board[to] = next.board[from];
@@ -3268,6 +3311,8 @@ function placeEffect(game, action) {
   if (p.bid !== null) next.last.bid = p.bid;
   if (p.decoy) next.last.decoy = p.decoy;
   if (p.pursuit) next.last.pursuit = p.pursuit;
+  if (p.objection) next.last.objection = p.objection;
+  if (p.swapCells) next.last.swapCells = p.swapCells;
   if (p.coverWards.length) next.last.coverWards = p.coverWards;
   if (p.pivot) {
     next.board[action.cell].rotation = p.pivot.to;
@@ -3304,10 +3349,14 @@ function actionOptions(game, card, cell, rotation) {
     const action = { uid: card.uid, cell, rotation, abilityDirection: 0 };
     return [action, ...previewEffect(game, action).bidTargets.map((bidDirection) => ({ ...action, bidDirection }))];
   }
+  if (ability === "thought") {
+    const action = { uid: card.uid, cell, rotation, abilityDirection: 0 };
+    return [action, ...previewEffect(game, action).swaps.map((swapCells) => ({ ...action, swapCells }))];
+  }
   return directions.flatMap((abilityDirection) => targets.map((twistCell) => ({ uid: card.uid, cell, rotation, abilityDirection, twistCell })));
 }
 
-// public/game/src/tactics-ai.mjs?v=no-escape-pair-release
+// public/game/src/tactics-ai.mjs?v=objection-pair-release
 var ARCHETYPES = [...new Map(DEFINITIONS.map((c) => [c.values.join(","), c.ruleId])).values()];
 
 // public/game/src/table-demo-state.mjs
@@ -3430,6 +3479,7 @@ var STORM_MAX_EDGE3 = 3;
 var SWIPE_MAX_DEFENSE3 = 2;
 var PIGEON_MAX_REDUCTION3 = 2;
 var CHASE_PENALTY3 = 2;
+var OBJECTION_MAX_MARGIN3 = 2;
 var guardBonus2 = (game) => game.abilityTrial ? 1 : GUARD_BONUS2;
 var ABILITIES3 = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
@@ -3449,7 +3499,9 @@ var ABILITIES3 = {
   bid: { name: "Iconic \xB7 Nachschlag", short: "+1", description: "Wenn du zur\xFCckliegst, kannst du deinen ungenutzten Blockadezug f\xFCr +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen." },
   decoy: { name: "Iconic \xB7 Falsche Kante", short: "\u25C7", description: `Pigeon verwechselt eine gegnerische Kante mit ihrer schw\xE4cheren Nachbarkante. Das senkt den Grundwert f\xFCr diesen Angriff um h\xF6chstens ${PIGEON_MAX_REDUCTION3}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn z\xE4hlt. Schutzboni und S-Kanten gelten weiterhin.` },
   chase: { name: "Iconic \xB7 Kein Entkommen", short: "\xBB", description: `Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY3} Angriffspunkte. H\xF6chstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.` },
-  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." }
+  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
+  objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN3} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
+  thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." }
 };
 var LOADOUTS3 = {
   "hype-guard": { name: "Doge + Pepe", abilities: ["hype", "guard"] },
@@ -3490,6 +3542,22 @@ function guardActive2(game, card, cell) {
 function twistTargets2(game, cell, ability = "twist") {
   return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
 }
+function thoughtTargets2(game, cell, flips) {
+  const eligible = (id) => {
+    const card = game.board[id];
+    return card && card.controller !== game.turn && standardAbility2(card) && !flips.includes(id);
+  };
+  const touching = neighbors3(cell).map((n) => n.id).filter(eligible), pairs = /* @__PURE__ */ new Map();
+  for (const first of touching) {
+    const candidates = /* @__PURE__ */ new Set([...touching, ...neighbors3(first).map((n) => n.id)]);
+    for (const second of candidates) {
+      if (first === second || !eligible(second)) continue;
+      const pair = [first, second].sort();
+      pairs.set(pair.join("|"), pair);
+    }
+  }
+  return [...pairs.values()];
+}
 function sidestepTargets2(game, cell) {
   const ring = neighbors3(cell).map((n) => n.id), empty = new Set(ring.filter((id) => id !== game.block && !game.board[id]));
   return ring.filter((id) => {
@@ -3505,6 +3573,9 @@ function stopsElementTie2(attack, defend) {
 }
 function effectAttackWins2(attack, defend, elementRules) {
   return !stopsElementTie2(attack, defend) && attackWins(attack, defend, elementRules);
+}
+function canObject2(game, card, cell, attack, defend) {
+  return abilityAt2(game, card, cell) === "objection" && !card.objectionSpent && attack.rank !== "S" && defend.rank !== "S" && attack.total - defend.total <= OBJECTION_MAX_MARGIN3;
 }
 function weakestEdge2(card, edges) {
   return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
@@ -3558,7 +3629,7 @@ function effectStrength2(game, card, cell, dir, opponent, { attacking = false, a
   };
 }
 function previewEffect2(game, action) {
-  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null, pivotDirection = 0, bidDirection = null } = action;
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null, pivotDirection = 0, bidDirection = null, swapCells = null } = action;
   if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
   preview(game, { uid, cell, rotation });
   if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
@@ -3593,8 +3664,15 @@ function previewEffect2(game, action) {
     const tieProtected = !setup && stopsElementTie2(attack, defend) && attackWins(attack, defend, elementRules);
     return { cell: n.id, dir: n.dir, attack, defend, setup, flip: !setup && effectAttackWins2(attack, defend, elementRules), name: cardOf2(other).name, ...tieProtected ? { tieProtected: true } : {} };
   });
+  const directWins = comparisons.filter((c) => c.flip);
+  const blocked = directWins.length >= 2 ? directWins.find((c) => canObject2(working, working.board[c.cell], c.cell, c.attack, c.defend)) : null;
+  const objection = blocked ? { cell: blocked.cell, dir: (blocked.dir + 3) % 6 } : null;
+  if (blocked) {
+    blocked.flip = false;
+    blocked.objection = true;
+  }
   const currentScores = ability === "bid" ? scores2(game) : null;
-  const bids = currentScores && currentScores[game.turn] < currentScores[1 - game.turn] && game.players[game.turn].shifts > 0 ? comparisons.filter((c) => !c.flip && !c.setup && c.attack.rank !== "S" && effectAttackWins2({ ...c.attack, total: c.attack.total + 1 }, c.defend, game.elementRules ?? 3)) : [];
+  const bids = currentScores && currentScores[game.turn] < currentScores[1 - game.turn] && game.players[game.turn].shifts > 0 ? comparisons.filter((c) => !c.flip && !c.setup && !c.objection && c.attack.rank !== "S" && effectAttackWins2({ ...c.attack, total: c.attack.total + 1 }, c.defend, game.elementRules ?? 3)) : [];
   const bid = bidDirection === null ? null : bids.find((c) => c.dir === bidDirection);
   if (bidDirection !== null && !bid) throw Error("Kein g\xFCltiger Nachschlag.");
   if (bid) {
@@ -3607,7 +3685,7 @@ function previewEffect2(game, action) {
   if (ability === "decoy") {
     for (const comparison of comparisons) {
       const { attack, defend, dir, cell: enemyCell } = comparison;
-      if (comparison.flip || comparison.setup || defend.rank === "S") continue;
+      if (comparison.flip || comparison.setup || comparison.objection || defend.rank === "S") continue;
       const target = working.board[enemyCell];
       const edge = (dir + 3) % 6;
       const adjacent = [(edge + 1) % 6, (edge + 5) % 6];
@@ -3628,7 +3706,7 @@ function previewEffect2(game, action) {
   if (ability === "swipe") {
     for (const comparison of comparisons) {
       const { attack, defend } = comparison;
-      if (comparison.flip || comparison.setup || defend.ability < 1 || defend.rank === "S") continue;
+      if (comparison.flip || comparison.setup || comparison.objection || defend.ability < 1 || defend.rank === "S") continue;
       const amount = Math.min(defend.ability, SWIPE_MAX_DEFENSE3);
       const weaker = { ...defend, total: defend.total - amount, ability: defend.ability - amount };
       if (!effectAttackWins2(attack, weaker, game.elementRules ?? 3)) continue;
@@ -3644,7 +3722,7 @@ function previewEffect2(game, action) {
     const initialFlips = comparisons.filter((c) => c.flip);
     if (initialFlips.length === 1) {
       const firstDir = initialFlips[0].dir;
-      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
+      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
       if (tied) {
         tied.flip = true;
         tied.rainbow = true;
@@ -3673,6 +3751,8 @@ function previewEffect2(game, action) {
   const pivotTarget = ability === "encore" && flips.length === 1 ? cell : null;
   if (![-1, 0, 1].includes(pivotDirection) || pivotDirection !== 0 && !pivotTarget) throw Error("Keine Karte f\xFCr die Drehung erobert.");
   const pivot = pivotDirection ? { cell, uid, from: rotation, to: (rotation + pivotDirection + 6) % 6 } : null;
+  const swaps = ability === "thought" ? thoughtTargets2(working, cell, flips) : [];
+  if (swapCells !== null && (!Array.isArray(swapCells) || swapCells.length !== 2 || !swaps.some((pair) => pair.every((id) => swapCells.includes(id))))) throw Error("Kein g\xFCltiger Kartentausch.");
   const steps = ability === "sidestep" ? sidestepTargets2(working, cell) : [];
   if (stepCells !== null && (!Array.isArray(stepCells) || stepCells.length !== 2 || !steps.some(([from, to]) => from === stepCells[0] && to === stepCells[1]))) throw Error("Kein g\xFCltiges Ziel f\xFCr Platz machen.");
   const relocation = stepCells === null ? null : { from: stepCells[0], to: stepCells[1], uid: working.board[stepCells[0]].uid };
@@ -3682,7 +3762,7 @@ function previewEffect2(game, action) {
     const edge = weakestEdge2(ally, neighbors3(id).filter((n) => n.id !== cell && n.id !== working.block && !working.board[n.id]));
     return edge ? [{ cell: id, dir: edge.dir }] : [];
   }).slice(0, 2) : [];
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 function placeEffect2(game, action) {
   const p = previewEffect2(game, action), next = structuredClone(game), side = game.turn, player = next.players[side];
@@ -3690,6 +3770,7 @@ function placeEffect2(game, action) {
   player.hand = player.hand.filter((c) => c.uid !== action.uid);
   if (player.deck.length) player.hand.push(player.deck.shift());
   next.board[action.cell] = { ...p.card, flips: p.flips.length };
+  if (p.objection) next.board[p.objection.cell].objectionSpent = true;
   for (const cell of p.flips) {
     const c = next.board[cell];
     c.controller = side;
@@ -3701,6 +3782,10 @@ function placeEffect2(game, action) {
     delete c.coverWard;
   }
   for (const { cell, dir } of p.coverWards) next.board[cell].coverWard = { dir, owner: side, until: game.placements + 2 };
+  if (p.swapCells) {
+    const [first, second] = p.swapCells;
+    [next.board[first], next.board[second]] = [next.board[second], next.board[first]];
+  }
   if (p.relocation) {
     const { from, to } = p.relocation;
     next.board[to] = next.board[from];
@@ -3716,6 +3801,8 @@ function placeEffect2(game, action) {
   if (p.bid !== null) next.last.bid = p.bid;
   if (p.decoy) next.last.decoy = p.decoy;
   if (p.pursuit) next.last.pursuit = p.pursuit;
+  if (p.objection) next.last.objection = p.objection;
+  if (p.swapCells) next.last.swapCells = p.swapCells;
   if (p.coverWards.length) next.last.coverWards = p.coverWards;
   if (p.pivot) {
     next.board[action.cell].rotation = p.pivot.to;
@@ -3787,6 +3874,14 @@ function positionalValue(game, { action, plan }, rules = table_demo_rules_export
       twistSafety += (Math.min(7, sideValue(rotated, dir)) - Math.min(7, sideValue(plan.card, dir))) * 0.18;
     }
   }
+  if (plan.swapCells) {
+    const [first, second] = plan.swapCells;
+    const edgeChange = (cell, from, to) => neighbors2(cell).reduce((value, { id, dir }) => {
+      if (id === action.cell || id === game.block || game.board[id]) return value;
+      return value + (Math.min(7, sideValue(to, dir)) - Math.min(7, sideValue(from, dir))) * 0.18;
+    }, 0);
+    twistSafety -= edgeChange(first, plan.board[first], plan.board[second]) + edgeChange(second, plan.board[second], plan.board[first]);
+  }
   const closing = weights.capture === void 0 ? 0 : Math.max(0, (game.placements - 12) / 5);
   return plan.flips.length * ((weights.capture ?? 2) + closing) - (plan.bid != null ? 0.12 : 0) + safety * (weights.safety ?? 0.42) + contacts * (weights.contacts ?? 0.16) + twistSafety * (weights.twist ?? 1) + (plan.coverWards?.length ?? 0) * 0.12;
 }
@@ -3801,6 +3896,11 @@ function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
   }
   if (plan.pivot) board[plan.pivot.cell] = { ...board[plan.pivot.cell], rotation: plan.pivot.to };
   for (const { cell, dir } of plan.coverWards ?? []) board[cell] = { ...board[cell], coverWard: { dir, owner: game.turn, until: game.placements + 2 } };
+  if (plan.swapCells) {
+    const [first, second] = plan.swapCells;
+    [board[first], board[second]] = [board[second], board[first]];
+  }
+  if (plan.objection) board[plan.objection.cell] = { ...board[plan.objection.cell], objectionSpent: true };
   const future = { ...game, board, placements: game.placements + 1, turn: 1 - game.turn };
   if (future.placements >= 18) return 0;
   if (game.demoFields && game.auditOrientation !== void 0) {
@@ -3815,12 +3915,14 @@ function replyRisk(game, { action, plan }, rules = table_demo_rules_exports) {
     for (const id of ARCHETYPES2) for (const element of game.elementRules === 5 ? ELEMENT_IDS : [void 0]) for (const rotation of game.rotationLocked ? [0] : [0, 1, 2, 3, 4, 5]) {
       const card = { id, element, rotation, controller: future.turn };
       if (future.elementalTrial) card.ability = rules.standardAbility?.(card);
-      let flips = 0;
+      let flips = 0, objection = false;
       for (const n of enemies) {
         const other = board[n.id], a = rules.effectStrength(future, card, cell, n.dir, other, { attacking: true }), d = rules.effectStrength(future, other, n.id, (n.dir + 3) % 6, card);
-        if ((rules.effectAttackWins ?? attackWins)(a, d, future.elementRules ?? 3)) flips++;
+        if (!(rules.effectAttackWins ?? attackWins)(a, d, future.elementRules ?? 3)) continue;
+        flips++;
+        objection ||= Boolean(rules.canObject?.(future, other, n.id, a, d));
       }
-      worst = Math.max(worst, flips);
+      worst = Math.max(worst, flips > 1 && objection ? flips - 1 : flips);
     }
   }
   return worst;
@@ -3868,6 +3970,7 @@ var STORM_MAX_EDGE4 = 3;
 var SWIPE_MAX_DEFENSE4 = 2;
 var PIGEON_MAX_REDUCTION4 = 2;
 var CHASE_PENALTY4 = 2;
+var OBJECTION_MAX_MARGIN4 = 2;
 var guardBonus3 = (game) => game.abilityTrial ? 1 : GUARD_BONUS3;
 var ABILITIES4 = {
   hype: { name: "Much Hype", short: "H", description: "Beim Ausspielen +1 auf eine gew\xE4hlte Angriffsseite." },
@@ -3887,7 +3990,9 @@ var ABILITIES4 = {
   bid: { name: "Iconic \xB7 Nachschlag", short: "+1", description: "Wenn du zur\xFCckliegst, kannst du deinen ungenutzten Blockadezug f\xFCr +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen." },
   decoy: { name: "Iconic \xB7 Falsche Kante", short: "\u25C7", description: `Pigeon verwechselt eine gegnerische Kante mit ihrer schw\xE4cheren Nachbarkante. Das senkt den Grundwert f\xFCr diesen Angriff um h\xF6chstens ${PIGEON_MAX_REDUCTION4}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn z\xE4hlt. Schutzboni und S-Kanten gelten weiterhin.` },
   chase: { name: "Iconic \xB7 Kein Entkommen", short: "\xBB", description: `Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY4} Angriffspunkte. H\xF6chstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.` },
-  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." }
+  cover: { name: "Iconic \xB7 R\xFCckendeckung", short: "\u25C8", description: "Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schw\xE4chsten offenen Kante bis zum n\xE4chsten eigenen Zug. Schutzboni stapeln sich nicht." },
+  objection: { name: "Iconic \xB7 Einspruch", short: "!", description: `W\xFCrde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf h\xF6chstens ${OBJECTION_MAX_MARGIN4} Punkte h\xF6her sein. Gegen S greift der Einspruch nicht.` },
+  thought: { name: "Iconic \xB7 Gedankenexperiment", short: "\u21C4", description: "Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch l\xF6st keine Flips aus." }
 };
 var turnsCards3 = (ability) => ability === "twist" || ability === "air";
 var guardsEdge3 = (ability) => ability === "guard" || ability === "water";
@@ -3923,6 +4028,22 @@ function guardActive3(game, card, cell) {
 function twistTargets3(game, cell, ability = "twist") {
   return neighbors3(cell).filter((n) => game.board[n.id] && game.board[n.id].controller === game.turn === (ability === "air")).map((n) => n.id);
 }
+function thoughtTargets3(game, cell, flips) {
+  const eligible = (id) => {
+    const card = game.board[id];
+    return card && card.controller !== game.turn && standardAbility3(card) && !flips.includes(id);
+  };
+  const touching = neighbors3(cell).map((n) => n.id).filter(eligible), pairs = /* @__PURE__ */ new Map();
+  for (const first of touching) {
+    const candidates = /* @__PURE__ */ new Set([...touching, ...neighbors3(first).map((n) => n.id)]);
+    for (const second of candidates) {
+      if (first === second || !eligible(second)) continue;
+      const pair = [first, second].sort();
+      pairs.set(pair.join("|"), pair);
+    }
+  }
+  return [...pairs.values()];
+}
 function sidestepTargets3(game, cell) {
   const ring = neighbors3(cell).map((n) => n.id), empty = new Set(ring.filter((id) => id !== game.block && !game.board[id]));
   return ring.filter((id) => {
@@ -3938,6 +4059,9 @@ function stopsElementTie3(attack, defend) {
 }
 function effectAttackWins3(attack, defend, elementRules) {
   return !stopsElementTie3(attack, defend) && attackWins(attack, defend, elementRules);
+}
+function canObject3(game, card, cell, attack, defend) {
+  return abilityAt3(game, card, cell) === "objection" && !card.objectionSpent && attack.rank !== "S" && defend.rank !== "S" && attack.total - defend.total <= OBJECTION_MAX_MARGIN4;
 }
 function weakestEdge3(card, edges) {
   return edges.reduce((weakest, edge) => !weakest || sideValue2(card, edge.dir) < sideValue2(card, weakest.dir) ? edge : weakest, null);
@@ -3991,7 +4115,7 @@ function effectStrength3(game, card, cell, dir, opponent, { attacking = false, a
   };
 }
 function previewEffect3(game, action) {
-  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null, pivotDirection = 0, bidDirection = null } = action;
+  const { uid, cell, rotation = 0, abilityDirection = 0, twistCell = null, stepCells = null, pivotDirection = 0, bidDirection = null, swapCells = null } = action;
   if (game.rotationLocked && rotation !== 0) throw Error("Handkarten haben eine feste Ausrichtung.");
   preview(game, { uid, cell, rotation });
   if (!Number.isInteger(abilityDirection) || abilityDirection < 0 || abilityDirection > 5) throw Error("Ung\xFCltige F\xE4higkeitsrichtung.");
@@ -4026,8 +4150,15 @@ function previewEffect3(game, action) {
     const tieProtected = !setup && stopsElementTie3(attack, defend) && attackWins(attack, defend, elementRules);
     return { cell: n.id, dir: n.dir, attack, defend, setup, flip: !setup && effectAttackWins3(attack, defend, elementRules), name: cardOf2(other).name, ...tieProtected ? { tieProtected: true } : {} };
   });
+  const directWins = comparisons.filter((c) => c.flip);
+  const blocked = directWins.length >= 2 ? directWins.find((c) => canObject3(working, working.board[c.cell], c.cell, c.attack, c.defend)) : null;
+  const objection = blocked ? { cell: blocked.cell, dir: (blocked.dir + 3) % 6 } : null;
+  if (blocked) {
+    blocked.flip = false;
+    blocked.objection = true;
+  }
   const currentScores = ability === "bid" ? scores2(game) : null;
-  const bids = currentScores && currentScores[game.turn] < currentScores[1 - game.turn] && game.players[game.turn].shifts > 0 ? comparisons.filter((c) => !c.flip && !c.setup && c.attack.rank !== "S" && effectAttackWins3({ ...c.attack, total: c.attack.total + 1 }, c.defend, game.elementRules ?? 3)) : [];
+  const bids = currentScores && currentScores[game.turn] < currentScores[1 - game.turn] && game.players[game.turn].shifts > 0 ? comparisons.filter((c) => !c.flip && !c.setup && !c.objection && c.attack.rank !== "S" && effectAttackWins3({ ...c.attack, total: c.attack.total + 1 }, c.defend, game.elementRules ?? 3)) : [];
   const bid = bidDirection === null ? null : bids.find((c) => c.dir === bidDirection);
   if (bidDirection !== null && !bid) throw Error("Kein g\xFCltiger Nachschlag.");
   if (bid) {
@@ -4040,7 +4171,7 @@ function previewEffect3(game, action) {
   if (ability === "decoy") {
     for (const comparison of comparisons) {
       const { attack, defend, dir, cell: enemyCell } = comparison;
-      if (comparison.flip || comparison.setup || defend.rank === "S") continue;
+      if (comparison.flip || comparison.setup || comparison.objection || defend.rank === "S") continue;
       const target = working.board[enemyCell];
       const edge = (dir + 3) % 6;
       const adjacent = [(edge + 1) % 6, (edge + 5) % 6];
@@ -4061,7 +4192,7 @@ function previewEffect3(game, action) {
   if (ability === "swipe") {
     for (const comparison of comparisons) {
       const { attack, defend } = comparison;
-      if (comparison.flip || comparison.setup || defend.ability < 1 || defend.rank === "S") continue;
+      if (comparison.flip || comparison.setup || comparison.objection || defend.ability < 1 || defend.rank === "S") continue;
       const amount = Math.min(defend.ability, SWIPE_MAX_DEFENSE4);
       const weaker = { ...defend, total: defend.total - amount, ability: defend.ability - amount };
       if (!effectAttackWins3(attack, weaker, game.elementRules ?? 3)) continue;
@@ -4077,7 +4208,7 @@ function previewEffect3(game, action) {
     const initialFlips = comparisons.filter((c) => c.flip);
     if (initialFlips.length === 1) {
       const firstDir = initialFlips[0].dir;
-      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
+      const tied = comparisons.filter((c) => !c.flip && !c.setup && !c.objection && !c.defend.holdsTie && c.attack.rank !== "S" && c.defend.rank !== "S" && c.attack.total === c.defend.total).sort((a, b) => (a.dir - firstDir + 6) % 6 - (b.dir - firstDir + 6) % 6)[0];
       if (tied) {
         tied.flip = true;
         tied.rainbow = true;
@@ -4106,6 +4237,8 @@ function previewEffect3(game, action) {
   const pivotTarget = ability === "encore" && flips.length === 1 ? cell : null;
   if (![-1, 0, 1].includes(pivotDirection) || pivotDirection !== 0 && !pivotTarget) throw Error("Keine Karte f\xFCr die Drehung erobert.");
   const pivot = pivotDirection ? { cell, uid, from: rotation, to: (rotation + pivotDirection + 6) % 6 } : null;
+  const swaps = ability === "thought" ? thoughtTargets3(working, cell, flips) : [];
+  if (swapCells !== null && (!Array.isArray(swapCells) || swapCells.length !== 2 || !swaps.some((pair) => pair.every((id) => swapCells.includes(id))))) throw Error("Kein g\xFCltiger Kartentausch.");
   const steps = ability === "sidestep" ? sidestepTargets3(working, cell) : [];
   if (stepCells !== null && (!Array.isArray(stepCells) || stepCells.length !== 2 || !steps.some(([from, to]) => from === stepCells[0] && to === stepCells[1]))) throw Error("Kein g\xFCltiges Ziel f\xFCr Platz machen.");
   const relocation = stepCells === null ? null : { from: stepCells[0], to: stepCells[1], uid: working.board[stepCells[0]].uid };
@@ -4115,7 +4248,7 @@ function previewEffect3(game, action) {
     const edge = weakestEdge3(ally, neighbors3(id).filter((n) => n.id !== cell && n.id !== working.block && !working.board[n.id]));
     return edge ? [{ cell: id, dir: edge.dir }] : [];
   }).slice(0, 2) : [];
-  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
+  return { card, cell, ability, abilityDirection, suppressed: Boolean(card.ability && !ability), transforms, comparisons, flips, board: working.board, steps, relocation, rainbow, swipe, pivotTarget, pivot, decoy, pursuit, coverWards, objection, swapCells, swaps, bid: bid?.dir ?? null, bidTargets: bids.map((c) => c.dir) };
 }
 
 // public/game/src/turn-clock.mjs
@@ -4146,10 +4279,10 @@ var SEARCH_LIMITS135 = Object.freeze({ casual: { iterations: 48, maxMs: 180 }, s
 var definitions = new Map(DEFINITIONS.map((c) => [c.id, c]));
 
 // server/game/balance-version94.mjs
-var BALANCE_PATCH94 = "alpha-2026-11-24.24";
+var BALANCE_PATCH94 = "alpha-2026-11-24.27";
 var BALANCE_RULES94 = Object.freeze({
   patch: BALANCE_PATCH94,
-  revision: 24,
+  revision: 27,
   catalog: CATALOG_VERSION,
   randomAi: { difficulty: "standard", personalityVersion: BOT_PERSONALITY_VERSION134, search: ISMCTS_VERSION135, opponentModel: 1 },
   elements: ELEMENT_LIST2.map((e) => ({ id: e.id, beats: e.beats })),
@@ -4167,7 +4300,7 @@ var BALANCE_RULES94 = Object.freeze({
   maxPrimes: MAX_PRIMES,
   maxIconics: MAX_ICONICS,
   sRankElementOnly: true,
-  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1, solitudeDefense: 1, rainbowMaxBonusFlips: 1, swipeMaxDefense: SWIPE_MAX_DEFENSE3, encoreDegrees: [-60, 60], bidBoost: 1, pigeonMaxReduction: PIGEON_MAX_REDUCTION3, chasePenalty: CHASE_PENALTY3, coverMaxAllies: 2 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 } },
+  abilities: { hype: 1, guard: 2, guardPlacements: 2, twistDegrees: 60, privateIconic: { sidestepDistance: 1, laughOpponentTurns: 1, solitudeDefense: 1, rainbowMaxBonusFlips: 1, swipeMaxDefense: SWIPE_MAX_DEFENSE3, encoreDegrees: [-60, 60], bidBoost: 1, pigeonMaxReduction: PIGEON_MAX_REDUCTION3, chasePenalty: CHASE_PENALTY3, coverMaxAllies: 2, objectionMaxMargin: OBJECTION_MAX_MARGIN3, thoughtReach: 2 }, privateStandard: { water: WATER_BONUS3, stormMaxEdge: STORM_MAX_EDGE3 } },
   cards: DEFINITIONS.map((c) => ({ id: c.id, element: c.element, values: c.values, ability: c.ability ?? null, prime: Boolean(c.prime), iconic: Boolean(c.iconic) }))
 });
 var source = JSON.stringify(BALANCE_RULES94);

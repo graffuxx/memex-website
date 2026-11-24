@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=no-escape-pair-release';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS} from './rules.mjs?v=objection-pair-release';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -9,6 +9,7 @@ export const STORM_MAX_EDGE=3;
 export const SWIPE_MAX_DEFENSE=2;
 export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
+export const OBJECTION_MAX_MARGIN=2;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
@@ -29,6 +30,8 @@ export const ABILITIES={
  decoy:{name:'Iconic · Falsche Kante',short:'◇',description:`Pigeon verwechselt eine gegnerische Kante mit ihrer schwächeren Nachbarkante. Das senkt den Grundwert für diesen Angriff um höchstens ${PIGEON_MAX_REDUCTION}. Der erste dadurch gewinnbare Angriff ab Osten im Uhrzeigersinn zählt. Schutzboni und S-Kanten gelten weiterhin.`},
  chase:{name:'Iconic · Kein Entkommen',short:'»',description:`Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY} Angriffspunkte. Höchstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.`},
  cover:{name:'Iconic · Rückendeckung',short:'◈',description:'Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schwächsten offenen Kante bis zum nächsten eigenen Zug. Schutzboni stapeln sich nicht.'},
+ objection:{name:'Iconic · Einspruch',short:'!',description:`Würde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf höchstens ${OBJECTION_MAX_MARGIN} Punkte höher sein. Gegen S greift der Einspruch nicht.`},
+ thought:{name:'Iconic · Gedankenexperiment',short:'⇄',description:'Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch löst keine Flips aus.'},
 };
 export const LOADOUTS={
  'hype-guard':{name:'Doge + Pepe',abilities:['hype','guard']},
@@ -54,6 +57,8 @@ const RELEASED_ICONICS={
  'iconic-is-this-a-pigeon':[4,'decoy'],
  'iconic-why-are-you-running':[5,'chase'],
  'iconic-overly-manly-man':[5,'cover'],
+ 'iconic-no-god-please-no':[6,'objection'],
+ 'iconic-philosoraptor':[6,'thought'],
 };
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
@@ -93,6 +98,22 @@ export function guardActive(game,card,cell){return guardsEdge(abilityAt(game,car
 export function twistTargets(game,cell,ability='twist'){
  return neighbors(cell).filter(n=>game.board[n.id]&&((game.board[n.id].controller===game.turn)===(ability==='air'))).map(n=>n.id);
 }
+function thoughtTargets(game,cell,flips){
+ const eligible=id=>{
+  const card=game.board[id];
+  return card&&card.controller!==game.turn&&standardAbility(card)&&!flips.includes(id);
+ };
+ const touching=neighbors(cell).map(n=>n.id).filter(eligible),pairs=new Map();
+ for(const first of touching){
+  const candidates=new Set([...touching,...neighbors(first).map(n=>n.id)]);
+  for(const second of candidates){
+   if(first===second||!eligible(second))continue;
+   const pair=[first,second].sort();
+   pairs.set(pair.join('|'),pair);
+  }
+ }
+ return [...pairs.values()];
+}
 export function sidestepTargets(game,cell){
  const ring=neighbors(cell).map(n=>n.id),empty=new Set(ring.filter(id=>id!==game.block&&!game.board[id]));
  return ring.filter(id=>{
@@ -108,6 +129,10 @@ export function stopsElementTie(attack,defend){
 }
 export function effectAttackWins(attack,defend,elementRules){
  return !stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
+}
+export function canObject(game,card,cell,attack,defend){
+ return abilityAt(game,card,cell)==='objection'&&!card.objectionSpent
+  &&attack.rank!=='S'&&defend.rank!=='S'&&attack.total-defend.total<=OBJECTION_MAX_MARGIN;
 }
 function weakestEdge(card,edges){
  return edges.reduce((weakest,edge)=>!weakest||sideValue(card,edge.dir)<sideValue(card,weakest.dir)?edge:weakest,null);
@@ -157,7 +182,7 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
 }
 // All effects resolve on a copy. Merely aiming or cancelling can never alter the board.
 export function previewEffect(game,action){
- const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,stepCells=null,pivotDirection=0,bidDirection=null}=action;
+ const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,stepCells=null,pivotDirection=0,bidDirection=null,swapCells=null}=action;
  if(game.rotationLocked&&rotation!==0)throw Error('Handkarten haben eine feste Ausrichtung.');
  validatePlacement(game,{uid,cell,rotation});
  if(!Number.isInteger(abilityDirection)||abilityDirection<0||abilityDirection>5)throw Error('Ungültige Fähigkeitsrichtung.');
@@ -173,9 +198,13 @@ export function previewEffect(game,action){
   const tieProtected=!setup&&stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
   return {cell:n.id,dir:n.dir,attack,defend,setup,flip:!setup&&effectAttackWins(attack,defend,elementRules),name:cardOf(other).name,...(tieProtected?{tieProtected:true}:{})};
  });
+ const directWins=comparisons.filter(c=>c.flip);
+ const blocked=directWins.length>=2?directWins.find(c=>canObject(working,working.board[c.cell],c.cell,c.attack,c.defend)):null;
+ const objection=blocked?{cell:blocked.cell,dir:(blocked.dir+3)%6}:null;
+ if(blocked){blocked.flip=false;blocked.objection=true;}
  const currentScores=ability==='bid'?scores(game):null;
  const bids=currentScores&&currentScores[game.turn]<currentScores[1-game.turn]&&game.players[game.turn].shifts>0
-  ?comparisons.filter(c=>!c.flip&&!c.setup&&c.attack.rank!=='S'&&effectAttackWins({...c.attack,total:c.attack.total+1},c.defend,game.elementRules??3))
+  ?comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&c.attack.rank!=='S'&&effectAttackWins({...c.attack,total:c.attack.total+1},c.defend,game.elementRules??3))
   :[];
  const bid=bidDirection===null?null:bids.find(c=>c.dir===bidDirection);
  if(bidDirection!==null&&!bid)throw Error('Kein gültiger Nachschlag.');
@@ -184,7 +213,7 @@ export function previewEffect(game,action){
  if(ability==='decoy'){
   for(const comparison of comparisons){
    const {attack,defend,dir,cell:enemyCell}=comparison;
-   if(comparison.flip||comparison.setup||defend.rank==='S')continue;
+   if(comparison.flip||comparison.setup||comparison.objection||defend.rank==='S')continue;
    const target=working.board[enemyCell];
    const edge=(dir+3)%6;
    const adjacent=[(edge+1)%6,(edge+5)%6];
@@ -205,7 +234,7 @@ export function previewEffect(game,action){
  if(ability==='swipe'){
   for(const comparison of comparisons){
    const {attack,defend}=comparison;
-   if(comparison.flip||comparison.setup||defend.ability<1||defend.rank==='S')continue;
+   if(comparison.flip||comparison.setup||comparison.objection||defend.ability<1||defend.rank==='S')continue;
    const amount=Math.min(defend.ability,SWIPE_MAX_DEFENSE);
    const weaker={...defend,total:defend.total-amount,ability:defend.ability-amount};
    if(!effectAttackWins(attack,weaker,game.elementRules??3))continue;
@@ -221,7 +250,7 @@ export function previewEffect(game,action){
   const initialFlips=comparisons.filter(c=>c.flip);
   if(initialFlips.length===1){
    const firstDir=initialFlips[0].dir;
-   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
+   const tied=comparisons.filter(c=>!c.flip&&!c.setup&&!c.objection&&!c.defend.holdsTie&&c.attack.rank!=='S'&&c.defend.rank!=='S'&&c.attack.total===c.defend.total)
     .sort((a,b)=>(a.dir-firstDir+6)%6-(b.dir-firstDir+6)%6)[0];
    if(tied){
     tied.flip=true;
@@ -251,6 +280,8 @@ export function previewEffect(game,action){
  const pivotTarget=ability==='encore'&&flips.length===1?cell:null;
  if(![-1,0,1].includes(pivotDirection)||pivotDirection!==0&&!pivotTarget)throw Error('Keine Karte für die Drehung erobert.');
  const pivot=pivotDirection?{cell,uid,from:rotation,to:(rotation+pivotDirection+6)%6}:null;
+ const swaps=ability==='thought'?thoughtTargets(working,cell,flips):[];
+ if(swapCells!==null&&(!Array.isArray(swapCells)||swapCells.length!==2||!swaps.some(pair=>pair.every(id=>swapCells.includes(id)))))throw Error('Kein gültiger Kartentausch.');
  const steps=ability==='sidestep'?sidestepTargets(working,cell):[];
  if(stepCells!==null&&(!Array.isArray(stepCells)||stepCells.length!==2||!steps.some(([from,to])=>from===stepCells[0]&&to===stepCells[1])))throw Error('Kein gültiges Ziel für Platz machen.');
  const relocation=stepCells===null?null:{from:stepCells[0],to:stepCells[1],uid:working.board[stepCells[0]].uid};
@@ -260,14 +291,19 @@ export function previewEffect(game,action){
   const edge=weakestEdge(ally,neighbors(id).filter(n=>n.id!==cell&&n.id!==working.block&&!working.board[n.id]));
   return edge?[{cell:id,dir:edge.dir}]:[];
  }).slice(0,2):[];
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,steps,relocation,rainbow,swipe,pivotTarget,pivot,decoy,pursuit,coverWards,objection,swapCells,swaps,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
 }
 export function placeEffect(game,action){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
  player.hand=player.hand.filter(c=>c.uid!==action.uid);if(player.deck.length)player.hand.push(player.deck.shift());
  next.board[action.cell]={...p.card,flips:p.flips.length};
+ if(p.objection)next.board[p.objection.cell].objectionSpent=true;
  for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.laughOwner;delete c.laughUntil;delete c.coverWard;}
  for(const {cell,dir} of p.coverWards)next.board[cell].coverWard={dir,owner:side,until:game.placements+2};
+ if(p.swapCells){
+  const [first,second]=p.swapCells;
+  [next.board[first],next.board[second]]=[next.board[second],next.board[first]];
+ }
  if(p.relocation){
   const {from,to}=p.relocation;
   next.board[to]=next.board[from];
@@ -282,6 +318,8 @@ export function placeEffect(game,action){
  if(p.bid!==null)next.last.bid=p.bid;
  if(p.decoy)next.last.decoy=p.decoy;
  if(p.pursuit)next.last.pursuit=p.pursuit;
+ if(p.objection)next.last.objection=p.objection;
+ if(p.swapCells)next.last.swapCells=p.swapCells;
  if(p.coverWards.length)next.last.coverWards=p.coverWards;
  if(p.pivot){
   next.board[action.cell].rotation=p.pivot.to;
@@ -313,6 +351,10 @@ export function actionOptions(game,card,cell,rotation){
  if(ability==='bid'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   return [action,...previewEffect(game,action).bidTargets.map(bidDirection=>({...action,bidDirection}))];
+ }
+ if(ability==='thought'){
+  const action={uid:card.uid,cell,rotation,abilityDirection:0};
+  return [action,...previewEffect(game,action).swaps.map(swapCells=>({...action,swapCells}))];
  }
  return directions.flatMap(abilityDirection=>targets.map(twistCell=>({uid:card.uid,cell,rotation,abilityDirection,twistCell})));
 }
