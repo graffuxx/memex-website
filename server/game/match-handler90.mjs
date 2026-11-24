@@ -46,11 +46,38 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
    return reply(projectPvp90(row,uid,now()));
   }
   if(input.op!=='move'||!Number.isInteger(input.version)||!UUID.test(input.requestId)||!row.state)fail('Invalid turn request.');
-  if(input.version!==row.version){row=await commit(row.state,input.version,input.requestId);return reply(projectPvp90(row,uid,now()));}
-  const expired=expirePvp90(row.state,now());if(expired){await commit(armBot96(expired,now()));fail('Turn time expired. Restore the current board.',409);}
   const side=row.host_id===uid?0:1,move={...input.move};
+  const gesture=move.kind==='gesture';
+  if(gesture&&move.attempt!==undefined&&(!Number.isSafeInteger(move.attempt)||move.attempt<1))fail('Invalid opening attempt.');
+  const openingAttempt=move.attempt??row.state.attempt;
+  const canMergeGesture=()=>gesture&&row.status==='matched'&&row.state?.phase==='rps'
+   &&row.state.attempt===openingAttempt&&row.state.choices[side]===null&&row.state.choices[1-side]!==null;
+  if(input.version!==row.version){
+   try{
+    // Storage returns the saved state for a request that already committed.
+    row=await commit(row.state,input.version,input.requestId);
+    return reply(projectPvp90(row,uid,now()));
+   }catch(error){
+    // Old clients lack the attempt number. Only a single opposing choice can be merged for them.
+    if(error.status!==409||!canMergeGesture()||move.attempt===undefined&&row.version!==input.version+1)throw error;
+   }
+  }
+  if(gesture&&row.state.attempt!==openingAttempt)fail('Opening attempt changed. Choose a hand sign again.',409);
   // The browser uses its own side as 0; only the server maps it to the shared board.
   if(move.kind==='starter'){if(![0,1].includes(move.side))fail('Invalid starter.');move.side=side===1?1-move.side:move.side;}
-  const next=armBot96(advancePvp90(row.state,side,move,now()),now());row=await commit(next,input.version,input.requestId);return reply(projectPvp90(row,uid,now()));
+  const saveMove=async()=>{
+   const at=now(),expired=expirePvp90(row.state,at);
+   if(expired){await commit(armBot96(expired,at));fail('Turn time expired. Restore the current board.',409);}
+   const next=armBot96(advancePvp90(row.state,side,move,at),at);
+   return commit(next,row.version,input.requestId);
+  };
+  try{row=await saveMove();}
+  catch(error){
+   if(!gesture||error.status!==409)throw error;
+   row=await rpc('dv_match_get90',{p_user:uid,p_id:input.id});
+   if(!canMergeGesture())throw error;
+   row=await saveMove();
+  }
+  return reply(projectPvp90(row,uid,now()));
  }catch(e){return reply({error:e.message||'Online duel unavailable.'},e.status??400);}};
 }

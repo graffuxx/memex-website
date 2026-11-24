@@ -46,7 +46,7 @@ test('all 15 Prime badges and rules are assigned only in the new private snapsho
  }
 });
 
-test('Prime abilities and Final Guard resolve through a real private invite in both player views',async()=>{
+test('Concurrent opening choices, Prime abilities and Final Guard resolve through the real duel API',async()=>{
  const db=new PGlite();
  const close=()=>db.close();
  try{
@@ -79,9 +79,38 @@ test('Prime abilities and Final Guard resolve through a real private invite in b
     return Response.json(result.rows[0].data);
    }catch(error){return Response.json({message:error.message,code:error.code},{status:400});}
   }});
-  async function request(side,data){
+  async function request(side,data,status=200){
    const res=await handler(new Request('https://private-fixture.test/api/duel',{method:'POST',headers:{Authorization:'Bearer '+side},body:JSON.stringify(data)}));
-   const body=await res.json();assert.ok(res.ok,JSON.stringify({data,error:body.error}));return body;
+   const body=await res.json();assert.equal(res.status,status,JSON.stringify({data,error:body.error}));return body;
+  }
+  await db.exec('set role service_role');
+  for(const kind of ['private','random']){
+   const host=await request(0,{op:'join',kind,deckId:deckIds[0]});
+   const joined=await request(1,{op:'join',kind,deckId:deckIds[1],...(host.code?{code:host.code}:{})});
+   const id=host.id,poll=side=>request(side,{op:'poll',id});
+   assert.equal(joined.id,id);
+   const opening=await poll(0);
+   const choose=(version,attempt,value)=>({op:'move',id,version,requestId:crypto.randomUUID(),move:{kind:'gesture',value,...(attempt===undefined?{}:{attempt})}});
+   const same=choose(opening.version,opening.attempt,'rock');
+   await Promise.all([request(0,same),request(1,choose(opening.version,opening.attempt,'rock'))]);
+   const tie=await poll(0);
+   assert.equal(tie.attempt,2);
+   assert.equal(tie.ownChoice,null);
+   assert.equal(tie.opponentChosen,false);
+   const replay=await request(0,same);
+   assert.equal(replay.version,tie.version);
+   assert.equal(replay.ownChoice,null);
+   await request(0,choose(tie.version,opening.attempt,'paper'),409);
+   await request(1,choose(opening.version,opening.attempt,'paper'),409);
+   assert.equal((await poll(0)).ownChoice,null);
+   const first=await request(1,choose(tie.version,undefined,'scissors'));
+   assert.equal(first.ownChoice,'scissors');
+   const second=await request(0,choose(tie.version,undefined,'rock'));
+   assert.equal(second.phase,'initiative');
+   assert.equal(second.rpsWinner,0);
+   const started=await request(0,{op:'move',id,version:second.version,requestId:crypto.randomUUID(),move:{kind:'starter',side:1}});
+   assert.equal(started.game.starter,1);
+   await request(0,{op:'leave',id});
   }
   let blinkWithAttackBonus=false;
   for(const fixture of [...fixtures,...finalGuardFixtures.fixtures]){
