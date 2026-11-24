@@ -27,6 +27,6 @@ export default function BoosterRevealCard({id,slot,visible,celebrateFlip,disable
     </span>
    </button>
   </div>
-  <div className="alpha-reveal-meta">{visible?<><strong>{card.name}</strong><span style={{color:rarity.color}}>{rarity.name} · {variant.element}</span>{isNew&&<small>New variant</small>}</>:teaser&&<span className="alpha-teaser-name" aria-hidden="true">{rarity.name}</span>}</div>
+  <div className="alpha-reveal-meta">{visible?<><strong>{card.name}</strong><span style={{color:rarity.color}}>{rarity.name} · {variant.element}{card.prime?' · Prime':card.iconic?' · Iconic':''}</span>{isNew&&<small>New variant</small>}</>:teaser&&<span className="alpha-teaser-name" aria-hidden="true">{rarity.name}</span>}</div>
  </article>;
 }
