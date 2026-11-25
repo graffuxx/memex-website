@@ -5,7 +5,7 @@ import {createAccountDuel,beginAccountRound,advanceAccountDuel} from '../server/
 import {chooseTactic} from '../public/game/src/tactics-ai.mjs';
 const a='85858585-8585-4585-8585-858585858585',b='86868686-8686-4686-8686-868686868686',uuid=n=>'85858585-8585-4585-8585-'+String(n).padStart(12,'0');
 test('twenty real starter portraits and earned frame tiers resolve consistently; milestones cannot be equipped early',async()=>{
- assert.equal(PORTRAITS85.filter(p=>!p.quest).length,20);assert.equal(new Set(PORTRAITS85.map(p=>p.id)).size,23);
+ assert.equal(PORTRAITS85.filter(p=>!p.quest).length,20);assert.equal(new Set(PORTRAITS85.map(p=>p.id)).size,24);
  for(const p of PORTRAITS85)await fs.access(new URL('../public'+p.image,import.meta.url));
  for(let level=1;level<=1000;level++){assert.equal(progression85(xpAtLevel85(level)).level,level);if(level>1)assert.equal(progression85(xpAtLevel85(level)-1).level,level-1);}
  const identity={xp:0,wins:0,frameId:'auto',owned:[]};assert.equal(frame85(identity).id,'starter');assert.equal(unlocked85(FRAMES85[1],identity),false);

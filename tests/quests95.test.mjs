@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
-import {QUESTS95,RECRUITER_VARIANTS95,questProgress95,referralCode95,referralLink95} from '../public/game/platform/quests95.mjs';
+import {FLIP_QUESTS,QUESTS95,RECRUITER_VARIANTS95,questProgress95,referralCode95,referralLink95} from '../public/game/platform/quests95.mjs';
+import {PORTRAITS85,TITLES85,unlocked85} from '../public/game/platform/identity85.mjs';
 import {VARIANTS,DEFINITIONS,getVariant,starterDeck,validateDeck,expandGameDeck} from '../public/game/platform/catalog.mjs';
 import {protectedCandidates,validAlphaPack,boosterCostLabel} from '../public/game/platform/alpha-booster36.mjs';
 import {cardOf} from '../public/game/src/rules.mjs';
@@ -10,6 +11,44 @@ async function db95(){const db=new PGlite();await db.exec(`create role anon;crea
  for(const u of [owner,old,other])await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();`);return db;}
 async function as(db,u){await db.exec(`reset role;set role authenticated;set request.jwt.claim.sub='${u}';`);}
 async function status(db,u){await as(db,u);return (await db.query('select public.dv_quest_status95() data')).rows[0].data;}
+test('Multi-flip quests apply existing verified progress and grant their packs and cosmetics once',async()=>{
+ const db=await db95();
+ try{
+  const empty=await status(db,other);
+  for(const quest of FLIP_QUESTS){
+   assert.equal(empty.counts[quest.family],0);
+   await assert.rejects(db.query('select public.dv_claim_quest95($1)',[quest.id]),/not complete/);
+  }
+  const portrait=PORTRAITS85.find(p=>p.id==='quest-diamond-hands-portrait'),title=TITLES85.find(t=>t.id==='quest-diamond-hands');
+  assert.equal(unlocked85(portrait,{owned:[],wins:100}),false);
+  assert.equal(unlocked85(title,{owned:[],wins:100}),false);
+  await fs.stat(new URL('../public'+portrait.image,import.meta.url));
+  await db.exec('reset role');
+  await db.query('insert into public.dv_random_skills90(user_id,double_flips,triple_flips,quad_flips) values($1,50,10,1)',[owner]);
+  const progress=await status(db,owner);
+  const receipts=[];
+  for(const quest of FLIP_QUESTS){
+   assert.equal(questProgress95(quest,progress.counts).ready,true);
+   const claim=()=>db.query('select public.dv_claim_quest95($1) data',[quest.id]);
+   const initial=(await claim()).rows[0].data,repeat=(await claim()).rows[0].data;
+   assert.equal(initial.packs.length,quest.packs);
+   assert.deepEqual(repeat.packs,initial.packs);
+   assert.equal(repeat.replayed,true);
+   assert.equal(initial.title,quest.title??null);
+   assert.equal(initial.portrait,quest.portrait??null);
+   receipts.push(...initial.packs);
+  }
+  const count=FLIP_QUESTS.reduce((total,q)=>total+q.packs,0);
+  assert.equal(new Set(receipts).size,count);
+  const actual=await db.query('select count(*) n from public.dv_booster_purchases36 where user_id=$1 and currency=\'quest\' and cost=0',[owner]);
+  assert.equal(Number(actual.rows[0].n),count);
+  const saved=(await db.query('select public.dv_identity85() data')).rows[0].data;
+  assert.equal(unlocked85(portrait,saved),true);
+  assert.equal(unlocked85(title,saved),true);
+  assert.ok(saved.owned.includes('title:quest-goldfinger'));
+  assert.deepEqual((await status(db,other)).claims,[]);
+ }finally{await db.close();}
+});
 test('quest schedule, special artwork and shared gameplay values preserve the original booster pool',async()=>{
  assert.deepEqual(QUESTS95.filter(q=>q.family==='played').map(q=>[q.goal,q.packs]),[[5,1],[25,1],[100,3],[250,5]]);
  assert.deepEqual(QUESTS95.filter(q=>q.family==='won').map(q=>[q.goal,q.packs]),[[3,1],[10,1],[50,3],[100,5]]);
