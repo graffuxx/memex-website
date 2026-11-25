@@ -20,6 +20,7 @@ const symbols={
  solitude:{color:'#aee5ff',path:'m12 4 4 8-4 8-4-8zM3 12h.1m18 0h.1'},
  rainbow:{color:'#f8b9f0',path:'M3 17a9 9 0 0 1 18 0M7 17a5 5 0 0 1 10 0m-6 0a1 1 0 0 1 2 0'},
  swipe:{color:'#efbe9c',path:'M12 3 20 6v5c0 5-4 8-8 11-4-3-8-6-8-11V6zM8 12h8'},
+ loot:{color:'#ffe4a0',path:'M12 3 20 6v5c0 5-4 8-8 11-4-3-8-6-8-11V6zm0 5 3 4-3 4-3-4z'},
  encore:{color:'#fada90',path:'M9 17V6l11-3v12M9 7l11-3M9 17a3 2 0 1 1-6 0 3 2 0 1 1 6 0m11-2a3 2 0 1 1-6 0 3 2 0 1 1 6 0'},
  bid:{color:'#ffca85',path:'M3 7h18v11H3zM7 11h.1m9 3h.1M12 10v5m-2-2.5h4'},
  decoy:{color:'#bdf1e4',path:'M3 12c4-7 14-7 18 0-4 7-14 7-18 0zm9-4v4l4 1m-4 3h.1'},

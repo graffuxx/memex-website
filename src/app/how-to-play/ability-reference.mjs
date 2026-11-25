@@ -4,7 +4,7 @@ import {portalTrialAbility} from '../../../public/game/platform/deck-bridge.mjs'
 import {
  ABILITIES, AMBUSH_BONUS, PENGUIN_DEFENSE_PENALTY, CHASE_PENALTY, CHORUS_DUET_GUARD,
  JORDAN_MAX_MARGIN, NESTED_MAX_INCREASE, OBJECTION_MAX_MARGIN, PHALANX_BONUS,
- PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, SWIPE_MAX_DEFENSE, WATER_BONUS
+ PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, CURRENT_ICONIC_WAVE, STEVE_LOOT_WARD, WATER_BONUS
 } from '../../../public/game/src/table-demo-rules.mjs';
 
 export const glossary = [
@@ -38,7 +38,7 @@ const explanations = {
  laugh:['Last Laugh','Play KEKW to shield it from numeric ties for the opponent’s next turn.','4 vs 4 holds even against the stronger element. 5 vs 4 captures KEKW even with a weaker element. S beats a numbered edge.'],
  solitude:['All Alone','Keep Forever Alone without an adjacent allied card.','Its weakest open edge gains +1 defence while the condition holds.'],
  rainbow:['Second Rainbow','Flip exactly one enemy directly with Double Rainbow.','You can flip one more enemy when the touching numbers are equal and there is no tie shield. The preview highlights the extra flip.'],
- swipe:['Shield Swipe','Attack an enemy with a defence bonus that Steve can overcome by ignoring part of it.',`Steve ignores up to ${SWIPE_MAX_DEFENSE} points of ability defence on one edge if that earns a flip. S edges are exempt.`],
+ loot:['Protect the Loot','Flip a card with Scumbag Steve.',`One captured card gets +${STEVE_LOOT_WARD} defence on its weakest open numbered side until your next turn.`],
  encore:['Encore','Play Epic Sax Guy where he flips exactly one enemy.','Use an arrow to turn him one step left or right. Only later moves use his new sides.'],
  bid:['Sweeten the Deal','While behind, use an available blockade move if the offered +1 would win an attack.','Gain +1 attack on the chosen edge. It spends the blockade move but leaves the blockade in place.'],
  decoy:['Wrong Edge','Check the two numbers on either side of the enemy’s defending edge.',`If a lower number helps Pigeon capture it, reduce the defending edge’s base value by up to ${PIGEON_MAX_REDUCTION} for that attack. Shields and S still count.`],
@@ -66,7 +66,7 @@ const explanations = {
  ernie:['Fire Pact','Flip an enemy with Evil Ernie’s S.','The captured card gains +1 defence on the side facing away from Ernie until your next turn. S stays the same.'],
 };
 
-const releasedRules = {iconicAbilities:true,iconicAbilityWave:7,allPrimes:true};
+const releasedRules = {iconicAbilities:true,iconicAbilityWave:CURRENT_ICONIC_WAVE,allPrimes:true};
 function entry(id,name,category){
  const [title,trigger,effect]=explanations[id];
  const gameLabel=ABILITIES[id].name.split(' · ').at(-1);

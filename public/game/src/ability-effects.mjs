@@ -1,5 +1,5 @@
 import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=penguin-mark';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=steve-loot';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -86,7 +86,7 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(plan.rainbow)markers.push({kind:'rainbow',cell:plan.cell,dir:plan.rainbow.dir,preview:true,label:'⌒'});
    if(plan.swipe)markers.push({kind:'swipe',cell:plan.swipe.cell,dir:(plan.swipe.dir+3)%6,preview:true,label:`−${plan.swipe.amount}`});
    if(plan.ward)markers.push({kind:'ernie',...plan.ward,preview:true,label:'+1'});
-   for(const ward of plan.coverWards??[])markers.push({kind:'cover',...ward,preview:true,label:`+${ward.amount??1}`});
+   for(const ward of plan.coverWards??[])markers.push({...ward,kind:ward.kind??'cover',preview:true,label:`+${ward.amount??1}`});
   }
   return markers;
  }
@@ -145,7 +145,7 @@ export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
   if(last.valueSwap)for(const dir of last.valueSwap)played.push({kind:'luxury',cell:last.cell,dir,label:String(sideValue(game.board[last.cell],dir))});
   if(last.selfTurn)played.push({kind:ability,cell:last.cell,label:last.selfTurn<0?'↶':'↻'});
   if(last.ward)played.push({kind:'ernie',...last.ward,label:'+1'});
-  for(const ward of last.coverWards??[])played.push({kind:'cover',...ward,label:`+${ward.amount??1}`});
+  for(const ward of last.coverWards??[])played.push({...ward,kind:ward.kind??'cover',label:`+${ward.amount??1}`});
   if(edge)played.push({kind:ability,cell:last.cell,dir:edge.dir,label:`+${edge.amount}`});
   for(const target of last.transforms??[])played.push({kind:ability,cell:target.cell,label:turnArrow(target)});
   return [...blocked,...played];

@@ -1,6 +1,6 @@
 import {createPvp90,advancePvp90,expirePvp90,projectPvp90,refreshPvpRules129} from './pvp90.mjs';
 import {BOT_WAIT_MS96,createBot96,armBot96,stepBot96} from './bot96.mjs';
-import {PENGUIN_REWORK_WAVE} from '../../public/game/src/table-demo-rules.mjs';
+import {CURRENT_ICONIC_WAVE} from '../../public/game/src/table-demo-rules.mjs';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=()=>crypto.getRandomValues(new Uint32Array(1))[0],requestId=()=>crypto.randomUUID()}){
  const base=env('SUPABASE_URL')||'https://vnwvwwukqlbwzqroaqeu.supabase.co',key=env('SUPABASE_SERVICE_ROLE_KEY');
@@ -35,7 +35,7 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
     if(row.status==='matched'&&!row.state){
      const randomAbilities=row.kind==='random';
      let initial=createPvp90([row.host_deck,row.guest_deck],seed(),now(),{
-      elementalTrial:true,iconicAbilities:true,iconicAbilityWave:PENGUIN_REWORK_WAVE,
+      elementalTrial:true,iconicAbilities:true,iconicAbilityWave:CURRENT_ICONIC_WAVE,
       releasedPrimeTrio:true,releasedPrimePair:true,allPrimes:true,finalGuard:true,earthSupport:true,abilityRework:true,randomAbilities
      });
      if(row.ai_opponent96){initial.bot96={seed:seed(),nextAt:null};initial=armBot96(initial,now());}

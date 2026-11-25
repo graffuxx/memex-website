@@ -8,6 +8,9 @@ export const WATER_BONUS=2;
 export const STORM_MAX_EDGE=3;
 export const TWO_BUTTONS_BONUS=2;
 export const SWIPE_MAX_DEFENSE=2;
+export const STEVE_LOOT_WARD=2;
+const STEVE_REWORK_WAVE=9;
+export const CURRENT_ICONIC_WAVE=STEVE_REWORK_WAVE;
 export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
 export const OBJECTION_MAX_MARGIN=2;
@@ -41,6 +44,7 @@ export const ABILITIES={
  solitude:{name:'Iconic · Allein auf weiter Flur',short:'◇',description:'Solange keine eigene Karte angrenzt, erhält die schwächste offene Kante +1 Verteidigung.'},
  rainbow:{name:'Iconic · Zweiter Bogen',short:'⌒',description:'Nach genau einem direkten Flip kann Double Rainbow noch eine Gegnerkarte mit gleicher Zahl übernehmen. Ein Schutz bei Gleichstand hält. Die Vorschau markiert den Zusatzflip.'},
  swipe:{name:'Iconic · Schildklau',short:'−',description:`Steve ignoriert bis zu ${SWIPE_MAX_DEFENSE} Schutzpunkte einer Gegnerkarte, wenn er sie dadurch übernimmt. Das gilt für einen Angriff. Andere Boni und S bleiben wirksam.`},
+ loot:{name:'Iconic · Beute sichern',short:'✦',description:`Flippt Steve eine Karte, erhält die eroberte Karte +${STEVE_LOOT_WARD} Verteidigung auf ihrer schwächsten freien Zahlenseite. Der Schutz hält bis zu deinem nächsten Zug und gilt für höchstens eine Karte.`},
  encore:{name:'Iconic · Zugabe',short:'♫',description:'Nach genau einem Flip darfst du Epic Sax Guy einen Schritt nach links oder rechts drehen. Die Drehung ändert nur die Ausrichtung für folgende Züge.'},
  bid:{name:'Iconic · Nachschlag',short:'+1',description:'Wenn du zurückliegst, kannst du deinen ungenutzten Blockadezug für +1 Angriff auf einer Kante ausgeben. Die Option erscheint, wenn dadurch eine Karte flippt. Die Blockade bleibt stehen.'},
  decoy:{name:'Iconic · Falsche Kante',short:'◇',description:`Steht neben der verteidigenden Seite eine niedrigere Zahl, kann Pigeon den Grundwert der verteidigenden Seite um bis zu ${PIGEON_MAX_REDUCTION} senken. Das gilt für höchstens einen Angriff, den Pigeon dadurch gewinnt. Schilde und S bleiben wirksam.`},
@@ -105,7 +109,8 @@ const RELEASED_ICONICS={
 };
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
- return entry&&wave>=entry[0]?entry[1]:null;
+ if(!entry||wave<entry[0])return null;
+ return entry[1]==='swipe'&&wave>=STEVE_REWORK_WAVE?'loot':entry[1];
 }
 const PRIME_ABILITIES={
  'prime-evil-ernie':'ernie','prime-nuck-chorris':'roundhouse','prime-sparta-kick':'phalanx',
@@ -763,13 +768,16 @@ function resolvePlacement(game,action,buttonAttackDir=null){
   working.board[cell]={...ally,rotation:to};
   transforms.push({cell,uid:ally.uid,from:ally.rotation,to});
  }
- const wardTargets=ability==='cover'?surrounding.map(n=>n.id):chorusPartners;
+ const securingLoot=ability==='loot';
+ const wardTargets=securingLoot?flips:ability==='cover'?surrounding.map(n=>n.id):chorusPartners;
  const coverWards=wardTargets.flatMap(id=>{
   const ally=working.board[id];
-  if(ally?.controller!==game.turn||!standardAbility(ally))return [];
-  const edge=weakestEdge(ally,neighbors(id).filter(n=>n.id!==cell&&n.id!==working.block&&!working.board[n.id]));
+  if(!securingLoot&&(ally?.controller!==game.turn||!standardAbility(ally)))return [];
+  const edge=weakestEdge(ally,neighbors(id).filter(n=>n.id!==cell&&n.id!==working.block&&!working.board[n.id]
+   &&(!securingLoot||!isSRank126(sideValue(ally,n.dir)))));
+  if(securingLoot)return edge?[{cell:id,dir:edge.dir,kind:'loot',amount:STEVE_LOOT_WARD}]:[];
   return edge?[{cell:id,dir:edge.dir,...(ability==='chorus'?{kind:'chorus',amount:duet?CHORUS_DUET_GUARD:1}:{})}]:[];
- }).slice(0,2);
+ }).slice(0,securingLoot?1:2);
  let awkward=null;
  if(ability==='awkward'&&(game.iconicAbilityWave??0)>=PENGUIN_REWORK_WAVE){
   const nearby=new Set(surrounding.map(({id})=>id));

@@ -1,5 +1,5 @@
 import {printedValue126} from '../platform/card-ranks126.mjs';
-import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=penguin-mark';
+import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=steve-loot';
 import {cardOf,sideValue} from './rules.mjs?v=final-guard';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);

@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=penguin-mark';
-import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=penguin-mark';
+import {createAbilityEffects} from './ability-effects.mjs?v=steve-loot';
+import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=steve-loot';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -20,9 +20,9 @@ import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
 import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=penguin-mark';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=steve-loot';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=round-emblems';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=steve-loot';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
@@ -175,7 +175,7 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
  function boardFeedback(card,cell){
   const ward=ui.plan?.ward;
   const cover=ui.plan?.coverWards?.find(target=>target.cell===cell);
-  const previewCard=cover?{...card,coverWard:{dir:cover.dir,owner:card.controller,until:game.placements+2}}
+  const previewCard=cover?{...card,coverWard:{dir:cover.dir,amount:cover.amount,kind:cover.kind,owner:card.controller,until:game.placements+2}}
    :ward?.cell===cell?{...card,ernieWard:{dir:ward.dir,owner:card.controller,until:game.placements+2}}:card;
   const previewGame=ui.plan?{...game,board:ui.plan.board,block:ui.plan.blockadeMove?.to??game.block}:game;
   const feedback=fieldFeedback129(previewGame,previewCard,cell);
