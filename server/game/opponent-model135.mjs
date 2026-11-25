@@ -14,7 +14,7 @@ export function opponentBeliefs135(model){
 export const placementKey135=a=>JSON.stringify([
  a.uid,a.cell,a.rotation??0,a.abilityDirection??0,a.twistCell??null,a.blockadeCell??null,
  a.swapCells??null,a.stepCells??null,a.valueSwap??null,a.selfTurn??0,a.bidDirection??null,
- a.pivotDirection??(a.pivotCapture?1:0)
+ a.pivotDirection??(a.pivotCapture?1:0),a.buttonChoice??null
 ]);
 export function observeOpponent135(model,before,after,action,key){
  const old=model?.version===1?model:createOpponentModel135();

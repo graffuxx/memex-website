@@ -1,7 +1,7 @@
-import {bindSignatureControls} from './signature-controls.mjs?v=turn-arrows';
+import {bindSignatureControls} from './signature-controls.mjs?v=two-buttons';
 import {edgeLabels,updateTwistControl} from './direction-controls.mjs';
-import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=arcade-voices';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=storm-tie-shield';
+import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=two-buttons';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=two-buttons';
 import {createPollRecovery139} from './start-recovery139.mjs';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
@@ -10,8 +10,8 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs';
 import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
-import {createTableView} from './table-demo-view-hand17.mjs?v=turn-arrows';
-import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=turn-arrows';
+import {createTableView} from './table-demo-view-hand17.mjs?v=two-buttons';
+import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=two-buttons';
 import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
@@ -56,7 +56,7 @@ function render(){
  $('confirm').hidden=mode!=='shift';$('confirm').disabled=busy||!moveTargets(game).includes(target);$('confirm').textContent='Move blockade';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent=blockadeLocked(game)?'⊣ Blockade sealed':'◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
  $('nextRound').hidden=data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||animating||presentation.needsSnapshot||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Next round starts automatically':'Continue sooner';
  $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?(game.turn===0?'Choose a free field. Escape cancels.':'Inspect your hand while your opponent plays.'):game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
- $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.pursuit?' · No Escape ✓':c.objection?' · Objection holds':c.finalGuard?' · Final Guard holds':c.bailout?' · Last-Second Save':c.redirect?' · Clingy Bond → '+cardOf(game.board[c.redirect]).name:c.pincer?' · Double Trouble ✓':c.phalanx?' · Phalanx ✓':c.sandwich?' · Sandwich ✓':c.ambush?' · Ambush ✓':c.defend.awkward?(c.flip?' · Awkward Silence ✓':' · Awkward Silence'):c.flip?' ✓':c.tieProtected?' · KEKW blocks the tie':'')).join(' · '):'';
+ $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.roundhouse?' · Roundhouse':c.thought?' · Thought Experiment flips':c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.pursuit?' · No Escape ✓':c.objection?' · Objection holds':c.finalGuard?' · Final Guard holds':c.bailout?' · Last-Second Save':c.redirect?' · Clingy Bond → '+cardOf(game.board[c.redirect]).name:c.pincer?(game.abilityRework?' · Shockwave':' · Double Trouble'):c.phalanx?' · Phalanx ✓':c.sandwich?' · Sandwich ✓':c.ambush?' · Ambush ✓':c.defend.awkward?(c.flip?' · Awkward Silence ✓':' · Awkward Silence'):c.flip?' ✓':c.tieProtected?' · KEKW blocks the tie':'')).join(' · '):'';
  $('abilityOptions').hidden=!card?.ability||mode==='shift';$('abilityLabel').textContent=card?.ability?ABILITIES[card.ability].name:'';$('abilityHint').textContent=abilityDescription(game,card?.ability);$('directionLabel').hidden=!aimsAbility(card?.ability);$('abilityDirection').value=String(abilityDirection);$('abilityDirection').disabled=busy||Boolean(p?.suppressed);
  const rotationAbility=turnsCards(card?.ability)&&!p?.suppressed?card.ability:null;
  const rotationTargets=target&&rotationAbility?twistTargets(game,target,rotationAbility):[];
@@ -102,19 +102,24 @@ async function accept(next){
  if($('startDuel').open){const flying=portraitIntro.fly();$('startDuel').close();await flying;check();}
  const sameRound=Boolean(previous?.game&&next.round===previous.round);
  const step=next.step,animate=Boolean(!recovering&&sameRound&&previous.version+1===next.version&&step&&step.before.placements===previous.game.placements);
- if(animate){game=step.before;await view.prepareGame(game);check();view.initGame(game,{keepCamera:true});render();if(step.kind==='place'){const rotation=step.after.last.transforms?.find(t=>t.uid===step.action.uid)?.from??step.after.last.blink?.from??step.after.board[step.action.cell].rotation;view.setRotation(step.action.uid,rotation);if(next.game.last.dash){await view.shift(next.game.last.blockadeMove.to);check();audio.play('shift');}await view.place(step.action.uid,step.action.cell);check();audio.play('place');if(next.game.last.relocation){await view.slideCard(next.game.last.relocation);check();audio.play('shift');}if(next.game.last.blockadeMove&&!next.game.last.dash){await view.shift(next.game.last.blockadeMove.to);check();audio.play('shift');}}else if(step.kind==='shift'){await view.shift(step.cell);check();audio.play('shift');}else audio.play('draw');}
+ if(animate){game=step.before;await view.prepareGame(game);check();view.initGame(game,{keepCamera:true});render();if(step.kind==='place'){const rotation=step.after.last.transforms?.find(t=>t.uid===step.action.uid)?.from??step.after.last.blink?.from??Object.values(step.after.board).find(card=>card.uid===step.action.uid).rotation;view.setRotation(step.action.uid,rotation);if(next.game.last.dash){await view.shift(next.game.last.blockadeMove.to);check();audio.play('shift');}await view.place(step.action.uid,step.action.cell);check();audio.play('place');if(next.game.last.ability==='exchange'&&next.game.last.swapCells){await view.swapCards(next.game.last.swapCells,step.action.uid);check();audio.play('shift');}if(next.game.last.relocation){await view.slideCard(next.game.last.relocation);check();audio.play('shift');}if(next.game.last.blockadeMove&&!next.game.last.dash){await view.shift(next.game.last.blockadeMove.to);check();audio.play('shift');}}else if(step.kind==='shift'){await view.shift(step.cell);check();audio.play('shift');}else audio.play('draw');}
  await view.prepareGame(next.game);check();game=next.game;view.initGame(game,{keepCamera:sameRound});$('loadStatus').hidden=true;notice='';render();
  if(animate&&step.kind==='place'){
   const {flips,side,event,transforms,ability,suppressed}=game.last;
-  view.react(game.last);view.abilityBurst(game);
-  if(transforms?.length&&ability!=='encore'){
+  view.react(game.last);if(!game.last.pincer?.shockwave)view.abilityBurst(game);
+  if(transforms?.length&&ability!=='encore'&&!game.last.roundhouse){
    audio.play('twist');
    for(const effect of transforms){await view.turnCard(effect.uid,effect.from,effect.to);check();}
   }
   if(['guard','water'].includes(ability)&&!suppressed)audio.play('guard');
   for(const cell of flips)view.card(game.board[cell].uid)?.setOwner(step.before.board[cell].controller);
   if(flips.length)audio.play('capture',{side,count:flips.length});
-  await animateResolvedFlips(view,game,flipCombo);check();
+  await animateResolvedFlips(view,game,flipCombo,async()=>{
+   check();
+   if(game.last.pincer?.shockwave){view.abilityBurst(game);return;}
+   audio.play('twist');
+   for(const {uid,from,to} of transforms){await view.turnCard(uid,from,to);check();}
+  });check();
   if(ability==='encore'&&transforms?.length){audio.play('twist');for(const effect of transforms){await view.turnCard(effect.uid,effect.from,effect.to);check();}}
   if(game.last.blink){const {uid,from,to}=game.last.blink;audio.play('twist');await view.turnCard(uid,from,to);check();}
   for(const cell of flips)view.card(game.board[cell].uid)?.setOwner(game.board[cell].controller);
@@ -133,6 +138,8 @@ function choose(uid){if(!inputState().inspect||!game.players[0].hand.some(c=>c.u
 function canStage(cell){const card=game?.players[0].hand.find(c=>c.uid===selected);return Boolean(cell&&cell!==reservedCell(game)&&!game.board[cell]&&(game.block!==cell||dashTargets(game,card,cell).length));}
 function field(cell){
  const ability=game?.players[0].hand.find(card=>card.uid===selected)?.ability;
+ const pair=game?.abilityRework&&ability==='exchange'&&!locked()?plan()?.swaps.find(([,ally])=>ally===cell):null;
+ if(pair){boardPreview.clear();signatureControls.swapWith(pair);render();return;}
  if(game?.abilityTrial&&!locked()&&target&&turnsCards(ability)&&twistTargets(game,target,ability).includes(cell)){
   boardPreview.clear();twistCell=twistCell===cell?null:cell;render();return;
  }
@@ -171,7 +178,7 @@ function release(e,cancelled=false){
  view.release(d.uid);target=canStage(cell)?cell:null;twistCell=null;blockadeCell=null;signatureControls.clear();
  const placement=locked()?null:plan();
  if(!placement){clear();render();return;}
- const optional=placement.pivotTarget||placement.steps?.length||placement.bidTargets?.length
+ const optional=placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps?.length||placement.bidTargets?.length
   ||placement.swaps.length||placement.valueSwaps?.length||placement.ability==='wander'&&placement.turnChoices?.length
   ||placement.ability==='rage'&&rageTargets(game,target).length
   ||placement.turnChoices?.length||placement.dash||['water','air'].includes(placement.ability);
@@ -185,7 +192,7 @@ document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.runnin
 $('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
 async function bootOnline139(){if(booting139||stopped)return;booting139=true;let ready=false;try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
- if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{onConfirmPlacement:confirm,confirmPlacementLabel:'Play card',rotationTargetLabel:'Can turn right',rotationSelectedLabel:'Will turn right',blinkLabel:'BLINK',tieShieldLabel:'TIE SHIELD',finalGuardLabel:'FINAL GUARD',getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient($('ambientEnabled').checked);if(!muted)void audio.preloadAnnouncements();}
+ if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{onConfirmPlacement:confirm,confirmPlacementLabel:'Play card',rotationTargetLabel:'Can turn right',rotationSelectedLabel:'Will turn right',swapTargetLabel:'Can swap places',blinkLabel:'BLINK',tieShieldLabel:'TIE SHIELD',finalGuardLabel:'FINAL GUARD',getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient($('ambientEnabled').checked);if(!muted)void audio.preloadAnnouncements();}
  $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';ready=true;
 }catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{booting139=false;}if(ready)await poll();}
 void bootOnline139();

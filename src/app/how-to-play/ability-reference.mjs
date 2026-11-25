@@ -4,7 +4,7 @@ import {portalTrialAbility} from '../../../public/game/platform/deck-bridge.mjs'
 import {
  ABILITIES, AMBUSH_BONUS, AWKWARD_PENALTY, CHASE_PENALTY, CHORUS_DUET_GUARD,
  JORDAN_MAX_MARGIN, NESTED_MAX_INCREASE, OBJECTION_MAX_MARGIN, PHALANX_BONUS,
- PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, STORM_MAX_EDGE, SWIPE_MAX_DEFENSE, WATER_BONUS
+ PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, SWIPE_MAX_DEFENSE, WATER_BONUS
 } from '../../../public/game/src/table-demo-rules.mjs';
 
 export const glossary = [
@@ -28,10 +28,10 @@ const explanations = {
  water:['Wave Shield','Select a Regular Water card, target a hex and choose the edge to protect. Confirm the play.',`That edge gains +${WATER_BONUS} defence until your next turn.`],
  earth:['Bulwark','A Regular Earth card touches an allied card or the blockade.','Its weakest open edge gains +1 defence. The protected edge updates as the board changes.'],
  air:['Tailwind','Place a Regular Air card, then tap a highlighted allied card if you want to turn it.','The arrow shows the turn. The card turns one step to the right and stays yours.'],
- storm:['Flanking Lightning','Play a Regular Storm card touching at least two enemies.',`Its weakest enemy-facing edge gains +1 attack if its base value is ${STORM_MAX_EDGE} or less.`],
+ storm:['Flanking Lightning','Play a Regular Storm card touching at least two enemies.','Its weakest numbered edge facing an enemy gains +1 attack for this move.'],
  rage:['Rage Pivot','Place Rage Guy while behind on the board with your blockade move unused. Choose an available destination.','Move the blockade up to two free hexes. This uses your blockade move for the round.'],
- buttons:['Second Choice','Play Two Buttons with at least two cards remaining in your deck and another turn left in the round.','Privately choose which of the top two you draw. The other stays on top. If the timer expires, the game chooses.'],
- exchange:['Change My Mind','When playing the card, choose two adjacent allied Regulars. One must touch your placement.','Swap those two cards without triggering captures.'],
+ buttons:['Two Buttons','Choose an attack or a shield when you play Two Buttons.','Red gives +2 attack when it earns an extra flip. Blue gives +2 defence on the weakest open edge until your next turn.'],
+ exchange:['Change My Mind','When you play Change My Mind, you can tap one adjacent allied Regular to swap places.','Change My Mind attacks from the new position. The ally does not attack.'],
  luxury:['First World Problem','Before playing, choose a 4 and a 2 on the card. One must face an enemy and the other a free hex.','The two edge values trade places and stay swapped.'],
  wander:['Wrong Turn','Choose an empty hex that touches no enemy. Before playing, you may choose a direction.','Confused Travolta rotates 60° left or right as it is played.'],
  sidestep:['Make Room','When playing Greg, choose an allied Regular next to him and a free hex adjacent to both cards.','That ally moves one hex without changing its facing. A card captured in this play cannot be moved.'],
@@ -45,7 +45,7 @@ const explanations = {
  chase:['No Escape','Score a direct flip with Why Are You Running? with another enemy directly behind the target.',`The attack can continue in the same direction at −${CHASE_PENALTY} strength and capture at most one more card.`],
  cover:['Cover','Place Overly Manly Man beside Regulars you already control.','Up to two allies get +1 defence on their weakest open edge until your next turn. These bonuses do not stack.'],
  objection:['Objection','The opponent would directly capture this card and at least one other in the same play.',`Once per round, this card can hold if the attacking number is at most ${OBJECTION_MAX_MARGIN} higher. S attacks bypass it.`],
- thought:['Thought Experiment','When playing Philosoraptor, choose two enemy Regulars that stay enemy this turn. One must touch Philosoraptor and the other must touch either of them.','Swap the two enemies without causing any captures.'],
+ thought:['Thought Experiment','If Philosoraptor would flip no cards, it looks for a close comparison between numbered edges.','It wins one comparison where the numbers are tied or its side is exactly one point lower. Tie shields still hold.'],
  awkward:['Awkward Silence','Place Socially Awkward Penguin. It marks open numbered edges on the first eligible enemy still adjacent, clockwise from east.',`The marked edges lose up to ${AWKWARD_PENALTY} defence on your next turn, down to a minimum of 1.`],
  ambush:['Ambush','Place Always Has Been with an ally directly or diagonally behind it and an edge where the bonus would win.',`The first eligible attack clockwise from east gains +${AMBUSH_BONUS} and captures its target.`],
  nested:['Card Within a Card','Capture a Regular with Yo Dawg while an open numbered edge can be improved.',`The first captured Regular’s highest number can raise Yo Dawg’s weakest open edge by up to ${NESTED_MAX_INCREASE} for the rest of the round.`],
@@ -60,8 +60,8 @@ const explanations = {
  chorus:['Choreography','When placing NUMA NUMA, choose an adjacent allied Regular. You can add a Regular of another element touching NUMA or the first ally.',`Rotate the ally and give its weakest open edge +1 defence. In a duet they turn in opposite directions and each gets +${CHORUS_DUET_GUARD} until your next turn.`],
  relay:['Change of Guard','Play Pablo Waiting without a capture. On your next turn, play a Regular next to him.','After the Regular’s captures resolve, you may swap it with Pablo. Their facing stays the same and the swap causes no captures.'],
  retry:['Second Attempt','Next to an ally, choose a 60° turn if the normal facing has no capture and the rotation yields exactly one numbered capture.','The card is played in the chosen facing.'],
- pincer:['Double Trouble','Score exactly one direct flip with Emotional Damage. An adjacent ally must be able to attack a second enemy that touches both.','The ally makes one follow-up numbered attack, using the first winning edge clockwise from east. Its own ability does not fire again.'],
- roundhouse:['Roundhouse','Capture a card with Nuck Chorris’s S edge. You may then choose a direction.','Rotate the captured card 60° left or right without triggering another capture.'],
+ pincer:['Shockwave','Flip a card with Emotional Damage.','A card you just flipped can immediately flip an enemy next to it if its numbered edge wins. Up to one extra flip.'],
+ roundhouse:['Roundhouse','Capture a card with Nuck Chorris’s S edge. You may then choose a direction.','Turn the captured card left or right. A numbered edge that now beats a new neighbour can flip one extra card.'],
  gate:['Gatekeeper','Play One Does Not Simply directly next to the blockade.','The blockade is sealed in place for the opponent’s next turn.'],
  ernie:['Fire Pact','Capture an enemy with Evil Ernie’s S edge.','The captured card gains +1 defence on the edge opposite the capture until your next turn. The bonus does not stack or modify an S.'],
 };

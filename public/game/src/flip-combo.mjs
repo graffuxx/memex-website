@@ -10,16 +10,22 @@ export function flipComboTier(count) {
   return null;
 }
 
-export function animateResolvedFlips(view, { board, last: { flips, side } }, effect) {
+export async function animateResolvedFlips(view, { board, last: { flips, side, roundhouse, pincer } }, effect, beforeFollowUp) {
   const tier = flipComboTier(flips.length);
-  return Promise.all(flips.map((cell, index) => view.flip(board[cell].uid, side, tier ? {
+  const flip = (cell, index, announce) => view.flip(board[cell].uid, side, tier ? {
     delay: index * 65,
     accent: true,
     onImpact() {
-      if (index === 0) effect.announce(tier, flips, side);
+      if (announce) effect.announce(tier, flips, side);
       effect.flash(tier, cell);
     },
-  } : undefined)));
+  } : undefined);
+  const followUp = roundhouse ?? (pincer?.shockwave ? pincer : null);
+  if (!followUp || !beforeFollowUp) return Promise.all(flips.map((cell, index) => flip(cell, index, index === 0)));
+  const direct = flips.filter(cell => cell !== followUp.cell);
+  await Promise.all(direct.map((cell, index) => flip(cell, index, false)));
+  if (await beforeFollowUp() === false) return;
+  return flip(followUp.cell, 0, true);
 }
 
 export function bindFlipCombo(stage, svg, { audio, motion }) {

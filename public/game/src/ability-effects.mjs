@@ -1,5 +1,5 @@
 import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=storm-tie-shield';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=two-buttons';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -47,7 +47,10 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
   }
   for(const cell of plan?.phalanx?.tiles??[])markers.push({kind:'phalanx',cell,preview:true,label:'⇧'});
   if(plan?.rally)markers.push({kind:'phalanx',cell:plan.cell,dir:plan.rally.dir,preview:true,label:`+${PHALANX_BONUS}`});
-  if(plan?.pincer)markers.push({kind:'pincer',cell:plan.pincer.source,dir:plan.pincer.dir,preview:true,label:'⤢'});
+  if(plan?.pincer){
+   markers.push({kind:'pincer',cell:plan.pincer.source,dir:plan.pincer.dir,preview:true,label:'⤢'});
+   if(plan.pincer.shockwave)markers.push({kind:'pincer',cell:plan.pincer.cell,dir:(plan.pincer.dir+3)%6,preview:true,label:'✦'});
+  }
   if(plan?.relay&&plan.swapCells)for(const cell of plan.swapCells)markers.push({kind:'relay',cell,preview:true,label:'⇆'});
   if(plan?.ability){
    const working={...game,board:plan.board};
@@ -69,6 +72,8 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    }
    if(plan.nested)markers.push({kind:'nested',cell:plan.cell,dir:plan.nested.dir,preview:true,label:String(plan.nested.value)});
    if(plan.pivot)markers.push({kind:plan.ability,cell:plan.pivot.cell,preview:true,label:turnArrow(plan.pivot)});
+   if(plan.roundhouse)markers.push({kind:'roundhouse',cell:plan.roundhouse.cell,preview:true,label:'✦'});
+   if(plan.thought)markers.push({kind:'thought',cell:plan.thought,preview:true,label:'?'});
    if(plan.blockadeLock)markers.push({kind:'gate',cell:game.block,preview:true,label:'⊣'});
    if(plan.valueSwap)for(const dir of plan.valueSwap)markers.push({kind:'luxury',cell:plan.cell,dir,preview:true,label:String(sideValue(plan.card,dir))});
    if(plan.selfTurn)markers.push({kind:plan.ability,cell:plan.cell,preview:true,label:plan.selfTurn<0?'↶':'↻'});
@@ -131,6 +136,7 @@ export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
   if(last.relocation)played.push({kind:ability,cell:last.relocation.to,label:'↗'});
   if(last.rainbow)played.push({kind:'rainbow',cell:last.rainbow.cell,dir:(last.rainbow.dir+3)%6,label:'⌒'});
   if(last.swipe)played.push({kind:'swipe',cell:last.swipe.cell,dir:(last.swipe.dir+3)%6,label:`−${last.swipe.amount}`});
+  if(last.thought)played.push({kind:'thought',cell:last.thought,label:'?'});
   if(last.decoy)played.push({kind:'decoy',...last.decoy,label:`−${last.decoy.amount}`});
   if(last.pursuit)played.push({kind:'chase',...last.pursuit,label:'»'});
   if(last.blockadeLock)played.push({kind:'gate',cell:game.block,label:'⊣'});

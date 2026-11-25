@@ -63,14 +63,17 @@ test('Concurrent opening choices, Prime abilities and Final Guard resolve throug
    await db.query('update public.dv_profiles set display_name=$2 where user_id=$1',[uid,'Prime tester '+side]);
    deckIds[side]=(await db.query('select id from public.dv_decks where user_id=$1',[uid])).rows[0].id;
   }
-  let seed=0;
+  let seed=0,legacyReplay=false;
   const now=Date.now();
   const handler=createMatchHandler90({seed:()=>seed,now:()=>now,env:k=>({SUPABASE_URL:'https://private-fixture.test',SUPABASE_SERVICE_ROLE_KEY:'local-fixture-only'})[k],fetcher:async(url,options)=>{
    if(url.endsWith('/auth/v1/user')){
     const uid=players[Number(options.headers.Authorization?.slice(7))];
     return uid?Response.json({id:uid,email_confirmed_at:'2026-11-24'}):Response.json({},{status:401});
    }
-   const method=url.split('/').at(-1),pairs=Object.entries(JSON.parse(options.body));
+   const method=url.split('/').at(-1),args=JSON.parse(options.body);
+   // The recorded Prime and Final Guard boards were played before the ability update.
+   if(legacyReplay&&method==='dv_match_commit90'&&args.p_state?.phase==='rps'&&!args.p_state.game)delete args.p_state.abilityRework;
+   const pairs=Object.entries(args);
    assert.match(method,/^dv_[a-z0-9_]+$/);
    assert.ok(pairs.every(([k])=>/^p_[a-z0-9_]+$/.test(k)));
    try{
@@ -110,8 +113,10 @@ test('Concurrent opening choices, Prime abilities and Final Guard resolve throug
    assert.equal(second.rpsWinner,0);
    const started=await request(0,{op:'move',id,version:second.version,requestId:crypto.randomUUID(),move:{kind:'starter',side:1}});
    assert.equal(started.game.starter,1);
+   assert.equal(started.game.abilityRework,true);
    await request(0,{op:'leave',id});
   }
+  legacyReplay=true;
   let blinkWithAttackBonus=false;
   for(const fixture of [...fixtures,...finalGuardFixtures.fixtures]){
    const closing=fixture.ability==='final-guard';

@@ -6,6 +6,7 @@ export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[
 export const GUARD_BONUS=2;
 export const WATER_BONUS=2;
 export const STORM_MAX_EDGE=3;
+export const TWO_BUTTONS_BONUS=2;
 export const SWIPE_MAX_DEFENSE=2;
 export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
@@ -27,10 +28,10 @@ export const ABILITIES={
  water:{name:'Water · Wellenschild',short:'◈',description:`Eine gewählte Kante erhält +${WATER_BONUS} Verteidigung bis zum nächsten eigenen Zug.`},
  earth:{name:'Earth · Bollwerk',short:'◆',description:'Grenzt diese Karte an eine eigene Karte oder die Blockade, erhält ihre schwächste offene Kante +1 Verteidigung. Der Bonus wandert mit der schwächsten offenen Kante.'},
  air:{name:'Air · Rückenwind',short:'↻',description:'Du kannst eine eigene Nachbarkarte einen Schritt nach rechts drehen. Die Drehung flippt keine Karten.'},
- storm:{name:'Storm · Flankenblitz',short:'ϟ',description:`Berührt die Karte mindestens zwei Gegner, erhält die schwächste Angriffskante gegen sie +1, wenn ihr Grundwert höchstens ${STORM_MAX_EDGE} beträgt.`},
+ storm:{name:'Storm · Flankenblitz',short:'ϟ',description:'Grenzt die Karte an mindestens zwei Gegner, bekommt ihre schwächste Zahlenkante gegen diese Gegner +1 Angriff.'},
  rage:{name:'Iconic · Rage Pivot',short:'◆',description:'Liegst du zurück, kannst du nach dem Ausspielen die Blockade bis zu zwei freie Felder weit verschieben. Das verbraucht deinen Blockadezug dieser Runde.'},
- buttons:{name:'Iconic · Zweite Wahl',short:'↗',description:'Wähle beim Nachziehen eine der obersten zwei Karten. Die andere bleibt oben im Deck. Die Auswahl ist privat.'},
- exchange:{name:'Iconic · Change My Mind',short:'⇄',description:'Tausche nach dem Ausspielen optional zwei benachbarte eigene Standardkarten. Eine der beiden muss an das gespielte Feld grenzen. Der Tausch löst keine Flips aus.'},
+ buttons:{name:'Iconic · Zwei Knöpfe',short:'↗',description:'Rot: +2 Angriff für einen Zusatzflip. Blau: +2 Schutz auf der schwächsten freien Seite bis zu deinem nächsten Zug.'},
+ exchange:{name:'Iconic · Change My Mind',short:'⇄',description:'Tausche beim Ausspielen den Platz mit einer benachbarten eigenen Standardkarte. Change My Mind greift vom neuen Platz aus an.'},
  luxury:{name:'Iconic · Luxusproblem',short:'⇄',description:'Tausche beim Ausspielen die 4 mit einer 2. Eine der beiden Kanten muss auf eine Gegnerkarte zeigen, die andere auf ein freies Feld. Die Werte bleiben danach getauscht.'},
  wander:{name:'Iconic · Falsche Richtung',short:'↶',description:'Wenn das Ausspielfeld keine Gegnerkarte berührt, kannst du diese Karte beim Legen einen Schritt nach links oder rechts drehen.'},
  sidestep:{name:'Iconic · Platz machen',short:'↝',description:'Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte behält ihre Ausrichtung. Eben geflippte Karten bleiben liegen.'},
@@ -44,7 +45,7 @@ export const ABILITIES={
  chase:{name:'Iconic · Kein Entkommen',short:'»',description:`Nach einem direkten Flip kann der Angriff in derselben Richtung die gegnerische Karte dahinter treffen. Der Folgeangriff verliert ${CHASE_PENALTY} Angriffspunkte. Höchstens ein Zusatzflip, beginnend im Osten im Uhrzeigersinn.`},
  cover:{name:'Iconic · Rückendeckung',short:'◈',description:'Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schwächsten offenen Kante bis zum nächsten eigenen Zug. Schutzboni stapeln sich nicht.'},
  objection:{name:'Iconic · Einspruch',short:'!',description:`Würde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf höchstens ${OBJECTION_MAX_MARGIN} Punkte höher sein. Gegen S greift der Einspruch nicht.`},
- thought:{name:'Iconic · Gedankenexperiment',short:'⇄',description:'Beim Legen darfst du zwei gegnerische Standardkarten tauschen, die in diesem Zug ihre Seite behalten. Eine grenzt an Philosoraptor. Die zweite grenzt an ihn oder an das erste Tauschziel. Der Tausch löst keine Flips aus.'},
+ thought:{name:'Iconic · Gedankenexperiment',short:'?',description:'Würde Philosoraptor keine Karte flippen, kann er einen knappen Vergleich gewinnen. Seine Zahlenkante darf gleich stark oder einen Punkt schwächer sein. Patt-Schutz gilt weiter.'},
  awkward:{name:'Iconic · Peinliche Stille',short:'…',description:`Markiert beim ersten verbliebenen gegnerischen Nachbarn im Uhrzeigersinn ab Osten die offenen Zahlenkanten. Sie verlieren in deinem nächsten Zug bis zu ${AWKWARD_PENALTY} Verteidigung, maximal bis auf 1.`},
  ambush:{name:'Iconic · Hinterhalt',short:'⇥',description:`Steht direkt hinter der Karte oder seitlich dahinter ein Verbündeter, erhält eine Angriffskante +${AMBUSH_BONUS}, sofern dadurch ein Flip gelingt. Es zählt der erste solche Angriff im Uhrzeigersinn ab Osten.`},
  nested:{name:'Iconic · Karte in der Karte',short:'▣',description:`Nach einem Flip kopiert Yo Dawg den höchsten Zahlenwert der ersten eroberten Standardkarte auf seine schwächste offene Kante. Der Wert kann dauerhaft um bis zu ${NESTED_MAX_INCREASE} steigen.`},
@@ -59,8 +60,8 @@ export const ABILITIES={
  chorus:{name:'Prime · Choreografie',short:'♫',description:`Drehe beim Legen eine eigene angrenzende Standardkarte um 60° und schütze ihre schwächste offene Kante mit +1. Singt eine zweite Standardkarte eines anderen Elements mit, darf sie an NUMA oder den ersten Partner angrenzen und dreht sich entgegengesetzt. Beide erhalten dann +${CHORUS_DUET_GUARD} Schutz bis zu deinem nächsten Zug. Die Drehung löst keine Flips aus.`},
  relay:{name:'Prime · Wachwechsel',short:'⇆',description:'Flippt Pablo beim Legen keine Karte, kann im nächsten eigenen Zug eine benachbarte Standardkarte nach ihren Flips mit ihm den Platz tauschen. Beide behalten ihre Ausrichtung. Der Tausch löst keine weiteren Flips aus.'},
  retry:{name:'Prime · Zweiter Versuch',short:'⤾',description:'Wenn die normale Ausrichtung keinen Flip bringt und eine eigene Karte angrenzt, darfst du diese Karte beim Legen um 60° drehen. Die Drehung ist nur möglich, wenn dadurch genau ein Flip mit einer Zahlenkante gelingt.'},
- pincer:{name:'Prime · Doppelansage',short:'⤢',description:'Nach genau einem direkten Flip kann eine bereits eigene Nachbarkarte einen zweiten Gegner angreifen, der beide Karten berührt. Die erste erfolgreiche Zahlenkante im Uhrzeigersinn ab Osten zählt. Der Verbündete löst seine eigene Fähigkeit dabei nicht erneut aus.'},
- roundhouse:{name:'Prime · Roundhouse',short:'⟳',description:'Drehe eine mit deiner S-Kante eroberte Karte optional um 60° nach links oder rechts. Die Drehung löst keine Flips aus.'},
+ pincer:{name:'Prime · Schockwelle',short:'⤢',description:'Wenn Emotional Damage eine Karte flippt, kann diese sofort einen ihrer Nachbarn flippen. Dafür muss ihre Zahlenkante gewinnen. Höchstens ein Zusatzflip.'},
+ roundhouse:{name:'Prime · Roundhouse',short:'⟳',description:'Drehe eine mit S eroberte Karte nach links oder rechts. Schlägt sie dadurch mit einer Zahlenkante einen neuen Nachbarn, flippt sie ihn. Ein Zusatzflip pro Zug.'},
  gate:{name:'Prime · Torwache',short:'⊣',description:'Spielst du diese Karte neben die Blockade, bleibt die Blockade für den nächsten gegnerischen Zug an ihrem Platz.'},
  ernie:{name:'Prime · Feuerpakt',short:'✦',description:'Erobert Ernie mit seiner S-Kante eine Karte, erhält deren gegenüberliegende Außenkante +1 Verteidigung bis zum nächsten eigenen Zug. Der Schutz stapelt sich nicht und verändert kein S.'}
 };
@@ -124,6 +125,14 @@ export function releasedPrimeAbility(card,includePair=false,allPrimes=false){
 export function abilityDescription(game,ability){
  if(ability==='earth'&&!game?.earthSupport)return 'Neben der Blockade erhält die schwächste erreichbare Kante +1 Verteidigung, solange die Blockade dort bleibt.';
  if(ability==='guard')return `Eine Seite erhält +${guardBonus(game)} Verteidigung bis zum nächsten eigenen Karten-Zug.`;
+ if(game&&!game.abilityRework){
+  if(ability==='buttons')return 'Beim Nachziehen wählst du eine der obersten zwei Karten. Die andere bleibt oben im Deck.';
+  if(ability==='storm')return `Gegen mindestens zwei Nachbarn erhält die schwächste Angriffskante +1, wenn ihr Grundwert höchstens ${STORM_MAX_EDGE} beträgt.`;
+  if(ability==='exchange')return 'Tausche zwei benachbarte eigene Standardkarten. Eine muss an das ausgespielte Feld grenzen.';
+  if(ability==='thought')return 'Tausche zwei gegnerische Standardkarten, die in diesem Zug ihre Seite behalten. Eine muss an Philosoraptor grenzen.';
+  if(ability==='roundhouse')return 'Drehe eine mit S eroberte Karte nach links oder rechts. Die Drehung löst keine Flips aus.';
+  if(ability==='pincer')return 'Nach genau einem direkten Flip kann eine bereits eigene Nachbarkarte einen zweiten Gegner angreifen, der beide Karten berührt.';
+ }
  return ABILITIES[ability]?.description??'';
 }
 export const DIRECTION_NAMES=['Ost','Südost','Südwest','West','Nordwest','Nordost'];
@@ -198,6 +207,7 @@ export function exchangeTargets(game,cell){
   const card=game.board[id];
   return card?.controller===game.turn&&Boolean(standardAbility(card));
  };
+ if(game.abilityRework)return [...touching].filter(ownedRegular).map(ally=>[cell,ally]);
  return [...touching].filter(ownedRegular).flatMap(first=>neighbors(first)
   .map(n=>n.id)
   .filter(second=>ownedRegular(second)&&(!touching.has(second)||first<second))
@@ -234,6 +244,40 @@ export function stopsElementTie(attack,defend){
 }
 export function effectAttackWins(attack,defend,elementRules){
  return !stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
+}
+
+function roundhouseFollowUp(game,source,direction,comparisons){
+ const captured=game.board[source],before={...captured,controller:game.turn,ability:null};
+ const turned={...before,rotation:(before.rotation+direction+6)%6};
+ for(const {id,dir} of neighbors(source)){
+  const enemy=game.board[id];
+  if(!enemy||enemy.controller===game.turn||comparisons.some(hit=>hit.flip&&hit.cell===id))continue;
+  const defend=effectStrength(game,enemy,id,(dir+3)%6,turned);
+  const attack=effectStrength(game,turned,source,dir,enemy,{attacking:true});
+  const previous=effectStrength(game,before,source,dir,enemy,{attacking:true});
+  if(attack.rank==='S'||effectAttackWins(previous,defend,game.elementRules??3)||!effectAttackWins(attack,defend,game.elementRules??3))continue;
+  return {cell:id,source,dir,attack,defend,setup:false,flip:true,roundhouse:true,name:cardOf(enemy).name};
+ }
+ return null;
+}
+
+function shockwaveFollowUp(game,card,cell,comparisons){
+ const captured=comparisons.filter(hit=>hit.flip).map(hit=>hit.redirect??hit.cell);
+ if(!captured.length)return null;
+ const board={...game.board,[cell]:card};
+ for(const id of captured)board[id]={...board[id],controller:game.turn,ability:null};
+ const working={...game,board};
+ const protectedCells=new Set(comparisons.filter(hit=>hit.objection||hit.bailout||hit.finalGuard||hit.redirect).map(hit=>hit.cell));
+ for(const source of captured)for(const {id,dir} of neighbors(source)){
+  const target=board[id];
+  if(!target||target.controller===game.turn||protectedCells.has(id))continue;
+  const attacker=board[source];
+  const attack=effectStrength(working,attacker,source,dir,target,{attacking:true});
+  const defend=effectStrength(working,target,id,(dir+3)%6,attacker);
+  if(attack.rank==='S'||!effectAttackWins(attack,defend,game.elementRules??3))continue;
+  return {cell:id,source,dir,attack,defend,setup:false,flip:true,pincer:true,name:cardOf(target).name};
+ }
+ return null;
 }
 export function canObject(game,card,cell,attack,defend){
  return abilityAt(game,card,cell)==='objection'&&!card.objectionSpent
@@ -273,8 +317,8 @@ export function abilityEdge(game,card,cell,{attacking=false,direction=null}={}){
   const enemies=neighbors(cell).filter(n=>game.board[n.id]&&game.board[n.id].controller!==card.controller);
   if(ability==='fire'&&enemies.length===1)return {dir:enemies[0].dir,amount:1};
   if(ability==='storm'&&enemies.length>=2){
-   const edge=weakestEdge(card,enemies);
-   if(sideValue(card,edge.dir)<=STORM_MAX_EDGE)return {dir:edge.dir,amount:1};
+   const edge=weakestEdge(card,game.abilityRework?enemies.filter(({dir})=>!isSRank126(sideValue(card,dir))):enemies);
+   if(edge&&(game.abilityRework||sideValue(card,edge.dir)<=STORM_MAX_EDGE))return {dir:edge.dir,amount:1};
   }
   return null;
  }
@@ -372,6 +416,32 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
 }
 // All effects resolve on a copy. Merely aiming or cancelling can never alter the board.
 export function previewEffect(game,action){
+ const choice=action.buttonChoice??null;
+ if(choice!==null&&choice!=='attack'&&choice!=='defense')throw Error('Ungültige Wahl für Two Buttons.');
+ const plan=resolvePlacement(game,action);
+ if(!game.abilityRework||plan.ability!=='buttons'){
+  if(choice!==null)throw Error('Two Buttons ist hier nicht verfügbar.');
+  return plan;
+ }
+
+ const open=neighbors(plan.cell).filter(({id,dir})=>id!==game.block&&!plan.board[id]&&!isSRank126(sideValue(plan.card,dir)));
+ const defense=weakestEdge(plan.card,open)?.dir??null;
+ let attack=null,attackPlan=null;
+ for(const hit of plan.comparisons){
+  if(hit.flip||hit.setup||hit.objection||hit.bailout||hit.finalGuard||hit.attack.rank==='S')continue;
+  if(!effectAttackWins({...hit.attack,total:hit.attack.total+TWO_BUTTONS_BONUS},hit.defend,game.elementRules??3))continue;
+  const candidate=resolvePlacement(game,action,hit.dir);
+  const additional=candidate.flips.find(cell=>!plan.flips.includes(cell));
+  if(!additional||candidate.flips.length<=plan.flips.length)continue;
+  attack={dir:hit.dir,cell:additional};attackPlan=candidate;
+  break;
+ }
+ if((choice==='attack'&&!attack)||(choice==='defense'&&defense===null))throw Error('Diese Wahl ist hier nicht verfügbar.');
+ if(choice==='defense')plan.card.coverWard={dir:defense,owner:game.turn,until:game.placements+2,amount:TWO_BUTTONS_BONUS,kind:'buttons'};
+ return {...(choice==='attack'?attackPlan:plan),buttonChoice:choice,buttonAttack:attack,buttonDefense:defense};
+}
+
+function resolvePlacement(game,action,buttonAttackDir=null){
  const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,blockadeCell=null,swapCells=null,stepCells=null,valueSwap=null,selfTurn=0,bidDirection=null,pivotCapture=false,pivotDirection=pivotCapture?1:0}=action;
  if(game.pendingDraw)throw Error('Wähle zuerst deine Nachziehkarte.');
  if(game.rotationLocked&&rotation!==0)throw Error('Handkarten haben eine feste Ausrichtung.');
@@ -381,6 +451,19 @@ export function previewEffect(game,action){
  if(dash&&!dashChoices.includes(dash))throw Error('Kein gültiges Ziel für Durchbruch.');
  const working={...game,board:{...game.board},block:dash??game.block};
  validatePlacement(working,{uid,cell,rotation});
+ if(game.abilityRework&&swapCells!==null&&abilityAt(working,held,cell)==='exchange'){
+  const swaps=exchangeTargets(working,cell);
+  const pair=Array.isArray(swapCells)&&swapCells.length===2&&swaps.find(ids=>ids.every(id=>swapCells.includes(id)));
+  if(!pair)throw Error('Kein gültiger Kartentausch.');
+  const [,ally]=pair;
+  const swapped={...working,board:{...working.board,[cell]:working.board[ally]}};
+  delete swapped.board[ally];
+  const plan=resolvePlacement(swapped,{...action,cell:ally,swapCells:null});
+  // The action still records the placement field. The saved move applies the swap once.
+  plan.board[ally]=plan.board[cell];
+  delete plan.board[cell];
+  return {...plan,cell,attackCell:ally,swapCells:pair,swaps};
+ }
  if(!Number.isInteger(abilityDirection)||abilityDirection<0||abilityDirection>5)throw Error('Ungültige Fähigkeitsrichtung.');
  for(const [cell,old] of Object.entries(working.board))if(old.guardOwner===game.turn){const c={...old};delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;working.board[cell]=c;}
  const card={...held,rotation,controller:game.turn,flips:0},ability=abilityAt(working,card,cell),transforms=[];
@@ -412,6 +495,7 @@ export function previewEffect(game,action){
  const enemies=surrounding.filter(n=>working.board[n.id]&&working.board[n.id].controller!==game.turn);
  const compare=facing=>enemies.map(n=>{
   const other=working.board[n.id],attack=effectStrength(working,facing,cell,n.dir,other,{attacking:true,abilityDirection}),defend=effectStrength(working,other,n.id,(n.dir+3)%6,facing);
+  if(n.dir===buttonAttackDir){attack.total+=TWO_BUTTONS_BONUS;attack.ability+=TWO_BUTTONS_BONUS;}
   const setup=n.id===twistCell,elementRules=game.elementRules??3;
   const tieProtected=!setup&&stopsElementTie(attack,defend)&&attackWins(attack,defend,elementRules);
   return {cell:n.id,dir:n.dir,attack,defend,setup,flip:!setup&&effectAttackWins(attack,defend,elementRules),name:cardOf(other).name,...(tieProtected?{tieProtected:true}:{})};
@@ -441,6 +525,15 @@ export function previewEffect(game,action){
   phalanxHit.attack={...phalanxHit.attack,total:phalanxHit.attack.total+PHALANX_BONUS,formation:PHALANX_BONUS};
   phalanxHit.flip=true;phalanxHit.tieProtected=false;phalanxHit.phalanx=true;
  }
+ const closeEnough=({setup,attack,defend})=>!setup&&attack.rank!=='S'&&defend.rank!=='S'
+  &&(defend.total===attack.total&&!defend.holdsTie||defend.total===attack.total+1);
+ const thought=game.abilityRework&&ability==='thought'&&!comparisons.some(c=>c.flip)
+  ?comparisons.find(c=>c.attack.total===c.defend.total&&closeEnough(c))??comparisons.find(closeEnough):null;
+ if(thought){thought.flip=true;thought.thought=true;}
+ const swept=game.abilityRework&&ability==='roundhouse'&&[-1,1].includes(pivotDirection)
+  ?comparisons.find(c=>c.flip&&c.attack.rank==='S'):null;
+ const followUp=swept?roundhouseFollowUp(working,swept.cell,pivotDirection,comparisons):null;
+ if(followUp)comparisons.push(followUp);
  const directWins=comparisons.filter(c=>c.flip);
  const blocked=directWins.length>=2?directWins.find(c=>canObject(working,working.board[c.cell],c.cell,c.attack,c.defend)):null;
  const objection=blocked?{cell:blocked.cell,dir:(blocked.dir+3)%6}:null;
@@ -525,7 +618,7 @@ export function previewEffect(game,action){
  }
  const guardedHit=game.finalGuard===true&&game.placements===17&&game.turn!==game.starter
   ?comparisons.find(c=>c.flip&&c.attack.rank!=='S'&&working.board[c.cell].controller===game.starter):null;
- const finalGuard=guardedHit?{cell:guardedHit.cell,uid:working.board[guardedHit.cell].uid}:null;
+ let finalGuard=guardedHit?{cell:guardedHit.cell,uid:working.board[guardedHit.cell].uid}:null;
  if(guardedHit){guardedHit.flip=false;guardedHit.finalGuard=true;}
  let bailout=null;
  for(const attempt of comparisons){
@@ -593,7 +686,16 @@ export function previewEffect(game,action){
   }
  }
  let pincer=null;
- if(ability==='pincer'&&comparisons.filter(c=>c.flip&&!c.redirect).length===1){
+ if(ability==='pincer'&&game.abilityRework){
+  const follow=shockwaveFollowUp(working,card,cell,comparisons);
+  if(follow){
+   if(!finalGuard&&game.finalGuard===true&&game.placements===17&&game.turn!==game.starter&&working.board[follow.cell].controller===game.starter){
+    finalGuard={cell:follow.cell,uid:working.board[follow.cell].uid};
+    follow.flip=false;follow.finalGuard=true;
+   }else pincer={source:follow.source,cell:follow.cell,dir:follow.dir,shockwave:true};
+   comparisons.push(follow);
+  }
+ }else if(ability==='pincer'&&comparisons.filter(c=>c.flip&&!c.redirect).length===1){
   const ring=neighbors(cell);
   for(const target of comparisons){
    if(target.flip||target.setup||target.objection||target.bailout||target.finalGuard||target.cell===attachment?.cell)continue;
@@ -637,7 +739,7 @@ export function previewEffect(game,action){
  const pivotTarget=ability==='roundhouse'?sCapture?.cell??null:ability==='encore'&&flips.length===1?cell:null;
  if(typeof pivotCapture!=='boolean'||![-1,0,1].includes(pivotDirection)||pivotDirection!==0&&!pivotTarget)throw Error('Keine Karte für die Drehung erobert.');
  const relay=relayTarget(working,card,cell);
- const swaps=relay?[[relay,cell]]:ability==='exchange'?exchangeTargets(game,cell):ability==='thought'?thoughtTargets(working,cell,flips):[];
+ const swaps=relay?[[relay,cell]]:ability==='exchange'?exchangeTargets(game,cell):ability==='thought'&&!game.abilityRework?thoughtTargets(working,cell,flips):[];
  const waiting=ability==='relay'&&!flips.length&&freeCells(working).length>2
   &&surrounding.some(({id})=>id!==working.block&&!working.board[id]);
  if(swapCells!==null){
@@ -693,7 +795,8 @@ export function previewEffect(game,action){
  const blockadeLock=ability==='gate'&&neighbors(cell).some(n=>n.id===game.block)?{owner:game.turn,until:game.placements+2}:null;
  const ward=captured?{cell:captured.cell,dir:captured.dir}:null;
  const blockadeMove=dash||blockadeCell!==null?{from:game.block,to:dash??blockadeCell}:null;
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir)};
+ const roundhouse=followUp?.flip?{source:followUp.source,cell:followUp.redirect??followUp.cell,dir:followUp.dir}:null;
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir),roundhouse,thought:thought?.flip?thought.redirect??thought.cell:null};
 }
 export function placeEffect(game,action,{chooseDraw=false}={}){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
@@ -752,6 +855,9 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  if(p.ward)next.last.ward=p.ward;
  if(p.coverWards.length)next.last.coverWards=p.coverWards;
  if(p.pivot)next.last.transforms.push(p.pivot);
+ if(p.roundhouse)next.last.roundhouse=p.roundhouse;
+ if(p.thought)next.last.thought=p.thought;
+ if(p.buttonChoice)next.last.buttonChoice=p.buttonChoice;
  if(p.swapCells)next.last.swapCells=p.swapCells;
  if(p.waiting)next.last.waiting=true;
  if(p.relay&&p.swapCells)next.last.relay=p.relay;
@@ -804,7 +910,7 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  }
  next.history.push(next.last);
  if(freeCells(next).length===0){next.finished=true;const s=scores(next);next.winner=s[0]===s[1]?null:s[0]>s[1]?0:1;}
- if(!next.finished&&chooseDraw&&p.ability==='buttons'&&player.deck.length>=2){
+ if(!next.finished&&chooseDraw&&p.ability==='buttons'&&!game.abilityRework&&player.deck.length>=2){
   next.pendingDraw={side};
  }else{
   if(player.deck.length)player.hand.push(player.deck.shift());
@@ -814,6 +920,11 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
 }
 export function actionOptions(game,card,cell,rotation){
  const ability=abilityAt(game,card,cell),directions=aimsAbility(ability)?[0,1,2,3,4,5]:[0],targets=turnsCards(ability)?[null,...twistTargets(game,cell,ability)]:[null];
+ if(ability==='buttons'&&game.abilityRework){
+  const action={uid:card.uid,cell,rotation,abilityDirection:0};
+  const plan=previewEffect(game,action);
+  return [action,...(plan.buttonAttack?[{...action,buttonChoice:'attack'}]:[]),...(plan.buttonDefense!==null?[{...action,buttonChoice:'defense'}]:[])];
+ }
  if(ability==='luxury')return [null,...valueSwapTargets(game,card,cell,rotation)].map(valueSwap=>({uid:card.uid,cell,rotation,abilityDirection:0,valueSwap}));
  if(ability==='wander'&&canTurnSelf(game,cell))return [0,-1,1].map(selfTurn=>({uid:card.uid,cell,rotation,abilityDirection:0,selfTurn}));
  if(ability==='sidestep'||ability==='chorus'||ability==='jam'||ability==='fan'||ability==='cling'){

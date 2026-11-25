@@ -32,6 +32,7 @@
 .ability-effects g[data-ability=decoy]{--ability-color:#bdf1e4;--ability-glow:#5bccbb}
 .ability-effects g[data-ability=chase]{--ability-color:#ffbd80;--ability-glow:#ff7040}
 .ability-effects g[data-ability=cover]{--ability-color:#eddbac;--ability-glow:#ba905b}
+.ability-effects g[data-ability=buttons]{--ability-color:#c4e7ff;--ability-glow:#5796ff}
 .ability-effects g[data-ability=objection]{--ability-color:#ffb2a6;--ability-glow:#ed645d}
 .ability-effects g[data-ability=thought]{--ability-color:#d8c7ff;--ability-glow:#9b75e2}
 .ability-effects g[data-ability=awkward]{--ability-color:#a5e6f7;--ability-glow:#6ac8f2}
@@ -77,3 +78,8 @@
 .turn-choice__buttons button{min-height:36px;padding:5px 9px;font-size:12px;flex:1 0 auto}
 .turn-choice__buttons button span{font-size:16px;vertical-align:middle}
 .turn-choice__buttons button[aria-pressed=true]{border-color:#d9b983;background:#534067;color:#fff5db}
+.two-buttons[hidden]{display:none}
+.two-buttons button[data-choice=attack]{background:#512437;color:#ffd7de;border-color:#dc7086}
+.two-buttons button[data-choice=defense]{background:#202f59;color:#d9e8ff;border-color:#759ee8}
+.two-buttons button[aria-pressed=true]{outline:2px solid currentColor;outline-offset:-3px}
+.two-buttons button:disabled{opacity:.5;cursor:default}

@@ -1,4 +1,4 @@
-import {canTurnSelf,valueSwapTargets} from './table-demo-rules.mjs?v=turn-arrows';
+import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets} from './table-demo-rules.mjs?v=two-buttons';
 import {cardOf,ELEMENTS} from './rules.mjs?v=final-guard';
 import {createTurnButtons,edgeLabels} from './direction-controls.mjs';
 
@@ -13,13 +13,26 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
  stepLabel.append(english?'Move an allied card':'Eigene Karte verschieben',step);
  const bidLabel=document.createElement('label'),bid=document.createElement('select');
  bidLabel.append(english?'Spend blockade move':'Blockadezug einsetzen',bid);
+ const twoButtons=document.createElement('div');
+ twoButtons.className='turn-choice__buttons two-buttons';
+ twoButtons.setAttribute('role','group');
+ twoButtons.setAttribute('aria-label',english?'Choose attack or shield':'Angriff oder Schutz wählen');
+ const attackButton=document.createElement('button'),defenseButton=document.createElement('button');
+ attackButton.type=defenseButton.type='button';
+ attackButton.dataset.choice='attack';defenseButton.dataset.choice='defense';
+ attackButton.textContent=(english?'Attack':'Angriff')+` +${TWO_BUTTONS_BONUS}`;
+ defenseButton.textContent=(english?'Shield':'Schutz')+` +${TWO_BUTTONS_BONUS}`;
+ twoButtons.append(attackButton,defenseButton);
  const drawPanel=document.createElement('div'),drawTitle=document.createElement('strong'),drawChoices=document.createElement('div');
- drawPanel.hidden=exchangeLabel.hidden=pivot.group.hidden=valueLabel.hidden=facing.group.hidden=stepLabel.hidden=bidLabel.hidden=true;
+ drawPanel.hidden=exchangeLabel.hidden=pivot.group.hidden=valueLabel.hidden=facing.group.hidden=stepLabel.hidden=bidLabel.hidden=twoButtons.hidden=true;
  drawPanel.className='signature-draw';drawChoices.className='signature-draw__choices';
  drawPanel.append(drawTitle,drawChoices);
- abilities.append(exchangeLabel,pivot.group,valueLabel,facing.group,stepLabel,bidLabel);
+ abilities.append(exchangeLabel,pivot.group,valueLabel,facing.group,stepLabel,bidLabel,twoButtons);
  abilities.after(drawPanel);
- let swapCells=null,pivotDirection=0,valueSwap=null,selfTurn=0,stepCells=null,bidDirection=null;
+ let swapCells=null,pivotDirection=0,valueSwap=null,selfTurn=0,stepCells=null,bidDirection=null,buttonChoice=null;
+ for(const [key,button] of [['attack',attackButton],['defense',defenseButton]]){
+  button.onclick=()=>{buttonChoice=buttonChoice===key?null:key;onChange();};
+ }
  exchange.onchange=()=>{swapCells=exchange.value?exchange.value.split('|'):null;onChange();};
  values.onchange=()=>{valueSwap=values.value?values.value.split('|').map(Number):null;onChange();};
  step.onchange=()=>{stepCells=step.value?step.value.split('|'):null;onChange();};
@@ -27,11 +40,17 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
  const directions=edgeLabels(english);
 
  function update({game,card,target,plan,busy,options,waiting=false}){
-  exchangeLabel.hidden=card?.ability!=='exchange'&&card?.ability!=='thought'&&!plan?.relay;
+  twoButtons.hidden=!game.abilityRework||card?.ability!=='buttons';
+  attackButton.disabled=busy||!plan?.buttonAttack;
+  defenseButton.disabled=busy||plan?.buttonDefense==null;
+  attackButton.setAttribute('aria-pressed',String(buttonChoice==='attack'));
+  defenseButton.setAttribute('aria-pressed',String(buttonChoice==='defense'));
+  const exchangeOne=game.abilityRework&&card?.ability==='exchange';
+  exchangeLabel.hidden=card?.ability!=='exchange'&&(card?.ability!=='thought'||game.abilityRework)&&!plan?.relay;
   if(!exchangeLabel.hidden){
-   exchangeText.textContent=plan?.relay?(english?'Change of Guard':'Wachwechsel'):card.ability==='thought'?(english?'Swap enemy cards':'Gegnerkarten tauschen'):(english?'Swap allied cards':'Eigene Karten tauschen');
+   exchangeText.textContent=exchangeOne?(english?'Swap with one ally':'Mit eigener Karte tauschen'):plan?.relay?(english?'Change of Guard':'Wachwechsel'):card.ability==='thought'?(english?'Swap enemy cards':'Gegnerkarten tauschen'):(english?'Swap allied cards':'Eigene Karten tauschen');
    const pairs=plan?.swaps??[];
-   exchange.replaceChildren(new Option(english?'Keep positions':'Positionen behalten',''),...pairs.map(pair=>new Option(pair.map(id=>cardOf(id===target?card:game.board[id]).name+' · '+id).join(' ↔ '),pair.join('|'))));
+   exchange.replaceChildren(new Option(english?'Leave as is':'So lassen',''),...pairs.map(pair=>new Option(exchangeOne?'↔ '+cardOf(game.board[pair[1]]).name:pair.map(id=>cardOf(id===target?card:game.board[id]).name).join(' ↔ '),pair.join('|'))));
    exchange.value=swapCells?.join('|')??'';
    exchange.disabled=busy||!pairs.length;
   }
@@ -105,6 +124,7 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
   selfTurn=action.selfTurn??0;
   stepCells=action.stepCells??null;
   bidDirection=action.bidDirection??null;
+  buttonChoice=action.buttonChoice??null;
  }
- return {update,setAction,clear:setAction,action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection};}};
+ return {update,setAction,clear:setAction,swapWith(pair){swapCells=swapCells?.includes(pair[1])?null:pair;},action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice};}};
 }
