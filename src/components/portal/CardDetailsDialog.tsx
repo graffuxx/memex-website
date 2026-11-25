@@ -4,12 +4,13 @@ import {useEffect,useId,useRef} from 'react';
 import {DEFINITIONS,RARITIES,getVariant} from '../../../public/game/platform/catalog.mjs';
 import {printedValue126} from '../../../public/game/platform/card-ranks126.mjs';
 import {ELEMENTS} from '../../../public/game/platform/elements53.mjs';
+import {edgeLabels} from '../../../public/game/src/direction-controls.mjs';
 import {releasedPortalAbility} from './cardAbilities';
-import {ABILITIES} from '../../../public/game/src/table-demo-rules.mjs';
+import {ABILITIES,abilityDescription} from '../../../public/game/src/table-demo-rules.mjs';
 import GameCardFace from './GameCardFace';
 import './card-details.css';
 
-const directions=['E','SE','SW','W','NW','NE'];
+const directions=edgeLabels(true);
 
 export default function CardDetailsDialog({variantId,onClose}:{variantId:string|null;onClose:()=>void}){
  const dialog=useRef<HTMLDialogElement>(null),abilityId=useId();
@@ -19,6 +20,7 @@ export default function CardDetailsDialog({variantId,onClose}:{variantId:string|
  const show=Boolean(variant&&card&&rarity);
  const abilityKey=card&&variant?releasedPortalAbility(card.ruleId,variant.id):null;
  const ability=abilityKey?ABILITIES[abilityKey as keyof typeof ABILITIES]:null;
+ const description=abilityDescription(null,abilityKey);
 
  useEffect(()=>{
   const element=dialog.current;
@@ -35,9 +37,13 @@ export default function CardDetailsDialog({variantId,onClose}:{variantId:string|
    <p>{rarity.name} · {ELEMENTS[variant.element].name}{card.prime?' · Prime':card.iconic?' · Iconic':''}</p>
    {ability&&<section id={abilityId} className="card-preview-ability" aria-label="Ability" lang="de">
     <strong>{ability.name}</strong>
-    <p>{ability.description}</p>
+    <p>{description}</p>
    </section>}
-   <div className="deck-preview-values">{directions.map((direction,i)=><span key={direction}>{direction}<b>{printedValue126(card.values[i])}</b></span>)}</div>
+   <div className="deck-preview-values">{directions.map((direction,i)=>{
+    const [arrow,...position]=direction.split(' ');
+    const value=printedValue126(card.values[i]);
+    return <span key={direction} role="img" aria-label={position.join(' ')+' '+value}>{arrow}<b>{value}</b></span>;
+   })}</div>
    <p className="muted">{card.quote}</p>
   </>}
  </dialog>;

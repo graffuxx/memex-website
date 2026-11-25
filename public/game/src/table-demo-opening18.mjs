@@ -1,7 +1,7 @@
 import {bindSignatureControls} from './signature-controls.mjs?v=two-buttons';
 import {edgeLabels,updateTwistControl} from './direction-controls.mjs';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=two-buttons';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=two-buttons';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=ability-copy';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -27,7 +27,7 @@ import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
 import {createTableView} from './table-demo-view-hand17.mjs?v=two-buttons';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
-import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=two-buttons';
+import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=ability-copy';
 import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let conceded129=false,afkStreak129=0;
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}

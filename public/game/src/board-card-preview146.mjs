@@ -3,7 +3,7 @@ import {DEFINITIONS,getVariant} from '../platform/catalog.mjs';
 import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription,laughActive} from './table-demo-rules.mjs?v=two-buttons';
+import {ABILITIES,abilityDescription,laughActive} from './table-demo-rules.mjs?v=ability-copy';
 import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=board-ability-symbols';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
