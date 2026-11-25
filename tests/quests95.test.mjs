@@ -6,8 +6,9 @@ import {protectedCandidates,validAlphaPack,boosterCostLabel} from '../public/gam
 import {cardOf} from '../public/game/src/rules.mjs';
 import {tradeQuote} from '../public/game/platform/economy30.mjs';import {CARD_ART} from '../public/game/src/card-art16.mjs';
 const id=n=>'95959595-9595-4595-8595-'+String(n).padStart(12,'0'),owner=id(1),old=id(2),other=id(3);
-async function db95(){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id,email_confirmed_at,email) values('${owner}',now(),'test.owner@gmail.com'),('${old}',now(),'old95@example.test'),('${other}',now(),'other95@example.test');`);
- for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
+const doubleFlipMigration='202611250003_double_flip_quest_goals.sql';
+async function db95({before}={}){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id,email_confirmed_at,email) values('${owner}',now(),'test.owner@gmail.com'),('${old}',now(),'old95@example.test'),('${other}',now(),'other95@example.test');`);
+ for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')&&(!before||f<before)).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));
  for(const u of [owner,old,other])await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();`);return db;}
 async function as(db,u){await db.exec(`reset role;set role authenticated;set request.jwt.claim.sub='${u}';`);}
 async function status(db,u){await as(db,u);return (await db.query('select public.dv_quest_status95() data')).rows[0].data;}
@@ -24,7 +25,7 @@ test('Multi-flip quests apply existing verified progress and grant their packs a
   assert.equal(unlocked85(title,{owned:[],wins:100}),false);
   await fs.stat(new URL('../public'+portrait.image,import.meta.url));
   await db.exec('reset role');
-  await db.query('insert into public.dv_random_skills90(user_id,double_flips,triple_flips,quad_flips) values($1,50,10,1)',[owner]);
+  await db.query('insert into public.dv_random_skills90(user_id,double_flips,triple_flips,quad_flips) values($1,100,10,1)',[owner]);
   const progress=await status(db,owner);
   const receipts=[];
   for(const quest of FLIP_QUESTS){
@@ -47,6 +48,33 @@ test('Multi-flip quests apply existing verified progress and grant their packs a
   assert.equal(unlocked85(title,saved),true);
   assert.ok(saved.owned.includes('title:quest-goldfinger'));
   assert.deepEqual((await status(db,other)).claims,[]);
+ }finally{await db.close();}
+});
+test('higher Double Flip goals preserve claimed rewards and require 25 and 100 for new claims',async()=>{
+ const db=await db95({before:doubleFlipMigration});
+ const claim=async quest=>(await db.query('select public.dv_claim_quest95($1) data',[quest])).rows[0].data;
+ try{
+  await db.query('insert into public.dv_random_skills90(user_id,double_flips) values($1,10),($2,24)',[owner,other]);
+  await as(db,owner);
+  const previous=await claim('double-flips-10');
+  await db.exec('reset role');
+  await db.exec(await fs.readFile(new URL('../supabase/migrations/'+doubleFlipMigration,import.meta.url),'utf8'));
+  const current=await status(db,owner);
+  assert.equal(current.counts.double_flips,10);
+  const replay=await claim('double-flips-10');
+  assert.equal(replay.replayed,true);
+  assert.deepEqual(replay.packs,previous.packs);
+  await as(db,other);
+  await assert.rejects(claim('double-flips-10'),/not complete/);
+  await db.exec('reset role');
+  await db.query('update public.dv_random_skills90 set double_flips=25 where user_id=$1',[other]);
+  await as(db,other);
+  assert.equal((await claim('double-flips-10')).packs.length,1);
+  await assert.rejects(claim('double-flips-50'),/not complete/);
+  await db.exec('reset role');
+  await db.query('update public.dv_random_skills90 set double_flips=100 where user_id=$1',[other]);
+  await as(db,other);
+  assert.equal((await claim('double-flips-50')).packs.length,3);
  }finally{await db.close();}
 });
 test('quest schedule, special artwork and shared gameplay values preserve the original booster pool',async()=>{
