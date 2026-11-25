@@ -1,5 +1,5 @@
 import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=two-buttons';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=penguin-mark';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -28,7 +28,8 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:tieShieldLabel});
    if(ward&&!mark?.dirs.includes(ward.dir))markers.push({kind:ward.kind,cell,dir:ward.dir,label:`+${ward.amount}`});
    if(mark&&!mark.active)markers.push({kind:'awkward',cell,label:'…'});
-   if(mark?.active)for(const dir of mark.dirs){
+   if(mark?.persistent)markers.push({kind:'awkward',cell,label:`−${mark.amount} DEF`});
+   else if(mark?.active)for(const dir of mark.dirs){
     const penalty=effectStrength(game,card,cell,dir,card).awkward;
     if(penalty)markers.push({kind:'awkward',cell,dir,label:`−${penalty}`});
    }
@@ -63,7 +64,8 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(plan.blockadeMove)markers.push({kind:plan.dash?'dash':'rage',cell:plan.blockadeMove.to,preview:true,label:plan.dash?'»':'◆'});
    if(plan.swapCells&&!plan.relay)for(const cell of plan.swapCells)markers.push({kind:plan.ability,cell,preview:true,label:'⇄'});
    if(plan.objection)markers.push({kind:'objection',...plan.objection,preview:true,label:'!'});
-   if(plan.awkward)for(const dir of plan.awkward.dirs)markers.push({kind:'awkward',cell:plan.awkward.cell,dir,preview:true,label:'…'});
+   if(plan.awkward?.persistent)markers.push({kind:'awkward',cell:plan.awkward.cell,preview:true,label:`−${plan.awkward.amount} DEF`});
+   else if(plan.awkward)for(const dir of plan.awkward.dirs)markers.push({kind:'awkward',cell:plan.awkward.cell,dir,preview:true,label:'…'});
    if(plan.ambush!=null)markers.push({kind:'ambush',cell:plan.cell,dir:plan.ambush,preview:true,label:`+${AMBUSH_BONUS}`});
    if(plan.jam)markers.push({kind:'jam',cell:plan.jam,preview:true,label:'⌧'});
    if(plan.sandwich){
@@ -132,7 +134,7 @@ export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
    played.push({kind:'sandwich',cell:last.sandwich.source,dir:last.sandwich.sourceDir??(last.sandwich.dir+3)%6,label:'⟫'});
   }
   if(last.nested)played.push({kind:'nested',cell:last.cell,dir:last.nested.dir,label:String(last.nested.value)});
-  if(last.awkward)played.push({kind:'awkward',cell:last.awkward.cell,label:'…'});
+  if(last.awkward)played.push({kind:'awkward',cell:last.awkward.cell,label:last.awkward.persistent?`−${last.awkward.amount} DEF`:'…'});
   if(last.relocation)played.push({kind:ability,cell:last.relocation.to,label:'↗'});
   if(last.rainbow)played.push({kind:'rainbow',cell:last.rainbow.cell,dir:(last.rainbow.dir+3)%6,label:'⌒'});
   if(last.swipe)played.push({kind:'swipe',cell:last.swipe.cell,dir:(last.swipe.dir+3)%6,label:`−${last.swipe.amount}`});
@@ -196,7 +198,7 @@ export function createAbilityEffects(layer,options){
     text.setAttribute('x',x);text.setAttribute('y',top);text.textContent=marker.label;
     continue;
    }
-   if(marker.kind==='final-guard'||(marker.kind==='blink'||marker.kind==='laugh')&&marker.label.length>1){
+   if(marker.kind==='final-guard'||['blink','laugh','awkward'].includes(marker.kind)&&marker.label.length>1){
     const labelY=Math.max(14,Math.min(...geometry.points.map(point=>point.y))-8);
     const half=marker.label.length*3.7+8;
     badge.setAttribute('d',`M ${x-half+5} ${labelY-9} h ${2*half-10} q 5 0 5 5 v 8 q 0 5 -5 5 h ${10-2*half} q -5 0 -5 -5 v -8 q 0 -5 5 -5 Z`);

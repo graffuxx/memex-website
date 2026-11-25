@@ -12,6 +12,8 @@ export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
 export const OBJECTION_MAX_MARGIN=2;
 export const AWKWARD_PENALTY=2;
+export const PENGUIN_REWORK_WAVE=8;
+export const PENGUIN_DEFENSE_PENALTY=1;
 export const AMBUSH_BONUS=1;
 export const NESTED_MAX_INCREASE=2;
 export const PHALANX_BONUS=2;
@@ -46,7 +48,7 @@ export const ABILITIES={
  cover:{name:'Iconic · Rückendeckung',short:'◈',description:'Beim Legen erhalten bis zu zwei bereits eigene Standard-Nachbarn +1 Verteidigung an ihrer jeweils schwächsten offenen Kante bis zum nächsten eigenen Zug. Schutzboni stapeln sich nicht.'},
  objection:{name:'Iconic · Einspruch',short:'!',description:`Würde ein Zug mindestens zwei Karten direkt flippen, kann diese Karte ihren eigenen Flip einmal pro Runde abwehren. Der gegnerische Zahlenwert darf höchstens ${OBJECTION_MAX_MARGIN} Punkte höher sein. Gegen S greift der Einspruch nicht.`},
  thought:{name:'Iconic · Gedankenexperiment',short:'?',description:'Würde Philosoraptor keine Karte flippen, kann er einen knappen Vergleich gewinnen. Seine Zahlenkante darf gleich stark oder einen Punkt schwächer sein. Patt-Schutz gilt weiter.'},
- awkward:{name:'Iconic · Peinliche Stille',short:'…',description:`Markiert einen Nachbarn, der beim Legen beim Gegner bleibt. In deinem nächsten Zug verteidigen seine markierten Seiten mit bis zu ${AWKWARD_PENALTY} Punkten weniger, mindestens mit 1. Die Vorschau zeigt die offenen Zahlenseiten, die es trifft.`},
+ awkward:{name:'Iconic · Peinliche Stille',short:'…',description:`Beim Ausspielen markiert der Pinguin eine Gegnerkarte in bis zu zwei Feldern Entfernung. Sie hat −${PENGUIN_DEFENSE_PENALTY} Verteidigung auf allen Zahlenseiten, bis sie geflippt wird. Die Vorschau zeigt das Ziel.`},
  ambush:{name:'Iconic · Hinterhalt',short:'⇥',description:`Lege Always Has Been zwischen eine eigene Karte und einen Gegner. Die eigene Karte darf dem Gegner direkt oder schräg gegenüberliegen. Ist damit ein Zusatzflip möglich, bekommt der Angriff +${AMBUSH_BONUS}. Die Vorschau markiert das Ziel.`},
  nested:{name:'Iconic · Karte in der Karte',short:'▣',description:`Nach einem Flip kopiert Yo Dawg den höchsten Zahlenwert der ersten eroberten Standardkarte auf seine schwächste offene Kante. Der Wert kann dauerhaft um bis zu ${NESTED_MAX_INCREASE} steigen.`},
  phalanx:{name:'Prime · Phalanx',short:'⇧',description:`Beim Legen bildet Sparta mit angrenzenden eigenen und gerade eroberten Karten eine Formation. In deinen nächsten zwei Zügen kann eine Karte neben einem Formationsmitglied einmal +${PHALANX_BONUS} auf die erste dadurch gewinnende Zahlenkante erhalten. Grenzt Sparta beim Legen an zwei bereits eigene Karten, kann Sparta den Bonus direkt nutzen. Der Bonus ist einmalig. Beim Verlust Spartas oder aller Partner endet die Formation.`},
@@ -125,6 +127,7 @@ export function releasedPrimeAbility(card,includePair=false,allPrimes=false){
 export function abilityDescription(game,ability){
  if(ability==='earth'&&game&&!game.earthSupport)return 'Neben der Blockade erhält die schwächste erreichbare Kante +1 Verteidigung, solange die Blockade dort bleibt.';
  if(ability==='guard')return `Eine Seite erhält +${guardBonus(game)} Verteidigung bis zum nächsten eigenen Karten-Zug.`;
+ if(ability==='awkward'&&game&&(game.iconicAbilityWave??0)<PENGUIN_REWORK_WAVE)return `Markiert einen Gegner neben dem Pinguin. In deinem nächsten Zug verteidigen seine markierten offenen Zahlenseiten mit bis zu ${AWKWARD_PENALTY} Punkten weniger, mindestens mit 1.`;
  if(game&&!game.abilityRework){
   if(ability==='buttons')return 'Beim Nachziehen wählst du eine der obersten zwei Karten. Die andere bleibt oben im Deck.';
   if(ability==='storm')return `Gegen mindestens zwei Nachbarn erhält die schwächste Angriffskante +1, wenn ihr Grundwert höchstens ${STORM_MAX_EDGE} beträgt.`;
@@ -347,7 +350,11 @@ export function wardEdge(game,card,cell){
 }
 export function awkwardEdges(game,card,cell){
  const mark=card.awkwardMark;
- if(!mark||mark.owner!==card.controller||game.placements>=mark.until||eventFieldAt(game,cell)?.type==='silence')return null;
+ if(!mark||mark.owner!==card.controller||(mark.until!=null&&game.placements>=mark.until)||eventFieldAt(game,cell)?.type==='silence')return null;
+ if(mark.persistent){
+  const dirs=Array.from({length:6},(_,dir)=>dir).filter(dir=>!isSRank126(sideValue(card,dir)));
+  return {dirs,active:true,amount:mark.amount,persistent:true};
+ }
  return {dirs:(mark.localDirections??[mark.localDirection]).map(dir=>(dir+(card.rotation??0))%6),active:game.placements>=mark.from,amount:mark.amount??1};
 }
 export function dashTargets(game,card,cell){
@@ -764,7 +771,21 @@ function resolvePlacement(game,action,buttonAttackDir=null){
   return edge?[{cell:id,dir:edge.dir,...(ability==='chorus'?{kind:'chorus',amount:duet?CHORUS_DUET_GUARD:1}:{})}]:[];
  }).slice(0,2);
  let awkward=null;
- if(ability==='awkward'&&freeCells(working).length>2){
+ if(ability==='awkward'&&(game.iconicAbilityWave??0)>=PENGUIN_REWORK_WAVE){
+  const nearby=new Set(surrounding.map(({id})=>id));
+  for(const {id} of surrounding)for(const neighbor of neighbors(id))nearby.add(neighbor.id);
+  let openSides=0;
+  for(const target of nearby){
+   const enemy=working.board[target];
+   if(!enemy||enemy.controller===game.turn||flips.includes(target))continue;
+   const count=neighbors(target).filter(({id,dir})=>
+    id!==cell&&id!==working.block&&!working.board[id]&&sideValue(enemy,dir)>1&&!isSRank126(sideValue(enemy,dir))
+   ).length;
+   if(count<=openSides)continue;
+   openSides=count;
+   awkward={cell:target,amount:PENGUIN_DEFENSE_PENALTY,persistent:true};
+  }
+ }else if(ability==='awkward'&&freeCells(working).length>2){
   for(const {cell:target,flip} of comparisons){
    if(flip)continue;
    const enemy=working.board[target];
@@ -818,7 +839,9 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  for(const {cell,dir,kind,amount} of p.coverWards)next.board[cell].coverWard={dir,owner:side,until:game.placements+2,...(kind?{kind,amount}:{})};
  if(p.awkward){
   const target=next.board[p.awkward.cell];
-  target.awkwardMark={owner:target.controller,localDirections:p.awkward.dirs.map(dir=>(dir-(target.rotation??0)+6)%6),from:game.placements+2,until:game.placements+3,amount:AWKWARD_PENALTY};
+  target.awkwardMark=p.awkward.persistent
+   ?{owner:target.controller,amount:p.awkward.amount,persistent:true}
+   :{owner:target.controller,localDirections:p.awkward.dirs.map(dir=>(dir-(target.rotation??0)+6)%6),from:game.placements+2,until:game.placements+3,amount:AWKWARD_PENALTY};
  }
  if(p.pivot)next.board[p.pivot.cell].rotation=p.pivot.to;
  if(p.blink){

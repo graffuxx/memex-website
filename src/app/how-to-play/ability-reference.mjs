@@ -2,7 +2,7 @@ import {DEFINITIONS} from '../../../public/game/platform/catalog.mjs';
 import {ELEMENT_IDS,ELEMENTS} from '../../../public/game/platform/elements53.mjs';
 import {portalTrialAbility} from '../../../public/game/platform/deck-bridge.mjs';
 import {
- ABILITIES, AMBUSH_BONUS, AWKWARD_PENALTY, CHASE_PENALTY, CHORUS_DUET_GUARD,
+ ABILITIES, AMBUSH_BONUS, PENGUIN_DEFENSE_PENALTY, CHASE_PENALTY, CHORUS_DUET_GUARD,
  JORDAN_MAX_MARGIN, NESTED_MAX_INCREASE, OBJECTION_MAX_MARGIN, PHALANX_BONUS,
  PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, SWIPE_MAX_DEFENSE, WATER_BONUS
 } from '../../../public/game/src/table-demo-rules.mjs';
@@ -46,7 +46,7 @@ const explanations = {
  cover:['Cover','Place Overly Manly Man beside Regulars you already control.','Up to two allies get +1 defence on their weakest open edge until your next turn. These bonuses do not stack.'],
  objection:['Objection','The opponent would directly capture this card and at least one other in the same play.',`Once per round, this card can hold if the attacking number is at most ${OBJECTION_MAX_MARGIN} higher. S attacks bypass it.`],
  thought:['Thought Experiment','If Philosoraptor would flip no cards, it looks for a close comparison between numbered edges.','It wins one comparison where the numbers are tied or its side is exactly one point lower. Tie shields still hold.'],
- awkward:['Awkward Silence','Play Socially Awkward Penguin next to an enemy that stays on the opposing side. The preview shows which of its sides facing empty hexes are marked.',`Those sides defend with up to ${AWKWARD_PENALTY} fewer points on your next turn, down to 1.`],
+ awkward:['Awkward Silence','Play Socially Awkward Penguin within two hexes of an enemy. The preview shows which enemy it marks.',`The marked card has −${PENGUIN_DEFENSE_PENALTY} defence on all numbered sides until it is flipped.`],
  ambush:['Ambush','Play Always Has Been between an ally and an enemy. The ally can be directly or diagonally across from the enemy.',`One attack gains +${AMBUSH_BONUS} if it earns an extra flip. The preview highlights the target.`],
  nested:['Card Within a Card','Capture a Regular with Yo Dawg while an open numbered edge can be improved.',`The first captured Regular’s highest number can raise Yo Dawg’s weakest open edge by up to ${NESTED_MAX_INCREASE} for the rest of the round.`],
  phalanx:['Phalanx','Play Sparta next to an ally or capture an adjacent enemy. With two existing allies, Sparta can use it immediately.',`A card played next to the formation can gain +${PHALANX_BONUS} on the first edge where it secures a capture. One use during your next two turns, or until Sparta or all partners are lost.`],

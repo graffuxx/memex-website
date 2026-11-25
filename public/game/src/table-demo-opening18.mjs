@@ -1,7 +1,7 @@
 import {bindSignatureControls} from './signature-controls.mjs?v=two-buttons';
 import {edgeLabels,updateTwistControl} from './direction-controls.mjs';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=two-buttons';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=ability-copy';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=penguin-mark';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -10,7 +10,7 @@ import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs?v=booster-classes-140';
-import {soloAction84} from './solo-ai84.mjs?v=two-buttons';
+import {soloAction84} from './solo-ai84.mjs?v=penguin-mark';
 import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {connectAccountGame,leaveStoredAccount112} from '../platform/account-client50.mjs?v=identity-85';
@@ -18,16 +18,16 @@ import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-br
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=start-recovery-139';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
-import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=two-buttons';
+import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=penguin-mark';
 import {freshMatchSeed} from './tactics-layout.mjs?v=round-emblems';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=two-buttons';
+import {createTableView} from './table-demo-view-hand17.mjs?v=penguin-mark';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
 import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
-import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=ability-copy';
+import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,PENGUIN_REWORK_WAVE,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=penguin-mark';
 import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let conceded129=false,afkStreak129=0;
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
@@ -228,7 +228,7 @@ async function reset({preserveSeries=false}={}){
   }catch(error){accountProblem(error);return;}
  }
  game=isMatch()?createTacticsMatch({loadouts:[$('loadout').value,$('opponentLoadout').value],seed:matchSeed,round,starter:roundStarter(firstStarter??0,round)}):createTableDemo($('loadout').value);
- if(practice?.mode==='deck-test'){game.abilityTrial=true;game.elementalTrial=true;game.earthSupport=true;game.abilityRework=true;game.iconicAbilities=true;game.iconicAbilityWave=7;game.releasedPrimeTrio=true;game.releasedPrimePair=true;game.allPrimes=true;game.finalGuard=true;}
+ if(practice?.mode==='deck-test'){game.abilityTrial=true;game.elementalTrial=true;game.earthSupport=true;game.abilityRework=true;game.iconicAbilities=true;game.iconicAbilityWave=PENGUIN_REWORK_WAVE;game.releasedPrimeTrio=true;game.releasedPrimePair=true;game.allPrimes=true;game.finalGuard=true;}
  if(isMatch())game=applyPortalDecks(game,portalDeck.cards,[$('loadout').value,$('opponentLoadout').value].map(id=>LOADOUTS[id]),{round,opponentCards:practice?soloOpponent84(practice.opponent,portalDeck.cards,matchSeed):null});
  if(accountData)game=accountData.state.game;
  game=withDemoFinishes(game);game.rotationLocked=true;await view.prepareGame(game);if(token!==epoch)return;view.initGame(game);

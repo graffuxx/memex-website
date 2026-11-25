@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {expandGameDeck} from '../public/game/platform/catalog.mjs';
 import {newGame,neighbors} from '../public/game/src/rules.mjs';
-import {abilityDescription,AMBUSH_BONUS,previewEffect} from '../public/game/src/table-demo-rules.mjs';
+import {abilityDescription,AMBUSH_BONUS,PENGUIN_REWORK_WAVE,previewEffect} from '../public/game/src/table-demo-rules.mjs';
 import {abilityMarkers} from '../public/game/src/ability-effects.mjs';
 import {glossary,guideAbilities} from '../src/app/how-to-play/ability-reference.mjs';
 
@@ -12,7 +12,7 @@ test('all 35 Iconic and Prime explanations use board-relative language in game a
  assert.equal(cards.filter(entry=>entry.category==='prime').length,15);
  const technicalDirection=/\b(?:nord(?:en|ost(?:en)?|west(?:en)?)?|süd(?:en|ost(?:en)?|west(?:en)?)?|ost(?:en)?|west(?:en)?|north(?:east|west)?|south(?:east|west)?|east|uhrzeigersinn|clockwise|counterclockwise)\b|\d+\s*°/i;
  for(const {id,name,trigger,effect} of cards){
-  const current=abilityDescription({abilityRework:true},id);
+  const current=abilityDescription({abilityRework:true,iconicAbilityWave:PENGUIN_REWORK_WAVE},id);
   const catalog=abilityDescription(null,id);
   const previous=abilityDescription({abilityRework:false},id);
   assert.equal(catalog,current,name);
