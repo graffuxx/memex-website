@@ -1,4 +1,4 @@
-import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=steve-loot';
+import {ABILITY_ICON_KEYS,ABILITY_ICON_SIZE,abilityIconTextureSvg} from './card-ability-icon.mjs?v=tactical-rework';
 import {ELEMENT_IDS,ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {CARD_PROFILES as PROFILES} from './card-profiles27.mjs';
 import {materialFrameUrl,CARD_MATERIALS} from './card-materials22.mjs';
@@ -7,7 +7,7 @@ import {RECRUITER_VARIANTS95} from '../platform/quests95.mjs';
 import {CARD_ART,artworkFor,ownerMarker} from './card-art16.mjs';
 import {createCardFinishLayer} from './card-finish-layer16.mjs?v=board-ownership-62';
 import {FRAME_LAYOUT,valuePosition} from './card-layout21.mjs';
-import {displayedEdgeValue129} from './field-feedback129.mjs?v=duel-feedback';
+import {displayedEdgeValue129} from './field-feedback129.mjs?v=tactical-rework';
 import * as T from '../vendor/three.module.min.js';
 import {createCardPrototype,CARD_PROFILES,cardShape,CARD_SPEC} from './card-prototype16.mjs?v=round-emblems';
 

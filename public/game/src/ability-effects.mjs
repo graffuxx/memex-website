@@ -1,5 +1,5 @@
-import {blockadeLocked,sideValue} from './rules.mjs?v=final-guard';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=steve-loot';
+import {blockadeLocked,sideValue} from './rules.mjs?v=tactical-rework';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=tactical-rework';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -25,6 +25,7 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(abilityAt(game,card,cell)==='cling'&&clingPartner(game,cell,card))markers.push({kind:'cling',cell,label:'∞'});
    if(jamActive(game,card))markers.push({kind:'jam',cell,label:'⌧'});
    if(pabloWaiting(game,card,cell))markers.push({kind:'relay',cell,label:'⌛'});
+   if(card.ability==='patience'&&game.players[card.origin]?.patienceUntil>=game.placements)markers.push({kind:'patience',cell,label:'⌛'});
    if(laughActive(game,card,cell))markers.push({kind:'laugh',cell,label:tieShieldLabel});
    if(ward&&!mark?.dirs.includes(ward.dir))markers.push({kind:ward.kind,cell,dir:ward.dir,label:`+${ward.amount}`});
    if(mark&&!mark.active)markers.push({kind:'awkward',cell,label:'…'});
@@ -53,6 +54,9 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(plan.pincer.shockwave)markers.push({kind:'pincer',cell:plan.pincer.cell,dir:(plan.pincer.dir+3)%6,preview:true,label:'✦'});
   }
   if(plan?.relay&&plan.swapCells)for(const cell of plan.swapCells)markers.push({kind:'relay',cell,preview:true,label:'⇆'});
+  if(plan?.plot)markers.push({kind:'plotTwist',cell:plan.plot.cell,preview:true,label:'ϟ'});
+  if(plan?.patience)markers.push({kind:'patience',cell:plan.patience.cell,preview:true,label:`+${plan.patience.amount}`});
+  if(plan?.overload)markers.push({kind:'overload',cell:plan.cell,preview:true,label:`−${plan.overload.cost}`});
   if(plan?.ability){
    const working={...game,board:plan.board};
    const edge=abilityEdge(working,plan.card,plan.cell,{attacking:true,direction:plan.abilityDirection})??abilityEdge(working,plan.card,plan.cell);
@@ -69,7 +73,8 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
    if(plan.ambush!=null)markers.push({kind:'ambush',cell:plan.cell,dir:plan.ambush,preview:true,label:`+${AMBUSH_BONUS}`});
    if(plan.jam)markers.push({kind:'jam',cell:plan.jam,preview:true,label:'⌧'});
    if(plan.sandwich){
-    markers.push({kind:'sandwich',cell:plan.cell,dir:plan.sandwich.dir,preview:true,label:`+${plan.sandwich.amount}`});
+    if(plan.sandwich.rearAttack)markers.push({kind:'sandwich',cell:plan.sandwich.cell,preview:true,label:'⟫'});
+    else markers.push({kind:'sandwich',cell:plan.cell,dir:plan.sandwich.dir,preview:true,label:`+${plan.sandwich.amount}`});
     markers.push({kind:'sandwich',cell:plan.sandwich.source,dir:plan.sandwich.sourceDir,preview:true,label:'⟫'});
    }
    if(plan.nested)markers.push({kind:'nested',cell:plan.cell,dir:plan.nested.dir,preview:true,label:String(plan.nested.value)});
@@ -105,12 +110,16 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
 
 export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
  const last=game?.last;
- if(!game?.abilityTrial||last?.type!=='place'||(last.suppressed&&!last.blink&&!last.attachment))return [];
+ if(!game?.abilityTrial||last?.type!=='place'||(last.suppressed&&!last.blink&&!last.attachment&&!last.patience))return [];
  if(game.elementalTrial){
   const {ability,abilityEdge:edge}=last;
   const blocked=(last.tieBlocks??[]).map(stop=>({kind:'laugh',...stop,label:'='}));
   const played=[];
   if(last.blockadeMove)played.push({kind:last.dash?'dash':'rage',cell:last.blockadeMove.to,label:last.dash?'»':'◆'});
+  if(last.plot)played.push({kind:'plotTwist',cell:last.plot.cell,label:'ϟ'});
+  if(last.patienceArmed)played.push({kind:'patience',cell:last.cell,label:'⌛'});
+  if(last.patience)played.push({kind:'patience',cell:last.patience.cell,label:`+${last.patience.amount}`});
+  if(last.overload)played.push({kind:'overload',cell:last.cell,label:`−${last.overload.cost}`});
   if(last.waiting)played.push({kind:'relay',cell:last.cell,label:'⌛'});
   if(last.swapCells)for(const cell of last.swapCells)played.push({kind:last.relay?'relay':ability,cell,label:'⇄'});
   if(last.objection)played.push({kind:'objection',...last.objection,label:'!'});
@@ -130,7 +139,8 @@ export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
   if(last.attachment)for(const cell of [last.attachment.target,last.attachment.cell])played.push({kind:'cling',cell,label:'∞'});
   if(last.jam)played.push({kind:'jam',cell:last.jam,label:'⌧'});
   if(last.sandwich){
-   played.push({kind:'sandwich',cell:last.cell,dir:last.sandwich.dir,label:`+${last.sandwich.amount}`});
+   if(last.sandwich.rearAttack)played.push({kind:'sandwich',cell:last.sandwich.cell,label:'⟫'});
+   else played.push({kind:'sandwich',cell:last.cell,dir:last.sandwich.dir,label:`+${last.sandwich.amount}`});
    played.push({kind:'sandwich',cell:last.sandwich.source,dir:last.sandwich.sourceDir??(last.sandwich.dir+3)%6,label:'⟫'});
   }
   if(last.nested)played.push({kind:'nested',cell:last.cell,dir:last.nested.dir,label:String(last.nested.value)});

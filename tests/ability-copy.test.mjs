@@ -36,7 +36,7 @@ function card(id,controller,rotation=0,ability){
  return {...expandGameDeck([id+':common'],controller)[0],controller,rotation,ability,uid:controller+':'+id};
 }
 
-test('Always Has Been can use a teammate across the card for any attack side',()=>{
+test('Legacy Always Has Been can use a teammate across the card for any attack side',()=>{
  const game=Object.assign(newGame({seed:13}),{turn:0,block:'-2,2',abilityRework:true,abilityTrial:true,elementalTrial:true,elementRules:5,eventFieldsEnabled:false});
  const ambusher=card('always-has-been',0,0,'ambush');
  game.players[0].hand=[ambusher];
@@ -63,7 +63,5 @@ test('Always Has Been can use a teammate across the card for any attack side',()
    assert.ok(abilityMarkers(game,result).some(marker=>marker.kind==='ambush'&&marker.dir===dir&&marker.preview));
   }
  }
- const english=guideAbilities.find(entry=>entry.id==='ambush').effect;
  assert.ok(abilityDescription({abilityRework:true},'ambush').includes('+'+AMBUSH_BONUS));
- assert.ok(english.includes('+'+AMBUSH_BONUS));
 });

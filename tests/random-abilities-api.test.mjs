@@ -5,12 +5,12 @@ import {createMatchHandler90} from '../server/game/match-handler90.mjs';
 import {chooseTactic,legalCandidates} from '../public/game/src/tactics-ai.mjs';
 const uid=n=>'96969696-9696-4696-8696-'+String(n).padStart(12,'0'),a=uid(1),b=uid(2),c=uid(3);
 import {abilityMarkers} from '../public/game/src/ability-effects.mjs';
-import {placeEffect,preferredDrawIndex} from '../public/game/src/table-demo-rules.mjs';
+import {CURRENT_ICONIC_WAVE,placeEffect} from '../public/game/src/table-demo-rules.mjs';
 import {scores} from '../public/game/src/rules.mjs';
 async function setup(skip98=false){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id,email_confirmed_at,email) values('${a}',now(),'a96@example.test'),('${b}',now(),'b96@example.test'),('${c}',now(),'c96@example.test');`);
 for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')&&(!skip98||f<'202611210005_random_progress98.sql')).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));for(const u of [a,b,c])await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();`);return db;}
 async function rpc(db,name,args){const p=Object.entries(args);return (await db.query('select public.'+name+'('+p.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') data',p.map(([,v])=>v&&typeof v==='object'?JSON.stringify(v):v))).rows[0].data;}
-test('Full Random abilities persist through queue, IS-MCTS, private draws and rewards from both starters',async t=>{
+test('Full Random abilities persist through queue, IS-MCTS, Two Buttons choices and rewards from both starters',async t=>{
  const db=await setup();
  try {
   const report=[];
@@ -72,7 +72,7 @@ test('Full Random abilities persist through queue, IS-MCTS, private draws and re
    assert.equal(x.game.earthSupport,true);
    const rounds=[];
    let botMoves=0;
-   const draws=[0,0],abilities=[new Set(),new Set()];
+   let buttonsUsed=0;const abilities=[new Set(),new Set()];
    for(let steps=0;x.phase!=='ended'&&steps<260;steps++){
     const prev=x;
     authoritative=await saved();
@@ -88,36 +88,15 @@ test('Full Random abilities persist through queue, IS-MCTS, private draws and re
      assert.equal(x.phase,'play');
      assert.equal(x.game.finalGuard,true);
      assert.equal(x.game.abilityTrial,true);
-     assert.equal(x.game.iconicAbilityWave,7);
+     assert.equal(x.game.iconicAbilityWave,CURRENT_ICONIC_WAVE);
      assert.equal(x.game.allPrimes,true);
      assert.equal(x.game.eventFieldsEnabled,false);
-     if(x.game.pendingDraw){
-      const side=x.game.pendingDraw.side;
-      if(side===0){
-       assert.equal(x.game.pendingDraw.options.length,2);
-       time+=1000;
-       x=await move({kind:'draw',index:1});
-      }else{
-       assert.equal(x.game.pendingDraw.options,undefined);
-       const opts=authoritative.game.players[1].deck.slice(0,2);
-       time=authoritative.bot96.nextAt;
-       assert.ok(time<authoritative.deadline);
-       x=await poll();
-       const afterDraw=await saved();
-       assert.equal(afterDraw.game.players[1].hand.at(-1).uid,opts[preferredDrawIndex(opts)].uid);
-      }
-      assert.equal(x.game.placements,prev.game.placements);
-      assert.equal(x.game.turn,1-side);
-      assert.equal(x.game.pendingDraw,undefined);
-      assert.deepEqual(x.game.board,prev.game.board);
-      draws[side]++;
-      continue;
-     }
+     assert.equal(x.game.pendingDraw,undefined);
      if(x.game.turn===0){
       time+=1000;
       const available=legalCandidates(x.game);
       const played=chooseTactic(x.game,{policy:'position'}).chosen;
-      let choice=available.find(c=>!draws[0]&&c.plan.ability==='buttons')
+      let choice=available.find(c=>!buttonsUsed&&c.plan.ability==='buttons'&&c.action.buttonChoice)
        ?? available.find(c=>c.plan.phalanx||c.plan.decoy)
        ?? played;
       if(x.game.placements===17){
@@ -126,6 +105,7 @@ test('Full Random abilities persist through queue, IS-MCTS, private draws and re
        if(choice.plan.finalGuard)assert.equal(abilityMarkers(x.game,choice.plan).find(m=>m.kind==='final-guard')?.preview,true);
       }
       x=await move({kind:'place',action:choice.action});
+      if(choice.action.buttonChoice){assert.equal(x.game.last.buttonChoice,choice.action.buttonChoice);buttonsUsed++;}
      }else{
       time=authoritative.bot96.nextAt;
       x=await poll();
@@ -177,10 +157,10 @@ test('Full Random abilities persist through queue, IS-MCTS, private draws and re
    assert.equal(balance.length,rounds.length);
    assert.ok(balance.every(row=>row.patch.endsWith('-random-full-abilities-earth-support')&&row.mode==='ai'));
    assert.deepEqual(balance.map(row=>row.starter),rounds.map(round=>round.starter));
-   report.push({starter,rounds,botMoves,pixels:expectedPixels,xp:Number(xp),draws,abilities:abilities.map(set=>[...set].sort())});
+   report.push({starter,rounds,botMoves,pixels:expectedPixels,xp:Number(xp),buttonsUsed,abilities:abilities.map(set=>[...set].sort())});
   }
-  assert.ok(report.some(x=>x.starter===0&&x.draws[0]>0));
-  assert.ok(report.some(x=>x.starter===1&&x.draws[0]>0));
+  assert.ok(report.some(x=>x.starter===0&&x.buttonsUsed>0));
+  assert.ok(report.some(x=>x.starter===1&&x.buttonsUsed>0));
   t.diagnostic(JSON.stringify(report));
  }finally{await db.close();}
 });

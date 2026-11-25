@@ -58,7 +58,7 @@ export function determinize135(observation,{observer,ownDeck,random}){
 }
 function informationKey(g,observer){
  const card=g.abilityTrial?c=>c:c=>[c.uid,c.id,c.variantId,c.origin,c.controller,c.rotation??0,c.ability??null,c.guardOwner??null,c.guardUntil??null,c.guardDirection??null];
- return JSON.stringify([g.placements,g.block,g.blockadeLock??null,g.fanReserve??null,g.players.map(p=>p.shifts),Object.entries(g.board).sort(([a],[b])=>a.localeCompare(b)).map(([cell,c])=>[cell,card(c)]),[...g.players[observer].hand].sort((a,b)=>a.uid.localeCompare(b.uid)).map(card)]);
+ return JSON.stringify([g.placements,g.block,g.blockadeLock??null,g.fanReserve??null,g.players.map(p=>[p.shifts,p.patienceUntil??null]),Object.entries(g.board).sort(([a],[b])=>a.localeCompare(b)).map(([cell,c])=>[cell,card(c)]),[...g.players[observer].hand].sort((a,b)=>a.uid.localeCompare(b.uid)).map(card)]);
 }
 function transition(g,action){
  let next=placeEffect(g,action,{chooseDraw:g.iconicAbilityWave>=7});

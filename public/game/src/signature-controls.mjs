@@ -1,5 +1,5 @@
-import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets} from './table-demo-rules.mjs?v=two-buttons';
-import {cardOf,ELEMENTS} from './rules.mjs?v=final-guard';
+import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets} from './table-demo-rules.mjs?v=tactical-rework';
+import {cardOf,ELEMENTS} from './rules.mjs?v=tactical-rework';
 import {createTurnButtons,edgeLabels} from './direction-controls.mjs';
 
 export function bindSignatureControls(abilities,{english=false,onChange,onDraw}){
@@ -30,6 +30,7 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
  abilities.append(exchangeLabel,pivot.group,valueLabel,facing.group,stepLabel,bidLabel,twoButtons);
  abilities.after(drawPanel);
  let swapCells=null,pivotDirection=0,valueSwap=null,selfTurn=0,stepCells=null,bidDirection=null,buttonChoice=null;
+ let plotTarget=null,overloadTarget=null;
  for(const [key,button] of [['attack',attackButton],['defense',defenseButton]]){
   button.onclick=()=>{buttonChoice=buttonChoice===key?null:key;onChange();};
  }
@@ -125,6 +126,13 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
   stepCells=action.stepCells??null;
   bidDirection=action.bidDirection??null;
   buttonChoice=action.buttonChoice??null;
+  plotTarget=action.plotTarget??null;overloadTarget=action.overloadTarget??null;
  }
- return {update,setAction,clear:setAction,swapWith(pair){swapCells=swapCells?.includes(pair[1])?null:pair;},action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice};}};
+ return {update,setAction,clear:setAction,swapWith(pair){swapCells=swapCells?.includes(pair[1])?null:pair;},
+  targetExtraFlip(plan,cell){
+   if(plan?.plotTargets?.includes(cell)){plotTarget=plotTarget===cell?null:cell;return true;}
+   if(plan?.overloadTargets?.includes(cell)){overloadTarget=overloadTarget===cell?null:cell;return true;}
+   return false;
+  },
+  action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice,plotTarget,overloadTarget};}};
 }

@@ -72,7 +72,7 @@ test('Concurrent opening choices, Prime abilities and Final Guard resolve throug
    }
    const method=url.split('/').at(-1),args=JSON.parse(options.body);
    // The recorded Prime and Final Guard boards were played before the ability update.
-   if(legacyReplay&&method==='dv_match_commit90'&&args.p_state?.phase==='rps'&&!args.p_state.game)delete args.p_state.abilityRework;
+   if(legacyReplay&&method==='dv_match_commit90'&&args.p_state?.phase==='rps'&&!args.p_state.game){delete args.p_state.abilityRework;args.p_state.iconicAbilityWave=7;}
    const pairs=Object.entries(args);
    assert.match(method,/^dv_[a-z0-9_]+$/);
    assert.ok(pairs.every(([k])=>/^p_[a-z0-9_]+$/.test(k)));

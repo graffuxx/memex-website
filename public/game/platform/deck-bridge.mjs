@@ -1,5 +1,5 @@
 import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
-import {standardAbility,releasedIconicAbility,releasedPrimeAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=steve-loot';
+import {standardAbility,releasedIconicAbility,releasedPrimeAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=tactical-rework';
 import {soloSettings84} from './solo84.mjs';
 export const PLAY_DECK_KEY='duelverse.play-deck.v1';
 export function readPlayDeck(storage){
@@ -13,7 +13,7 @@ export function readPlayDeck(storage){
 export function portalTrialAbility(game,card){
  return standardAbility(card)
   ?? (game.iconicAbilities?releasedIconicAbility(card,game.iconicAbilityWave):null)
-  ?? (game.allPrimes||game.releasedPrimeTrio?releasedPrimeAbility(card,game.releasedPrimePair,game.allPrimes):null);
+  ?? (game.allPrimes||game.releasedPrimeTrio?releasedPrimeAbility(card,game.releasedPrimePair,game.allPrimes,game.iconicAbilityWave):null);
 }
 export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null}={}){
  if(!Number.isSafeInteger(round)||round<1)throw Error('Invalid round.');

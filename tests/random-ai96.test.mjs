@@ -1,3 +1,4 @@
+import {CURRENT_ICONIC_WAVE} from '../public/game/src/table-demo-rules.mjs';
 import {series113} from '../public/game/platform/series113.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
 import {createBot96,armBot96,stepBot96,BOT_DIFFICULTY97,BOT_POLICY97} from '../server/game/bot96.mjs';
@@ -39,7 +40,7 @@ test('empty queue fallback, human priority, cancel, reconnect, first-to-two AI r
   const randomRules=(await db.query('select state from public.dv_pvp90 where id=$1',[id])).rows[0].state;
   assert.equal(randomRules.finalGuard,true);
   assert.equal(randomRules.elementalTrial,true);
-  assert.equal(randomRules.iconicAbilityWave,7);
+  assert.equal(randomRules.iconicAbilityWave,CURRENT_ICONIC_WAVE);
   assert.equal(randomRules.allPrimes,true);
   assert.ok(randomRules.balance.patch.endsWith('-random-full-abilities-earth-support'));
   let expected=0,expectedWins=0,manualMoves=0,lastRequest,lastVersion,lastMove;const restored=await call('a',{op:'poll',id});assert.deepEqual(restored.players,x.players);

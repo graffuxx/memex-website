@@ -4,7 +4,7 @@ import {portalTrialAbility} from '../../../public/game/platform/deck-bridge.mjs'
 import {
  ABILITIES, AMBUSH_BONUS, PENGUIN_DEFENSE_PENALTY, CHASE_PENALTY, CHORUS_DUET_GUARD,
  JORDAN_MAX_MARGIN, NESTED_MAX_INCREASE, OBJECTION_MAX_MARGIN, PHALANX_BONUS,
- PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, CURRENT_ICONIC_WAVE, STEVE_LOOT_WARD, WATER_BONUS
+ PIGEON_MAX_REDUCTION, SANDWICH_MAX_SUPPORT, CURRENT_ICONIC_WAVE, PLOT_MAX_DEFICIT, PATIENCE_ATTACK, OVERLOAD_ATTACK, OVERLOAD_COST, STEVE_LOOT_WARD, WATER_BONUS
 } from '../../../public/game/src/table-demo-rules.mjs';
 
 export const glossary = [
@@ -47,6 +47,7 @@ const explanations = {
  objection:['Objection','The opponent would directly capture this card and at least one other in the same play.',`Once per round, this card can hold if the attacking number is at most ${OBJECTION_MAX_MARGIN} higher. S attacks bypass it.`],
  thought:['Thought Experiment','If Philosoraptor would flip no cards, it looks for a close comparison between numbered edges.','It wins one comparison where the numbers are tied or its side is exactly one point lower. Tie shields still hold.'],
  awkward:['Awkward Silence','Play Socially Awkward Penguin within two hexes of an enemy. The preview shows which enemy it marks.',`The marked card has −${PENGUIN_DEFENSE_PENALTY} defence on all numbered sides until it is flipped.`],
+ plotTwist:['Plot Twist','Choose one marked adjacent enemy that Always Has Been would otherwise leave behind.',`Your element must win and your numbered edge can be up to ${PLOT_MAX_DEFICIT} points lower. S ranks and the Final Guard keep their rules.`],
  ambush:['Ambush','Play Always Has Been between an ally and an enemy. The ally can be directly or diagonally across from the enemy.',`One attack gains +${AMBUSH_BONUS} if it earns an extra flip. The preview highlights the target.`],
  nested:['Card Within a Card','Capture a Regular with Yo Dawg while an open numbered edge can be improved.',`The first captured Regular’s highest number can raise Yo Dawg’s weakest open edge by up to ${NESTED_MAX_INCREASE} for the rest of the round.`],
  phalanx:['Phalanx','Play Sparta next to an ally or capture an adjacent enemy. With two existing allies, Sparta can use it immediately.',`A card played next to the formation can gain +${PHALANX_BONUS} on the first edge where it secures a capture. One use during your next two turns, or until Sparta or all partners are lost.`],
@@ -55,9 +56,12 @@ const explanations = {
  fan:['Empty Seats','Place Fan beside a Regular you control and choose a free hex touching them both.','The opponent cannot place a card on that hex on their next turn.'],
  blink:['Blink','The opponent flips only Blinking Guy or only a Regular next to him.','Once per round, the attacking card turns one step to the right after the flip. The flip still counts.'],
  cling:['Clingy Bond','When placing Overly Attached, choose an adjacent allied Regular to link.','The first direct numbered capture against either linked card is redirected to the partner if eligible. S is not redirected. The link ends when used or a partner is lost.'],
+ overload:['Overload',`Choose one marked enemy for +${OVERLOAD_ATTACK} attack and an extra capture.`,`If the extra capture goes through, Keyboard Crusher loses ${OVERLOAD_COST} points from every numbered edge for the rest of the round. The minimum is 1. S keeps its rank.`],
  jam:['Input Lock','When placing Keyboard Crusher, select an adjacent enemy with an active ability.','The enemy’s own ability is muted immediately through the end of your next turn. Its values, element and protection from other cards still work.'],
+ pincerSandwich:['Sandwich','Attack an enemy with one of your cards directly or diagonally behind it. The rear card compares the two edges that touch.', 'If the rear attack wins, it captures the enemy. Up to one extra capture from numbered edges.'],
  sandwich:['Sandwich','Attack an enemy with one of your cards directly or diagonally behind it. Your ally needs the higher number where the two cards touch.',`That difference adds up to +${SANDWICH_MAX_SUPPORT} attack if it earns an extra flip. The effect only uses numbered sides.`],
  chorus:['Choreography','Choose a Regular you own next to NUMA NUMA. For a duet, add a Regular of another element next to NUMA or the first partner.',`Turn the ally one step and shield its weakest open side by +1. For a duet, they turn one step in opposite directions and each gets +${CHORUS_DUET_GUARD} shield. The shields last until your next turn. Turning triggers no flips.`],
+ patience:['Patience','Play Pablo Waiting without capturing a card.',`On your next turn, the card you play gets +${PATIENCE_ATTACK} on one attack that would otherwise miss. The bonus lasts for that move only.`],
  relay:['Change of Guard','Play Pablo Waiting without a capture. On your next turn, play a Regular next to him.','After the Regular’s captures resolve, you may swap it with Pablo. Their facing stays the same and the swap causes no captures.'],
  retry:['Second Attempt','Play next to an ally where the card would otherwise flip nothing.','Use a left or right arrow to turn the card one step. The game only offers turns that earn exactly one flip with a number.'],
  pincer:['Shockwave','Flip a card with Emotional Damage.','A card you just flipped can immediately flip an enemy next to it if its numbered edge wins. Up to one extra flip.'],

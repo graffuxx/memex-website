@@ -1,5 +1,5 @@
 import {freeCells} from './rules.mjs';
-import {previewEffect} from './table-demo-rules.mjs?v=steve-loot';
+import {previewEffect} from './table-demo-rules.mjs?v=tactical-rework';
 
 export const TURN_DURATION_MS=90_000;
 // Wall-clock deadlines keep counting when a browser tab is hidden or throttled.

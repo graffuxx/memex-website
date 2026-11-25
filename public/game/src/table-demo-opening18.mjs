@@ -1,7 +1,7 @@
-import {bindSignatureControls} from './signature-controls.mjs?v=two-buttons';
+import {bindSignatureControls} from './signature-controls.mjs?v=tactical-rework';
 import {edgeLabels,updateTwistControl} from './direction-controls.mjs';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=two-buttons';
-import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=steve-loot';
+import {bindBoardCardPreview146} from './board-card-preview146.mjs?v=tactical-rework';
 import {bindSeriesHud129} from './duel-hud129.mjs';
 import {printedValue126} from '../platform/card-ranks126.mjs';
 import {series113} from '../platform/series113.mjs';
@@ -10,24 +10,24 @@ import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {mountPlayerPresence85} from './player-presence85.mjs';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs?v=booster-classes-140';
-import {soloAction84} from './solo-ai84.mjs?v=steve-loot';
+import {soloAction84} from './solo-ai84.mjs?v=tactical-rework';
 import {ILLUSTRATED_ARENAS} from './illustrated-arenas67.mjs';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {connectAccountGame,leaveStoredAccount112} from '../platform/account-client50.mjs?v=identity-85';
-import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=steve-loot';
+import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=tactical-rework';
 import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=start-recovery-139';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
-import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=steve-loot';
+import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=tactical-rework';
 import {freshMatchSeed} from './tactics-layout.mjs?v=round-emblems';
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
-import {createTableView} from './table-demo-view-hand17.mjs?v=steve-loot';
+import {createTableView} from './table-demo-view-hand17.mjs?v=tactical-rework';
 import {createTableDemo,createTacticsMatch,demoAction,drawnCard,DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
-import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,blockadeLocked,reservedCell} from './rules.mjs?v=final-guard';
-import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,CURRENT_ICONIC_WAVE,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=steve-loot';
+import {scores,ELEMENTS,cardOf,shiftBlock,moveTargets,blockadeLocked,reservedCell} from './rules.mjs?v=tactical-rework';
+import {previewEffect,placeEffect,resolveDraw,preferredDrawIndex,ABILITIES,LOADOUTS,eventFields,eventFieldAt,nextEvent,fieldText,abilityAt,twistTargets,rageTargets,dashTargets,WATER_BONUS,CURRENT_ICONIC_WAVE,guardActive,guardBonus,abilityDescription,aimsAbility,turnsCards} from './table-demo-rules.mjs?v=tactical-rework';
 import {CARD_PROFILES} from './card-prototype.mjs?v=element-53';
 let conceded129=false,afkStreak129=0;
 let portalDeck;try{portalDeck=readPlayDeck(localStorage)??defaultPlayDeck();}catch{portalDeck=defaultPlayDeck();}
@@ -101,7 +101,9 @@ function render(){
  document.querySelector('.field-panel').hidden=game.eventFieldsEnabled===false;const fields=eventFields(game);$('fieldLegend').replaceChildren(...fields.map(f=>{const el=document.createElement('span');el.style.setProperty('--field',({resonance:'#ba93ff',crossfire:'#ffbe62',silence:'#e1a6d5'})[f.type]);el.textContent=fieldText(f);return el;}));
  const next=nextEvent(game);$('eventShort').textContent=next?'Wechsel in '+next.remaining+' Zügen':'Letzte Phase';$('eventCountdown').textContent=next?'Danach: '+next.fields.map(f=>fieldText(f)).join(' / '):'Keine weiteren Feldwechsel';
  $('abilityOptions').hidden=!card||!card.ability||mode==='shift';const a=card?.ability,muted=card&&target&&eventFieldAt(game,target)?.type==='silence';
- $('abilityLabel').textContent=a?ABILITIES[a].name+(muted?' · im Funkloch deaktiviert':''):'';$('abilityHint').textContent=abilityDescription(game,a);
+ $('abilityLabel').textContent=a?ABILITIES[a].name+(muted?' · im Funkloch deaktiviert':''):'';$('abilityHint').textContent=(p?.plotTargets?.length||p?.overloadTargets?.length)?
+  (p.plotTarget||p.overloadTarget?'Klicke erneut auf das Ziel, um den Zusatzflip abzuwählen.':'Wähle einen markierten Gegner für den Zusatzflip oder spiele die Karte so aus.')+
+  (p.overloadTargets?.length?' Überlastung kostet Crusher 2 Punkte auf jeder Zahlenseite.':''):abilityDescription(game,a);
  $('directionLabel').hidden=!aimsAbility(a);$('abilityDirection').value=String(abilityDirection);$('abilityDirection').disabled=busy||Boolean(muted);
  const rotationAbility=turnsCards(a)?a:null;
  const rotationTargets=target&&rotationAbility&&!muted?twistTargets(game,target,rotationAbility):[];
@@ -144,6 +146,7 @@ function canStage(cell){return Boolean(cell&&cell!==reservedCell(game)&&!game.bo
 function chooseField(cell){
  if(busy)return;
  if(game.board[cell]){
+  if(!expireTurn()&&signatureControls.targetExtraFlip(plan(),cell)){boardPreview.clear();render();return;}
   const pair=game.abilityRework&&selectedCard()?.ability==='exchange'?plan()?.swaps.find(([,ally])=>ally===cell):null;
   if(pair&&!expireTurn()){boardPreview.clear();signatureControls.swapWith(pair);render();return;}
   if(!game.finished&&turnsCards(selectedCard()?.ability)&&target&&abilityAt(game,selectedCard(),target)&&twistTargets(game,target,selectedCard().ability).includes(cell)&&!expireTurn()){
@@ -265,7 +268,7 @@ function stopDrag(e,cancelled=false){
  target=canStage(cell)?cell:null;twistCell=null;blockadeCell=null;signatureControls.clear();
  const placement=target&&plan();
  if(placement){
-  if(placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps.length||placement.bidTargets.length||placement.swaps.length||placement.valueSwaps?.length||placement.turnChoices.length||placement.dash||placement.ability==='rage'&&rageTargets(game,target).length||['water','air'].includes(placement.ability)){
+  if(placement.plotTargets?.length||placement.overloadTargets?.length||placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps.length||placement.bidTargets.length||placement.swaps.length||placement.valueSwaps?.length||placement.turnChoices.length||placement.dash||placement.ability==='rage'&&rageTargets(game,target).length||['water','air'].includes(placement.ability)){
    view.release(d.uid);render();
   }else cycle(action());
   return;

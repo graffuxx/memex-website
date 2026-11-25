@@ -37,15 +37,15 @@
 .ability-effects g[data-ability=objection]{--ability-color:#ffb2a6;--ability-glow:#ed645d}
 .ability-effects g[data-ability=thought]{--ability-color:#d8c7ff;--ability-glow:#9b75e2}
 .ability-effects g[data-ability=awkward]{--ability-color:#a5e6f7;--ability-glow:#6ac8f2}
-.ability-effects g[data-ability=ambush]{--ability-color:#eac2ff;--ability-glow:#bb70ef}
+.ability-effects g[data-ability=plotTwist],.ability-effects g[data-ability=ambush]{--ability-color:#eac2ff;--ability-glow:#bb70ef}
 .ability-effects g[data-ability=nested]{--ability-color:#c6d5ff;--ability-glow:#778bff}
 .ability-effects g[data-ability=phalanx]{--ability-color:#ffcd91;--ability-glow:#fb8a4c}
 .ability-effects g[data-ability=pincer]{--ability-color:#aef4ff;--ability-glow:#33d7e8}
-.ability-effects g[data-ability=relay]{--ability-color:#a0eee3;--ability-glow:#3abcae}
+.ability-effects g[data-ability=patience],.ability-effects g[data-ability=relay]{--ability-color:#a0eee3;--ability-glow:#3abcae}
 .ability-effects g[data-ability=retry]{--ability-color:#ffe1a8;--ability-glow:#eaa544}
 .ability-effects g[data-ability=dash]{--ability-color:#b0e9ff;--ability-glow:#42b9fa}
 .ability-effects g[data-ability=chorus]{--ability-color:#ffd1ed;--ability-glow:#df73c4}
-.ability-effects g[data-ability=jam]{--ability-color:#ffbc9e;--ability-glow:#ef7050}
+.ability-effects g[data-ability=overload],.ability-effects g[data-ability=jam]{--ability-color:#ffbc9e;--ability-glow:#ef7050}
 .ability-effects g[data-ability=bailout]{--ability-color:#ccecff;--ability-glow:#63aeef}
 .ability-effects g[data-ability=blink]{--ability-color:#decfff;--ability-glow:#9668fb}
 .ability-effects g[data-ability=cling]{--ability-color:#ffc6e8;--ability-glow:#ed69b1}

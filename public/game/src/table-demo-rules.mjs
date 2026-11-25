@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=final-guard';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=tactical-rework';
 
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
@@ -10,7 +10,8 @@ export const TWO_BUTTONS_BONUS=2;
 export const SWIPE_MAX_DEFENSE=2;
 export const STEVE_LOOT_WARD=2;
 const STEVE_REWORK_WAVE=9;
-export const CURRENT_ICONIC_WAVE=STEVE_REWORK_WAVE;
+export const TACTICAL_REWORK_WAVE=10;
+export const CURRENT_ICONIC_WAVE=TACTICAL_REWORK_WAVE;
 export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
 export const OBJECTION_MAX_MARGIN=2;
@@ -23,6 +24,10 @@ export const PHALANX_BONUS=2;
 export const CHORUS_DUET_GUARD=2;
 export const JAM_PLACEMENTS=3;
 export const SANDWICH_MAX_SUPPORT=3;
+export const PLOT_MAX_DEFICIT=3;
+export const PATIENCE_ATTACK=2;
+export const OVERLOAD_ATTACK=2;
+export const OVERLOAD_COST=2;
 export const JORDAN_MAX_MARGIN=1;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
@@ -54,6 +59,10 @@ export const ABILITIES={
  thought:{name:'Iconic · Gedankenexperiment',short:'?',description:'Würde Philosoraptor keine Karte flippen, kann er einen knappen Vergleich gewinnen. Seine Zahlenkante darf gleich stark oder einen Punkt schwächer sein. Patt-Schutz gilt weiter.'},
  awkward:{name:'Iconic · Peinliche Stille',short:'…',description:`Beim Ausspielen markiert der Pinguin eine Gegnerkarte in bis zu zwei Feldern Entfernung. Sie hat −${PENGUIN_DEFENSE_PENALTY} Verteidigung auf allen Zahlenseiten, bis sie geflippt wird. Die Vorschau zeigt das Ziel.`},
  ambush:{name:'Iconic · Hinterhalt',short:'⇥',description:`Lege Always Has Been zwischen eine eigene Karte und einen Gegner. Die eigene Karte darf dem Gegner direkt oder schräg gegenüberliegen. Ist damit ein Zusatzflip möglich, bekommt der Angriff +${AMBUSH_BONUS}. Die Vorschau markiert das Ziel.`},
+ plotTwist:{name:'Iconic · Plot Twist',short:'⇥',description:'Wähle eine Nachbarkarte für einen Zusatzflip. Dein Element muss stärker sein und deine Zahl darf bis zu 3 Punkte niedriger sein.'},
+ patience:{name:'Prime · Geduld',short:'⌛',description:'Flippt Pablo beim Legen nichts, bekommt deine nächste Karte +2 auf einen Angriff, wenn sie dadurch eine Karte flippt.'},
+ overload:{name:'Prime · Überlastung',short:'⌧',description:'Optional: +2 Angriff für einen Zusatzflip. Dafür verliert Crusher für diese Runde 2 Punkte auf jeder Zahlenseite (mindestens 1).'},
+ pincerSandwich:{name:'Prime · Sandwich',short:'⟫',description:'Liegt eine eigene Karte hinter einem Gegner, greift sie ihn von hinten an. Gewinnt ihr Angriff, flippt der Gegner. Höchstens ein Zusatzflip.'},
  nested:{name:'Iconic · Karte in der Karte',short:'▣',description:`Nach einem Flip kopiert Yo Dawg den höchsten Zahlenwert der ersten eroberten Standardkarte auf seine schwächste offene Kante. Der Wert kann dauerhaft um bis zu ${NESTED_MAX_INCREASE} steigen.`},
  phalanx:{name:'Prime · Phalanx',short:'⇧',description:`Beim Legen bildet Sparta mit angrenzenden eigenen und gerade eroberten Karten eine Formation. In deinen nächsten zwei Zügen kann eine Karte neben einem Formationsmitglied einmal +${PHALANX_BONUS} auf die erste dadurch gewinnende Zahlenkante erhalten. Grenzt Sparta beim Legen an zwei bereits eigene Karten, kann Sparta den Bonus direkt nutzen. Der Bonus ist einmalig. Beim Verlust Spartas oder aller Partner endet die Formation.`},
  dash:{name:'Prime · Durchbruch',short:'»',description:'Berührt die unversiegelte Blockade eine eigene Karte, kann Sanic auf ihrem Feld landen. Dabei schiebt er die Blockade zuerst auf ein freies Nachbarfeld. Dein normaler Blockadezug bleibt verfügbar.'},
@@ -110,6 +119,7 @@ const RELEASED_ICONICS={
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
  if(!entry||wave<entry[0])return null;
+ if(entry[1]==='ambush'&&wave>=TACTICAL_REWORK_WAVE)return 'plotTwist';
  return entry[1]==='swipe'&&wave>=STEVE_REWORK_WAVE?'loot':entry[1];
 }
 const PRIME_ABILITIES={
@@ -119,8 +129,12 @@ const PRIME_ABILITIES={
  'prime-keyboard-crusher':'jam','prime-idiot-sandwich':'sandwich','prime-crying-jordan':'bailout',
  'prime-disappointed-fan':'fan','prime-blinking-guy':'blink','prime-overly-attached':'cling',
 };
-export function releasedPrimeAbility(card,includePair=false,allPrimes=false){
+const TACTICAL_PRIME_ABILITIES={
+ 'prime-pablo-waiting':'patience','prime-keyboard-crusher':'overload','prime-idiot-sandwich':'pincerSandwich',
+};
+export function releasedPrimeAbility(card,includePair=false,allPrimes=false,wave=0){
  const id=cardOf(card)?.id;
+ if(allPrimes&&wave>=TACTICAL_REWORK_WAVE&&TACTICAL_PRIME_ABILITIES[id])return TACTICAL_PRIME_ABILITIES[id];
  if(allPrimes)return PRIME_ABILITIES[id]??null;
  if(id==='prime-numa-numa')return 'chorus';
  if(id==='prime-keyboard-crusher')return 'jam';
@@ -169,7 +183,9 @@ export function eventFieldAt(game,cell){return cell===game.block?null:eventField
 export function nextEvent(game){if(game.eventFieldsEnabled===false)return null;const phase=eventPhase(game);return phase<2?{remaining:[6,12][phase]-game.placements,fields:eventFields({...game,placements:[6,12][phase]})}:null;}
 export function fieldText(f){if(!f)return 'Normales Feld';return FIELD_TYPES[f.type].name+(f.type==='resonance'?' · '+ELEMENTS[f.element].name+' +1':f.type==='crossfire'?' · '+f.directions.map(d=>DIRECTION_NAMES[d]).join('/')+' +1':' · Fähigkeiten aus');}
 export const jamActive=(game,card)=>game.placements<card.jammedUntil;
-export function abilityAt(game,card,cell){return card.ability&&!jamActive(game,card)&&eventFieldAt(game,cell)?.type!=='silence'?card.ability:null;}
+export function abilityAt(game,card,cell){
+ return card.ability&&!jamActive(game,card)&&eventFieldAt(game,cell)?.type!=='silence'?card.ability:null;
+}
 export function fanTargets(game,cell){
  if(freeCells(game).length<=2)return [];
  const allies=neighbors(cell).filter(({id})=>{
@@ -455,6 +471,8 @@ export function previewEffect(game,action){
 
 function resolvePlacement(game,action,buttonAttackDir=null){
  const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,blockadeCell=null,swapCells=null,stepCells=null,valueSwap=null,selfTurn=0,bidDirection=null,pivotCapture=false,pivotDirection=pivotCapture?1:0}=action;
+ const plotTarget=action.plotTarget??null;
+ const overloadTarget=action.overloadTarget??null;
  if(game.pendingDraw)throw Error('Wähle zuerst deine Nachziehkarte.');
  if(game.rotationLocked&&rotation!==0)throw Error('Handkarten haben eine feste Ausrichtung.');
  const held=game.players[game.turn].hand.find(c=>c.uid===uid);
@@ -546,10 +564,37 @@ function resolvePlacement(game,action,buttonAttackDir=null){
   ?comparisons.find(c=>c.flip&&c.attack.rank==='S'):null;
  const followUp=swept?roundhouseFollowUp(working,swept.cell,pivotDirection,comparisons):null;
  if(followUp)comparisons.push(followUp);
+ const extraAttack=(hit,bonus)=>effectAttackWins({...hit.attack,total:hit.attack.total+bonus},hit.defend,game.elementRules??3);
+ const numericTarget=hit=>!hit.flip&&!hit.setup&&!hit.objection&&hit.attack.rank!=='S'&&hit.defend.rank!=='S';
+ const patienceState=game.players[game.turn].patienceUntil===game.placements;
+ const patienceBonus=game.patienceBonus??PATIENCE_ATTACK;
+ const patientHit=patienceState?comparisons.find(hit=>numericTarget(hit)&&extraAttack(hit,patienceBonus)):null;
+ if(patientHit){
+  patientHit.attack.total+=patienceBonus;
+  patientHit.attack.ability+=patienceBonus;
+  patientHit.flip=true;
+  patientHit.tieProtected=false;
+ }
  const directWins=comparisons.filter(c=>c.flip);
  const blocked=directWins.length>=2?directWins.find(c=>canObject(working,working.board[c.cell],c.cell,c.attack,c.defend)):null;
  const objection=blocked?{cell:blocked.cell,dir:(blocked.dir+3)%6}:null;
  if(blocked){blocked.flip=false;blocked.objection=true;}
+ const plotTargets=ability==='plotTwist'?comparisons.filter(hit=>!hit.flip&&!hit.setup&&!hit.objection
+  &&hit.attack.rank!=='S'&&hit.defend.rank!=='S'&&hit.attack.element&&!stopsElementTie(hit.attack,hit.defend)
+  &&hit.defend.total-hit.attack.total<=(game.plotMarginLimit??PLOT_MAX_DEFICIT)):[];
+ const plot=plotTargets.find(hit=>hit.cell===plotTarget);
+ if(plotTarget!==null&&!plot)throw Error('Kein gültiges Ziel für Plot Twist.');
+ if(plot)plot.flip=true;
+ const overloadBonus=game.overloadBonus??OVERLOAD_ATTACK;
+ const overloadTargets=ability==='overload'?comparisons.filter(hit=>numericTarget(hit)&&extraAttack(hit,overloadBonus)):[];
+ const overloadHit=overloadTargets.find(hit=>hit.cell===overloadTarget);
+ if(overloadTarget!==null&&!overloadHit)throw Error('Kein gültiges Ziel für Überlastung.');
+ if(overloadHit){
+  overloadHit.attack.total+=overloadBonus;
+  overloadHit.attack.ability+=overloadBonus;
+  overloadHit.flip=true;
+  overloadHit.tieProtected=false;
+ }
  let ambush=null;
  if(ability==='ambush'){
   const support=new Map(neighbors(cell).map(({id,dir})=>[dir,working.board[id]]));
@@ -562,7 +607,7 @@ function resolvePlacement(game,action,buttonAttackDir=null){
   }
  }
  let sandwich=null;
- if(ability==='sandwich'){
+ if(ability==='sandwich'||ability==='pincerSandwich'){
   for(const target of comparisons){
    if(target.flip||target.setup||target.objection||target.attack.rank==='S'||target.defend.rank==='S')continue;
    const enemy=working.board[target.cell];
@@ -574,10 +619,19 @@ function resolvePlacement(game,action,buttonAttackDir=null){
     const attack=effectStrength(working,{...ally,ability:null},id,reverse,enemy,{attacking:true});
     const defend=effectStrength(working,enemy,target.cell,dir,ally);
     if(attack.rank==='S'||defend.rank==='S')return best;
+    if(ability==='pincerSandwich'){
+     if(!effectAttackWins(attack,defend,game.elementRules??3))return best;
+     return !best||attack.total-defend.total>best.attack.total-best.defend.total?{source:id,sourceDir:reverse,attack,defend}:best;
+    }
     const surplus=Math.min(SANDWICH_MAX_SUPPORT,attack.total-defend.total);
     return surplus>(best?.amount??0)?{source:id,sourceDir:reverse,amount:surplus}:best;
    },null);
    if(!support)continue;
+   if(ability==='pincerSandwich'){
+    Object.assign(target,{attack:support.attack,defend:support.defend,source:support.source,flip:true,tieProtected:false,sandwich:true});
+    sandwich={cell:target.cell,dir:target.dir,source:support.source,sourceDir:support.sourceDir,rearAttack:true};
+    break;
+   }
    const attack={...target.attack,total:target.attack.total+support.amount,sandwich:support.amount};
    if(!effectAttackWins(attack,target.defend,game.elementRules??3))continue;
    Object.assign(target,{attack,flip:true,tieProtected:false,sandwich:true});
@@ -743,7 +797,10 @@ function resolvePlacement(game,action,buttonAttackDir=null){
  const sCapture=comparisons.find(c=>c.flip&&c.attack.rank==='S');
  const rally=phalanxHit?.flip?{dir:phalanxHit.dir,leader:formation?.leader??cell}:null;
  const captured=ability==='ernie'&&sCapture&&!isSRank126(sideValue(working.board[sCapture.cell],sCapture.dir))?sCapture:null;
+ if(sandwich?.rearAttack&&!resolvedHits.some(hit=>hit.sandwich))sandwich=null;
  const flips=resolvedHits.map(c=>c.redirect??c.cell);
+ const patienceArmed=ability==='patience'&&!flips.length&&freeCells(working).length>2;
+ if(overloadHit?.flip)card.edgeWear=OVERLOAD_COST;
  const phalanxAlliedCells=ability==='phalanx'&&freeCells(working).length>2?
   neighbors(cell).filter(({id})=>working.board[id]?.controller===game.turn||flips.includes(id)).map(n=>n.id):[];
  const phalanx=phalanxAlliedCells.length&&rally?.leader!==cell?
@@ -825,7 +882,15 @@ function resolvePlacement(game,action,buttonAttackDir=null){
  const ward=captured?{cell:captured.cell,dir:captured.dir}:null;
  const blockadeMove=dash||blockadeCell!==null?{from:game.block,to:dash??blockadeCell}:null;
  const roundhouse=followUp?.flip?{source:followUp.source,cell:followUp.redirect??followUp.cell,dir:followUp.dir}:null;
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir),roundhouse,thought:thought?.flip?thought.redirect??thought.cell:null};
+ return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir),roundhouse,thought:thought?.flip?thought.redirect??thought.cell:null,
+  plotTargets:plotTargets.map(hit=>hit.cell),plotTarget,plot:plot?.flip?{cell:plot.redirect??plot.cell,margin:plot.defend.total-plot.attack.total}:null,
+  overloadTargets:overloadTargets.map(hit=>hit.cell),overloadTarget,overload:overloadHit?.flip?{cell:overloadHit.redirect??overloadHit.cell,amount:overloadBonus,cost:OVERLOAD_COST}:null,
+  patienceArmed,patience:patientHit?.flip?{cell:patientHit.redirect??patientHit.cell,amount:patienceBonus}:null};
+}
+
+function claim(card,side){
+ card.controller=side;
+ for(const key of ['guardOwner','guardUntil','guardDirection','ernieWard','coverWard','laughOwner','laughUntil','awkwardMark','phalanxLink','pabloUntil','jammedUntil','attachedLink'])delete card[key];
 }
 export function placeEffect(game,action,{chooseDraw=false}={}){
  const p=previewEffect(game,action),next=structuredClone(game),side=game.turn,player=next.players[side];next.board=structuredClone(p.board);
@@ -837,7 +902,9 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  if(p.blink)next.board[p.blink.source].blinkSpent=true;
  if(p.reserve)next.fanReserve={cell:p.reserve,owner:side,until:game.placements+2};
  if(p.waiting)next.board[action.cell].pabloUntil=game.placements+3;
- for(const cell of p.flips){const c=next.board[cell];c.controller=side;delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;delete c.ernieWard;delete c.coverWard;delete c.laughOwner;delete c.laughUntil;delete c.awkwardMark;delete c.phalanxLink;delete c.pabloUntil;delete c.jammedUntil;delete c.attachedLink;}
+ if(p.patienceArmed)player.patienceUntil=game.placements+2;
+ else if(player.patienceUntil<=game.placements)delete player.patienceUntil;
+ for(const cell of p.flips)claim(next.board[cell],side);
  if(p.rally)delete next.board[p.rally.leader].phalanxLink;
  if(p.phalanx?.tiles.length){
   const allies=p.phalanx.allies.map(cell=>({cell,uid:next.board[cell].uid}));
@@ -887,6 +954,10 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  if(p.coverWards.length)next.last.coverWards=p.coverWards;
  if(p.pivot)next.last.transforms.push(p.pivot);
  if(p.roundhouse)next.last.roundhouse=p.roundhouse;
+ if(p.plot)next.last.plot=p.plot;
+ if(p.patienceArmed)next.last.patienceArmed=true;
+ if(p.patience)next.last.patience=p.patience;
+ if(p.overload)next.last.overload=p.overload;
  if(p.thought)next.last.thought=p.thought;
  if(p.buttonChoice)next.last.buttonChoice=p.buttonChoice;
  if(p.swapCells)next.last.swapCells=p.swapCells;
@@ -951,6 +1022,13 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
 }
 export function actionOptions(game,card,cell,rotation){
  const ability=abilityAt(game,card,cell),directions=aimsAbility(ability)?[0,1,2,3,4,5]:[0],targets=turnsCards(ability)?[null,...twistTargets(game,cell,ability)]:[null];
+ if(ability==='plotTwist'||ability==='overload'){
+  const action={uid:card.uid,cell,rotation,abilityDirection:0};
+  const plan=previewEffect(game,action);
+  const targets=ability==='plotTwist'?plan.plotTargets:plan.overloadTargets;
+  const choice=ability==='plotTwist'?'plotTarget':'overloadTarget';
+  return [action,...targets.map(target=>({...action,[choice]:target}))];
+ }
  if(ability==='buttons'&&game.abilityRework){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   const plan=previewEffect(game,action);

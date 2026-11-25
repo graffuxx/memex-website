@@ -1,5 +1,5 @@
-import {createAbilityEffects} from './ability-effects.mjs?v=steve-loot';
-import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=steve-loot';
+import {createAbilityEffects} from './ability-effects.mjs?v=tactical-rework';
+import {fieldFeedback129,previewEdgeTotals129} from './field-feedback129.mjs?v=tactical-rework';
 import {bindDuelControl105} from './duel-control105.mjs';
 import {createBoardOwnership80} from './board-ownership80.mjs';
 import {expandedArenaCamera79,DEFAULT_ARENA_POSE78,normalizeArenaPose78,boardCardProjection78,bindArenaNavigation78} from './arena-navigation78.mjs?v=void-storm-79';
@@ -19,10 +19,10 @@ import {createPaintedBackdrop} from './painted-backdrop-glow8.mjs?v=home-rift-25
 import {createVoidArena} from './void-arena.mjs?v=void-2';
 import {fitVoidCamera} from './void-layout.mjs?v=void-2';
 import * as T from '../vendor/three.module.min.js';
-import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=final-guard';
-import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=steve-loot';
+import {CELLS,ELEMENTS,moveTargets,cardOf,reservedCell} from './rules.mjs?v=tactical-rework';
+import {eventFieldAt,fieldText,FIELD_TYPES,ABILITIES,guardActive,dashTargets} from './table-demo-rules.mjs?v=tactical-rework';
 import {CARD_PROFILES,cardShape,cardPoints} from './card-prototype.mjs?v=element-53';
-import {createCardRuntime} from './card-runtime-art16.mjs?v=steve-loot';
+import {createCardRuntime} from './card-runtime-art16.mjs?v=tactical-rework';
 import {ARENA_THEMES,createArenaWorld} from './arena-world.mjs?v=void-2';
 import {tileCenter,fitArenaCamera,projectHex} from './arena-projection.mjs';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
@@ -31,7 +31,7 @@ const tableArena=id=>id==='voidforge'||flatArena(id);
 let hudMaskSerial105=0;
 const NS='http://www.w3.org/2000/svg',COLORS=['#55ed94','#ff5d72'];
 const svgNode=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;};
-export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',rotationTargetLabel='Kann nach rechts drehen',rotationSelectedLabel='Dreht sich nach rechts',swapTargetLabel='Kann den Platz tauschen',blinkLabel='BLINZLER',tieShieldLabel='SCHUTZ BEI PATT'}={}){
+export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,finalGuardLabel='SCHLUSSSCHUTZ',getMusicTimeline=()=>null,onConfirmPlacement=null,confirmPlacementLabel='Ausspielen',rotationTargetLabel='Kann nach rechts drehen',rotationSelectedLabel='Dreht sich nach rechts',swapTargetLabel='Kann den Platz tauschen',extraFlipTargetLabel='Für Zusatzflip wählen',extraFlipSelectedLabel='Zusatzflip gewählt',blinkLabel='BLINZLER',tieShieldLabel='SCHUTZ BEI PATT'}={}){
  const syncDuelControl=bindDuelControl105(stage.ownerDocument);
  const placementButton=onConfirmPlacement?stage.ownerDocument.createElement('button'):null;
  if(placementButton){
@@ -137,8 +137,10 @@ export async function createTableView(stage,svg,{onResize=()=>{},showcase=false,
    const node=fieldNodes.get(c.id),held=game.board[c.id],blocked=game.block===c.id,f=eventFieldAt(game,c.id),pts=projectHex(camera,c,width,boardHeight,arenaId==='voidforge'?.88:.96,flatArena(arenaId)?(held ? .30 : .235):.36),points=pts.map(p=>p.x+','+(p.y+boardTop)).join(' '),cx=pts.reduce((n,p)=>n+p.x,0)/6,top=Math.min(...pts.map(p=>p.y))+boardTop,bottom=Math.max(...pts.map(p=>p.y))+boardTop;
    const rotationTarget=!ui.busy&&ui.rotationTargets?.includes(c.id);
    const swapTarget=!ui.busy&&isSwapTarget(c.id);
-   const label=(blocked?(dash?'Durchbruch auf '+c.id+' · Blockade':'Versiegelte Karte · Blockade'):held?CARD_PROFILES[DEMO_PROFILES[held.id]].name+', '+['deine Karte','gegnerische Karte'][held.controller]:reserved===c.id?'Reserviertes Feld '+c.id:'Freies Feld '+c.id)+(f?', '+fieldText(f):'')+(held?.ability?', '+ABILITIES[held.ability].name:'')+(held?', '+rarityOf(held).label:'')+(rotationTarget?', '+(ui.twistCell===c.id?rotationSelectedLabel:rotationTargetLabel):swapTarget?', '+swapTargetLabel:'');
-   if(held)node.dataset.rarity=rarityOf(held).key;else delete node.dataset.rarity;node.setAttribute('aria-label',label);node.setAttribute('aria-disabled',String((held?!(ui.inspectable??!ui.busy):Boolean(ui.busy)||reserved===c.id&&ui.mode!=='shift')||showcase));node.querySelector('polygon').setAttribute('points',points);node.classList.toggle('targeted',ui.target===c.id);node.classList.toggle('available',ui.mode==='shift'?shifts.includes(c.id):Boolean(ui.selected)&&!held&&reserved!==c.id&&(!blocked||dash));node.classList.toggle('will-flip',Boolean(ui.plan?.flips.includes(c.id)));node.classList.toggle('rotation-target',Boolean(rotationTarget||swapTarget));node.classList.toggle('twist-target',ui.twistCell===c.id);node.classList.toggle('inspect-target',ui.inspect===c.id);node.classList.toggle('shift-target',shifts.includes(c.id));
+   const extraTarget=!ui.busy&&(ui.plan?.plotTargets?.includes(c.id)||ui.plan?.overloadTargets?.includes(c.id));
+   const extraSelected=extraTarget&&(ui.plan.plotTarget===c.id||ui.plan.overloadTarget===c.id);
+   const label=(blocked?(dash?'Durchbruch auf '+c.id+' · Blockade':'Versiegelte Karte · Blockade'):held?CARD_PROFILES[DEMO_PROFILES[held.id]].name+', '+['deine Karte','gegnerische Karte'][held.controller]:reserved===c.id?'Reserviertes Feld '+c.id:'Freies Feld '+c.id)+(f?', '+fieldText(f):'')+(held?.ability?', '+ABILITIES[held.ability].name:'')+(held?', '+rarityOf(held).label:'')+(rotationTarget?', '+(ui.twistCell===c.id?rotationSelectedLabel:rotationTargetLabel):swapTarget?', '+swapTargetLabel:extraTarget?', '+(extraSelected?extraFlipSelectedLabel:extraFlipTargetLabel):'');
+   if(held)node.dataset.rarity=rarityOf(held).key;else delete node.dataset.rarity;node.setAttribute('aria-label',label);node.setAttribute('aria-disabled',String((held?!(ui.inspectable??!ui.busy):Boolean(ui.busy)||reserved===c.id&&ui.mode!=='shift')||showcase));node.querySelector('polygon').setAttribute('points',points);node.classList.toggle('targeted',ui.target===c.id);node.classList.toggle('available',ui.mode==='shift'?shifts.includes(c.id):Boolean(ui.selected)&&!held&&reserved!==c.id&&(!blocked||dash));node.classList.toggle('will-flip',Boolean(ui.plan?.flips.includes(c.id)));node.classList.toggle('rotation-target',Boolean(rotationTarget||swapTarget||extraTarget));node.classList.toggle('twist-target',ui.twistCell===c.id||extraSelected);node.classList.toggle('inspect-target',ui.inspect===c.id);node.classList.toggle('shift-target',shifts.includes(c.id));
    const text=node.querySelector('.field-label');text.textContent=f?(held?FIELD_TYPES[f.type].symbol:FIELD_TYPES[f.type].name.toUpperCase()+(f.type==='resonance'?' +1':f.type==='crossfire'?' +1':' ×')):'';text.setAttribute('x',cx);text.setAttribute('y',bottom-3);text.setAttribute('fill',f?FIELD_TYPES[f.type].color:'#fff');
    const owner=node.querySelector('.owner-label');owner.textContent='';if(held)node.dataset.owner=String(held.controller);else delete node.dataset.owner;
   }
