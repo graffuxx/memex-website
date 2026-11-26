@@ -18,6 +18,7 @@ import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=private-result-48';
+import {bindStartDuelPresentation} from './start-duel-presentation.mjs?v=arena-start-duel';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),id=params.get('match'),muted=params.get('mute')==='1',stage=$('stage'),svg=$('interaction');
@@ -31,7 +32,7 @@ bindTableMusic107(audio);
 const flipCombo=bindFlipCombo(stage,svg,{audio,motion:()=>$('motion').checked});
 const presentation=createPresentationRecovery133({cancel:()=>{view?.cancel();flipCombo.clear();ceremony.cancel();portraitIntro.cancel();lastEnd='';}});
 const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(working||animating||presentation.needsSnapshot)return false;if(data?.phase==='between')void move({kind:'ready'});else if(data?.phase==='ended'&&!data.rematch)location.assign('/play');return true;}});
-const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
+const startPresentation=bindStartDuelPresentation($('startDuel'));
 const inputState=()=>onlineInput117({game,phase:data?.phase,working,animating:animating||presentation.needsSnapshot,leaving:leaving112});
 const locked=()=>Boolean(game?.pendingDraw)||!inputState().play;
 const boardPreview=bindBoardCardPreview146(stage,svg,{getGame:()=>game,canInspect:()=>inputState().inspect});
@@ -40,11 +41,11 @@ function clear(){signatureControls.clear();boardPreview.clear();if(selected)view
 function action(){return {uid:selected,cell:target,rotation:0,abilityDirection,twistCell,blockadeCell,...signatureControls.action()};}
 function plan(){if(!selected||!target||!game||game.pendingDraw||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
 function portrait(node,identity){if(!identity)return;const f=frame85(identity),p=portrait85(identity.avatarId),wrap=document.createElement('span'),img=document.createElement('img'),ring=document.createElement('span');wrap.className='identity-portrait85';wrap.dataset.tier=f.tier;wrap.style.setProperty('--portrait-size','62px');wrap.style.setProperty('--frame-color',f.color);img.src=p.image;img.alt='';ring.className='identity-ring85';ring.innerHTML=frameSvg85(f,progression85(identity.xp).level);wrap.append(img,ring);node.replaceChildren(wrap);}
-function profiles(){const k=JSON.stringify([data?.players,data?.opponentStyle,data?.opponentEngine]);if(k===identityKey||!data?.players)return;identityKey=k;const [own,enemy]=data.players;const enemyTitle=data.opponentType==='ai'?'AI · '+(data.opponentStyle?.label??'Standard'):title85(enemy);$('gameSessionNote84').textContent=data.opponentType==='ai'?'Random · IS-MCTS · adapting from '+(data.opponentEngine?.observedMoves??0)+' visible moves':'Online alpha · human opponent · server-verified moves';$('gameAccountInfo').querySelector('small').textContent=data.opponentType==='ai'?'Win +5 Pixels +100 XP · loss / draw +2 Pixels · play & win quests':data.kind==='random'?'Human Random duel · Pixels, XP, quests & titles':'Private duel · friendly play';portrait($('ownPortrait85'),own);portrait($('enemyPortrait85'),enemy);$('playerName85').textContent=own.displayName;$('playerTitle85').textContent=title85(own);$('playerTitle85').hidden=!title85(own);$('enemyName90').textContent=enemy.displayName;$('enemyTitle90').textContent=enemyTitle;$('startEnemyName90').textContent=enemy.displayName;$('startEnemyTitle90').textContent=enemyTitle;}
+function profiles(){const k=JSON.stringify([data?.players,data?.opponentStyle,data?.opponentEngine]);if(k===identityKey||!data?.players)return;identityKey=k;const [own,enemy]=data.players;const enemyTitle=data.opponentType==='ai'?'AI · '+(data.opponentStyle?.label??'Standard'):title85(enemy);$('gameSessionNote84').textContent=data.opponentType==='ai'?'Random · IS-MCTS · adapting from '+(data.opponentEngine?.observedMoves??0)+' visible moves':'Online alpha · human opponent · server-verified moves';$('gameAccountInfo').querySelector('small').textContent=data.opponentType==='ai'?'Win +5 Pixels +100 XP · loss / draw +2 Pixels · play & win quests':data.kind==='random'?'Human Random duel · Pixels, XP, quests & titles':'Private duel · friendly play';portrait($('ownPortrait85'),own);portrait($('enemyPortrait85'),enemy);$('playerName85').textContent=own.displayName;$('playerTitle85').textContent=title85(own);$('playerTitle85').hidden=!title85(own);$('enemyName90').textContent=enemy.displayName;$('enemyTitle90').textContent=enemyTitle;$('startEnemyName90').textContent=enemy.displayName;}
 function clock(){const sec=remaining===null?0:Math.max(0,Math.ceil((remaining-(Date.now()-receivedAt))/1000));
  const timer=$('startClock');
  timer.hidden=remaining===null||!['rps','initiative'].includes(data?.phase);
- if(!timer.hidden){const label='Time remaining: '+sec+' s';if(timer.textContent!==label)timer.textContent=label;}
+ if(!timer.hidden){const label=sec+' s';if(timer.textContent!==label)timer.textContent=label;}
  $('turnTimer').hidden=!game||data.phase!=='play';$('timerLabel').textContent=game?.pendingDraw?'DRAW CHOICE':(data?.afkStreak?.[game?.turn]??0)>=2?'AFK · 3 SEKUNDEN':game?.turn===0?'YOUR TURN':'OPPONENT TURN';$('timerValue').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');$('timerFill').style.transform='scaleX('+Math.max(0,sec/(game?.pendingDraw?15:(data?.afkStreak?.[game?.turn]??0)>=2?3:90))+')';$('turnTimer').dataset.state=sec<=5?'critical':sec<=15?'warning':'normal';}
 function renderRematch(){
  const offer=data?.rematch,controls=$('rematchControls');
@@ -99,15 +100,26 @@ function render(){
  $('controls').dataset.context='active';view.update(game,{selected,target,hover,inspect:null,mode,busy,confirmPlacement:Boolean(p&&!busy&&!drag?.moved),inspectable:inputState().inspect,cameraBusy:!inputState().camera,plan:p,abilityDirection,twistCell,rotationTargets});clock();
 }
 function rps(){
- if(!data)return;
- const dialog=$('startDuel'),show=['rps','initiative'].includes(data.phase);if(!show)return;
- if(!dialog.open){profiles();try{portraitIntro.open();}catch{}dialog.showModal();}
- $('startAttempt').textContent='ATTEMPT '+data.attempt;$('startTitle').textContent=data.phase==='initiative'?(data.rpsWinner===0?'You won the start right.':'Your opponent won the start right.'):'Who makes the first move?';
- $('startStatus').textContent=pollRecovery139.message|| (data.phase==='initiative'?(data.rpsWinner===0?'Choose who starts.':'Waiting for the opponent to choose.'):data.ownChoice?'Choice locked. Waiting for your opponent…':data.lastRps?.winner===null?'A tie. Choose again.':'Choose your hand sign privately.');
- $('startChoices').hidden=data.phase!=='rps';$('startInitiative').hidden=data.phase!=='initiative'||data.rpsWinner!==0;$('startRetry').hidden=true;$('startContinue').hidden=true;
- for(const b of dialog.querySelectorAll('[data-gesture]')){b.querySelector('.gesture-art').textContent=glyphs[b.dataset.gesture];b.disabled=working||Boolean(data.ownChoice);b.setAttribute('aria-pressed',String(b.dataset.gesture===data.ownChoice));}
- const choices=data.phase==='initiative'?data.lastRps.choices:[data.ownChoice,null];$('startPlayerHand').textContent=glyphs[choices[0]]??'?';$('startOpponentHand').textContent=glyphs[choices[1]]??'?';$('startPlayerName').textContent=gestureNames[choices[0]]??'Your choice';$('startOpponentName').textContent=choices[1]?gestureNames[choices[1]]:data.opponentChosen?'Locked':'Hidden choice';
- for(const b of dialog.querySelectorAll('[data-starter]'))b.disabled=working;
+ if(!data||!['rps','initiative'].includes(data.phase))return;
+ const dialog=$('startDuel'),opening=!dialog.open,choosing=data.phase==='rps';
+ dialog.dataset.motion=$('motion').checked?'on':'off';
+ if(opening){profiles();try{portraitIntro.open();}catch{}dialog.showModal();}
+ if(choosing){
+  startPresentation.paint({choosing:true,tie:data.lastRps?.winner===null,player:data.ownChoice,busy:working,
+   message:pollRecovery139.message||(data.ownChoice?'Gegner wählt …':'')});
+  if(opening)dialog.querySelector('[data-gesture]:enabled')?.focus();
+ }else{
+  const first=dialog.querySelector('[data-starter="0"]');
+  const shouldFocus=data.rpsWinner===0&&!working&&($('startInitiative').hidden||first.disabled);
+  showStartWinner(data,{chooseStarter:data.rpsWinner===0,
+   message:pollRecovery139.message||(data.rpsWinner===1?'Gegner wählt …':'')});
+  if(shouldFocus)first.focus();
+ }
+ clock();
+}
+function showStartWinner(state,{chooseStarter=false,message=''}={}){
+ const [player,opponent]=state.lastRps?.choices??[];
+ startPresentation.paint({player,opponent,winner:state.lastRps?.winner??null,chooseStarter,busy:working,message});
 }
 async function accept(next){
  if(next.rematch?.nextMatchId&&isDuelId(next.rematch.nextMatchId)){
@@ -125,7 +137,14 @@ async function accept(next){
  if(!changed){render();return;}
  clear();animating=true;
  try{await presentation.run(async check=>{
- if($('startDuel').open){const flying=portraitIntro.fly();$('startDuel').close();await flying;check();}
+ if($('startDuel').open){
+  if(next.lastRps?.winner!=null){
+   showStartWinner(next);
+   const reveal=startPresentation.waitForReveal();
+   if(reveal){await reveal;check();}
+  }
+  const flying=portraitIntro.fly();$('startDuel').close();await flying;check();
+ }
  const sameRound=Boolean(previous?.game&&next.round===previous.round);
  const step=next.step,animate=Boolean(!recovering&&sameRound&&previous.version+1===next.version&&step&&step.before.placements===previous.game.placements);
  if(animate){game=step.before;await view.prepareGame(game);check();view.initGame(game,{keepCamera:true});render();if(step.kind==='place'){const rotation=step.after.last.transforms?.find(t=>t.uid===step.action.uid)?.from??step.after.last.blink?.from??Object.values(step.after.board).find(card=>card.uid===step.action.uid).rotation;view.setRotation(step.action.uid,rotation);if(next.game.last.dash){await view.shift(next.game.last.blockadeMove.to);check();audio.play('shift');}await view.place(step.action.uid,step.action.cell);check();audio.play('place');if(next.game.last.ability==='exchange'&&next.game.last.swapCells){await view.swapCards(next.game.last.swapCells,step.action.uid);check();audio.play('shift');}if(next.game.last.relocation){await view.slideCard(next.game.last.relocation);check();audio.play('shift');}if(next.game.last.blockadeMove&&!next.game.last.dash){await view.shift(next.game.last.blockadeMove.to);check();audio.play('shift');}}else if(step.kind==='shift'){await view.shift(step.cell);check();audio.play('shift');}else audio.play('draw');}

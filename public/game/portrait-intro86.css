@@ -1,34 +1,127 @@
-/* The portraits share the real profile renderer; the hand gesture is a small badge. */
-.game-table .start-duel{--start-portrait-size86:clamp(106px,18dvh,146px);width:min(760px,calc(100vw - 30px));padding:18px 24px}
-.game-table .start-duel .start-navigation{margin-bottom:10px;padding-bottom:8px}
-.game-table .start-duel .start-navigation a{min-height:34px;padding:6px 12px;font-size:13px}
-.game-table .start-duel .start-brand{padding-bottom:8px;gap:12px}
-.game-table .start-duel .start-brand img{width:65px;height:42px}
-.game-table .start-duel .start-brand>div>span{font-size:15px}
-.game-table .start-duel .start-brand small{font-size:12px}
-.game-table .start-duel h1{margin:12px 0 6px;font-size:clamp(24px,3vw,30px)}
-.game-table .start-duel #startStatus{min-height:40px;font-size:14px;line-height:1.5}
-.game-table .start-duel .start-versus{margin:10px 0 12px;align-items:start;grid-template-columns:1fr 38px 1fr;gap:10px}
-.game-table .start-duel .start-contender{position:relative;padding:4px 8px;gap:4px;min-width:0}
-.game-table .start-duel .intro-portrait86{display:flex;justify-content:center;align-items:center;margin:3px 0 0}
-.game-table .start-duel .intro-name86{font:400 19px/1.25 'Duelverse Display',Barlow,sans-serif;color:#fff0cb;max-width:230px;text-align:center;overflow-wrap:anywhere}
-.game-table .start-duel .intro-title86{display:block;color:#d8b6ed;font:13px/1.3 Arial,sans-serif;text-align:center;max-width:220px;min-height:17px}
-.game-table .start-duel .intro-side86{font-size:11px;letter-spacing:1.4px}
-.game-table .start-duel .start-hand{position:absolute;left:calc(50% + var(--start-portrait-size86)*.22);top:calc(var(--start-portrait-size86)*.7 + 20px);width:45px;height:45px;border:1px solid #d8b17b88;border-radius:50%;background:#130d27f0;box-shadow:0 3px 14px #03000880;color:#ffdda2}
-.game-table .start-duel .start-hand svg{width:32px;height:32px}
-.game-table .start-duel .start-hand>span{font-size:30px;line-height:1}
-.game-table .start-duel .gesture-caption86{font:13px/1.4 Arial,sans-serif;letter-spacing:0;color:#d5bfdc;margin-top:3px}
-.game-table .start-duel .versus-label{align-self:center;font-size:23px;padding-bottom:26px;color:#edcb8b}
-.game-table .start-duel .start-choices{gap:10px}
-.game-table .start-duel .start-choices button{padding:7px 8px;gap:5px}
-.game-table .start-duel .start-choices .gesture-art{width:49px;height:49px}
-.game-table .start-duel .start-choices .gesture-art svg{width:35px;height:35px}
-.game-table .start-duel .start-choices strong{font-size:15px}
-.game-table .start-duel .start-fairness{font-size:12px;margin-top:12px;padding-top:10px;line-height:1.45}
 .game-table[data-portrait-stage86="opening"] #ownPortrait85,.game-table[data-portrait-stage86="opening"] #enemyPortrait85,.game-table[data-portrait-stage86="flying"] #ownPortrait85,.game-table[data-portrait-stage86="flying"] #enemyPortrait85,.game-table[data-portrait-stage86="opening"] #playerName85,.game-table[data-portrait-stage86="opening"] #playerTitle85,.game-table[data-portrait-stage86="flying"] #playerName85,.game-table[data-portrait-stage86="flying"] #playerTitle85{visibility:hidden}
 .game-table .portrait-flight-layer86{position:fixed;inset:0;z-index:2147483000;pointer-events:auto;cursor:progress;overflow:hidden;isolation:isolate}
 .game-table .portrait-flight86{position:absolute;display:block;margin:0;transform-origin:0 0;will-change:transform;pointer-events:none;filter:drop-shadow(0 4px 15px #a36af86b)}
 .game-table[data-portrait-stage86="docked"] #ownPortrait85,.game-table[data-portrait-stage86="docked"] #enemyPortrait85{animation:portrait-docked86 .25s ease-out}
 @keyframes portrait-docked86{from{filter:brightness(1.4)}to{filter:brightness(1)}}
-@media(max-height:700px){.game-table .start-duel{--start-portrait-size86:102px;padding:14px 20px}.game-table .start-duel .start-brand img{height:34px}.game-table .start-duel .start-brand small{display:none}.game-table .start-duel h1{margin-top:8px;font-size:24px}.game-table .start-duel #startStatus{min-height:36px;font-size:13px}.game-table .start-duel .start-fairness{font-size:11px}.game-table .start-duel .start-versus{margin-block:6px}.game-table .start-duel .intro-name86{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.game-table[data-portrait-stage86="docked"] #ownPortrait85,.game-table[data-portrait-stage86="docked"] #enemyPortrait85{animation:none}}
+
+.game-table .start-duel.rps-arena{
+ --start-portrait-size86:clamp(84px,11vw,136px);
+ position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;
+ padding:72px 22px 42px;overflow:auto;isolation:isolate;border:0;border-radius:0;box-shadow:none;
+ backdrop-filter:none;color:#f3ebff;text-align:center;
+ background:#09081a radial-gradient(ellipse at 50% 44%,#080719d9 4%,#09071b87 34%,transparent 78%);
+ background-image:radial-gradient(ellipse at 50% 44%,#080719d9 4%,#09071b87 34%,transparent 78%),linear-gradient(180deg,#06051780,transparent 25%,transparent 72%,#08051aad),url('../home/arena-poster.jpg'),url('./assets/ambience/crystal-v03/void-matte.webp');
+ background-position:center,center,center 60%,center;background-size:cover;
+}
+.game-table .rps-arena[open]{display:grid;place-items:center}
+.game-table .rps-arena::backdrop{background:#080518;backdrop-filter:none}
+.rps-arena::after{
+ content:'';position:absolute;z-index:-1;inset:0;pointer-events:none;mix-blend-mode:screen;
+ background:radial-gradient(ellipse at 78% 36%,#9458ff57,transparent 32%),radial-gradient(ellipse at 15% 39%,#6446f447,transparent 32%);
+ opacity:.25;animation:rps-storm 12s ease-in-out infinite;
+}
+@keyframes rps-storm{0%,84%,100%{opacity:.25}89%{opacity:.65}93%{opacity:.29}96%{opacity:.47}}
+.game-table .rps-arena .rps-header{position:absolute;inset:14px 30px auto;display:flex;align-items:center;justify-content:space-between;padding:0;height:auto;min-height:0;border:0;background:none;box-shadow:none;pointer-events:none}
+.rps-header img{width:100px;height:76px;object-fit:contain;filter:drop-shadow(0 5px 13px #040316)}
+.game-table .rps-arena .start-navigation{display:flex;align-items:center;gap:14px;border:0;padding:0;margin:0;pointer-events:auto}
+.rps-clock{font:600 13px/1 Arial,sans-serif;color:#e2d6f4;font-variant-numeric:tabular-nums}
+.rps-scene{position:relative;width:min(1080px,100%);padding:calc(var(--start-portrait-size86)*.78 + 37px) 0 0;margin:0 auto clamp(44px,14vh,142px)}
+.rps-winner-anchor{position:absolute;top:0;left:50%;pointer-events:none}
+.game-table .rps-arena h1{
+ margin:0 0 clamp(26px,5.8vh,55px);font:900 clamp(31px,5.2vw,83px)/.96 Impact,'Arial Black',sans-serif;
+ color:#ffd89c;letter-spacing:.025em;text-transform:uppercase;transform:skew(-7deg);
+ text-shadow:0 4px #492549,0 13px 34px #09021e,0 0 26px #ffd8994d;
+}
+.rps-lineup{
+ position:relative;display:grid;grid-template-columns:minmax(114px,1fr) minmax(0,536px) minmax(114px,1fr);
+ align-items:start;gap:clamp(12px,3vw,48px);
+}
+.rps-lineup::before,.rps-lineup::after{
+ position:absolute;z-index:-1;top:calc(var(--start-portrait-size86)/2);width:28%;height:1px;content:'';
+ background:linear-gradient(90deg,transparent,#d3baff6b,transparent);
+}
+.rps-lineup::before{left:0}.rps-lineup::after{right:0}
+.rps-slot{min-width:0}
+.rps-fighter{
+ min-width:0;display:grid;justify-items:center;position:relative;transform-origin:top center;
+ transition:transform .58s cubic-bezier(.2,.76,.19,1),opacity .26s;
+ --rps-aura:#72e1ce;
+}
+.rps-enemy .rps-fighter{--rps-aura:#ff8baa}
+.rps-portrait{
+ display:grid;place-items:center;width:var(--start-portrait-size86);height:var(--start-portrait-size86);
+ border-radius:50%;box-shadow:0 0 24px color-mix(in srgb,var(--rps-aura) 28%,transparent),0 12px 23px #070414a8;
+}
+.rps-arena .rps-portrait .identity-portrait85{display:block}
+.rps-fighter strong{
+ margin-top:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font:400 clamp(15px,1.83vw,24px)/1.14 'Duelverse Display',Arial,sans-serif;color:#f5f0ff;
+ text-shadow:0 3px 9px #030211;
+}
+.rps-fighter small{display:none}
+.rps-arena[data-winner="0"] .rps-own .rps-fighter,.rps-arena[data-winner="1"] .rps-enemy .rps-fighter{
+ z-index:2;transform:translate(var(--reveal-x,0px),var(--reveal-y,0px)) scale(.78);
+}
+.rps-arena[data-winner="0"] .rps-enemy .rps-fighter,.rps-arena[data-winner="1"] .rps-own .rps-fighter{opacity:.54}
+.rps-arena[data-winner="0"] .rps-own .rps-portrait,.rps-arena[data-winner="1"] .rps-enemy .rps-portrait{
+ box-shadow:0 0 32px #ffd59ea8,0 12px 23px #070414a8;
+ animation:rps-glow .72s .16s ease-out both;
+}
+@keyframes rps-glow{0%,100%{box-shadow:0 0 29px #ffd59ea8,0 12px 23px #070414a8}44%{box-shadow:0 0 14px 2px #ffedb7,0 0 53px 7px #e9ac73bd,0 12px 23px #070414a8}}
+.rps-controls{min-width:0;min-height:clamp(166px,19vw,204px)}
+.rps-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(7px,2vw,25px)}
+.rps-token{display:block;width:min(100%,145px);aspect-ratio:136/122}
+.rps-emblem{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 6px 12px #070314)}
+.rps-hex{fill:color-mix(in srgb,var(--base) 43%,#0a0a1b);stroke:var(--accent);stroke-width:1.35}
+.rps-engraving{fill:none;stroke:var(--accent);opacity:.43}
+.rps-gems{fill:var(--accent)}
+.rps-arena .rps-emblem .rps-hand{
+ fill:color-mix(in srgb,var(--accent) 20%,transparent);stroke:var(--accent);stroke-width:2.65;
+ stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 7px color-mix(in srgb,var(--accent) 70%,transparent));
+}
+.rps-choices button{
+ appearance:none;display:grid;justify-items:center;gap:9px;min-width:0;padding:0 3px 5px;
+ border:0;background:none;color:#f3ebff;font:700 clamp(12px,1.4vw,18px)/1.2 Arial,sans-serif;
+ letter-spacing:.035em;text-shadow:0 3px 8px #09041c;cursor:pointer;
+}
+.rps-arena .rps-choices .rps-token{width:min(100%,145px);height:auto;transition:transform .18s,filter .18s}
+.rps-choices button:enabled:is(:hover,:focus-visible) .rps-token,.rps-choices button[aria-pressed="true"] .rps-token{
+ transform:translateY(-4px);filter:drop-shadow(0 0 12px #c296ff9c);
+}
+.rps-choices button:disabled{cursor:default}
+.rps-choices button:disabled[aria-pressed="false"]{opacity:.47}
+.rps-reveal{display:flex;justify-content:center;align-items:center;gap:17px;margin:0 auto 18px;animation:rps-reveal .26s ease-out both}
+@keyframes rps-reveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.rps-result-gesture{display:grid;justify-items:center;gap:6px;font:700 12px/1.1 Arial,sans-serif}
+.rps-result-gesture .rps-token{width:64px}
+.rps-vs{color:#dec5f7;font:italic 17px/1 Impact,sans-serif}
+.rps-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:9px}
+.rps-arena .rps-actions button,.rps-arena .rps-single{
+ min-height:44px;border:1px solid #ae8acf91;border-radius:8px;background:#181329e8;color:#f4eaff;
+ padding:0 14px;font:700 14px/1.2 Arial,sans-serif;cursor:pointer;
+}
+.rps-arena .rps-actions .start-gold,.rps-arena .rps-single.start-gold{background:#f3cd8b;color:#24152c;border-color:#ffe4a9}
+.rps-arena .rps-actions button:enabled:hover,.rps-arena .rps-single:enabled:hover{border-color:#fff}
+.rps-arena .rps-actions button:disabled{opacity:.62;cursor:default}
+.game-table .rps-arena #startStatus{margin:14px 0 0;min-height:0;color:#ead9f7;font:14px/1.35 Arial,sans-serif;text-shadow:0 2px 9px #050518}
+.game-table .rps-arena #startStatus:empty{margin:0}
+.rps-arena[data-motion="off"]::after{animation:none}
+@media(prefers-reduced-motion:reduce){.rps-arena::after{animation:none}}
+@media(max-width:690px){
+ .game-table .start-duel.rps-arena{--start-portrait-size86:76px;padding:75px 14px 24px}
+ .game-table .rps-arena .rps-header{inset:10px 14px auto}.rps-header img{width:70px;height:55px}
+ .rps-scene{padding-top:0;margin-bottom:15px}
+ .rps-winner-anchor{top:calc(clamp(31px,5.2vw,83px)*.96 + clamp(26px,5.8vh,55px))}
+ .rps-lineup{grid-template-columns:1fr 1fr;gap:23px 10px}
+ .rps-own{grid-column:1;grid-row:1}.rps-enemy{grid-column:2;grid-row:1}
+ .rps-controls{grid-column:1/-1;grid-row:2;justify-self:center;width:min(400px,100%);min-height:142px}
+ .rps-fighter strong{font-size:14px}
+}
+@media(max-height:650px) and (min-width:691px){
+ .game-table .start-duel.rps-arena{--start-portrait-size86:86px;padding:48px 18px 17px}
+ .rps-header img{width:70px;height:55px}
+ .rps-scene{padding-top:108px;margin-bottom:6px}
+ .rps-controls{min-height:153px}
+ .rps-choices .rps-token{max-width:116px}
+}

@@ -14,7 +14,7 @@ import {soloAction84} from './solo-ai84.mjs?v=hand-effects-46';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {connectAccountGame,leaveStoredAccount112} from '../platform/account-client50.mjs?v=identity-85';
 import {readPlayDeck,applyPortalDecks,defaultPlayDeck} from '../platform/deck-bridge.mjs?v=hand-effects-46';
-import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=start-recovery-139';
+import {bindStartDuelDialog} from './start-duel-dialog18.mjs?v=arena-start-duel';
 import {roundStarter} from './start-duel18.mjs';
 import {withDemoFinishes,rarityOf} from './card-rarities15.mjs?v=opening-brand-18';
 import {createTurnClock,timeoutAction} from './turn-clock.mjs?v=hand-effects-46';
