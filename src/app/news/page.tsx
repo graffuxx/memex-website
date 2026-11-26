@@ -47,9 +47,41 @@ export default function NewsPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>NEWS</h1>
           <p className={styles.subtitle}>
-            Game updates, new rewards and news from the Duelverse.
+            New cards, alpha updates and news from the Duelverse.
           </p>
         </header>
+
+        <article className={styles.questNews}>
+          <div className={styles.questNewsArt}>
+            <img
+              src="/game/assets/cards/frame-v21/memex-back.webp"
+              alt="MemeX Duelverse card back"
+            />
+          </div>
+          <div>
+            <div className={styles.badge}>
+              IN DEVELOPMENT · <time dateTime="2026-11-26">26 NOV 2026</time>
+            </div>
+            <h2>New cards are coming to the Duelverse.</h2>
+            <p>
+              New memes. New moves. We’re working on the next additions to the
+              MemeX card collection, with more personalities to discover and
+              new possibilities for your deck.
+            </p>
+            <p>
+              Alongside the new cards, we’re continuing to refine abilities,
+              balance and the flow of the browser alpha. We’ll share card
+              previews and development updates here as the next additions take
+              shape.
+            </p>
+            <p>
+              <strong>Your memes. Your game.</strong> Try the current alpha,
+              find your favourite cards and tell us what you’d like to see next.
+              Release details for the new cards will follow when they’re ready.
+            </p>
+            <a className={styles.follow} href="/play">Play the alpha</a>
+          </div>
+        </article>
 
         <article className={styles.questNews}>
           <div className={styles.questNewsArt}><img src="/game/assets/boosters/alpha-v36/alpha-pack.webp" alt="Alpha Booster quest reward"/></div>
