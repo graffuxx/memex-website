@@ -24,8 +24,11 @@ test('light/particle origins exclude the complete floor and rim for every arena,
   assert.equal(insideArtworkFloor67(arena,.5,.48),true);
  }
 });
-test('all four background assets are present, bounded in total size and selected without changing game rules',async()=>{
+test('all four background assets are present, bounded in total size while the live game has no arena selector',async()=>{
  let bytes=0;for(const arena of Object.values(ILLUSTRATED_ARENAS)){const stat=await fs.stat(new URL('../public/game/assets/arenas/illustrated-v67/'+arena.id+'.webp',import.meta.url));assert.ok(stat.size>50000&&stat.size<600000);bytes+=stat.size;}
  assert.ok(bytes<1600000);
- const html=await fs.readFile(new URL('../public/game/table-demo.html',import.meta.url),'utf8');for(const id of Object.keys(ILLUSTRATED_ARENAS))assert.ok(html.includes(`value="${id}"`));
+ for(const file of ['online.html','table-demo.html']){
+  const html=await fs.readFile(new URL('../public/game/'+file,import.meta.url),'utf8');
+  assert.doesNotMatch(html,/<select[^>]+id="arenaTheme"/);
+ }
 });

@@ -1,17 +1,25 @@
 import {CELLS} from './rules.mjs';
 
-// A separate seed stream keeps scenery independent of deck order and starting player.
-const innerCells=new Set(CELLS.filter(({q,r})=>Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<2).map(({id})=>id));
-export function createTacticsLayout(seed,round=1){
- let state=((seed>>>0)^0x9e3779b9)>>>0;
+// The blockade uses its own shuffle, independent of deck order and starting player.
+function shuffleCells(seed,cycle){
+ let state=((seed>>>0)^0x9e3779b9^Math.imul(cycle,0x85ebca6b))>>>0;
  const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
- const cells=CELLS.map(c=>c.id);
- for(let i=cells.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]];}
- // Keep the full-board draw for round one and guarantee an interior field in the rematch.
- const second=cells.findIndex((cell,index)=>index>0&&innerCells.has(cell));
- const starts=[cells[0],cells[second],...cells.filter((_,index)=>index>0&&index!==second)];
- const block=starts[(round-1)%starts.length];
- return {block,eventCells:cells.filter(cell=>cell!==block).slice(0,2),crossfireOffset:Math.floor(random()*3)};
+ const cells=CELLS.map(cell=>cell.id);
+ for(let i=cells.length-1;i>0;i--){
+  const j=Math.floor(random()*(i+1));
+  [cells[i],cells[j]]=[cells[j],cells[i]];
+ }
+ return {cells,crossfireOffset:Math.floor(random()*3)};
+}
+
+export function createTacticsLayout(seed,round=1){
+ const index=round-1,cycle=Math.floor(index/CELLS.length);
+ const {cells,crossfireOffset}=shuffleCells(seed,cycle);
+ if(cycle>0&&cells[0]===shuffleCells(seed,cycle-1).cells.at(-1)){
+  [cells[0],cells[1]]=[cells[1],cells[0]];
+ }
+ const block=cells[index%cells.length];
+ return {block,eventCells:cells.filter(cell=>cell!==block).slice(0,2),crossfireOffset};
 }
 
 export function freshMatchSeed(previous=null){

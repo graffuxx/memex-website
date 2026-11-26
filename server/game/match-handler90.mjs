@@ -26,7 +26,20 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
   if(input.op==='move'&&input.move?.kind==='resign'){await rpc('dv_match_leave112',{p_user:uid,p_id:input.id});return reply(projectPvp90(await rpc('dv_match_get90',{p_user:uid,p_id:input.id}),uid,now()));}
   if(input.op==='cancel'){await rpc('dv_match_cancel90',{p_user:uid,p_id:input.id});return reply({cancelled:true});}
   let row=await rpc('dv_match_get90',{p_user:uid,p_id:input.id});
+  const rematchAvailable=()=>row.kind==='private'&&row.status==='finished'&&row.state?.phase==='ended'&&row.state?.forfeit==null&&row.guest_id;
+  async function currentMatch(action='status',deck=null){
+   const view=projectPvp90(row,uid,now());
+   if(rematchAvailable())view.rematch=await rpc('dv_private_rematch',{p_user:uid,p_match:row.id,p_action:action,p_deck:deck});
+   return view;
+  }
   const commit=(state,version=row.version,rid=requestId())=>rpc('dv_match_commit90',{p_user:uid,p_id:row.id,p_version:version,p_request:rid,p_state:state});
+  if(input.op==='move'&&['rematch','cancel-rematch'].includes(input.move?.kind)){
+   if(!rematchAvailable())fail('Rematch unavailable.');
+   const deck=input.move.deckId??null;
+   if(deck!==null&&!UUID.test(deck))fail('Choose a saved deck.');
+   const ready=input.move.kind==='rematch';
+   return reply(await currentMatch(ready?'ready':'cancel',ready?deck:null));
+  }
   if(input.op==='poll'){
    try{
     if(row.status==='waiting'&&row.kind==='random'&&now()-Date.parse(row.created_at)>=BOT_WAIT_MS96){
@@ -43,8 +56,8 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
     }
     else if(row.status==='matched'){const upgraded=refreshPvpRules129(row.state,now()),current=upgraded??row.state,expired=expirePvp90(current,now());const next=expired?armBot96(expired,now()):stepBot96(current,now())??upgraded;if(next)row=await commit(next);}
    }catch(e){if(e.status!==409)throw e;row=await rpc('dv_match_get90',{p_user:uid,p_id:input.id});}
-   if(Number.isInteger(input.version)&&input.version===row.version&&row.state)return reply({unchanged:true,remainingMs:row.state.deadline?Math.max(0,row.state.deadline-now()):null,wallet:row.wallet});
-   return reply(projectPvp90(row,uid,now()));
+   if(Number.isInteger(input.version)&&input.version===row.version&&row.state&&!rematchAvailable())return reply({unchanged:true,remainingMs:row.state.deadline?Math.max(0,row.state.deadline-now()):null,wallet:row.wallet});
+   return reply(await currentMatch());
   }
   if(input.op!=='move'||!Number.isInteger(input.version)||!UUID.test(input.requestId)||!row.state)fail('Invalid turn request.');
   const side=row.host_id===uid?0:1,move={...input.move};
@@ -79,6 +92,6 @@ export function createMatchHandler90({env,fetcher=fetch,now=()=>Date.now(),seed=
    if(!canMergeGesture())throw error;
    row=await saveMove();
   }
-  return reply(projectPvp90(row,uid,now()));
+  return reply(await currentMatch());
  }catch(e){return reply({error:e.message||'Online duel unavailable.'},e.status??400);}};
 }

@@ -1,14 +1,19 @@
-import {createTacticsLayout} from './tactics-layout.mjs?v=round-emblems';
+import {createTacticsLayout} from './tactics-layout.mjs?v=arena-rematch-47';
 import {newGame,placeCard,freeCells} from './rules.mjs?v=tie-break-63';
 import {LOADOUTS,ABILITY_FOR} from './table-demo-rules.mjs?v=duel-feedback';
 import {chooseTactic} from './tactics-ai.mjs?v=duel-feedback';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 export const DEMO_PROFILES=Object.fromEntries(DEFINITIONS.map(c=>[c.ruleId,c.id]));
-export function createTableDemo(loadout='hype-guard'){
+export function createTableDemo(loadout='hype-guard',layoutSeed=null){
  if(!Object.hasOwn(LOADOUTS,loadout))throw Error('Unbekannte Deckvariante.');
  let game=newGame({seed:20261116,layout:'core',starter:0});
  game.players=[0,1].map(side=>{const cards=Array.from({length:9},(_,i)=>({id:['oracle','brain','trust'][i%3],uid:`demo-${side}-${i}`,origin:side}));return {hand:cards.slice(0,5),deck:cards.slice(5),shifts:1,flips:0};});
- for(const [side,index,cell] of [[0,0,'-1,-1'],[1,1,'1,0'],[0,2,'-1,1'],[1,0,'1,-1']])game=placeCard(game,{uid:`demo-${side}-${index}`,cell,rotation:0});
+ const opening=[[0,0,'-1,-1'],[1,1,'1,0'],[0,2,'-1,1'],[1,0,'1,-1']];
+ if(layoutSeed!==null)game.block=createTacticsLayout(layoutSeed).block;
+ const alternate=freeCells(game).find(cell=>opening.every(([, ,planned])=>cell!==planned));
+ for(const [side,index,cell] of opening){
+  game=placeCard(game,{uid:`demo-${side}-${index}`,cell:cell===game.block?alternate:cell,rotation:0});
+ }
  game.events=[];game.loadout=loadout;
  for(const p of game.players)for(const ability of LOADOUTS[loadout].abilities){const card=p.hand.find(c=>ABILITY_FOR[c.id]===ability);card.ability=ability;}
  return game;

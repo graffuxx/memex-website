@@ -8,7 +8,7 @@ import {
 } from '../../../public/game/src/table-demo-rules.mjs';
 
 export const glossary = [
- {term:'Blockade',text:'The face-down card marks a blocked hex. It starts on a different hex each round and starts inside the board in the second round. Before playing a card, you can move the blockade to a free neighbouring hex once per round. It does not use up your card play.'},
+ {term:'Blockade',text:'The face-down card marks a blocked hex. Each round draws a different starting hex from across the whole board. Before playing a card, you can move the blockade to a free neighbouring hex once per round. It does not use up your card play.'},
  {term:'Shield',alias:'Schild',text:'A shield raises defence on a specific edge or prevents a capture if its conditions are met. Check the card’s ability for the amount and duration. Water’s Wave Shield gives one edge +2 through the opponent’s next move.'},
  {term:'Phase',text:'A stage of the older event-field system. Random event fields and their changing bonuses are currently disabled in Random, Private Duels and Deck Test. There is no Phase action to activate.'},
  {term:'Edge and base value',alias:'Kante und Grundwert',text:'An edge is one of the six numbered sides. The base value is the number printed on it. The value used in a capture can change through ability bonuses or penalties.'},

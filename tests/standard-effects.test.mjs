@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DEFINITIONS,starterDeck,expandGameDeck} from '../public/game/platform/catalog.mjs';
-import {newGame,moveTargets,sideValue} from '../public/game/src/rules.mjs';
+import {CELLS,newGame,moveTargets,sideValue} from '../public/game/src/rules.mjs';
 import {abilityEdge,effectStrength,placeEffect,previewEffect,standardAbility,twistTargets} from '../public/game/src/table-demo-rules.mjs';
 import {fieldFeedback129} from '../public/game/src/field-feedback129.mjs';
 import {legalCandidates,positionalValue} from '../public/game/src/tactics-ai.mjs';
@@ -18,21 +18,19 @@ function trial(){
  game.players[1].hand=[];game.players[1].deck=[];
  return game;
 }
-test('each round has a fresh blockade and the rematch always starts inside the board',()=>{
- const all=new Set(),rematches=new Set();
- for(let seed=1;seed<=250;seed++){
-  const starts=Array.from({length:4},(_,i)=>createTacticsLayout(seed,i+1));
-  assert.equal(new Set(starts.map(layout=>layout.block)).size,starts.length);
-  for(const layout of starts){
+test('every opening round can draw all 19 blockade hexes, including the center',()=>{
+ const fields=CELLS.map(({id})=>id).sort();
+ const coverage=Array.from({length:4},()=>new Set());
+ for(let seed=1;seed<=500;seed++){
+  const starts=Array.from({length:20},(_,index)=>createTacticsLayout(seed,index+1));
+  assert.equal(new Set(starts.slice(0,19).map(layout=>layout.block)).size,19);
+  assert.notEqual(starts[18].block,starts[19].block);
+  for(const [index,layout] of starts.entries()){
    assert.ok(!layout.eventCells.includes(layout.block));
-   all.add(layout.block);
+   coverage[index]?.add(layout.block);
   }
-  const [q,r]=starts[1].block.split(',').map(Number);
-  assert.ok(Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<2);
-  rematches.add(starts[1].block);
  }
- assert.equal(all.size,19);
- assert.equal(rematches.size,7);
+ for(const seen of coverage)assert.deepEqual([...seen].sort(),fields);
 });
 
 test('Fire and Storm resolve their automatic edge and publish the matching displayed value',()=>{

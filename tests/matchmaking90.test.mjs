@@ -142,3 +142,97 @@ test('Private and Random store recalled-board scores and rewards from either fir
   t.diagnostic(JSON.stringify(outcomes));
  }finally{await db.close();}
 });
+
+test('Private rematch keeps both players, uses the edited deck, and never opens duplicate rooms',async()=>{
+ const db=await db90();
+ try{
+  const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));
+  let now=Date.now();
+  const handler=createMatchHandler90({
+   env:key=>({SUPABASE_URL:'https://db90.test',SUPABASE_SERVICE_ROLE_KEY:'isolated'})[key],seed:()=>93,now:()=>now,
+   fetcher:async(url,opt)=>{
+    if(url.endsWith('/auth/v1/user'))return Response.json({id:({a,b,c})[opt.headers.Authorization.slice(7)],email_confirmed_at:'2026-11-26'});
+    try{await db.exec('reset role;set role service_role');return Response.json(await rpc(db,url.split('/').at(-1),JSON.parse(opt.body)));}
+    catch(e){return Response.json({message:e.message,code:e.code},{status:400});}
+   }
+  });
+  async function call(player,body,status=200){
+   const res=await handler(new Request('https://memex.test/api/duel',{method:'POST',headers:{Authorization:'Bearer '+player},body:JSON.stringify(body)}));
+   const output=await res.json();
+   assert.equal(res.status,status,JSON.stringify(output));
+   return output;
+  }
+  const lobby=await call('a',{op:'join',kind:'private',deckId:decks[a]});
+  const id=lobby.id;
+  assert.equal((await call('b',{op:'join',kind:'private',deckId:decks[b],code:lobby.code})).id,id);
+  let x=await call('a',{op:'poll',id});
+  const move=(player,move,status=200)=>call(player,{op:'move',id,requestId:crypto.randomUUID(),version:x.version,move},status);
+  await move('a',{kind:'rematch'},400);
+  x=await move('a',{kind:'gesture',value:'rock'});
+  x=await move('b',{kind:'gesture',value:'scissors'});
+  x=await move('a',{kind:'starter',side:0});
+
+  for(let turn=0;x.phase!=='ended'&&turn<180;turn++){
+   if(x.phase==='between'){
+    now+=8000;
+    x=await call('a',{op:'poll',id});
+    continue;
+   }
+   const client=x.game.turn===0?'a':'b';
+   const view=client==='a'?x:await call('b',{op:'poll',id});
+   x=await move(client,{kind:'place',action:chooseTactic(view.game,{policy:'position'}).chosen.action});
+   if(client==='b')x=await call('a',{op:'poll',id});
+  }
+  assert.equal(x.phase,'ended');
+  const results=x.results;
+  assert.equal(x.rematch.ownReady,false);
+  assert.equal(x.rematch.previousDeckId,decks[a]);
+  assert.equal(await call('a',{op:'active'}),null);
+  await move('c',{kind:'rematch'},400);
+  await move('a',{kind:'rematch',deckId:decks[b]},400);
+  await move('a',{kind:'rematch',deckId:{}},400);
+
+  const cards=['here-we-go-again:common',...starterDeck().slice(0,14)];
+  await db.exec(`reset role;set request.jwt.claim.sub='${a}';set role authenticated`);
+  const editedDeck=(await db.query('select public.dv_save_friendly_deck131(null,$1,$2::text[]) as id',['Rematch strategy',cards])).rows[0].id;
+  x=await move('a',{kind:'rematch',deckId:editedDeck});
+  assert.equal(x.rematch.ownReady,true);
+  assert.equal(x.rematch.opponentReady,false);
+  assert.equal(x.rematch.nextMatchId,null);
+  const watching=await call('b',{op:'poll',id,version:x.version});
+  assert.equal(watching.rematch.opponentReady,true);
+  assert.equal(watching.rematch.ownReady,false);
+  assert.equal(await call('a',{op:'active'}),null);
+
+  x=await move('a',{kind:'cancel-rematch'});
+  assert.equal(x.rematch.ownReady,false);
+  x=await move('a',{kind:'rematch',deckId:editedDeck});
+  const [accepted,retry]=await Promise.all([move('b',{kind:'rematch'}),move('b',{kind:'rematch'})]);
+  const next=accepted.rematch.nextMatchId;
+  assert.ok(next&&next!==id);
+  assert.equal(retry.rematch.nextMatchId,next);
+  assert.equal((await call('a',{op:'poll',id,version:x.version})).rematch.nextMatchId,next);
+  assert.deepEqual((await call('a',{op:'poll',id})).results,results);
+  assert.equal((await call('b',{op:'active'})).id,next);
+  const opening=await call('a',{op:'poll',id:next});
+  assert.equal(opening.kind,'private');
+  assert.equal(opening.phase,'rps');
+  assert.deepEqual(opening.results,[]);
+  await db.exec('reset role');
+  const row=(await db.query('select host_id,guest_id,host_deck,guest_deck,invite_code from public.dv_pvp90 where id=$1',[next])).rows[0];
+  assert.equal(row.host_id,a);
+  assert.equal(row.guest_id,b);
+  assert.equal(row.host_deck.id,editedDeck);
+  assert.deepEqual(row.host_deck.cards,cards);
+  assert.equal(row.guest_deck.id,decks[b]);
+  assert.equal(row.invite_code,null);
+  assert.equal((await db.query('select count(*)::int n from public.dv_private_rematches')).rows[0].n,1);
+
+  assert.equal((await call('a',{op:'leave',id:next})).left,true);
+  assert.equal(await call('a',{op:'active'}),null);
+  assert.equal(await call('b',{op:'active'}),null);
+  const conceded=await call('b',{op:'poll',id:next});
+  assert.equal(conceded.forfeit,1);
+  assert.equal(conceded.rematch,undefined);
+ }finally{await db.close();}
+});

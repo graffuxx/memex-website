@@ -7,8 +7,9 @@ import {bindSeriesHud129} from './duel-hud129.mjs';
 import {createPresentationRecovery133} from './online-recovery133.mjs';
 import {onlineInput117,boardCellAt117} from './online-input117.mjs';
 import {series113} from '../platform/series113.mjs';
-import {bindDuelExit112} from './duel-exit112.mjs';
-import {lockArenaSelection112} from '../platform/arena-availability112.mjs';
+import {bindDuelExit112} from './duel-exit112.mjs?v=private-rematch';
+import {duelResultUrl,isDuelId,rematchDeckUrl} from '../platform/duel-rematch.mjs';
+import {PLAYABLE_ARENA112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
 import {createTableView} from './table-demo-view-hand17.mjs?v=hand-effects-46';
 import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=hand-effects-46';
@@ -16,20 +17,20 @@ import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
-import {bindRoundCeremony} from './round-ceremony42.mjs?v=fight-43';
+import {bindRoundCeremony} from './round-ceremony42.mjs?v=private-rematch';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),id=params.get('match'),muted=params.get('mute')==='1',stage=$('stage'),svg=$('interaction');
 let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,blockadeCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=!muted,identityKey='',polling=false,moveEpoch=0;
-let leaving112=false,booting139=false;
+let leaving112=false,booting139=false,rematchError='';
+const selectedRematchDeck=isDuelId(params.get('deck'))?params.get('deck'):null;
 const pollRecovery139=createPollRecovery139();
-lockArenaSelection112($('arenaTheme'));
 const renderSeries129=bindSeriesHud129();
 const atmosphere=createVoidAtmosphere(),audio=createTableAudio({muted}),portraitIntro=bindPortraitIntro86($('startDuel'),{motion:()=>$('motion').checked});
 bindTableMusic107(audio);
 const flipCombo=bindFlipCombo(stage,svg,{audio,motion:()=>$('motion').checked});
 const presentation=createPresentationRecovery133({cancel:()=>{view?.cancel();flipCombo.clear();ceremony.cancel();portraitIntro.cancel();lastEnd='';}});
-const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(working||animating||presentation.needsSnapshot)return false;if(data?.phase==='between')void move({kind:'ready'});else if(data?.phase==='ended')location.assign('/play');return true;}});
+const ceremony=bindRoundCeremony($('roundPresentation'),{audio,onContinue:()=>{if(working||animating||presentation.needsSnapshot)return false;if(data?.phase==='between')void move({kind:'ready'});else if(data?.phase==='ended'&&!data.rematch)location.assign('/play');return true;}});
 const gestureNames={rock:'Rock',paper:'Paper',scissors:'Scissors'},glyphs={rock:'✊',paper:'✋',scissors:'✌'};
 const inputState=()=>onlineInput117({game,phase:data?.phase,working,animating:animating||presentation.needsSnapshot,leaving:leaving112});
 const locked=()=>Boolean(game?.pendingDraw)||!inputState().play;
@@ -45,7 +46,28 @@ function clock(){const sec=remaining===null?0:Math.max(0,Math.ceil((remaining-(D
  timer.hidden=remaining===null||!['rps','initiative'].includes(data?.phase);
  if(!timer.hidden){const label='Time remaining: '+sec+' s';if(timer.textContent!==label)timer.textContent=label;}
  $('turnTimer').hidden=!game||data.phase!=='play';$('timerLabel').textContent=game?.pendingDraw?'DRAW CHOICE':(data?.afkStreak?.[game?.turn]??0)>=2?'AFK · 3 SEKUNDEN':game?.turn===0?'YOUR TURN':'OPPONENT TURN';$('timerValue').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');$('timerFill').style.transform='scaleX('+Math.max(0,sec/(game?.pendingDraw?15:(data?.afkStreak?.[game?.turn]??0)>=2?3:90))+')';$('turnTimer').dataset.state=sec<=5?'critical':sec<=15?'warning':'normal';}
+function renderRematch(){
+ const offer=data?.rematch,panel=$('rematchPanel');
+ panel.hidden=!offer||!game?.finished||animating;
+ if(panel.hidden)return;
+ const waiting=offer.ownReady;
+ const status=$('rematchStatus');
+ const label=waiting?'Deine Zusage ist gespeichert. Warte auf den Gegner.'
+  :offer.opponentReady?'Dein Gegner ist bereit für ein Rematch.':'Spielt noch einmal mit denselben Spielern.';
+ if(status.textContent!==label)status.textContent=label;
+ $('rematchAction').textContent=waiting?'Rematch absagen':'Rematch';
+ $('rematchAction').disabled=working||Boolean(offer.nextMatchId);
+ $('rematchEdit').hidden=$('rematchHome').hidden=waiting;
+ $('rematchEdit').href=rematchDeckUrl(id,{
+  deckId:selectedRematchDeck??offer.previousDeckId,
+  format:selectedRematchDeck?params.get('format'):offer.previousDeckFormat,muted
+ });
+ $('rematchError').hidden=!rematchError;
+ $('rematchError').textContent=rematchError;
+}
 function render(){
+ $('leaveDuel112').hidden=data?.phase==='ended';
+ renderRematch();
  boardPreview.sync();
  profiles();if(data?.wallet){$('gameWallet').hidden=false;for(const c of ['pixels','shards','echoes'])$('game'+c).textContent=data.wallet[c].toLocaleString('en-US');}
  if(!game)return;renderSeries129(data.round,data.results);const s=scores(game),p=plan(),card=game.players[0].hand.find(c=>c.uid===selected),busy=locked();
@@ -54,7 +76,7 @@ function render(){
  $('turnCount').textContent=game.placements+' / 18 turns';$('turnLabel').textContent=data.phase==='ended'?'Duel complete':game.finished?'Round complete':game.turn===1?'Opponent is thinking':busy?'Saving turn…':'Your turn';$('openingBadge').textContent=(data.kind==='random'?'Random':'Private')+' · '+'Round '+data.round;
  const series=series113(data.results);$('seriesStatus').textContent='Round wins '+series.wins[0]+' : '+series.wins[1]+' · First to 2';$('firstMove').textContent='First move: '+(game.starter===0?'you':'opponent');
  $('confirm').hidden=mode!=='shift';$('confirm').disabled=busy||!moveTargets(game).includes(target);$('confirm').textContent='Move blockade';$('cancel').disabled=busy||!selected&&mode!=='shift';$('shiftBlock').disabled=busy||!moveTargets(game).length;$('shiftBlock').textContent=blockadeLocked(game)?'⊣ Blockade sealed':'◆ Blockade · '+game.players[0].shifts+'/1';$('shiftBlock').classList.toggle('active',mode==='shift');
- $('nextRound').hidden=data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||animating||presentation.needsSnapshot||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Next round starts automatically':'Continue sooner';
+ $('nextRound').hidden=Boolean(data.rematch)||data.phase!=='between'&&data.phase!=='ended';$('nextRound').disabled=working||animating||presentation.needsSnapshot||data.phase==='between'&&data.ready[0];$('nextRound').textContent=data.phase==='ended'?'Back to matchmaking':data.ready[0]?'Next round starts automatically':'Continue sooner';
  $('statusTitle').textContent=notice||(game.finished?'Round complete':mode==='shift'?'Move the blockade':card?cardOf(card).name:game.turn===0?'Your move':'Opponent is thinking');$('statusDetail').textContent=data.phase==='ended'?(data.kind==='random'?'Duel result saved. Return to matchmaking.':'Private duel complete · unranked.') :p?p.flips.length+' possible captures':mode==='shift'?'Choose an adjacent free cell. Your card turn remains.':card?(game.turn===0?'Choose a free field. Escape cancels.':'Inspect your hand while your opponent plays.'):game.turn===0?'Drag a card onto a free field or select and confirm.':'Your hand and future draws stay private.';
  $('previewText').textContent=p?p.comparisons.map(c=>(c.attack.rank==='S'?'S':c.attack.total)+' vs '+(c.defend.rank==='S'?'S':c.defend.total)+(c.roundhouse?' · Roundhouse':c.thought?' · Thought Experiment flips':c.rainbow?' · Second Rainbow ✓':c.swipe?' · Shield Swipe ✓':c.bid?' · Sweeten the Deal ✓':c.decoy?' · Wrong Edge ✓':c.pursuit?' · No Escape ✓':c.objection?' · Objection holds':c.finalGuard?' · Final Guard holds':c.bailout?' · Last-Second Save':c.redirect?' · Clingy Bond → '+cardOf(game.board[c.redirect]).name:c.pincer?(game.abilityRework?' · Shockwave':' · Double Trouble'):c.phalanx?' · Phalanx ✓':c.sandwich?' · Sandwich ✓':c.ambush?' · Ambush ✓':c.defend.awkward?(c.flip?' · Awkward Silence ✓':' · Awkward Silence'):c.flip?' ✓':c.tieProtected?' · KEKW blocks the tie':'')).join(' · '):'';
  $('abilityOptions').hidden=!card?.ability||mode==='shift';$('abilityLabel').textContent=card?.ability?ABILITIES[card.ability].name:'';$('abilityHint').textContent=(p?.plotTargets?.length||p?.overloadTargets?.length)?
@@ -92,6 +114,12 @@ function rps(){
  for(const b of dialog.querySelectorAll('[data-starter]'))b.disabled=working;
 }
 async function accept(next){
+ if(next.rematch?.nextMatchId&&isDuelId(next.rematch.nextMatchId)){
+  stopped=true;
+  location.replace(duelResultUrl(next.rematch.nextMatchId,{muted}));
+  return;
+ }
+
  if(!next.unchanged&&data&&next.version<data.version)return;
  if(next.unchanged){remaining=next.remainingMs;receivedAt=Date.now();if(data)data.wallet=next.wallet;clock();return;}
  const recovering=presentation.needsSnapshot,previous=data,changed=recovering||!previous||next.version!==previous.version;data=next;remaining=next.remainingMs;receivedAt=Date.now();profiles();
@@ -131,10 +159,15 @@ async function accept(next){
  if(lastRound!==next.round){flipCombo.clear();$('gameRoundReward').hidden=true;ceremony.cancel();if(game.placements===0&&!game.finished)await ceremony.intro(next.round,{round:next.round,starter:game.starter,motion:$('motion').checked});else ceremony.restore(next.round);check();lastRound=next.round;}
  });}finally{animating=false;}
  render();rps();
- if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked,autoContinueMs:next.phase==='ended'?5000:Math.max(0,next.remainingMs??8000)});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}
+ if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked,hideActions:Boolean(next.rematch),autoContinueMs:next.rematch?undefined:next.phase==='ended'?5000:Math.max(0,next.remainingMs??8000)});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}
 
 }
-async function move(input){if(leaving112||working||animating||!client||!view||!data)return;working=true;moveEpoch++;notice='Saving…';try{render();rps();await accept(await client.move(data.version,input));pollRecovery139.reset();$('gameAccountError').hidden=true;}catch(e){pollRecovery139.failed(e);notice=e.message;$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{working=false;render();rps();}}
+async function move(input){if(leaving112||working||animating||!client||!view||!data)return;
+ const changingRematch=['rematch','cancel-rematch'].includes(input.kind);if(changingRematch)rematchError='';
+ working=true;moveEpoch++;notice='Saving…';try{render();rps();await accept(await client.move(data.version,input));pollRecovery139.reset();$('gameAccountError').hidden=true;}catch(e){pollRecovery139.failed(e);notice=e.message;
+ if(changingRematch)rematchError=e.message;
+ else{$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}
+ }finally{working=false;render();rps();}}
 async function poll(){if(working||animating||stopped||booting139||document.hidden||!client||!view||polling||!pollRecovery139.ready)return;polling=true;const epoch=moveEpoch;try{const next=await client.poll(presentation.needsSnapshot?undefined:data?.version);if(epoch!==moveEpoch||working)return;await accept(next);pollRecovery139.reset();$('gameAccountError').hidden=true;}catch(e){if(epoch===moveEpoch){pollRecovery139.failed(e);$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}}finally{polling=false;render();rps();}}
 function choose(uid){if(!inputState().inspect||!game.players[0].hand.some(c=>c.uid===uid))return;const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;audio.play('select');render();}
 function canStage(cell){const card=game?.players[0].hand.find(c=>c.uid===selected);return Boolean(cell&&cell!==reservedCell(game)&&!game.board[cell]&&(game.block!==cell||dashTargets(game,card,cell).length));}
@@ -158,7 +191,15 @@ $('confirm').onclick=confirm;$('cancel').onclick=()=>{if(!locked()){clear();rend
 $('abilityDirection').replaceChildren(...edgeLabels(true).map((label,i)=>new Option(label,String(i))));$('abilityDirection').onchange=()=>{abilityDirection=Number($('abilityDirection').value);render();};$('twistTarget').onchange=()=>{twistCell=$('twistTarget').value||null;render();};$('blockadeTarget').onchange=()=>{blockadeCell=$('blockadeTarget').value||null;render();};
 $('nextRound').onclick=()=>{if(data.phase==='between')void move({kind:'ready'});else location.assign('/play');};$('gameAccountRetry').onclick=()=>{pollRecovery139.reset();if(!client||!view)void bootOnline139();else void poll();};$('showRules').onclick=()=>{$('rulesPanel').open=!$('rulesPanel').open;};
 for(const b of $('startDuel').querySelectorAll('[data-gesture]'))b.onclick=()=>void move({kind:'gesture',value:b.dataset.gesture,attempt:data.attempt});for(const b of $('startDuel').querySelectorAll('[data-starter]'))b.onclick=()=>void move({kind:'starter',side:Number(b.dataset.starter)});$('startDuel').addEventListener('cancel',e=>e.preventDefault());
-bindDuelExit112({concede:async()=>{if(!client||!data||working)throw Error('Bitte kurz warten, bis der aktuelle Zug gespeichert ist.');working=true;moveEpoch++;try{await accept(await client.move(data.version,{kind:'resign'}));}finally{working=false;render();}},leave:async()=>{if(!client)throw Error('Open the match lobby to leave while sign-in is loading.');leaving112=true;stopped=true;try{await client.leave();}catch(e){leaving112=false;stopped=false;throw e;}}});
+$('rematchAction').onclick=()=>{
+ if(!data?.rematch)return;
+ void move(data.rematch.ownReady?{kind:'cancel-rematch'}:{kind:'rematch',deckId:selectedRematchDeck});
+};
+bindDuelExit112({rated:()=>data?.kind==='random',leave:async()=>{
+ if(!client||working)throw Error('Bitte warte, bis die Verbindung wieder bereit ist.');
+ leaving112=true;stopped=true;moveEpoch++;
+ try{await client.leave();}catch(e){leaving112=false;stopped=false;throw e;}
+}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)field(c.dataset.cell);});svg.addEventListener('keydown',e=>{if(!['Enter','Space'].includes(e.code))return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();e.stopPropagation();h?choose(h.dataset.hand):field(c.dataset.cell);}});
 svg.addEventListener('focusin',e=>{const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(inputState().inspect&&uid!==hover){hover=uid;render();}});
 svg.addEventListener('focusout',e=>{if(!drag&&hover&&e.target.closest('[data-hand]')){hover=null;render();}});
@@ -192,11 +233,10 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return
 async function soundOn(value){sound=!muted&&value;$('arenaSound').textContent=sound?'♪ Sound on':'♪ Sound off';$('arenaSound').setAttribute('aria-label',muted?'Sound muted for this test':sound?'Mute game sound':'Enable game sound');$('arenaSound').setAttribute('aria-pressed',String(sound));$('soundEnabled').checked=sound;await audio.setEnabled(sound);}
 if(muted){$('arenaSound').disabled=true;$('soundEnabled').disabled=true;void soundOn(false);}
 document.addEventListener('pointerdown',e=>{if(e.isTrusted&&sound&&!audio.running)void audio.setEnabled(true);},{capture:true});$('arenaSound').onclick=()=>void soundOn(!sound);$('soundEnabled').onchange=()=>void soundOn($('soundEnabled').checked);$('soundVolume').oninput=()=>audio.setVolume(Number($('soundVolume').value)/100);$('ambientEnabled').onchange=()=>audio.setAmbient($('ambientEnabled').checked);$('motion').onchange=()=>{view.setMotion($('motion').checked);atmosphere.setMotion($('motion').checked);};
-$('arenaTheme').onchange=async()=>{const select=$('arenaTheme');lockArenaSelection112(select);select.disabled=true;try{await view.setArena('voidforge');audio.setArena('voidforge');}finally{select.disabled=false;}};
 async function bootOnline139(){if(booting139||stopped)return;booting139=true;let ready=false;try{
  if(!/^[0-9a-f-]{36}$/.test(id??''))throw Error('Open a duel from the match lobby.');
- if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{onConfirmPlacement:confirm,confirmPlacementLabel:'Play card',rotationTargetLabel:'Can turn right',rotationSelectedLabel:'Will turn right',swapTargetLabel:'Can swap places',extraFlipTargetLabel:'Choose for an extra flip',extraFlipSelectedLabel:'Extra flip selected',blinkLabel:'BLINK',tieShieldLabel:'TIE SHIELD',finalGuardLabel:'FINAL GUARD',getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena('voidforge');audio.setArena('voidforge');audio.setAmbient($('ambientEnabled').checked);if(!muted)void audio.preloadAnnouncements();}
+ if(!client)client=await connectOnline90(id);if(!view){view=await createTableView(stage,svg,{onConfirmPlacement:confirm,confirmPlacementLabel:'Play card',rotationTargetLabel:'Can turn right',rotationSelectedLabel:'Will turn right',swapTargetLabel:'Can swap places',extraFlipTargetLabel:'Choose for an extra flip',extraFlipSelectedLabel:'Extra flip selected',blinkLabel:'BLINK',tieShieldLabel:'TIE SHIELD',finalGuardLabel:'FINAL GUARD',getMusicTimeline:()=>audio.getMusicTimeline(),onResize:({own,opponent,height})=>{for(const [key,p,y]of [['ownDeckLabel',own,height-24],['enemyDeckLabel',opponent,82]]){$(key).style.left=p.x+'px';$(key).style.top=(p.labelY??y)+'px';}}});await view.setArena(PLAYABLE_ARENA112);audio.setArena(PLAYABLE_ARENA112);audio.setAmbient($('ambientEnabled').checked);if(!muted)void audio.preloadAnnouncements();}
  $('gameAccountInfo').hidden=false;$('accountDeckName').textContent='Online duel';$('gameAccountInfo').querySelector('small').textContent='Random: titles & rewards · Private: friendly play';$('gameSessionNote84').textContent='Online alpha · shared, server-verified game state';ready=true;
 }catch(e){$('loadStatus').querySelector('strong').textContent=e.message;$('loadStatus').querySelector('span').textContent='Return to /play to sign in or resume your duel.';$('gameAccountError').hidden=false;$('gameAccountErrorText').textContent=e.message;}finally{booting139=false;}if(ready)await poll();}
 void bootOnline139();
-const pollTimer=setInterval(()=>void poll(),1800),clockTimer=setInterval(clock,250);window.addEventListener('focus',()=>void poll());document.addEventListener('visibilitychange',()=>{if(!document.hidden)void poll();});window.addEventListener('pagehide',()=>{stopped=true;clearInterval(pollTimer);clearInterval(clockTimer);portraitIntro.cancel();ceremony.dispose();audio.dispose();view?.dispose();});
+const pollTimer=setInterval(()=>void poll(),1800),clockTimer=setInterval(clock,250);window.addEventListener('focus',()=>void poll());document.addEventListener('visibilitychange',()=>{if(!document.hidden)void poll();});window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});window.addEventListener('pagehide',()=>{stopped=true;clearInterval(pollTimer);clearInterval(clockTimer);portraitIntro.cancel();ceremony.dispose();audio.dispose();view?.dispose();});
