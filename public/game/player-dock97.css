@@ -11,8 +11,8 @@
 .game-table .player-dock97 .team.rust::after{left:15px;right:68px;transform:skewY(-.8deg)}
 .game-table .player-dock97 #ownPortrait85,.game-table .player-dock97 #enemyPortrait85{grid-area:portrait;display:inline-flex;align-items:center;justify-content:center;z-index:1;min-width:0}
 .game-table .player-dock97 .identity-portrait85{--portrait-size:70px!important;filter:drop-shadow(0 3px 7px #000a)}
-.game-table .player-dock97 .team>span:not(#enemyPortrait85){grid-area:name;display:block;min-width:0;padding-bottom:5px;text-align:left;font:600 16px/1.2 Arial,sans-serif;letter-spacing:0;color:#ebfff2}
-.game-table .player-dock97 .team.rust>span:not(#enemyPortrait85){text-align:right;color:#ffe4e9}
+.game-table .player-dock97 .team>.team-details{grid-area:name;display:block;min-width:0;padding-bottom:5px;text-align:left;font:600 16px/1.2 Arial,sans-serif;letter-spacing:0;color:#ebfff2}
+.game-table .player-dock97 .team.rust>.team-details{text-align:right;color:#ffe4e9}
 .game-table .player-dock97 #playerName85,.game-table .player-dock97 #enemyName90{display:block;max-width:100%;font:400 21px/1.15 'Duelverse Display',Barlow,sans-serif!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px;color:inherit;text-shadow:0 2px 5px #020313}
 .game-table .player-dock97 .team small{display:block;font:12px/1.35 Arial,sans-serif!important;letter-spacing:.15px;margin:4px 0 0;color:#acbfba;text-shadow:0 1px 4px #020313}
 .game-table .player-dock97 .team.rust small{color:#c5aeb9}
