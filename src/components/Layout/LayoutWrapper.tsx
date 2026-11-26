@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import TickerBar from './TickerBar';
 
 type Props = {
@@ -8,16 +9,18 @@ type Props = {
 };
 
 export default function LayoutWrapper({ children }: Props) {
+  const home = usePathname() === '/';
+
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: home ? '100svh' : '100vh',
         paddingTop: 0, // WICHTIG: kein globaler Offset -> sonst “leere Seite” oben bei Home
         position: 'relative',
       }}
     >
       {/* News-Banner direkt unter der Navi (fixed overlay) */}
-      <TickerBar />
+      {!home && <TickerBar />}
 
       {/* Seiteninhalt (Sections regeln ihren eigenen Abstand) */}
       {children}

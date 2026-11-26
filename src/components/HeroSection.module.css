@@ -1,263 +1,188 @@
-.hero {
+:global(html):has(.home) { scrollbar-gutter: auto; }
+
+.home {
+  --home-gold: #f9d88b;
+  --home-edge: max(5vw, calc((100vw - 1260px) / 2));
+  color: #f6eeff;
   position: relative;
-  width: 100%;
-  height: 100vh;          /* exakt 1 Viewport */
-  overflow: hidden;
-  background: #050013;
-
-  /* keine Section-Padding-Offsets -> verhindert "leere" obere Fläche */
-  padding: 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  isolation: isolate;
+  height: 100svh;
+  overflow: clip;
+  background: #100821 url("/home/arena-poster.jpg") center / cover;
 }
 
-/* Background nur innerhalb der Hero */
-.heroVideoWrapper {
+.arenaVideo, .sceneLighting {
   position: absolute;
   inset: 0;
-  z-index: 0;
-}
-
-.heroVideo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform: scale(1.02);
   pointer-events: none;
 }
+.arenaVideo { z-index: -2; object-fit: cover; object-position: center; }
+.sceneLighting {
+  z-index: -1;
+  background:
+    linear-gradient(0deg, #0a0618ee 0%, #0a06183b 20%, transparent 49%),
+    linear-gradient(90deg, #100823ad 0%, #10082320 38%, transparent 64%, #10082336 100%),
+    linear-gradient(180deg, #0804168c 0%, transparent 22%);
+}
 
-/* optionaler Fade */
-.fadeBottom {
+.home a:focus-visible { outline: 2px solid #f6d990; outline-offset: 4px; }
+
+.hero {
   position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 160px;
-  background: linear-gradient(
-    to top,
-    #050013 0%,
-    rgba(5, 0, 19, 0.6) 60%,
-    transparent 100%
-  );
-  z-index: 1;
+  left: calc(var(--home-edge) + clamp(10px, 3vw, 50px));
+  top: clamp(120px, 24svh, 245px);
+  display: grid;
+  justify-items: center;
+  gap: 9px;
 }
-
-/* Logo */
-.logoOverlay {
-  position: relative;
-  z-index: 2;
+.hero h1 { margin: 0; }
+.hero h1 img {
+  display: block;
+  width: clamp(245px, 31vw, 466px);
+  max-height: 38svh;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 30px #070317df) drop-shadow(0 0 25px #37157b50);
+}
+.heroActions {
+  --action-inset: 20px;
+  --action-height: 44px;
   display: flex;
-  justify-content: center;
-
-  /* Offset nur am Content (nicht am ganzen Section-Container) */
-  margin-top: 190px; /* Platz für Header + Ticker */
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #bc9bd658;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #221530f5, #100a20ef);
+  box-shadow: 0 12px 32px #070311be, inset 0 1px #e6c1ff1f;
+  backdrop-filter: blur(9px);
 }
 
-.logoOverlay img {
-  max-width: 570px;
-}
-
-/* Text & CTA */
-.heroContent {
-  position: relative;
-  z-index: 2;
-  margin-top: 34px;
-  text-align: center;
-  color: white;
-
-  /* align Steam teaser + Join Presale perfectly centered in a vertical stack */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.discordLink {
+.heroActions a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 8px 22px;
-  border: 1px solid #b39bfa80;
-  border-radius: 999px;
-  background: #170d31d9;
-  color: #f1e6ff;
-  font-size: 15px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.discordLink:hover {
-  border-color: #d5baff;
-  background: #29174b;
-}
-
-.discordLink:focus-visible {
-  outline: 2px solid #e1c8ff;
-  outline-offset: 4px;
-}
-
-.subtitle {
-  margin-top: 16px;
-  font-size: 19px;
-  letter-spacing: 0.06em;
-  opacity: 0.85;
-}
-
-.cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  margin-top: 10px;
-  padding: 16px 40px;
-
-  font-size: 15px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-family: 'Dolce Vita', sans-serif;
-
-  color: #3b2100;
-
-  background: linear-gradient(
-    135deg,
-    #ffd876,
-    #ffb347
-  );
-
-  border-radius: 999px;
-  border: 1px solid rgba(255, 248, 210, 0.95);
-
-  box-shadow:
-    0 0 28px rgba(255, 215, 130, 0.85),
-    0 0 60px rgba(255, 200, 90, 0.45),
-    inset 0 0 12px rgba(255, 255, 255, 0.35);
-
-  cursor: pointer;
-  text-decoration: none;
-
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    filter 0.18s ease;
-}
-
-.cta:hover {
-  transform: translateY(-2px) scale(1.04);
-  filter: brightness(1.06);
-
-  box-shadow:
-    0 0 36px rgba(255, 225, 140, 1),
-    0 0 80px rgba(255, 210, 120, 0.75),
-    inset 0 0 14px rgba(255, 255, 255, 0.45);
-}
-
-.cta:active {
-  transform: translateY(0) scale(1);
-  filter: brightness(0.98);
-}
-
-.steamTeaser {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-
-  margin-top: 0;
-  margin-bottom: 18px;
-
-  padding: 18px 34px;
-  border-radius: 999px;
-
-  font-size: 30px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-
-  color: #fff7e6;
-
-  background: radial-gradient(circle at 30% 20%, rgba(255, 215, 130, 0.22), rgba(17, 17, 34, 0.55));
-  border: 1px solid rgba(255, 215, 130, 0.55);
-
-  box-shadow:
-    0 0 18px rgba(255, 215, 130, 0.35),
-    0 0 42px rgba(160, 110, 255, 0.14);
-
-  position: relative;
-  overflow: hidden;
-
-  animation: steamPulse 2.4s ease-in-out infinite;
-}
-
-.steamLogo {
-  width: 48px;
-  height: auto;
-  display: inline-block;
-  opacity: 0.95;
-  filter: drop-shadow(0 0 10px rgba(255, 215, 130, 0.35));
-}
-
-.steamTeaserText {
-  display: inline-block;
-  line-height: 1;
+  gap: 8px;
+  min-height: var(--action-height);
+  padding-inline: var(--action-inset);
+  border: 1px solid transparent;
+  border-radius: 11px;
   white-space: nowrap;
+  transition: background .2s ease, box-shadow .2s ease, color .2s ease;
 }
 
-@keyframes steamPulse {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    filter: brightness(1);
-  }
-  50% {
-    transform: translateY(-1px) scale(1.03);
-    filter: brightness(1.08);
-  }
+.heroActions .play {
+  border-color: #fce0a4;
+  background: linear-gradient(125deg, #ffedb6, #e8a750 85%);
+  box-shadow: inset 0 1px #fff4c9a5, 0 0 15px #f7b76a27;
+  color: #2a1826;
+  font: 800 16px/1 Dolce Vita, Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
 }
 
-@keyframes steamShimmer {
-  0%   { transform: translateX(0) skewX(-18deg); opacity: 0; }
-  18%  { opacity: 0.95; }
-  55%  { transform: translateX(280%) skewX(-18deg); opacity: 0.95; }
-  100% { transform: translateX(280%) skewX(-18deg); opacity: 0; }
+.heroActions .play:hover {
+  background: linear-gradient(125deg, #fff4cc, #ffc470 90%);
+  box-shadow: inset 0 1px #fff8dc, 0 0 17px #ffd48768;
 }
 
-/* ===== Mobile fixes: logo + CTA sizing ===== */
-@media (max-width: 768px) {
-  .logoOverlay img {
-    max-width: 456px; /* 20% smaller than 570px */
-  }
-
-  .cta {
-    padding: 12px 28px; /* ~35% smaller overall */
-    font-size: 13px;
-    letter-spacing: 0.16em;
-  }
-
-  .steamTeaser {
-    font-size: 22px;
-    padding: 14px 22px;
-  }
-
-  .steamLogo {
-    width: 36px;
-  }
+.playIcon {
+  width: 9px;
+  height: 10px;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
-@media (max-height: 760px) {
-  .hero {
-    min-height: 520px;
-  }
 
-  .logoOverlay {
-    margin-top: clamp(120px, 24vh, 170px);
-  }
+.heroActions .discord {
+  border-color: #aa82cf50;
+  background: #2c1c3ebd;
+  color: #f2e3ff;
+  font: 700 12px/1 Arial, sans-serif;
+}
 
-  .logoOverlay img {
-    max-height: 46vh;
-    object-fit: contain;
-  }
+.discord span { color: #d4b2f2; font: 13px Arial, sans-serif; }
+.heroActions .discord:hover { background: #3a2752; color: #fff6ff; }
 
-  .heroContent {
-    margin-top: 22px;
-  }
+.headline {
+  position: absolute;
+  right: var(--home-edge);
+  bottom: max(55px, 8svh);
+  width: clamp(300px, 29vw, 410px);
+  padding: 21px 25px 20px;
+  border: 1px solid #b982eb63;
+  border-radius: 20px;
+  background: linear-gradient(125deg, #1a102bec, #130923fa 70%);
+  box-shadow: 0 12px 42px #0602129c, inset 0 1px #e2b3ff15;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.headline:hover { border-color: #dfb4ffca; }
+.spotlightCard {
+  position: absolute;
+  right: 12px;
+  top: 6px;
+  width: min(40%, 154px);
+  height: auto;
+  transform: translateY(-39%) rotate(12deg);
+  transform-origin: 62% 70%;
+  filter: drop-shadow(0 14px 17px #0802169e) drop-shadow(0 0 15px #ac67ec48);
+  transition: transform .25s ease;
+}
+.headline:hover .spotlightCard { transform: translateY(-46%) rotate(7deg); }
+.newsTag, .headline h2, .headline p, .newsLink { position: relative; }
+.newsTag {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: max-content;
+  color: #e8c6f9;
+  font: 700 10px/1 Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+}
+.newsTag i { width: 5px; height: 5px; border-radius: 50%; background: #d18dff; box-shadow: 0 0 10px #d18dff; }
+.headline h2 { margin: 11px 0 8px; font: 700 clamp(26px, 2.4vw, 36px)/1.03 Arial, sans-serif; letter-spacing: -.05em; }
+.headline p { margin: 0 0 13px; color: #d3c1e4; font: 13px/1.45 Arial, sans-serif; }
+.newsLink { color: var(--home-gold); font: 700 12px/1.4 Arial, sans-serif; }
+.newsLink span { padding-inline-start: 7px; font-family: inherit; }
+.legal { position: absolute; right: var(--home-edge); bottom: 15px; color: #d6c9e4; font-size: 11px; line-height: 1; }
+.legal a { display: inline-block; padding: 7px 0; font: 11px/1 Arial, sans-serif; }
+.legal a:hover { color: var(--home-gold); }
+:global(body):has(:global(.social111-launcher)) .headline { bottom: max(81px, 8svh); }
+:global(body):has(:global(.social111-launcher)) .legal { left: var(--home-edge); right: auto; }
+
+@media (max-width: 790px), (orientation: portrait) and (max-width: 1024px) {
+  .hero { top: clamp(86px, 17svh, 180px); left: 50%; transform: translateX(-50%); gap: 10px; }
+  .hero h1 img { width: clamp(218px, 53vw, 350px); max-height: 30svh; }
+  .headline { right: var(--home-edge); width: min(350px, calc(100% - 2 * var(--home-edge))); bottom: max(47px, 8svh); }
+  .sceneLighting { background: linear-gradient(0deg, #0a0618f5, #0a061830 37%, transparent 66%, #0a06186e); }
+}
+
+@media (max-width: 490px) {
+  .headline { right: 5vw; width: 90vw; padding: 15px 18px 16px; }
+  .spotlightCard { width: min(34%, 115px); right: 7px; transform: translateY(-24%) rotate(10deg); }
+  .headline:hover .spotlightCard { transform: translateY(-32%) rotate(5deg); }
+  .heroActions { --action-inset: 13px; --action-height: 42px; }
+  .heroActions .play { font-size: 14px; }
+  .headline p { margin-bottom: 9px; }
+}
+@media (max-height: 570px) and (min-width: 491px) {
+  .hero { top: 92px; gap: 8px; }
+  .hero h1 img { max-height: 34svh; }
+  .heroActions { --action-inset: 14px; --action-height: 40px; }
+  .heroActions .play { font-size: 14px; }
+  .headline { bottom: 27px; padding-block: 14px; }
+  .headline h2 { font-size: 25px; }
+  .legal { bottom: 2px; }
+}
+@media (max-height: 565px) and (max-width: 490px) {
+  .hero { top: 82px; gap: 8px; }
+  .hero h1 img { max-height: 19svh; }
+  .headline { bottom: 33px; }
+  .spotlightCard { width: 95px; }
+  .legal { bottom: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arenaVideo { display: none; }
+  .home *, .home *::before, .home *::after { transition: none !important; }
 }
