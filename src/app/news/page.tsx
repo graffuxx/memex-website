@@ -51,16 +51,17 @@ export default function NewsPage() {
           </p>
         </header>
 
-        <article className={styles.questNews}>
+        <article id="hackerman" className={styles.questNews} style={{scrollMarginTop: 120}}>
           <div className={styles.questNewsArt}>
             <img src="/game/assets/cards/beta-v1/hackerman.webp" alt="Hackerman surrounded by violet CRT screens" />
           </div>
           <div>
             <div className={styles.badge}>BETA PREVIEW · <time dateTime="2026-11-26">26 NOV 2026</time></div>
-            <h2>Ten new memes enter the Duelverse</h2>
-            <p>Five Primes and five Iconics join the Beta preview, with one of each in every element. Rewrite an edge with Hackerman, jump over a card with Parkour!, or charge a side up to eight with Over 9000.</p>
-            <p>Try the cards in Deck Test and friendly duels. Collect them in the Beta Preview Booster using Pixels and play them in your own decks.</p>
-            <p><a href="/collection">Browse the Beta collection</a> · <a href="/shop">Open the booster shop</a></p>
+            <h2>10 new cards are live. Meet Hackerman.</h2>
+            <p>Five Primes and five Iconics join the Beta preview, one of each in Fire, Water, Earth, Air and Storm.</p>
+            <p><strong>Hackerman · Storm Prime · Override.</strong> When you play Hackerman, choose a numbered edge on a neighboring card and set it to 4 for the rest of the round. Turn a defender’s 8 into a 4 and your 6 can flip it on the same move. S edges keep their rank.</p>
+            <p>The Beta Preview Booster costs 100 Pixels and contains one Beta card and four Alpha Regulars.</p>
+            <p><a href="/decks?test=1">Try Hackerman in Deck Test</a> · <a href="/shop">Open the booster shop</a></p>
           </div>
         </article>
 
