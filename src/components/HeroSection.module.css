@@ -31,7 +31,7 @@
 
 .hero {
   position: absolute;
-  left: calc(var(--home-edge) + clamp(10px, 3vw, 50px) + clamp(122.5px, 15.5vw, 233px));
+  left: 50%;
   top: clamp(106px, 20svh, 220px);
   transform: translateX(-50%);
   display: grid;
@@ -154,7 +154,7 @@
 :global(body):has(:global(.social111-launcher)) .legal { left: var(--home-edge); right: auto; }
 
 @media (max-width: 790px), (orientation: portrait) and (max-width: 1024px) {
-  .hero { top: clamp(86px, 17svh, 180px); left: 50%; gap: 10px; }
+  .hero { top: clamp(86px, 17svh, 180px); gap: 10px; }
   .hero h1 img { width: clamp(230px, 56vw, 390px); max-height: 33svh; }
   .headline { right: var(--home-edge); width: min(350px, calc(100% - 2 * var(--home-edge))); bottom: max(47px, 8svh); }
   .sceneLighting { background: linear-gradient(0deg, #0a0618f5, #0a061830 37%, transparent 66%, #0a06186e); }
@@ -183,6 +183,16 @@
   .headline { bottom: 33px; }
   .spotlightCard { width: 95px; }
   .legal { bottom: 5px; }
+}
+@media (max-width: 1000px) and (max-height: 700px) and (orientation: landscape) {
+  .hero { top: clamp(84px, 14svh, 102px); }
+  .hero h1 img { max-height: clamp(70px, calc(100svh - 390px), 190px); }
+}
+@media (max-width: 1000px) and (max-height: 460px) and (orientation: landscape) {
+  .headline { width: min(290px, 43vw); padding: 10px 14px; }
+  .headline h2 { margin: 6px 0; font-size: 20px; }
+  .headline h2 br, .headline p { display: none; }
+  .spotlightCard { top: 2px; width: 60px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .arenaVideo { display: none; }
