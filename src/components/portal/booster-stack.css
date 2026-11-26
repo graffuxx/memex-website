@@ -44,13 +44,7 @@
 .dv-portal .booster-stack__copy>span {font:600 14px/1.4 Arial,sans-serif;color:#dab7fb}
 .dv-portal .booster-stack__copy>span>span {margin-inline-start:6px;color:#f5d293}
 .dv-portal .booster-stack[data-count="0"] .alpha-pack-art {opacity:.62}
-.dv-portal .alpha-stock {margin:0 0 24px}
-.dv-portal .alpha-stock-links {display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:14px;font:14px Arial,sans-serif}
-.dv-portal .alpha-stock-links>a {color:#e2c7f8;text-decoration:underline}
-.dv-portal .alpha-stock-links>.alpha-preview-button {margin:0}
-.dv-portal .alpha-booster-art-stage>.booster-stack {width:min(100%,370px);min-height:252px}
-.dv-portal .alpha-booster-art-stage>.booster-stack .booster-stack__art {flex-basis:clamp(84px,12vw,145px)}
-.dv-portal .player-history .booster-stack {margin:0 0 22px}
+.dv-portal .player-history .booster-stack {margin:0}
 .dv-portal .player-panel>.booster-stack {margin-top:12px}
 .dv-portal .booster-archive>summary {width:fit-content;cursor:pointer;padding:10px 0;color:#d6b7f0;font-weight:600}
 @media(max-width:560px){
@@ -61,3 +55,7 @@
  .dv-portal .booster-stack,.dv-portal .booster-stack__art .alpha-pack-art {transition:none}
  .dv-portal .booster-stack:not(:disabled):is(:hover,:focus-visible) .alpha-pack-art {transform:rotate(-4deg)}
 }
+
+.dv-portal .booster-stack-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.dv-portal .booster-stack-grid .booster-stack {width:100%;margin:0}
+@media(max-width:720px){.dv-portal .booster-stack-grid{grid-template-columns:minmax(0,1fr)}}

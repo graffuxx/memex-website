@@ -75,9 +75,10 @@ export async function loadBoosterHistory({limit=20,before=null,openedOnly=false}
  const {data,error}=await query;
  if(error)throw Error('Your booster history could not be loaded. Please try again.');return (data??[]) as BoosterPurchase[];
 }
-export async function countUnopenedBoosters():Promise<number>{
- const {count,error}=await supabase.from('dv_booster_purchases36')
-  .select('id',{count:'exact',head:true}).in('product_id',['alpha','beta']).not('revealed_slots','cs','{0,1,2,3,4}');
+export async function countUnopenedBoosters(product?:BoosterProduct):Promise<number>{
+ let query=supabase.from('dv_booster_purchases36').select('id',{count:'exact',head:true}).not('revealed_slots','cs','{0,1,2,3,4}');
+ query=product?query.eq('product_id',product):query.in('product_id',['alpha','beta']);
+ const {count,error}=await query;
  if(error||count===null)throw Error('Your unopened boosters could not be counted. Please try again.');
  return count;
 }

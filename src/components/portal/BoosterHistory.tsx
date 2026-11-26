@@ -10,17 +10,17 @@ const PAGE_SIZE=20;
 export default function BoosterHistory(){return <PlayerAreaGate><History/></PlayerAreaGate>;}
 function History(){
  const {userId}=usePlayerCollection();
- const [count,setCount]=useState<number|null>(null),[countError,setCountError]=useState(false),[reload,setReload]=useState(0);
+ const [counts,setCounts]=useState<{alpha:number;beta:number}|null>(null),[countError,setCountError]=useState(false),[reload,setReload]=useState(0);
  const [historyVisible,setHistoryVisible]=useState(false);
  useEffect(()=>{
   let live=true;
-  setCount(null);setCountError(false);
-  countUnopenedBoosters().then(total=>{if(live)setCount(total);}).catch(()=>{if(live)setCountError(true);});
+  setCounts(null);setCountError(false);
+  Promise.all([countUnopenedBoosters('alpha'),countUnopenedBoosters('beta')]).then(([alpha,beta])=>{if(live)setCounts({alpha,beta});}).catch(()=>{if(live)setCountError(true);});
   return()=>{live=false;};
  },[userId,reload]);
  return <section className="portal-section player-history">
   <header className="player-page-heading"><h1>Your boosters</h1></header>
-  {countError?<div><p className="error" role="alert">Your boosters could not be loaded.</p><button className="button glass" onClick={()=>setReload(n=>n+1)}>Try again</button></div>:count===null?<p role="status">Loading boosters…</p>:<BoosterStack count={count} product="all"/>}
+  {countError?<div><p className="error" role="alert">Your boosters could not be loaded.</p><button className="button glass" onClick={()=>setReload(n=>n+1)}>Try again</button></div>:counts===null?<p role="status">Loading boosters…</p>:<div className="booster-stack-grid"><BoosterStack count={counts.alpha} product="alpha"/><BoosterStack count={counts.beta} product="beta"/></div>}
   <details className="booster-archive" onToggle={event=>setHistoryVisible(event.currentTarget.open)}>
    <summary>Opening history</summary>
    {historyVisible&&<OpenedPacks key={userId}/>}

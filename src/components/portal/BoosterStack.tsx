@@ -14,5 +14,5 @@ export default function BoosterStack({count,onOpen,disabled=false,product='alpha
   </span>
  </>;
  if(onOpen&&count>0)return <button className="booster-stack" type="button" onClick={onOpen} disabled={disabled} aria-label={`Open a booster · ${label}`} data-count={count}>{content}</button>;
- return <a className="booster-stack" href={count>0?'/boosters?open=next':'/shop'} aria-label={`${count>0?'Open a booster':'Get boosters'} · ${label}`} data-count={count}>{content}</a>;
+ return <a className="booster-stack" href={count>0?'/boosters?open=next'+(product==='all'?'':'&edition='+product):'/shop'} aria-label={`${count>0?'Open a booster':'Get boosters'} · ${label}`} data-count={count}>{content}</a>;
 }
