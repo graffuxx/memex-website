@@ -1,6 +1,6 @@
 import {printedValue126} from '../platform/card-ranks126.mjs';
-import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=tactical-rework';
-import {cardOf,sideValue} from './rules.mjs?v=tactical-rework';
+import {eventFieldAt,abilityEdge,wardEdge,awkwardEdges,jamActive} from './table-demo-rules.mjs?v=hand-effects-46';
+import {cardOf,sideValue} from './rules.mjs?v=hand-effects-46';
 export function fieldFeedback129(game,card,cell,previewDirection=null){
  const field=eventFieldAt(game,cell);
  const active=game.elementalTrial?abilityEdge(game,card,cell,{attacking:previewDirection!==null,direction:previewDirection})??abilityEdge(game,card,cell):null;

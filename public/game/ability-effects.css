@@ -84,3 +84,7 @@
 .two-buttons button[data-choice=defense]{background:#202f59;color:#d9e8ff;border-color:#759ee8}
 .two-buttons button[aria-pressed=true]{outline:2px solid currentColor;outline-offset:-3px}
 .two-buttons button:disabled{opacity:.5;cursor:default}
+
+.ability-effects g[data-ability=handCycle]{--ability-color:#ffe4a3;--ability-glow:#d6a457}
+.ability-effects g[data-ability=boardRecall]{--ability-color:#b8f1e0;--ability-glow:#58cbbc}
+.ability-effects g[data-ability=handDisrupt]{--ability-color:#ffd1ed;--ability-glow:#df73c4}

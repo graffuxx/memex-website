@@ -1,4 +1,4 @@
-import {DIRECTIONS,neighbors,freeCells,sideValue,cardOf} from './rules.mjs?v=tactical-rework';
+import {DIRECTIONS,neighbors,freeCells,sideValue,cardOf} from './rules.mjs?v=hand-effects-46';
 import {isSRank126} from '../platform/card-ranks126.mjs';
 
 const numeric=value=>!isSRank126(value);

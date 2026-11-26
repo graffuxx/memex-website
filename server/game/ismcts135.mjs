@@ -17,7 +17,7 @@ const actionKey=(action,g)=>JSON.stringify([g.players[g.turn].hand.find(c=>c.uid
 
 export function observeGame135(game,observer){
  const g=structuredClone(game);delete g.seed;
- g.players=g.players.map((p,side)=>({...p,hand:p.hand.map(c=>side===observer?c:{uid:c.uid,hidden:true,origin:side}),deck:p.deck.map(c=>({uid:c.uid,hidden:true,origin:side}))}));
+ g.players=g.players.map(({discard,...p},side)=>({...p,...(discard&&side===observer?{discard}:{}),hand:p.hand.map(c=>side===observer?c:{uid:c.uid,hidden:true,origin:side}),deck:p.deck.map(c=>({uid:c.uid,hidden:true,origin:side}))}));
  return g;
 }
 function attachAbility(card,game,side){
@@ -35,7 +35,7 @@ export function determinize135(observation,{observer,ownDeck,random}){
  // Sanitize even if a caller accidentally supplies the authoritative state.
  const g=observeGame135(observation,observer);g.history=[];g.last=null;
  for(const side of[0,1]){
-  const revealed=Object.values(g.board).filter(c=>c.origin===side),visible=side===observer?[...revealed,...g.players[side].hand]:revealed;
+  const revealed=Object.values(g.board).filter(c=>c.origin===side),visible=side===observer?[...revealed,...g.players[side].hand,...(g.players[side].discard??[])]:revealed;
   const used=new Set(visible.map(definitionId)),alreadyPrime=visible.some(c=>definitions.get(definitionId(c))?.prime),revealedIconics=visible.filter(c=>definitions.get(definitionId(c))?.iconic).length;
   const slots=side===observer?g.players[side].deck:[...g.players[side].hand,...g.players[side].deck];let cards;
   if(side===observer){
@@ -72,7 +72,7 @@ function transition(g,action){
 function rankCandidates(g,personality,random,light=false){
  let input=g;
  // Bounded rollout policy: sample two available cards early, use the whole hand late.
- if(light&&g.placements<14&&g.players[g.turn].hand.length>2){input={...g,players:g.players.map((p,side)=>side===g.turn?{...p,hand:shuffle(p.hand,random).slice(0,2)}:p)};}
+ if(light&&g.placements<14&&g.players[g.turn].hand.length>2&&!g.players[g.turn].hand.some(card=>card.ability==='handCycle')){input={...g,players:g.players.map((p,side)=>side===g.turn?{...p,hand:shuffle(p.hand,random).slice(0,2)}:p)};}
  const weights=personality?.weights??personality??{},candidates=legalCandidates(input);
  for(const c of candidates)c.prior=positionalValue(g,c,undefined,weights)+(random()-.5)*.06;
  candidates.sort((a,b)=>b.prior-a.prior);

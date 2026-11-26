@@ -1,6 +1,6 @@
 import {ELEMENT_IDS,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {freeCells,neighbors,sideValue} from './rules.mjs?v=tactical-rework';
-import * as currentRules from './table-demo-rules.mjs?v=tactical-rework';
+import {freeCells,neighbors,sideValue} from './rules.mjs?v=hand-effects-46';
+import * as currentRules from './table-demo-rules.mjs?v=hand-effects-46';
 import {DEFINITIONS} from '../platform/catalog.mjs';
 const ARCHETYPES=[...new Map(DEFINITIONS.map(c=>[c.values.join(','),c.ruleId])).values()];
 export function legalCandidates(game,rules=currentRules){
@@ -64,10 +64,31 @@ export function positionalValue(game,{action,plan},rules=currentRules,weights={}
   if(!ally||ally.controller!==game.turn&&!plan.flips.includes(id))return value;
   return value+Math.max(0,7-sideValue(ally,(dir+3)%6))*.12;
  },0):0;
+ // Cycling a weak hand card uses only what is visible to the acting player.
+ const cycled=plan.cycleUid?game.players[game.turn].hand.find(card=>card.uid===plan.cycleUid):null;
+ const drawValue=cycled?Math.max(0,6-Math.max(...Array.from({length:6},(_,dir)=>sideValue(cycled,dir))))*.18:0;
+ const recall=plan.recallCell?game.board[plan.recallCell]:null;
+ const handValue=recall?recallValue(game,plan.recallCell,recall,rules):0;
  // At the end of the round, actual ownership matters more than a future safe edge.
  const closing=weights.capture===undefined?0:Math.max(0,(game.placements-12)/5);
  if(plan.bid!=null)blockadeValue-=.12;
- return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+blockadeValue+reserveValue+(plan.link ? .14 : 0)+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0)+(plan.awkward?.cell? .12 : 0)+(plan.phalanx?.tiles.length? .36 : 0);
+ return plan.flips.length*((weights.capture??2)+closing)+safety*(weights.safety??.42)+contacts*(weights.contacts??.16)+twistSafety*(weights.twist??1)+blockadeValue+reserveValue+drawValue+handValue+(plan.link ? .14 : 0)+(plan.coverWards??[]).reduce((total,ward)=>total+(ward.amount??1)*.12,0)+(plan.awkward?.cell? .12 : 0)+(plan.phalanx?.tiles.length? .36 : 0);
+}
+function recallValue(game,cell,card,rules){
+ let exposed=0,replay=0;
+ const recalled={...rules.recalledCard(card),rotation:0,controller:game.turn};
+ for(const {id,dir} of neighbors(cell)){
+  if(!game.board[id]&&id!==game.block)exposed=Math.max(exposed,(6-sideValue(card,dir))*.27);
+ }
+ for(const field of freeCells(game))for(const {id,dir} of neighbors(field)){
+  const target=game.board[id];
+  if(target&&target.controller!==game.turn){
+   const attack=rules.effectStrength(game,recalled,field,dir,target,{attacking:true});
+   const defend=rules.effectStrength(game,target,id,(dir+3)%6,card);
+   if((rules.effectAttackWins??attackWins)(attack,defend,game.elementRules??3))replay++;
+  }
+ }
+ return exposed+Math.min(3,replay)*.25-.26;
 }
 // A public-information one-reply threat check. It never reads the hidden enemy hand.
 export function replyRisk(game,{action,plan},rules=currentRules){
@@ -93,6 +114,7 @@ export function replyRisk(game,{action,plan},rules=currentRules){
   board[action.cell]={...attacker,rotation:(attacker.rotation+1)%6};
  }
  if(plan.bailout)board[plan.bailout.protector]={...board[plan.bailout.protector],bailoutSpent:true};
+ if(plan.recallCell)delete board[plan.recallCell];
  const future={...game,board,block:plan.blockadeMove?.to??game.block,placements:game.placements+1,turn:1-game.turn};
  if(plan.reserve)future.fanReserve={cell:plan.reserve,owner:game.turn,until:game.placements+2};
  if(future.placements>=18)return 0;

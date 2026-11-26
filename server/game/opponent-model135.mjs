@@ -14,7 +14,7 @@ export function opponentBeliefs135(model){
 export const placementKey135=a=>JSON.stringify([
  a.uid,a.cell,a.rotation??0,a.abilityDirection??0,a.twistCell??null,a.blockadeCell??null,
  a.swapCells??null,a.stepCells??null,a.valueSwap??null,a.selfTurn??0,a.bidDirection??null,
- a.pivotDirection??(a.pivotCapture?1:0),a.buttonChoice??null,a.plotTarget??null,a.overloadTarget??null
+ a.pivotDirection??(a.pivotCapture?1:0),a.buttonChoice??null,a.plotTarget??null,a.overloadTarget??null,a.cycleUid??null,a.recallCell??null
 ]);
 export function observeOpponent135(model,before,after,action,key){
  const old=model?.version===1?model:createOpponentModel135();
@@ -30,7 +30,7 @@ export function observeOpponent135(model,before,after,action,key){
  const candidates=[],cells=freeCells(game);
  if(dashTargets(game,card,game.block).length)cells.push(game.block);
  for(const cell of cells)for(const rotation of game.rotationLocked?[0]:[0,1,2,3,4,5])for(const action of actionOptions(game,card,cell,rotation))candidates.push({action,plan:previewEffect(game,action)});
- const index=candidates.findIndex(c=>placementKey135(c.action)===placementKey135(action));
+ const index=candidates.findIndex(c=>placementKey135(c.action)===placementKey135({...action,cycleUid:null}));
  if(index<0)return old;
  const likelihoods=BOT_STYLES134.map(style=>{
   const utilities=candidates.map(c=>positionalValue(game,c,undefined,style)),mean=utilities.reduce((a,b)=>a+b,0)/utilities.length;

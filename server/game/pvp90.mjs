@@ -114,7 +114,10 @@ function perspectiveGame(game,side,revealUid=null){
   return v;
  };
  const hidden=c=>({id:'oracle',uid:c.uid,origin:swap(c.origin),controller:swap(c.controller),rotation:0,hidden:true});
- g.players=(side===1?[g.players[1],g.players[0]]:g.players).map((p,i)=>({...p,hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),deck:p.deck.map((c,index)=>g.iconicAbilityWave>=7?{...hidden(c),uid:`deck-${i}-${index}`}:hidden(c))}));
+ g.players=(side===1?[g.players[1],g.players[0]]:g.players).map(({discard,...p},i)=>({...p,
+  ...(discard?{discardCount:discard.length,...(i===0?{discard:discard.map(card)}:{})}:{}),
+  hand:p.hand.map(c=>i===0||c.uid===revealUid?card(c):hidden(c)),
+  deck:p.deck.map((c,index)=>g.iconicAbilityWave>=7?{...hidden(c),uid:`deck-${i}-${index}`}:hidden(c))}));
  g.board=Object.fromEntries(Object.entries(g.board).map(([k,c])=>[k,card(c)]));
  if(g.pendingDraw){
   const owner=g.pendingDraw.side;
@@ -132,10 +135,16 @@ export function projectPvp90(row,uid,now=Date.now()){
  if(!s)return {id:row.id,kind:row.kind,status:row.status,code:row.kind==='private'?row.invite_code:null,version:row.version,searchRemainingMs:row.kind==='random'?Math.max(0,RANDOM_AI_WAIT_MS98-(now-Date.parse(row.created_at))):null,phase:row.status==='waiting'?'waiting':'preparing'};
  const players=side===1?[row.identities[1],row.identities[0]]:row.identities;
  const personality=row.ai_opponent96&&s.bot96?(s.bot96.personality134??botPersonality134(s.bot96.seed)):null;
+ let step=null;
+ if(s.step){
+  const action=s.step.action?{...s.step.action}:null;
+  if(action&&s.step.before.turn!==side)delete action.cycleUid;
+  step={...s.step,...(action?{action}:{}),before:perspectiveGame(s.step.before,side,action?.uid),after:perspectiveGame(s.step.after,side)};
+ }
  return {id:row.id,kind:row.kind,status:row.status,version:row.version,phase:s.phase,opponentType:row.ai_opponent96?'ai':'human',opponentStyle:personality?{id:personality.id,label:personality.label,description:personality.description}:null,opponentEngine:row.ai_opponent96?{name:'IS-MCTS',adaptive:true,observedMoves:s.bot96?.opponent135?.observations??0}:null,round:s.round,starter:swap(s.starter),players,series:series113(s.results.map(r=>side===1?[r[1],r[0]]:r)),winner:s.forfeit!=null?swap(1-s.forfeit):swap(series113(s.results).winner),rated:row.kind==='random',
   results:s.results.map(r=>side===1?[r[1],r[0]]:r),game:perspectiveGame(s.game,side),ready:side===1?[s.ready[1],s.ready[0]]:s.ready,
   ownChoice:s.choices[side],opponentChosen:Boolean(s.choices[1-side]),attempt:s.attempt,rpsWinner:swap(s.rpsWinner),
   lastRps:s.lastRps?{choices:side===1?[s.lastRps.choices[1],s.lastRps.choices[0]]:s.lastRps.choices,winner:swap(s.lastRps.winner)}:null,
   afkStreak:side===1?[s.afkStreak129?.[1]??0,s.afkStreak129?.[0]??0]:s.afkStreak129??[0,0],remainingMs:s.deadline?Math.max(0,s.deadline-now):null,forfeit:swap(s.forfeit),wallet:row.wallet,
-  step:s.step?{...s.step,before:perspectiveGame(s.step.before,side,s.step.action?.uid),after:perspectiveGame(s.step.after,side)}:null};
+  step};
 }

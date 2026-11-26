@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {expandGameDeck,starterDeck} from '../public/game/platform/catalog.mjs';
-import {newGame} from '../public/game/src/rules.mjs';
-import {abilityDescription,actionOptions,placeEffect,previewEffect,wardEdge} from '../public/game/src/table-demo-rules.mjs';
+import {CELLS,freeCells,newGame,scores,sideValue} from '../public/game/src/rules.mjs';
+import {abilityDescription,actionOptions,placeEffect,previewEffect,wardEdge,CURRENT_ICONIC_WAVE,TACTICAL_REWORK_WAVE,releasedIconicAbility,releasedPrimeAbility} from '../public/game/src/table-demo-rules.mjs';
 import {fieldFeedback129,previewEdgeTotals129} from '../public/game/src/field-feedback129.mjs';
 import {abilityMarkers} from '../public/game/src/ability-effects.mjs';
 import {animateResolvedFlips} from '../public/game/src/flip-combo.mjs';
@@ -172,3 +172,81 @@ test('New private and Random duels preserve the ruleset for both perspectives an
   assert.equal(state.game.abilityRework,true);
  }
 });
+
+test('The new wave exposes the three replacements and older matches keep existing abilities',()=>{
+ const problem=card('first-world-problems',0),retry=card('here-we-go-again',0),numa=card('numa-numa',0);
+ assert.equal(releasedIconicAbility(problem,TACTICAL_REWORK_WAVE),'luxury');
+ assert.equal(releasedIconicAbility(problem,CURRENT_ICONIC_WAVE),'handCycle');
+ for(const [held,old,replacement] of [[retry,'retry','boardRecall'],[numa,'chorus','handDisrupt']]){
+  assert.equal(releasedPrimeAbility(held,true,true,TACTICAL_REWORK_WAVE),old);
+  assert.equal(releasedPrimeAbility(held,true,true,CURRENT_ICONIC_WAVE),replacement);
+ }
+});
+
+for(const starter of [0,1]){
+ test(`Hand cycle and opponent discard preserve private card zones for starter ${starter}`,()=>{
+  const game=trial(starter),enemy=1-starter;
+  const problem=card('first-world-problems',starter,0,'handCycle'),outgoing=card('doge',starter);
+  const first=card('pepe',starter),second=card('roll-safe',starter);
+  game.players[starter].hand=[problem,outgoing];game.players[starter].deck=[first,second];
+  const action={uid:problem.uid,cell:'0,0',rotation:0,cycleUid:outgoing.uid};
+  const cycled=placeEffect(game,action);
+  assert.deepEqual(cycled.players[starter].hand,[first,second]);
+  assert.deepEqual(cycled.players[starter].deck,[outgoing]);
+  assert.equal(cycled.last.handCycled,true);
+  assert.throws(()=>placeEffect(game,{...action,cycleUid:problem.uid}),/Handkarte/);
+  assert.deepEqual(placeEffect({...game,players:game.players.map((player,side)=>side===starter?{...player,deck:[first]}:player)},
+   {...action,cycleUid:null}).players[starter].hand,[outgoing,first]);
+
+  const numa=card('numa-numa',starter,0,'handDisrupt'),weak=card('doge',enemy);
+  const old=card('roll-safe',enemy),fresh=card('pepe',enemy);
+  game.board={'1,0':weak};game.players[starter].hand=[numa];game.players[enemy].hand=[old];game.players[enemy].deck=[fresh];
+  const disrupt={uid:numa.uid,cell:'0,0',rotation:0};
+  assert.ok(previewEffect(game,disrupt).flips.length);
+  const disrupted=placeEffect(game,disrupt);
+  assert.equal(disrupted.last.handDisrupted,true);
+  assert.deepEqual(disrupted.players[enemy].discard,[old]);
+  assert.deepEqual(disrupted.players[enemy].hand,[fresh]);
+  assert.equal(placeEffect({...game,board:{}},disrupt).last.handDisrupted,undefined);
+  assert.equal(placeEffect({...game,placements:17},disrupt).last.handDisrupted,undefined);
+ });
+
+ test(`Recall leaves a playable hex, and the Final Guard still scores turn 18 for starter ${starter}`,()=>{
+  const game=trial(starter),enemy=1-starter,retry=card('here-we-go-again',starter,0,'boardRecall');
+  const returned={...card('doge',starter,3,'fire'),coverWard:{amount:2,dir:1,owner:starter,until:5}};
+  game.placements=2;game.board={'-2,1':returned,'2,-2':card('pepe',enemy)};
+  const draw=card('roll-safe',starter);game.players[starter].hand=[retry];game.players[starter].deck=[draw];
+  const action={uid:retry.uid,cell:'0,0',rotation:0,recallCell:'-2,1'};
+  assert.ok(actionOptions(game,retry,'0,0',0).some(choice=>choice.recallCell==='-2,1'));
+  assert.throws(()=>placeEffect(game,{...action,recallCell:'2,-2'}),/Brettkarte/);
+  const recalled=placeEffect(game,action);
+  const [buffed,drawn]=recalled.players[starter].hand;
+  assert.deepEqual(drawn,draw);
+  assert.equal(buffed.uid,returned.uid);
+  assert.equal(buffed.coverWard,undefined);
+  assert.equal(sideValue(buffed,buffed.edgeCopy.dir),sideValue({...returned,rotation:0},buffed.edgeCopy.dir)+2);
+  assert.equal(recalled.last.recalledCell,'-2,1');
+  assert.ok(freeCells(recalled).includes('-2,1'));
+
+  // Put the match one placement from completion, with a gap from the earlier recall.
+  const last=card('disaster-girl',enemy);
+  recalled.finalGuard=true;recalled.placements=17;recalled.turn=enemy;
+  recalled.players[enemy].hand=[last];
+  for(const {id} of CELLS){
+   if(![recalled.block,'-2,1','1,0'].includes(id)&&!recalled.board[id]){
+    recalled.board[id]={...card('pepe',enemy),uid:'fill:'+id};
+   }
+  }
+  recalled.board['2,0']={...card('roll-safe',starter),uid:'guarded-bystander'};
+  const final={uid:last.uid,cell:'1,0',rotation:0};
+  const guarded=previewEffect(recalled,final);
+  assert.equal(guarded.finalGuard?.cell,'2,0');
+  const finished=placeEffect(recalled,final);
+  assert.equal(finished.placements,18);
+  assert.equal(finished.finished,true);
+  assert.equal(finished.board['2,0'].controller,starter);
+  assert.deepEqual(freeCells(finished),['-2,1']);
+  assert.equal(scores(finished).reduce((a,b)=>a+b),17);
+  assert.ok(abilityMarkers(finished,null).some(marker=>marker.kind==='final-guard'));
+ });
+}

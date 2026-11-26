@@ -1,5 +1,5 @@
-import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets,actionOptions} from './table-demo-rules.mjs?v=tactical-rework';
-import {cardOf,ELEMENTS,neighbors,sideValue} from './rules.mjs?v=tactical-rework';
+import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets,actionOptions} from './table-demo-rules.mjs?v=hand-effects-46';
+import {cardOf,ELEMENTS,neighbors,sideValue} from './rules.mjs?v=hand-effects-46';
 import {createTurnButtons,edgeLabels} from './direction-controls.mjs';
 
 export function bindSignatureControls(abilities,{english=false,onChange,onDraw}){
@@ -29,11 +29,19 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
  drawPanel.append(drawTitle,drawChoices);
  const betaLabel=document.createElement('label'),betaSelect=document.createElement('select');
  betaLabel.hidden=true;betaLabel.append(english?'Card ability':'Kartenfähigkeit',betaSelect);
- abilities.append(betaLabel);
+ const handLabel=document.createElement('label'),handChoice=document.createElement('select');
+ const handText=document.createTextNode('');
+ handLabel.hidden=true;handLabel.append(handText,handChoice);
+ abilities.append(betaLabel,handLabel);
  abilities.append(exchangeLabel,pivot.group,valueLabel,facing.group,stepLabel,bidLabel,twoButtons);
  abilities.after(drawPanel);
  let swapCells=null,pivotDirection=0,valueSwap=null,selfTurn=0,stepCells=null,bidDirection=null,buttonChoice=null;
- let plotTarget=null,overloadTarget=null,betaChoice=null;
+ let plotTarget=null,overloadTarget=null,betaChoice=null,cycleUid=null,recallCell=null;
+ handChoice.onchange=()=>{
+  if(handChoice.dataset.mode==='handCycle')cycleUid=handChoice.value||null;
+  else recallCell=handChoice.value||null;
+  onChange();
+ };
  betaSelect.onchange=()=>{betaChoice=betaSelect.value?JSON.parse(betaSelect.value):null;onChange();};
  function betaOption(game,card,target,choice){
   const arrow=dir=>['→','↘','↙','←','↖','↗'][dir];
@@ -66,6 +74,21 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
    betaSelect.replaceChildren(new Option(english?'Play as is':'Normal ausspielen',''),...betaChoices.map(({betaChoice})=>new Option(betaOption(game,card,target,betaChoice),JSON.stringify(betaChoice))));
    betaSelect.value=betaChoice?JSON.stringify(betaChoice):'';
    betaSelect.disabled=busy;
+  }
+
+  const cycling=card?.ability==='handCycle',recalling=card?.ability==='boardRecall';
+  handLabel.hidden=!cycling&&!recalling;
+  if(!handLabel.hidden){
+   const choices=cycling?(plan?.cycleTargets??[]):(plan?.recallTargets??[]);
+   const display=cycling
+    ?uid=>cardOf(game.players[game.turn].hand.find(card=>card.uid===uid)).name
+    :cell=>cardOf(game.board[cell]).name;
+   handText.textContent=cycling?(english?'Put a hand card under the deck':'Handkarte unters Deck legen')
+    :(english?'Return a Regular to your hand':'Standardkarte zurück auf die Hand');
+   handChoice.replaceChildren(new Option(english?'Play as is':'Normal ausspielen',''),...choices.map(key=>new Option(display(key),key)));
+   handChoice.dataset.mode=card.ability;
+   handChoice.value=(cycling?cycleUid:recallCell)??'';
+   handChoice.disabled=busy||!choices.length;
   }
 
   twoButtons.hidden=!game.abilityRework||card?.ability!=='buttons';
@@ -153,13 +176,15 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
   stepCells=action.stepCells??null;
   bidDirection=action.bidDirection??null;
   buttonChoice=action.buttonChoice??null;
+  cycleUid=action.cycleUid??null;recallCell=action.recallCell??null;
   plotTarget=action.plotTarget??null;overloadTarget=action.overloadTarget??null;betaChoice=action.betaChoice??null;
  }
  return {update,setAction,clear:setAction,swapWith(pair){swapCells=swapCells?.includes(pair[1])?null:pair;},
   targetExtraFlip(plan,cell){
+   if(plan?.recallTargets?.includes(cell)){recallCell=recallCell===cell?null:cell;return true;}
    if(plan?.plotTargets?.includes(cell)){plotTarget=plotTarget===cell?null:cell;return true;}
    if(plan?.overloadTargets?.includes(cell)){overloadTarget=overloadTarget===cell?null:cell;return true;}
    return false;
   },
-  action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice,plotTarget,overloadTarget,...(betaChoice?{betaChoice}:{})};}};
+  action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice,plotTarget,overloadTarget,...(cycleUid?{cycleUid}:{}),...(recallCell?{recallCell}:{}),...(betaChoice?{betaChoice}:{})};}};
 }

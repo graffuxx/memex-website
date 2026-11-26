@@ -1,6 +1,6 @@
 import {BETA_BY_ID} from './beta-cards.mjs';
 import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
-import {standardAbility,releasedIconicAbility,releasedPrimeAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=tactical-rework';
+import {standardAbility,releasedIconicAbility,releasedPrimeAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=hand-effects-46';
 import {soloSettings84} from './solo84.mjs';
 export const PLAY_DECK_KEY='duelverse.play-deck.v1';
 export function readPlayDeck(storage){

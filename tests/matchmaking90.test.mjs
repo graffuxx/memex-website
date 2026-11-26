@@ -1,8 +1,10 @@
 import {series113,seriesStarter113} from '../public/game/platform/series113.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {PGlite} from '@electric-sql/pglite';
 import {createPvp90,advancePvp90,expirePvp90,projectPvp90} from '../server/game/pvp90.mjs';
+import {CURRENT_ICONIC_WAVE} from '../public/game/src/table-demo-rules.mjs';
+import {abilityMarkers} from '../public/game/src/ability-effects.mjs';
 import {createMatchHandler90} from '../server/game/match-handler90.mjs';
-import {starterDeck} from '../public/game/platform/catalog.mjs';import {chooseTactic} from '../public/game/src/tactics-ai.mjs';import {moveTargets} from '../public/game/src/rules.mjs';
+import {starterDeck} from '../public/game/platform/catalog.mjs';import {chooseTactic,legalCandidates} from '../public/game/src/tactics-ai.mjs';import {moveTargets,scores} from '../public/game/src/rules.mjs';
 const uid=n=>'90909090-9090-4090-8090-'+String(n).padStart(12,'0'),a=uid(1),b=uid(2),c=uid(3),d=uid(4),deck={id:uid(9),name:'Owned deck',cards:starterDeck()};
 async function db90(){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,is_anonymous boolean default false,email text);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;insert into auth.users(id,email_confirmed_at,email) values('${a}',now(),'a90@example.test'),('${b}',now(),'b90@example.test'),('${c}',now(),'c90@example.test'),('${d}',null,'d90@example.test');`);for(const f of (await fs.readdir(new URL('../supabase/migrations/',import.meta.url))).filter(f=>f.endsWith('.sql')).sort())await db.exec(await fs.readFile(new URL('../supabase/migrations/'+f,import.meta.url),'utf8'));for(const u of [a,b,c,d])await db.exec(`set request.jwt.claim.sub='${u}';select public.dv_initialize_account();`);return db;}
 async function rpc(db,name,args){const params=Object.entries(args);return (await db.query('select public.'+name+'('+params.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') data',params.map(([,v])=>v&&typeof v==='object'?JSON.stringify(v):v))).rows[0].data;}
@@ -58,5 +60,85 @@ test('HTTP service authenticates both clients, rejects forged results and reproj
   assert.equal((await call('a',{...sign,requestId:uid(sequence++)})).status,409);assert.equal((await call('a',{op:'poll',id})).data.version,x.version);
   x=(await call('b',{op:'move',id,version:y.version,requestId:uid(sequence++),move:{kind:'gesture',value:'scissors'}})).data;x=(await call('a',{op:'move',id,version:x.version,requestId:uid(sequence++),move:{kind:'starter',side:0}})).data;assert.equal(x.phase,'play');assert.equal(x.game.turn,0);assert.equal((await call('b',{op:'move',id,version:x.version,requestId:uid(sequence++),move:{kind:'place',action:{uid:'fake',cell:'0,0',rotation:0}},award:9999})).status,400);
   const beforeVersion=x.version;time=90001;const timed=(await call('b',{op:'poll',id,version:beforeVersion})).data;assert.equal(timed.game.placements,1);assert.equal(timed.game.turn,0);const restored=(await call('a',{op:'poll',id})).data;assert.equal(restored.version,timed.version);assert.equal(restored.game.turn,1);assert.deepEqual(Object.keys(restored.game.board),Object.keys(timed.game.board));assert.equal((await call('a',{op:'poll',id,version:restored.version})).data.unchanged,true);
+ }finally{await db.close();}
+});
+
+test('Private and Random store recalled-board scores and rewards from either first player',async t=>{
+ const db=await db90();
+ try{
+  const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));
+  const entries=[[a,'here-we-go-again'],[b,'numa-numa']];
+  for(const [user,prime] of entries){
+   const cards=[prime+':common','first-world-problems:common',...starterDeck().slice(0,13)];
+   await db.query('insert into public.dv_inventory(user_id,variant_id,quantity) select $1,id,1 from unnest($2::text[]) ids(id) on conflict do nothing',[user,cards]);
+   await db.query('update public.dv_decks set cards=$2::text[] where id=$1',[decks[user],cards]);
+  }
+  const outcomes=[];
+  let sequence=40000;
+  for(const kind of ['private','random'])for(const starter of [0,1]){
+   let match,phase,guardSeen=false;
+   const effects=new Set(),time=Date.now();
+   for(const seed of [189,48,84,109,133,345,522,789,1599,2173]){
+    const handler=createMatchHandler90({
+     env:key=>({SUPABASE_URL:'https://db90.test',SUPABASE_SERVICE_ROLE_KEY:'isolated'})[key],seed:()=>seed,now:()=>time,
+     fetcher:async(url,opt)=>{
+      if(url.endsWith('/auth/v1/user'))return Response.json({id:({a,b})[opt.headers.Authorization.slice(7)],email_confirmed_at:'2026-11-26'});
+      try{await db.exec('reset role;set role service_role');return Response.json(await rpc(db,url.split('/').at(-1),JSON.parse(opt.body)));}
+      catch(e){return Response.json({message:e.message,code:e.code},{status:400});}
+     }
+    });
+    async function call(player,body){
+     const res=await handler(new Request('https://memex.test/api/duel',{method:'POST',headers:{Authorization:'Bearer '+player},body:JSON.stringify(body)}));
+     const output=await res.json();
+     assert.equal(res.status,200,JSON.stringify(output));
+     return output;
+    }
+    let x=await call('a',{op:'join',kind,deckId:decks[a]});
+    match=x.id;
+    assert.equal((await call('b',{op:'join',kind,deckId:decks[b],code:x.code??null})).id,match);
+    const poll=player=>call(player,{op:'poll',id:match});
+    const move=(player,move)=>call(player,{op:'move',id:match,version:x.version,requestId:uid(sequence++),move});
+    x=await poll('a');
+    x=await move('a',{kind:'gesture',value:'rock'});
+    x=await move('b',{kind:'gesture',value:'scissors'});
+    x=await move('a',{kind:'starter',side:starter});
+    assert.equal(x.game.iconicAbilityWave,CURRENT_ICONIC_WAVE);
+    for(let turn=0;turn<18;turn++){
+     const client=x.game.turn===0?'a':'b';
+     const view=client==='a'?x:await poll('b');
+     const legal=legalCandidates(view.game);
+     const option=legal.find(item=>item.action.recallCell)
+      ??legal.find(item=>item.plan.handDisrupted)
+      ??legal.find(item=>item.action.cycleUid)
+      ??(turn===17?legal.find(item=>item.plan.finalGuard):undefined)
+      ??chooseTactic(view.game,{policy:'position'}).chosen;
+     assert.ok(option);
+     x=await move(client,{kind:'place',action:option.action});
+     if(client==='b')x=await poll('a');
+     assert.equal(x.game.placements,turn+1);
+     if(x.game.last.handCycled)effects.add('cycle');
+     if(x.game.last.recalledCell)effects.add('recall');
+     if(x.game.last.handDisrupted)effects.add('discard');
+    }
+    phase=x.phase;
+    assert.equal(phase,'between');
+    const recalled=x.game.history.some(move=>move.recalledCell);
+    const score=scores(x.game);
+    assert.equal(score[0]+score[1],recalled?17:18);
+    assert.deepEqual(x.results[0],score);
+    assert.deepEqual((await poll('b')).results[0],score.toReversed());
+    guardSeen||=recalled&&abilityMarkers(x.game,null).some(marker=>marker.kind==='final-guard');
+    await db.exec('reset role');
+    const rewards=(await db.query('select award from public.dv_pvp_rounds90 where match_id=$1 order by user_id',[match])).rows;
+    assert.deepEqual(rewards.map(row=>row.award),kind==='private'?[]:[0,1].map(side=>side===x.game.winner?5:2));
+    assert.equal((await db.query('select completed from public.dv_balance_rounds94 where match_id=$1',[match])).rows[0].completed,true);
+    await call('a',{op:'leave',id:match});
+    if(effects.size===3&&guardSeen)break;
+   }
+   assert.deepEqual([...effects].sort(),['cycle','discard','recall']);
+   assert.ok(guardSeen);
+   outcomes.push({kind,starter,effects:[...effects],guardSeen});
+  }
+  t.diagnostic(JSON.stringify(outcomes));
  }finally{await db.close();}
 });

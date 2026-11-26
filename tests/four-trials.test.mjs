@@ -9,7 +9,7 @@ import {guideAbilities} from '../src/app/how-to-play/ability-reference.mjs';
 import {abilityIconTextureSvg} from '../public/game/src/card-ability-icon.mjs';
 import {placementKey135} from '../server/game/opponent-model135.mjs';
 import {createPvp90,advancePvp90,projectPvp90} from '../server/game/pvp90.mjs';
-import {CURRENT_ICONIC_WAVE,actionOptions,placeEffect,previewEffect} from '../public/game/src/table-demo-rules.mjs';
+import {CURRENT_ICONIC_WAVE,TACTICAL_REWORK_WAVE,actionOptions,placeEffect,previewEffect} from '../public/game/src/table-demo-rules.mjs';
 
 const card=(id,side,rotation=0,ability)=>({...expandGameDeck([id+':common'],side)[0],uid:side+':'+id,controller:side,rotation,ability});
 const play=(card,cell='0,0')=>({uid:card.uid,cell,rotation:0});
@@ -106,7 +106,7 @@ test('new duels and the guide pick the new abilities while old duel snapshots ke
   const held=card(motif,0);
   const rules={allPrimes:true,iconicAbilities:true,iconicAbilityWave:CURRENT_ICONIC_WAVE};
   assert.equal(portalTrialAbility(rules,held),key);
-  assert.equal(portalTrialAbility({...rules,iconicAbilityWave:CURRENT_ICONIC_WAVE-1},held),oldKey);
+  assert.equal(portalTrialAbility({...rules,iconicAbilityWave:TACTICAL_REWORK_WAVE-1},held),oldKey);
   assert.ok(guideAbilities.some(entry=>entry.id===key));
   assert.ok(abilityIconTextureSvg(key));
  }

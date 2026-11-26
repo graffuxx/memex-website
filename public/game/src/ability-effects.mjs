@@ -1,5 +1,5 @@
-import {blockadeLocked,sideValue} from './rules.mjs?v=tactical-rework';
-import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=tactical-rework';
+import {blockadeLocked,sideValue} from './rules.mjs?v=hand-effects-46';
+import {abilityEdge,wardEdge,awkwardEdges,pabloWaiting,jamActive,effectStrength,AMBUSH_BONUS,PHALANX_BONUS,phalanxFormations,abilityAt,clingPartner,guardActive,guardBonus,laughActive} from './table-demo-rules.mjs?v=hand-effects-46';
 
 const SVG='http://www.w3.org/2000/svg';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -57,6 +57,9 @@ export function abilityMarkers(game,plan,{finalGuardLabel='SCHLUSSSCHUTZ',blinkL
   if(plan?.plot)markers.push({kind:'plotTwist',cell:plan.plot.cell,preview:true,label:'ϟ'});
   if(plan?.patience)markers.push({kind:'patience',cell:plan.patience.cell,preview:true,label:`+${plan.patience.amount}`});
   if(plan?.overload)markers.push({kind:'overload',cell:plan.cell,preview:true,label:`−${plan.overload.cost}`});
+  if(plan?.cycleUid)markers.push({kind:'handCycle',cell:plan.cell,preview:true,label:'⇆'});
+  if(plan?.recallCell)markers.push({kind:'boardRecall',cell:plan.recallCell,preview:true,label:'↥'});
+  if(plan?.handDisrupted)markers.push({kind:'handDisrupt',cell:plan.cell,preview:true,label:'✦'});
   if(plan?.ability){
    const working={...game,board:plan.board};
    const edge=abilityEdge(working,plan.card,plan.cell,{attacking:true,direction:plan.abilityDirection})??abilityEdge(working,plan.card,plan.cell);
@@ -119,6 +122,9 @@ export function abilityBursts(game,{blinkLabel='BLINZLER'}={}){
   if(last.plot)played.push({kind:'plotTwist',cell:last.plot.cell,label:'ϟ'});
   if(last.patienceArmed)played.push({kind:'patience',cell:last.cell,label:'⌛'});
   if(last.patience)played.push({kind:'patience',cell:last.patience.cell,label:`+${last.patience.amount}`});
+  if(last.handCycled)played.push({kind:'handCycle',cell:last.cell,label:'⇆'});
+  if(last.recalledCell)played.push({kind:'boardRecall',cell:last.recalledCell,label:'↥'});
+  if(last.handDisrupted)played.push({kind:'handDisrupt',cell:last.cell,label:'✦'});
   if(last.overload)played.push({kind:'overload',cell:last.cell,label:`−${last.overload.cost}`});
   if(last.waiting)played.push({kind:'relay',cell:last.cell,label:'⌛'});
   if(last.swapCells)for(const cell of last.swapCells)played.push({kind:last.relay?'relay':ability,cell,label:'⇄'});

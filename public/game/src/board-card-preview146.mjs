@@ -3,12 +3,12 @@ import {DEFINITIONS,getVariant} from '../platform/catalog.mjs';
 import {ELEMENTS,elementSvg} from '../platform/elements53.mjs';
 import {alphaNameplateMarkup} from '../platform/edition36.mjs';
 import {cardOf,sideValue} from './rules.mjs?v=booster-classes-140';
-import {ABILITIES,abilityDescription,laughActive} from './table-demo-rules.mjs?v=tactical-rework';
-import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=tactical-rework';
+import {ABILITIES,abilityDescription,laughActive} from './table-demo-rules.mjs?v=hand-effects-46';
+import {cardAbilityIconMarkup} from './card-ability-icon.mjs?v=hand-effects-46';
 import {DEMO_PROFILES} from './table-demo-state.mjs?v=round-emblems';
 import {FRAME_LAYOUT} from './card-layout21.mjs';
 import {materialFrameUrl,materialOf} from './card-materials22.mjs';
-import {displayedEdgeValue129,fieldFeedback129} from './field-feedback129.mjs?v=tactical-rework';
+import {displayedEdgeValue129,fieldFeedback129} from './field-feedback129.mjs?v=hand-effects-46';
 
 const definitions=new Map(DEFINITIONS.map(card=>[card.id,card]));
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

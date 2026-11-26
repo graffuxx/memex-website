@@ -1,6 +1,6 @@
 import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
-import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=tactical-rework';
+import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=hand-effects-46';
 
 import {BETA_CARDS} from '../platform/beta-cards.mjs';
 import {betaAdjustment,stageBetaChoice,betaParkour,betaCliffhanger,finishBetaMove,betaOptions} from './beta-rules.mjs';
@@ -14,7 +14,10 @@ export const SWIPE_MAX_DEFENSE=2;
 export const STEVE_LOOT_WARD=2;
 const STEVE_REWORK_WAVE=9;
 export const TACTICAL_REWORK_WAVE=10;
-export const CURRENT_ICONIC_WAVE=TACTICAL_REWORK_WAVE;
+export const HAND_EFFECTS_WAVE=11;
+export const CURRENT_ICONIC_WAVE=HAND_EFFECTS_WAVE;
+export const ROUND_PLACEMENTS=18;
+export const RECALL_EDGE_BONUS=2;
 export const PIGEON_MAX_REDUCTION=2;
 export const CHASE_PENALTY=2;
 export const OBJECTION_MAX_MARGIN=2;
@@ -46,6 +49,9 @@ export const ABILITIES={
  rage:{name:'Iconic · Rage Pivot',short:'◆',description:'Liegst du zurück, kannst du nach dem Ausspielen die Blockade bis zu zwei freie Felder weit verschieben. Das verbraucht deinen Blockadezug dieser Runde.'},
  buttons:{name:'Iconic · Zwei Knöpfe',short:'↗',description:'Rot: +2 Angriff für einen Zusatzflip. Blau: +2 Schutz auf der schwächsten freien Seite bis zu deinem nächsten Zug.'},
  exchange:{name:'Iconic · Change My Mind',short:'⇄',description:'Tausche beim Ausspielen den Platz mit einer benachbarten eigenen Standardkarte. Change My Mind greift vom neuen Platz aus an.'},
+ handCycle:{name:'Iconic · Hand wechseln',short:'⇆',description:'Beim Ausspielen darfst du eine andere Handkarte unters Deck legen und eine neue ziehen. Danach ziehst du wie gewohnt für deinen Zug.'},
+ boardRecall:{name:'Prime · Zurück auf die Hand',short:'↥',description:`Beim Ausspielen darfst du eine Standardkarte aus deinem Deck auf die Hand zurücknehmen, wenn sie dir auf dem Feld gehört. Ihre schwächste Seite erhält +${RECALL_EDGE_BONUS}. Danach ziehst du normal.`},
+ handDisrupt:{name:'Prime · Hand stören',short:'✦',description:'Wenn NUMA NUMA eine Karte flippt, wirft der Gegner eine zufällige Handkarte ab und zieht sofort Ersatz. Das gilt, solange der Gegner noch einen Zug und Karten im Stapel hat.'},
  luxury:{name:'Iconic · Luxusproblem',short:'⇄',description:'Tausche beim Ausspielen die 4 mit einer 2. Eine der beiden Kanten muss auf eine Gegnerkarte zeigen, die andere auf ein freies Feld. Die Werte bleiben danach getauscht.'},
  wander:{name:'Iconic · Falsche Richtung',short:'↶',description:'Wenn das Ausspielfeld keine Gegnerkarte berührt, kannst du diese Karte beim Legen einen Schritt nach links oder rechts drehen.'},
  sidestep:{name:'Iconic · Platz machen',short:'↝',description:'Beim Legen darfst du eine benachbarte eigene Standardkarte um ein Feld ziehen. Das Ziel muss frei sein und an Greg grenzen. Die Karte behält ihre Ausrichtung. Eben geflippte Karten bleiben liegen.'},
@@ -123,6 +129,7 @@ const RELEASED_ICONICS={
 export function releasedIconicAbility(card,wave=1){
  const entry=RELEASED_ICONICS[cardOf(card)?.id];
  if(!entry||wave<entry[0])return null;
+ if(entry[1]==='luxury'&&wave>=HAND_EFFECTS_WAVE)return 'handCycle';
  if(entry[1]==='ambush'&&wave>=TACTICAL_REWORK_WAVE)return 'plotTwist';
  return entry[1]==='swipe'&&wave>=STEVE_REWORK_WAVE?'loot':entry[1];
 }
@@ -138,6 +145,10 @@ const TACTICAL_PRIME_ABILITIES={
 };
 export function releasedPrimeAbility(card,includePair=false,allPrimes=false,wave=0){
  const id=cardOf(card)?.id;
+ if(allPrimes&&wave>=HAND_EFFECTS_WAVE){
+  if(id==='prime-here-we-go-again')return 'boardRecall';
+  if(id==='prime-numa-numa')return 'handDisrupt';
+ }
  if(allPrimes&&wave>=TACTICAL_REWORK_WAVE&&TACTICAL_PRIME_ABILITIES[id])return TACTICAL_PRIME_ABILITIES[id];
  if(allPrimes)return PRIME_ABILITIES[id]??null;
  if(id==='prime-numa-numa')return 'chorus';
@@ -473,6 +484,29 @@ export function previewEffect(game,action){
  return {...(choice==='attack'?attackPlan:plan),buttonChoice:choice,buttonAttack:attack,buttonDefense:defense};
 }
 
+function handCycleTargets(game,uid){
+ const {hand,deck}=game.players[game.turn];
+ return game.placements<ROUND_PLACEMENTS-2&&deck.length>=2?hand.filter(card=>card.uid!==uid).map(card=>card.uid):[];
+}
+function boardRecallTargets(game){
+ if(game.placements>=ROUND_PLACEMENTS-2)return [];
+ return Object.entries(game.board).filter(([,card])=>card.origin===game.turn&&card.controller===game.turn&&Boolean(standardAbility(card))).map(([cell])=>cell);
+}
+function disruptionIndex(game,uid,length){
+ // The server holds the shuffle seed. Stable across retries, independent of the opponent's card identities.
+ let hash=(game.seed??0)^Math.imul(game.placements+1,0x9e3779b9);
+ for(const char of uid)hash=Math.imul(hash^char.charCodeAt(0),0x01000193);
+ return (hash>>>0)%length;
+}
+export function recalledCard(card){
+ const held={};
+ for(const key of ['id','uid','origin','variantId','element','rarity','ability','beta'])if(card[key]!==undefined)held[key]=card[key];
+ const values=cardOf(card).values;
+ const weakest=Math.min(...values.filter(value=>!isSRank126(value)));
+ held.edgeCopy={dir:values.indexOf(weakest),value:weakest+RECALL_EDGE_BONUS};
+ return held;
+}
+
 function resolvePlacement(game,action,buttonAttackDir=null){
  const {uid,cell,rotation=0,abilityDirection=0,twistCell=null,blockadeCell=null,swapCells=null,stepCells=null,valueSwap=null,selfTurn=0,bidDirection=null,pivotCapture=false,pivotDirection=pivotCapture?1:0}=action;
  const plotTarget=action.plotTarget??null;
@@ -501,6 +535,12 @@ function resolvePlacement(game,action,buttonAttackDir=null){
  if(!Number.isInteger(abilityDirection)||abilityDirection<0||abilityDirection>5)throw Error('Ungültige Fähigkeitsrichtung.');
  for(const [cell,old] of Object.entries(working.board))if(old.guardOwner===game.turn){const c={...old};delete c.guardOwner;delete c.guardUntil;delete c.guardDirection;working.board[cell]=c;}
  const card={...held,rotation,controller:game.turn,flips:0},ability=abilityAt(working,card,cell),transforms=[];
+ const cycleUid=action.cycleUid??null,recallCell=action.recallCell??null;
+ const cycleTargets=ability==='handCycle'?handCycleTargets(game,uid):[];
+ const recallTargets=ability==='boardRecall'?boardRecallTargets(game):[];
+ if(cycleUid!==null&&!cycleTargets.includes(cycleUid))throw Error('Diese Handkarte kann nicht gewechselt werden.');
+ if(recallCell!==null&&!recallTargets.includes(recallCell))throw Error('Diese Brettkarte kann nicht zurück auf die Hand.');
+
  if(blockadeCell!==null&&!dash&&(ability!=='rage'||!rageTargets(working,cell).includes(blockadeCell)))throw Error('Kein gültiges Blockadeziel.');
  if(twistCell!==null){if(!turnsCards(ability)||!twistTargets(working,cell,ability).includes(twistCell))throw Error('Kein gültiges Drehziel.');const target={...working.board[twistCell]};working.board[twistCell]=target;transforms.push({cell:twistCell,uid:target.uid,from:target.rotation,to:(target.rotation+1)%6});target.rotation=(target.rotation+1)%6;}
  if(![-1,0,1].includes(selfTurn)||selfTurn&&(ability!=='retry'&&(ability!=='wander'||!canTurnSelf(working,cell))))throw Error('Diese Ausrichtung ist hier nicht möglich.');
@@ -890,9 +930,14 @@ function resolvePlacement(game,action,buttonAttackDir=null){
  const ward=captured?{cell:captured.cell,dir:captured.dir}:null;
  const blockadeMove=dash||blockadeCell!==null?{from:game.block,to:dash??blockadeCell}:null;
  const roundhouse=followUp?.flip?{source:followUp.source,cell:followUp.redirect??followUp.cell,dir:followUp.dir}:null;
+ const opponent=game.players[1-game.turn];
+ const handDisrupted=ability==='handDisrupt'&&flips.length>0&&game.placements<ROUND_PLACEMENTS-1
+  &&opponent.hand.length>0&&opponent.deck.length>0;
+
  return {card,cell,ability,abilityDirection,betaLanding,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir),roundhouse,thought:thought?.flip?thought.redirect??thought.cell:null,
   plotTargets:plotTargets.map(hit=>hit.cell),plotTarget,plot:plot?.flip?{cell:plot.redirect??plot.cell,margin:plot.defend.total-plot.attack.total}:null,
   overloadTargets:overloadTargets.map(hit=>hit.cell),overloadTarget,overload:overloadHit?.flip?{cell:overloadHit.redirect??overloadHit.cell,amount:overloadBonus,cost:OVERLOAD_COST}:null,
+  cycleTargets,cycleUid,recallTargets,recallCell,handDisrupted,
   patienceArmed,patience:patientHit?.flip?{cell:patientHit.redirect??patientHit.cell,amount:patienceBonus}:null};
 }
 
@@ -945,6 +990,21 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  }
  if(p.blockadeMove){next.block=p.blockadeMove.to;if(!p.dash)player.shifts--;}
  if(p.bid!==null)player.shifts--;
+ if(p.cycleUid!==null){
+  const [cycled]=player.hand.splice(player.hand.findIndex(card=>card.uid===p.cycleUid),1);
+  player.hand.push(player.deck.shift());
+  player.deck.push(cycled);
+ }
+ if(p.recallCell!==null){
+  player.hand.push(recalledCard(next.board[p.recallCell]));
+  delete next.board[p.recallCell];
+ }
+ if(p.handDisrupted){
+  const opponent=next.players[1-side];
+  const index=disruptionIndex(game,action.uid,opponent.hand.length);
+  const [discarded]=opponent.hand.splice(index,1,opponent.deck.shift());
+  (opponent.discard??=[]).push(discarded);
+ }
  if(p.blockadeLock)next.blockadeLock=p.blockadeLock;
  else if(next.blockadeLock&&next.blockadeLock.until<=game.placements+1)delete next.blockadeLock;
  player.flips+=p.flips.length;next.placements++;
@@ -997,6 +1057,9 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  if(p.blink)next.last.blink=p.blink;
  const tieBlocks=p.comparisons.filter(c=>c.tieProtected).map(c=>({cell:c.cell,dir:(c.dir+3)%6}));
  if(tieBlocks.length)next.last.tieBlocks=tieBlocks;
+ if(p.cycleUid!==null)next.last.handCycled=true;
+ if(p.recallCell!==null)next.last.recalledCell=p.recallCell;
+ if(p.handDisrupted)next.last.handDisrupted=true;
  if(p.valueSwap)next.last.valueSwap=p.valueSwap;
  if(p.selfTurn)next.last.selfTurn=p.selfTurn;
  if(p.blockadeLock)next.last.blockadeLock=true;
@@ -1021,7 +1084,7 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  finishBetaMove(game,next,action,p);
  if(p.betaLanding){next.last.betaLanding=p.betaLanding;next.last.relocation={uid:p.card.uid,from:action.cell,to:p.betaLanding};}
  next.history.push(next.last);
- if(freeCells(next).length===0){next.finished=true;const s=scores(next);next.winner=s[0]===s[1]?null:s[0]>s[1]?0:1;}
+ if(next.placements>=ROUND_PLACEMENTS||freeCells(next).length===0){next.finished=true;const s=scores(next);next.winner=s[0]===s[1]?null:s[0]>s[1]?0:1;}
  if(!next.finished&&chooseDraw&&p.ability==='buttons'&&!game.abilityRework&&player.deck.length>=2){
   next.pendingDraw={side};
  }else{
@@ -1044,6 +1107,12 @@ export function actionOptions(game,card,cell,rotation){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};
   const plan=previewEffect(game,action);
   return [action,...(plan.buttonAttack?[{...action,buttonChoice:'attack'}]:[]),...(plan.buttonDefense!==null?[{...action,buttonChoice:'defense'}]:[])];
+ }
+ if(ability==='handCycle'||ability==='boardRecall'){
+  const action={uid:card.uid,cell,rotation,abilityDirection:0};
+  const targets=ability==='handCycle'?handCycleTargets(game,card.uid):boardRecallTargets(game);
+  const key=ability==='handCycle'?'cycleUid':'recallCell';
+  return [action,...targets.map(target=>({...action,[key]:target}))];
  }
  if(ability==='luxury')return [null,...valueSwapTargets(game,card,cell,rotation)].map(valueSwap=>({uid:card.uid,cell,rotation,abilityDirection:0,valueSwap}));
  if(ability==='wander'&&canTurnSelf(game,cell))return [0,-1,1].map(selfTurn=>({uid:card.uid,cell,rotation,abilityDirection:0,selfTurn}));
