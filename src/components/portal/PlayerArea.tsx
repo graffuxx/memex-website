@@ -12,7 +12,9 @@ export default function PlayerArea({children}:{children:ReactNode}){
  const {ready,userId,player,testMode}=usePlayerCollection(),path=usePathname();
  const visible=ready&&userId&&!testMode&&playerAreaRoute(path);
  if(!visible)return <>{children}</>;
- return <div className="player-area"><header className="player-area-bar"><nav aria-label="Player area">{PLAYER_LINKS.map(([url,label])=><a key={url} href={url} aria-current={path===url?'page':undefined}>{label}</a>)}</nav><div className="player-area-tools"><PlayerBalances ready={ready} userId={userId} player={player}/><PlayerAccountActions/></div></header><div className="player-area-content">{children}</div></div>;
+ return <div className="player-area"><header className="player-area-bar"><nav aria-label="Player area">{PLAYER_LINKS.map(([url,label])=>(
+  <a key={url} href={url} className={url==='/decks'?'player-decks-link':undefined} aria-current={path===url?'page':undefined}>{label}</a>
+ ))}</nav><div className="player-area-tools"><PlayerBalances ready={ready} userId={userId} player={player}/><PlayerAccountActions/></div></header><div className="player-area-content">{children}</div></div>;
 }
 export function PlayerAreaGate({children}:{children:ReactNode}){
  const {ready,userId,player,error,refresh}=usePlayerCollection(),[retrying,setRetrying]=useState(false);

@@ -22,3 +22,14 @@
 @media(max-width:1200px){.dv-portal .player-area-bar{flex-wrap:wrap;gap:12px}.dv-portal .player-area-tools{flex:1;justify-content:space-between;gap:14px}.dv-portal .player-area-content>.deck-builder{height:calc(100svh - 215px)}}
 @media(max-width:768px){.dv-portal .player-area-tools{width:100%;justify-content:space-between;gap:14px}.dv-portal .player-account-controls{margin-left:auto;padding-left:12px}.dv-portal .player-area-bar .player-area-tools .alpha-wallet{padding-left:0;gap:16px}}
 @media(max-width:520px){.dv-portal .player-area-tools{flex-direction:column;align-items:stretch;gap:12px}.dv-portal .player-account-controls{width:100%;margin:0;padding:0;border-left:0}.dv-portal .player-account-controls>a,.dv-portal .player-account-controls>button{flex:1;min-height:44px}.dv-portal .player-area-bar .player-area-tools .alpha-wallet{width:100%;justify-content:space-between;padding:0 3px}}
+
+.dv-portal .player-area-bar nav .player-decks-link:not([aria-current]){
+  border-color:#c4a2ef52;
+  background:#9d69cf1c;
+  color:#eedbff;
+}
+
+.dv-portal .player-area-bar nav .player-decks-link:not([aria-current]):is(:hover,:focus-visible){
+  border-color:#d3b3f39c;
+  background:#9d69cf38;
+}
