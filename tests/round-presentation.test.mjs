@@ -38,3 +38,22 @@ test('the result callout leaves the arena automatically without replaying its vo
  f.controller.finish(1,{score:[8,10]});assert.equal(f.root.hidden,false);assert.equal(f.node('title').textContent,'DEFEAT');
  f.fire();assert.equal(f.root.hidden,true);assert.deepEqual(f.voices,['intro','defeat']);assert.equal(f.controller.finish(1,{score:[8,10]}),false);
 });
+
+test('private final results keep the title and custom controls visible until navigation',()=>{
+ for(const [score,results,title] of [
+  [[10,8],[[12,6],[10,8]],'VICTORY'],
+  [[8,10],[[6,12],[8,10]],'DEFEAT']
+ ]){
+  const f=fixture();
+  f.controller.restore(2);
+  assert.equal(f.controller.finish(2,{round:2,score,results,persistent:true}),true);
+  f.fire();
+  assert.equal(f.controller.dismiss(),false);
+  assert.equal(f.root.hidden,false);
+  assert.equal(f.root.dataset.persistent,'true');
+  assert.equal(f.node('title').textContent,title);
+  for(const id of ['score','detail','label','actions'])assert.equal(f.node(id).hidden,true);
+  f.controller.cancel();
+  assert.equal(f.root.hidden,true);
+ }
+});

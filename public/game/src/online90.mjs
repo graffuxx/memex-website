@@ -17,7 +17,7 @@ import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs
 import {createVoidAtmosphere} from './void-atmosphere.mjs?v=void-painted-2';
 import {createTableAudio} from './table-audio.mjs?v=arcade-voices';
 import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
-import {bindRoundCeremony} from './round-ceremony42.mjs?v=private-rematch';
+import {bindRoundCeremony} from './round-ceremony42.mjs?v=private-result-48';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
 import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),id=params.get('match'),muted=params.get('mute')==='1',stage=$('stage'),svg=$('interaction');
@@ -47,23 +47,19 @@ function clock(){const sec=remaining===null?0:Math.max(0,Math.ceil((remaining-(D
  if(!timer.hidden){const label='Time remaining: '+sec+' s';if(timer.textContent!==label)timer.textContent=label;}
  $('turnTimer').hidden=!game||data.phase!=='play';$('timerLabel').textContent=game?.pendingDraw?'DRAW CHOICE':(data?.afkStreak?.[game?.turn]??0)>=2?'AFK · 3 SEKUNDEN':game?.turn===0?'YOUR TURN':'OPPONENT TURN';$('timerValue').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');$('timerFill').style.transform='scaleX('+Math.max(0,sec/(game?.pendingDraw?15:(data?.afkStreak?.[game?.turn]??0)>=2?3:90))+')';$('turnTimer').dataset.state=sec<=5?'critical':sec<=15?'warning':'normal';}
 function renderRematch(){
- const offer=data?.rematch,panel=$('rematchPanel');
- panel.hidden=!offer||!game?.finished||animating;
- if(panel.hidden)return;
- const waiting=offer.ownReady;
- const status=$('rematchStatus');
- const label=waiting?'Deine Zusage ist gespeichert. Warte auf den Gegner.'
-  :offer.opponentReady?'Dein Gegner ist bereit für ein Rematch.':'Spielt noch einmal mit denselben Spielern.';
- if(status.textContent!==label)status.textContent=label;
- $('rematchAction').textContent=waiting?'Rematch absagen':'Rematch';
- $('rematchAction').disabled=working||Boolean(offer.nextMatchId);
+ const offer=data?.rematch,controls=$('rematchControls');
+ controls.hidden=!offer||!game?.finished||animating;
+ $('rematchError').hidden=controls.hidden||!rematchError;
+ if(controls.hidden)return;
+ const waiting=offer.ownReady,action=$('rematchAction');
+ action.textContent=waiting?'Rematch absagen':offer.opponentReady?'Rematch annehmen':'Rematch';
+ action.disabled=working||Boolean(offer.nextMatchId);
  $('rematchEdit').hidden=$('rematchHome').hidden=waiting;
  $('rematchEdit').href=rematchDeckUrl(id,{
   deckId:selectedRematchDeck??offer.previousDeckId,
   format:selectedRematchDeck?params.get('format'):offer.previousDeckFormat,muted
  });
- $('rematchError').hidden=!rematchError;
- $('rematchError').textContent=rematchError;
+ if($('rematchError').textContent!==rematchError)$('rematchError').textContent=rematchError;
 }
 function render(){
  $('leaveDuel112').hidden=data?.phase==='ended';
@@ -159,7 +155,7 @@ async function accept(next){
  if(lastRound!==next.round){flipCombo.clear();$('gameRoundReward').hidden=true;ceremony.cancel();if(game.placements===0&&!game.finished)await ceremony.intro(next.round,{round:next.round,starter:game.starter,motion:$('motion').checked});else ceremony.restore(next.round);check();lastRound=next.round;}
  });}finally{animating=false;}
  render();rps();
- if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked,hideActions:Boolean(next.rematch),autoContinueMs:next.rematch?undefined:next.phase==='ended'?5000:Math.max(0,next.remainingMs??8000)});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}
+ if(game.finished){const key=id+':'+next.round;if(lastEnd!==key){lastEnd=key;ceremony.finish(next.round,{round:next.round,match:true,results:next.results,score:scores(game),motion:$('motion').checked,persistent:Boolean(next.rematch),autoContinueMs:next.rematch?undefined:next.phase==='ended'?5000:Math.max(0,next.remainingMs??8000)});}if(next.kind==='random'){$('gameRoundReward').hidden=false;const award=game.winner===0?5:2;$('gameRoundReward').textContent='+'+award+' Pixels'+(award===5?' · +100 XP':'')+' · Random round saved';}}
 
 }
 async function move(input){if(leaving112||working||animating||!client||!view||!data)return;

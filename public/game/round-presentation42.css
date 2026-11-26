@@ -4,6 +4,8 @@
 .round-presentation[data-kind=defeat]{--result:#ff628b;--result-light:#ffdbe5}.round-presentation[data-kind=draw]{--result:#78cfff;--result-light:#e0f7ff}
 .round-presentation[data-kind=intro]{--callout-time:2.8s}.round-presentation[data-voice=rematch]{--callout-time:3.2s}
 .round-announcement{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%;min-width:0;padding:20px 12px;color:#f6eeff;filter:drop-shadow(0 5px 9px #000b);animation:callout-dismiss .22s ease-in calc(var(--callout-time) - .24s) both}
+/* Keep the impact animation on the title; only transient announcements fade out. */
+.round-presentation[data-persistent=true] .round-announcement{animation:none}
 .round-crest{display:none}
 .round-announcement>small{display:flex;align-items:center;gap:12px;font:800 14px/1.4 'Barlow Condensed',sans-serif;letter-spacing:5px;color:#f4ebff;text-shadow:0 2px 3px #000;margin-bottom:4px;animation:callout-label .3s ease-out both}
 .round-announcement>small::before,.round-announcement>small::after{content:'';width:34px;height:2px;background:var(--result);box-shadow:0 0 10px #d5a5ff55}
