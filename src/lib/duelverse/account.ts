@@ -64,6 +64,7 @@ export async function tradeCard(requestId:string,kind:'craft'|'dismantle',varian
 }
 
 export type BoosterCurrency='pixels'|'shards';
+export type BoosterProduct='alpha'|'beta';
 export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency|'starter'|'quest';cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
 const boosterFields='id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots,created_at';
 export async function loadBoosterHistory({limit=20,before=null,openedOnly=false}:{limit?:number;before?:{id:string;created_at:string}|null;openedOnly?:boolean}={}):Promise<BoosterPurchase[]>{
@@ -74,9 +75,9 @@ export async function loadBoosterHistory({limit=20,before=null,openedOnly=false}
  const {data,error}=await query;
  if(error)throw Error('Your booster history could not be loaded. Please try again.');return (data??[]) as BoosterPurchase[];
 }
-export async function countUnopenedAlphaBoosters():Promise<number>{
+export async function countUnopenedBoosters():Promise<number>{
  const {count,error}=await supabase.from('dv_booster_purchases36')
-  .select('id',{count:'exact',head:true}).eq('product_id','alpha').not('revealed_slots','cs','{0,1,2,3,4}');
+  .select('id',{count:'exact',head:true}).in('product_id',['alpha','beta']).not('revealed_slots','cs','{0,1,2,3,4}');
  if(error||count===null)throw Error('Your unopened boosters could not be counted. Please try again.');
  return count;
 }
@@ -93,8 +94,8 @@ export async function findBoosterRequest(requestId:string):Promise<BoosterPurcha
  if(error)throw Error('Your purchase status could not be checked. Please retry.');return data as BoosterPurchase|null;
 }
 export class BoosterPurchaseError extends Error{constructor(message:string,public definitive=false){super(message);}}
-export async function buyAlphaBooster(requestId:string,currency:BoosterCurrency):Promise<string>{
- const {data,error}=await supabase.rpc('dv_buy_alpha_booster',{p_request:requestId,p_currency:currency});
+export async function buyAlphaBooster(requestId:string,currency:BoosterCurrency,product:BoosterProduct='alpha'):Promise<string>{
+ const {data,error}=await (product==='beta'?supabase.rpc('dv_buy_beta_booster',{p_request:requestId}):supabase.rpc('dv_buy_alpha_booster',{p_request:requestId,p_currency:currency}));
  if(error){const known=['Not enough Pixels','Not enough Shards','Collection limit reached','Invalid booster purchase','Booster catalog unavailable'];throw new BoosterPurchaseError(known.includes(error.message)?error.message:'The purchase could not be confirmed. Retry this same request to restore it safely.',known.includes(error.message));}
  if(typeof data!=='string')throw new BoosterPurchaseError('The purchase response could not be read. Retry this same request.');return data;
 }
@@ -105,7 +106,7 @@ export async function revealBoosterCard(boosterId:string,slot:number):Promise<vo
 export async function loadUnopenedBoosters():Promise<BoosterPurchase[]>{
  const rows:BoosterPurchase[]=[],seen=new Set<string>();let cursor:{id:string;created_at:string}|null=null;
  for(;;){
-  let query=supabase.from('dv_booster_purchases36').select(boosterFields).eq('product_id','alpha').not('revealed_slots','cs','{0,1,2,3,4}').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(100);
+  let query=supabase.from('dv_booster_purchases36').select(boosterFields).in('product_id',['alpha','beta']).not('revealed_slots','cs','{0,1,2,3,4}').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(100);
   if(cursor)query=query.or(boosterHistoryFilter(cursor));
   const {data,error}=await query;if(error)throw Error('Your unopened boosters could not be loaded. Please retry.');
   const page=(data??[]) as BoosterPurchase[];for(const p of page){if(seen.has(p.id))throw Error('Your unopened boosters could not be loaded completely.');seen.add(p.id);}rows.push(...page);if(page.length<100)return rows;

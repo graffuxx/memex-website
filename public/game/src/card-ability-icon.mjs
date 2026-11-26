@@ -2,6 +2,17 @@ import {FRAME_LAYOUT} from './card-layout21.mjs';
 
 export const ABILITY_ICON_SIZE=.228;
 const symbols={
+ 'beta-cinema':{color:'#ffd28e',path:'M3 11h18v9H3zM3 8l17-4 1 4-17 4M8 7l3 3m3-5 3 4'},
+ 'beta-hamster':{color:'#83ccff',path:'M11 3C9 8 5 12 5 16a6 6 0 0 0 12 0c0-4-4-8-6-13zm7 2v5m-2-2 2 2 2-2'},
+ 'beta-tpose':{color:'#e8c686',path:'M12 4h.1M3 9h18m-9-3v8m0 0-4 7m4-7 4 7'},
+ 'beta-continued':{color:'#a4efdb',path:'M3 17c5 0 6-8 12-8h5m-4-4 4 4-4 4M5 7h3m-5 4h3'},
+ 'beta-hackerman':{color:'#cfabff',path:'m8 6-5 6 5 6m8-12 5 6-5 6m-4-1 1-10'},
+ 'beta-spicy':{color:'#ff9f73',path:'M9 4c0 4-5 5-5 11a5 5 0 0 0 10 0c0-3-1-4-2-5m4-5c0 3 4 4 4 7a3 3 0 0 1-2 3'},
+ 'beta-headout':{color:'#8bd9ff',path:'M14 4H5v16h9m-5-8h12m-4-4 4 4-4 4'},
+ 'beta-highground':{color:'#f2d09a',path:'M3 20h6v-5h5v-5h7m-5-4 3-3 3 3m-3-3v5'},
+ 'beta-parkour':{color:'#abfbe8',path:'M3 12c3-7 12-7 17 0m-5-1 5 1-1-5M8 20v-5h7v5'},
+ 'beta-over9000':{color:'#e5b7ff',path:'M3 17a9 9 0 1 1 18 0H3zm9-1 5-7M6 13h.1m6-5h.1'},
+
  hype:{color:'#ffe6a5',path:'M14 2 5 14h7l-2 8 9-12h-7z',solid:true},
  guard:{color:'#ffe6a5',path:'M12 2.5 20 6v5c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V6z'},
  twist:{color:'#ffe6a5',path:'M20 4v5h-5M20 9a8 8 0 1 0 .1 6'},

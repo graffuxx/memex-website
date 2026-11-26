@@ -51,7 +51,7 @@ for(const starter of [0,1]){
     (side===1?known:hidden).add(c.ability);
    }
   }
-  assert.equal(known.size,40);
+  assert.equal(known.size,50);
   assert.ok(hidden.size>=25);
   const {state,choice}=prepared(starter,1);
   const result=searchIsmcts135(state.game,{observer:1,ownDeck:state.decks[1].cards,random:random96(93),limits:{iterations:12,maxMs:1000},now:()=>0});

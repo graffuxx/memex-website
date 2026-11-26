@@ -56,8 +56,8 @@ export async function createCardPrototype({owner=null,rotation=0,profile='pepe',
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='800 78px Arial,sans-serif';ctx.fillStyle='#19170f';ctx.fillText(p.name.toUpperCase(),w/2,h*.53,w*.62);
  },768,108));
  const title=add(geo(new T.PlaneGeometry(FRAME_LAYOUT.titleWidth,FRAME_LAYOUT.titleHeight)),mat(new T.MeshBasicMaterial({map:titleTexture,transparent:true,depthWrite:false,toneMapped:false})),.064);title.position.y=FRAME_LAYOUT.titleY;
- if(p.edition==='alpha'){
-  const mark=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(alphaSymbolSvg()));
+ if(p.edition==='alpha'||p.edition==='beta'){
+  const mark=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(alphaSymbolSvg(p.edition)));
   const edition=add(geo(new T.PlaneGeometry(.12,.12)),mat(new T.MeshBasicMaterial({map:mark,transparent:true,depthWrite:false,toneMapped:false})),.066);
   edition.position.set(ALPHA_MARK.x,FRAME_LAYOUT.titleY-ALPHA_MARK.titleOffset,.066);
  }

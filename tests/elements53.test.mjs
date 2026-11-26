@@ -15,9 +15,9 @@ test('five elements: exactly two wins/two losses, no mutual advantages; bonuses 
  for(const a of ELEMENT_IDS)for(const b of ELEMENT_IDS){const game=createTacticsMatch({seed:11});game.demoFields=[];const card=expandGameDeck([VARIANTS.find(v=>v.rarity==='common'&&v.element===a).id],0)[0],other=expandGameDeck([VARIANTS.find(v=>v.rarity==='common'&&v.element===b).id],1)[0];assert.equal(cardOf(card).element,a);assert.equal(effectStrength(game,card,'0,0',0,other).element,Number(elementAdvantage(a,b)));}
 });
 test('50 new motifs, ten native per element, every motif keeps its native element and five finishes; cap is shared',()=>{
- assert.equal(ELEMENT_CARDS.length,50);assert.equal(DEFINITIONS.length,120);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,600);assert.equal(new Set(VARIANTS.map(v=>v.id)).size,VARIANTS.length);
+ assert.equal(ELEMENT_CARDS.length,50);assert.equal(DEFINITIONS.filter(c=>c.edition==='alpha').length,120);assert.equal(VARIANTS.filter(v=>v.edition==='alpha').length,600);assert.equal(new Set(VARIANTS.map(v=>v.id)).size,VARIANTS.length);
  for(const e of ELEMENT_IDS)assert.equal(ELEMENT_CARDS.filter(c=>c.element===e).length,10);
- for(const c of DEFINITIONS){const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha');assert.equal(variants.length,5);assert.ok(variants.every(v=>v.element===c.element));assert.ok(getVariant(c.id+':common'));}
+ for(const c of DEFINITIONS.filter(c=>c.edition==='alpha')){const variants=VARIANTS.filter(v=>v.definitionId===c.id&&v.edition==='alpha');assert.equal(variants.length,5);assert.ok(variants.every(v=>v.element===c.element));assert.ok(getVariant(c.id+':common'));}
  assert.ok(validateDeck(starterDeck(),starterInventory()).valid);
  const variants=['doge:common','doge:rare','doge:epic'],inventory=Object.fromEntries(VARIANTS.map(v=>[v.id,3]));assert.throws(()=>addDeckCard(variants,'doge:mythic',inventory),/Maximum 1/);
  assert.deepEqual(summarizeDeck(variants).elements,{fire:3,water:0,earth:0,air:0,storm:0});

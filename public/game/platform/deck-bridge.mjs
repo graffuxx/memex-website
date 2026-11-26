@@ -1,3 +1,4 @@
+import {BETA_BY_ID} from './beta-cards.mjs';
 import {validateDeck,originalCards116,originalInventory116,starterInventory,starterDeck,expandGameDeck} from './catalog.mjs';
 import {standardAbility,releasedIconicAbility,releasedPrimeAbility,ABILITY_FOR} from '../src/table-demo-rules.mjs?v=tactical-rework';
 import {soloSettings84} from './solo84.mjs';
@@ -11,7 +12,7 @@ export function readPlayDeck(storage){
  }catch{return null;}
 }
 export function portalTrialAbility(game,card){
- return standardAbility(card)
+ return BETA_BY_ID[card.id]?.ability??standardAbility(card)
   ?? (game.iconicAbilities?releasedIconicAbility(card,game.iconicAbilityWave):null)
   ?? (game.allPrimes||game.releasedPrimeTrio?releasedPrimeAbility(card,game.releasedPrimePair,game.allPrimes,game.iconicAbilityWave):null);
 }
@@ -31,6 +32,8 @@ export function applyPortalDecks(game,cards,loadouts,{round=1,opponentCards=null
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
   return {...p,hand:deck.slice(0,5),deck:deck.slice(5)};
  });
- next.portalDeck=true;return next;
+ next.portalDeck=true;
+ if(next.players.some(p=>[...p.hand,...p.deck].some(c=>c.beta)))next.betaTrial=true;
+ return next;
 }
 export function defaultPlayDeck(){return {cards:starterDeck(),inventory:starterInventory(),name:'Starter deck',version:1};}

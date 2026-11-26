@@ -17,8 +17,8 @@ test('guide links reach training/deck building, documents disabled fields and fi
 });
 
 test('ability guide covers the five element effects and each released Iconic and Prime',()=>{
- assert.deepEqual(['regular','iconic','prime'].map(category=>findGuideAbilities('',category).length),[5,20,15]);
- assert.equal(new Set(guideAbilities.map(ability=>ability.id)).size,40);
+ assert.deepEqual(['regular','iconic','prime'].map(category=>findGuideAbilities('',category).length),[5,25,20]);
+ assert.equal(new Set(guideAbilities.map(ability=>ability.id)).size,50);
  assert.ok(guideAbilities.every(ability=>ability.trigger&&ability.effect&&ABILITY_ICON_KEYS.includes(ability.id)));
  assert.deepEqual(findGuideAbilities('wellenschild','all').map(ability=>ability.id),['water']);
  assert.deepEqual(findGuideAbilities('two buttons','iconic').map(ability=>ability.id),['buttons']);

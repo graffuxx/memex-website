@@ -53,33 +53,14 @@ export default function NewsPage() {
 
         <article className={styles.questNews}>
           <div className={styles.questNewsArt}>
-            <img
-              src="/game/assets/cards/frame-v21/memex-back.webp"
-              alt="MemeX Duelverse card back"
-            />
+            <img src="/game/assets/cards/beta-v1/hackerman.webp" alt="Hackerman surrounded by violet CRT screens" />
           </div>
           <div>
-            <div className={styles.badge}>
-              IN DEVELOPMENT · <time dateTime="2026-11-26">26 NOV 2026</time>
-            </div>
-            <h2>New cards are coming to the Duelverse.</h2>
-            <p>
-              New memes. New moves. We’re working on the next additions to the
-              MemeX card collection, with more personalities to discover and
-              new possibilities for your deck.
-            </p>
-            <p>
-              Alongside the new cards, we’re continuing to refine abilities,
-              balance and the flow of the browser alpha. We’ll share card
-              previews and development updates here as the next additions take
-              shape.
-            </p>
-            <p>
-              <strong>Your memes. Your game.</strong> Try the current alpha,
-              find your favourite cards and tell us what you’d like to see next.
-              Release details for the new cards will follow when they’re ready.
-            </p>
-            <a className={styles.follow} href="/play">Play the alpha</a>
+            <div className={styles.badge}>BETA PREVIEW · <time dateTime="2026-11-26">26 NOV 2026</time></div>
+            <h2>Ten new memes enter the Duelverse</h2>
+            <p>Five Primes and five Iconics join the Beta preview, with one of each in every element. Rewrite an edge with Hackerman, jump over a card with Parkour!, or charge a side up to eight with Over 9000.</p>
+            <p>Try the cards in Deck Test and friendly duels. Collect them in the Beta Preview Booster using Pixels and play them in your own decks.</p>
+            <p><a href="/collection">Browse the Beta collection</a> · <a href="/shop">Open the booster shop</a></p>
           </div>
         </article>
 

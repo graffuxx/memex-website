@@ -6,10 +6,10 @@ import {abilityDescription,AMBUSH_BONUS,PENGUIN_REWORK_WAVE,previewEffect} from 
 import {abilityMarkers} from '../public/game/src/ability-effects.mjs';
 import {glossary,guideAbilities} from '../src/app/how-to-play/ability-reference.mjs';
 
-test('all 35 Iconic and Prime explanations use board-relative language in game and in the guide',()=>{
+test('all 45 Iconic and Prime explanations use board-relative language in game and in the guide',()=>{
  const cards=guideAbilities.filter(entry=>entry.category==='iconic'||entry.category==='prime');
- assert.equal(cards.filter(entry=>entry.category==='iconic').length,20);
- assert.equal(cards.filter(entry=>entry.category==='prime').length,15);
+ assert.equal(cards.filter(entry=>entry.category==='iconic').length,25);
+ assert.equal(cards.filter(entry=>entry.category==='prime').length,20);
  const technicalDirection=/\b(?:nord(?:en|ost(?:en)?|west(?:en)?)?|süd(?:en|ost(?:en)?|west(?:en)?)?|ost(?:en)?|west(?:en)?|north(?:east|west)?|south(?:east|west)?|east|uhrzeigersinn|clockwise|counterclockwise)\b|\d+\s*°/i;
  for(const {id,name,trigger,effect} of cards){
   const current=abilityDescription({abilityRework:true,iconicAbilityWave:PENGUIN_REWORK_WAVE},id);

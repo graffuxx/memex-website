@@ -2,6 +2,9 @@ import {isSRank126,rankedStrength126} from '../platform/card-ranks126.mjs';
 import {ELEMENT_IDS,ELEMENTS as FIVE_ELEMENTS,elementAdvantage,attackWins} from '../platform/elements53.mjs?v=tie-break-63';
 import {preview as validatePlacement,cardOf,sideValue,neighbors,freeCells,scores,eventPhase,ELEMENTS,blockadeLocked} from './rules.mjs?v=tactical-rework';
 
+import {BETA_CARDS} from '../platform/beta-cards.mjs';
+import {betaAdjustment,stageBetaChoice,betaParkour,betaCliffhanger,finishBetaMove,betaOptions} from './beta-rules.mjs';
+
 export const TACTIC_BEATS=Object.freeze(Object.fromEntries(ELEMENT_IDS.map(id=>[id,FIVE_ELEMENTS[id].beats])));
 export const GUARD_BONUS=2;
 export const WATER_BONUS=2;
@@ -31,6 +34,7 @@ export const OVERLOAD_COST=2;
 export const JORDAN_MAX_MARGIN=1;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
+ ...Object.fromEntries(BETA_CARDS.map(c=>[c.ability,{name:c.effect,short:c.prime?'β':'✦',description:c.description}])),
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
  guard:{name:'Feels Bad',short:'S',description:'Eine Seite erhält +2 Verteidigung bis zum nächsten eigenen Karten-Zug.'},
  twist:{name:'Think Again',short:'↻',description:'Du kannst eine benachbarte Gegnerkarte einen Schritt nach rechts drehen. Sie bleibt in diesem Zug beim Gegner.'},
@@ -434,11 +438,11 @@ export function effectStrength(game,card,cell,dir,opponent,{attacking=false,abil
  const element=elementAdvantage(cardOf(card).element,cardOf(opponent).element,game.elementRules??3)?1:0;
  const bonus=abilityEdge(game,card,cell,{attacking,direction:abilityDirection});
  const ward=attacking?null:wardEdge(game,card,cell);
- const ability=Math.max(bonus?.dir===dir?bonus.amount:0,ward?.dir===dir?ward.amount:0);
+ const ability=Math.max(bonus?.dir===dir?bonus.amount:0,ward?.dir===dir?ward.amount:0)+betaAdjustment(game,card,cell,dir,base,attacking);
  const mark=attacking?null:awkwardEdges(game,card,cell);
  const modifiers=field+ability+((game.elementRules??3)===3?element:0);
  const awkward=mark?.active&&mark.dirs.includes(dir)&&!isSRank126(base)?Math.min(mark.amount,Math.max(0,base+modifiers-1)):0;
- return {base,field,element,ability,...rankedStrength126(base,modifiers-awkward),...(awkward?{awkward}:{}),
+ return {base,field,element,ability,...rankedStrength126(base,game.betaTrial?Math.max(1-base,modifiers-awkward):modifiers-awkward),...(awkward?{awkward}:{}),
   ...(!attacking&&laughActive(game,card,cell)?{holdsTie:true}:{})};
 
 }
@@ -522,6 +526,8 @@ function resolvePlacement(game,action,buttonAttackDir=null){
  if(jam){
   working.board[jam]={...working.board[jam],jammedUntil:game.placements+JAM_PLACEMENTS};
  }
+ if(game.betaTrial)stageBetaChoice(working,card,action);
+ else if(action.betaChoice!=null)throw Error('Beta choice unavailable.');
  const enemies=surrounding.filter(n=>working.board[n.id]&&working.board[n.id].controller!==game.turn);
  const compare=facing=>enemies.map(n=>{
   const other=working.board[n.id],attack=effectStrength(working,facing,cell,n.dir,other,{attacking:true,abilityDirection}),defend=effectStrength(working,other,n.id,(n.dir+3)%6,facing);
@@ -575,6 +581,7 @@ function resolvePlacement(game,action,buttonAttackDir=null){
   patientHit.flip=true;
   patientHit.tieProtected=false;
  }
+ if(game.betaTrial)betaParkour(working,card,action,comparisons,effectStrength,effectAttackWins);
  const directWins=comparisons.filter(c=>c.flip);
  const blocked=directWins.length>=2?directWins.find(c=>canObject(working,working.board[c.cell],c.cell,c.attack,c.defend)):null;
  const objection=blocked?{cell:blocked.cell,dir:(blocked.dir+3)%6}:null;
@@ -782,6 +789,7 @@ function resolvePlacement(game,action,buttonAttackDir=null){
    if(pincer)break;
   }
  }
+ const betaLanding=game.betaTrial?betaCliffhanger(working,card,action,comparisons,effectStrength,effectAttackWins):null;
  const resolvedHits=comparisons.filter(c=>c.flip);
  let blink=null;
  const [hit]=resolvedHits;
@@ -882,7 +890,7 @@ function resolvePlacement(game,action,buttonAttackDir=null){
  const ward=captured?{cell:captured.cell,dir:captured.dir}:null;
  const blockadeMove=dash||blockadeCell!==null?{from:game.block,to:dash??blockadeCell}:null;
  const roundhouse=followUp?.flip?{source:followUp.source,cell:followUp.redirect??followUp.cell,dir:followUp.dir}:null;
- return {card,cell,ability,abilityDirection,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir),roundhouse,thought:thought?.flip?thought.redirect??thought.cell:null,
+ return {card,cell,ability,abilityDirection,betaLanding,suppressed:Boolean(card.ability&&!ability),transforms,comparisons,flips,board:working.board,ward,coverWards,blockadeMove,dash:Boolean(dash),blockadeLock,swapCells,swaps,pivotTarget,pivot,valueSwap,selfTurn,steps,relocation,rainbow,swipe,decoy,pursuit,objection,ambush,awkward,nested,phalanx,rally,pincer,relay,waiting,turnChoices,valueSwaps:ability==='luxury'?valueSwapTargets(working,held,cell,rotation):[],jam,sandwich,bailout,finalGuard,reserve,link,attachment,blink,bid:bid?.dir??null,bidTargets:bids.map(c=>c.dir),roundhouse,thought:thought?.flip?thought.redirect??thought.cell:null,
   plotTargets:plotTargets.map(hit=>hit.cell),plotTarget,plot:plot?.flip?{cell:plot.redirect??plot.cell,margin:plot.defend.total-plot.attack.total}:null,
   overloadTargets:overloadTargets.map(hit=>hit.cell),overloadTarget,overload:overloadHit?.flip?{cell:overloadHit.redirect??overloadHit.cell,amount:overloadBonus,cost:OVERLOAD_COST}:null,
   patienceArmed,patience:patientHit?.flip?{cell:patientHit.redirect??patientHit.cell,amount:patienceBonus}:null};
@@ -1010,6 +1018,8 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
    .map(({dir,attack})=>({dir:(dir+turnOffset)%6,total:attack.total}));
   if(attackEdges.length)next.last.attackEdges=attackEdges;
  }
+ finishBetaMove(game,next,action,p);
+ if(p.betaLanding){next.last.betaLanding=p.betaLanding;next.last.relocation={uid:p.card.uid,from:action.cell,to:p.betaLanding};}
  next.history.push(next.last);
  if(freeCells(next).length===0){next.finished=true;const s=scores(next);next.winner=s[0]===s[1]?null:s[0]>s[1]?0:1;}
  if(!next.finished&&chooseDraw&&p.ability==='buttons'&&!game.abilityRework&&player.deck.length>=2){
@@ -1021,6 +1031,7 @@ export function placeEffect(game,action,{chooseDraw=false}={}){
  return next;
 }
 export function actionOptions(game,card,cell,rotation){
+ if(game.betaTrial&&card.beta)return betaOptions(game,card,{uid:card.uid,cell,rotation,abilityDirection:0},previewEffect);
  const ability=abilityAt(game,card,cell),directions=aimsAbility(ability)?[0,1,2,3,4,5]:[0],targets=turnsCards(ability)?[null,...twistTargets(game,cell,ability)]:[null];
  if(ability==='plotTwist'||ability==='overload'){
   const action={uid:card.uid,cell,rotation,abilityDirection:0};

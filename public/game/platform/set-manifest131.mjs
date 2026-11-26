@@ -1,3 +1,4 @@
+import {BETA_CARDS} from './beta-cards.mjs';
 // Alpha membership is explicit. New releases fill reserved slots; they never grow the set.
 export const ALPHA_REGULAR_IDS131=Object.freeze(["pepe","doge","roll-safe","harold","disaster-girl","distracted","side-eye","success-kid","grumpy-cat","aliens-guy","smudge","confused","bad-luck-brian","gigachad","this-is-fine","trollface","stonks","press-f","git-gud","rage-quit","lag-spike","hodl","diamond-hands","to-the-moon","rug-pull","crying-cat","keyboard-cat","coffin-dance","galaxy-brain","npc","leeroy-jenkins","touch-grass","copium","paper-hands","buy-the-dip","angry-wojak","screaming-marmot","table-flip","triggered","salt-bae","floor-is-lava","hot-take","headshot","rage-hamster","burning-toast","capybara-chill","sad-keanu","crying-wojak","tears-of-joy","duck-float","seal-of-approval","sink-or-swim","stay-hydrated","pool-noodle","wet-cat","bonk","cheems","walter","absolute-unit","couch-potato","monke","banana-for-scale","turtle-stack","stone-face","rock-solid","nyan-cat","dramatic-chipmunk","spinning-seal","longcat","ceiling-cat","hover-cat","bird-is-word","flying-spaghetti","airhorn","yeet","error-404","blue-screen","cat-jam","shocked-monkey","math-lady","surprised-rat","plot-twist","big-brain-time","rickroll","uno-reverse"]);
 export const ALPHA_PRIME_IDS131=Object.freeze(["evil-ernie","nuck-chorris","sparta-kick","emotional-damage","pablo-waiting","here-we-go-again","one-does-not-simply","sanic","numa-numa","keyboard-crusher","idiot-sandwich","crying-jordan","disappointed-fan","blinking-guy","overly-attached"]);
@@ -7,7 +8,18 @@ export const ALPHA_SLOTS131=Object.freeze([
  ...Array.from({length:15},(_,i)=>({number:86+i,id:ALPHA_PRIME_IDS131[i]??null,category:'prime'})),
  ...Array.from({length:20},(_,i)=>({number:101+i,id:ALPHA_ICONIC_IDS136[i],category:'iconic'}))
 ].map(s=>Object.freeze(s)));
-export const SETS131=Object.freeze([{id:'alpha',name:'Alpha',mark:'α',size:120,current:true,limits:Object.freeze({regular:85,prime:15,iconic:20}),slots:ALPHA_SLOTS131}].map(s=>Object.freeze(s)));
+
+const editionLimits=Object.freeze({regular:85,prime:15,iconic:20});
+const betaSlot=(cards,category,start,count)=>Array.from({length:count},(_,i)=>Object.freeze({number:start+i,id:cards[i]?.id??null,category}));
+export const BETA_SLOTS=Object.freeze([
+ ...betaSlot([],'regular',1,85),
+ ...betaSlot(BETA_CARDS.filter(c=>c.prime),'prime',86,15),
+ ...betaSlot(BETA_CARDS.filter(c=>c.iconic),'iconic',101,20),
+]);
+export const SETS131=Object.freeze([
+ {id:'alpha',name:'Alpha',mark:'α',size:120,current:true,limits:editionLimits,slots:ALPHA_SLOTS131},
+ {id:'beta',name:'Beta',mark:'β',size:120,current:false,limits:editionLimits,slots:BETA_SLOTS},
+].map(s=>Object.freeze(s)));
 export const ALPHA_IDS131=Object.freeze(ALPHA_SLOTS131.filter(s=>s.id).map(s=>s.id));
 const membership=new Map(SETS131.flatMap(set=>set.slots.filter(s=>s.id).map(slot=>[slot.id,{edition:set.id,...slot}])));
 export const setSlot131=id=>membership.get(id)??null;

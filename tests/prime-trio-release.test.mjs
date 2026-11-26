@@ -18,7 +18,7 @@ function trial(){
 test('the release grants only the three named Primes to the enabled match snapshot',()=>{
  const intended={'numa-numa':'chorus','keyboard-crusher':'jam','idiot-sandwich':'sandwich'};
  const ordinary=DEFINITIONS.filter(c=>!c.prime&&!c.iconic).slice(0,14).map(c=>c.id+':common');
- for(const prime of DEFINITIONS.filter(c=>c.prime)){
+ for(const prime of DEFINITIONS.filter(c=>c.edition==='alpha'&&c.prime)){
   assert.equal(releasedPrimeAbility({id:prime.ruleId}),intended[prime.id]??null);
   const cards=[...ordinary,prime.id+':common'];
   for(const releasedPrimeTrio of [false,true]){

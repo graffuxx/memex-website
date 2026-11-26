@@ -67,6 +67,16 @@ const explanations = {
  pincer:['Shockwave','Flip a card with Emotional Damage.','A card you just flipped can immediately flip an enemy next to it if its numbered edge wins. Up to one extra flip.'],
  roundhouse:['Roundhouse','Capture a card with Nuck Chorris’s S edge. You may then choose a direction.','Turn the captured card left or right. A numbered edge that now beats a new neighbour can flip one extra card.'],
  gate:['Gatekeeper','Play One Does Not Simply directly next to the blockade.','The blockade is sealed in place for the opponent’s next turn.'],
+ 'beta-cinema':['Final Cut','When playing Absolute Cinema, choose another card in your hand to put under your deck.','Choose up to two numbered edges facing enemies. Those attacks gain +2 for this play.'],
+ 'beta-hamster':['Take It Back','Attack a card the opponent flipped on their last play.','The attack gains +3 on the edge facing that card.'],
+ 'beta-tpose':['Body Block','An enemy is played next to T-Pose.','Each numbered attack by the new card loses 2 for that play.'],
+ 'beta-continued':['Cliffhanger','Flip an enemy with To Be Continued.','Jump to a free neighbouring hex if a numbered edge can flip another enemy from there.'],
+ 'beta-hackerman':['Override','Choose a numbered edge of a neighbour when you play Hackerman.','That edge becomes 4 until the end of the round.'],
+ 'beta-spicy':['Extra Spicy','Play Why Is It Spicy? next to exactly two enemies.','It gains +1 attack against each of those enemies.'],
+ 'beta-headout':['Head Out','The opponent flips Imma Head Out for the first time.','Its highest numbered edge that faces a free hex drops by 2.'],
+ 'beta-highground':['High Ground','Keep High Ground at the edge of the board.','Its numbered edges gain +2 defence while there.'],
+ 'beta-parkour':['Long Jump','Choose a jump over a free hex or an allied card.','Your numbered attack can flip the enemy beyond it with a −1 attack penalty.'],
+ 'beta-over9000':['Power Up','Play Over 9000 next to an ally and choose a numbered edge.','That edge gains +2 for the round, up to 8.'],
  ernie:['Fire Pact','Flip an enemy with Evil Ernie’s S.','The captured card gains +1 defence on the side facing away from Ernie until your next turn. S stays the same.'],
 };
 

@@ -1,17 +1,17 @@
+import {BETA_CARDS} from './beta-cards.mjs';
 import {ICONIC_CARDS136} from './iconics136.mjs';
-import {assertSetCatalog131,cardCategory131} from './set-manifest131.mjs';
+import {assertSetCatalog131,cardCategory131,editionOf131} from './set-manifest131.mjs';
 import {PRIME_CARDS} from './primes126.mjs';
 import {ATLAS_REGIONS} from './art-atlases53.mjs';
 import {ELEMENT_IDS,normalizeElement} from './elements53.mjs';
 import {EXPANSION_CARDS} from './expansion27.mjs';
-import {ALPHA_IDS} from './edition36.mjs';
 import {CARD_MATERIALS} from '../src/card-materials22.mjs';
 import {RECRUITER_VARIANTS95} from './quests95.mjs';
 // Shared by the website, deck validator, database seed and playable alpha.
 export const DECK_SIZE = 15;
 export const MAX_MOTIF_COPIES = 1;
 export const STARTER_COPIES = 1;
-export const CATALOG_VERSION = 14;
+export const CATALOG_VERSION = 15;
 export const RARITIES = Object.freeze(Object.entries(CARD_MATERIALS).map(([id,m])=>Object.freeze({id,name:m.name,color:m.color})));
 export const DEFINITIONS = Object.freeze([
  {id:'pepe',name:'Pepe',short:'Pepe',ruleId:'oracle',element:'storm',values:[7,6,3,2,3,3],ability:'guard',quote:'Feels good, man.',image:'/game/assets/cards/v03/overthinker-thinking-pepe.webp'},
@@ -19,13 +19,14 @@ export const DEFINITIONS = Object.freeze([
  {id:'roll-safe',name:'Roll Safe',short:'Roll Safe',ruleId:'trust',element:'stone',values:[5,5,5,3,3,3],ability:'twist',quote:'Can’t lose if you think ahead.',image:'/game/assets/cards/v04/roll-safe.webp'},
  ...EXPANSION_CARDS,
  ...PRIME_CARDS,
- ...ICONIC_CARDS136
-].map(c=>Object.freeze({...c,category:cardCategory131(c.id),iconic:cardCategory131(c.id)==='iconic',prime:'prime' in c?Boolean(c.prime):false,element:normalizeElement(c.element),edition:ALPHA_IDS.includes(c.id)?'alpha':null})));
+ ...ICONIC_CARDS136,
+ ...BETA_CARDS
+].map(c=>Object.freeze({...c,category:cardCategory131(c.id),iconic:cardCategory131(c.id)==='iconic',prime:'prime' in c?Boolean(c.prime):false,element:normalizeElement(c.element),edition:editionOf131(c.id)})));
 assertSetCatalog131(DEFINITIONS);
 export const STARTER_IDS=Object.freeze(['pepe','doge','roll-safe','harold','disaster-girl','confused','side-eye','success-kid','grumpy-cat','aliens-guy','smudge','bad-luck-brian','gigachad','stonks','trollface']);
 const UNSORTED_VARIANTS = DEFINITIONS.flatMap(card=>ELEMENT_IDS.flatMap(element=>RARITIES.map(rarity=>Object.freeze({
  id:`${card.id}:${rarity.id}${element===card.element?'':':'+element}`,definitionId:card.id,element,rarity:rarity.id,edition:card.edition,
- image:(card.prime||card.iconic)?`/game/assets/cards/${card.artDirectory??'primes-v126'}/${card.id}-${rarity.id}.webp`:card.artAtlas?card.image+'?finish='+rarity.id:rarity.id==='common'?card.image:EXPANSION_CARDS.some(c=>c.id===card.id)?`/game/assets/cards/${card.artDirectory??'memes-v27'}/${card.id}-${rarity.id}.webp`:`/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+ image:card.edition==='beta'?card.image:(card.prime||card.iconic)?`/game/assets/cards/${card.artDirectory??'primes-v126'}/${card.id}-${rarity.id}.webp`:card.artAtlas?card.image+'?finish='+rarity.id:rarity.id==='common'?card.image:EXPANSION_CARDS.some(c=>c.id===card.id)?`/game/assets/cards/${card.artDirectory??'memes-v27'}/${card.id}-${rarity.id}.webp`:`/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
  artOffsetY:card.artOffsetY??0,artRegion:card.artRegion??(card.artAtlas?Object.freeze({x:RARITIES.findIndex(r=>r.id===rarity.id)/5,...ATLAS_REGIONS[card.id]}):null)
 }))));
 const definitionOrder=new Map(DEFINITIONS.map((c,i)=>[c.id,i]));
@@ -71,5 +72,5 @@ export function validateDeck(cards,inventory){
  return {valid:errors.length===0,errors};
 }
 export function expandGameDeck(cards,side){
- return cards.map((variantId,i)=>{const v=getVariant(variantId);if(!v)throw Error('Unknown card variant');const c=DEFINITIONS.find(c=>c.id===v.definitionId);return {id:c.ruleId,uid:`portal-${side}-${i}`,origin:side,rarity:v.rarity,element:v.element,variantId};});
+ return cards.map((variantId,i)=>{const v=getVariant(variantId);if(!v)throw Error('Unknown card variant');const c=DEFINITIONS.find(c=>c.id===v.definitionId);return {id:c.ruleId,uid:`portal-${side}-${i}`,origin:side,rarity:v.rarity,element:v.element,variantId,...('beta' in c?{beta:c.beta}:{})};});
 }

@@ -14,7 +14,7 @@ export function fieldFeedback129(game,card,cell,previewDirection=null){
   const bonus=fieldBonus+Math.max(active?.dir===dir?active.amount:0,ward?.dir===dir?ward.amount:0);
   return mark?.active&&mark.dirs.includes(dir)?Math.max(1-sideValue(card,dir),bonus-mark.amount):bonus;
  });
- const values=card.edgeSwap||card.edgeCopy||card.edgeWear?Array.from({length:6},(_,dir)=>sideValue(card,dir)):null;
+ const values=card.edgeSwap||card.edgeCopy||card.edgeWear||card.betaEdges?Array.from({length:6},(_,dir)=>sideValue(card,dir)):null;
  return {silenced:Boolean((field?.type==='silence'||jamActive(game,card))&&card.ability),bonuses,...(values?{values}:{}),...(effects.length?{effects}:{})};
 }
 

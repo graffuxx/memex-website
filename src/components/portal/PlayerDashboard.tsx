@@ -2,7 +2,7 @@
 import DuelRecord113 from './DuelRecord113';
 import {ELEMENT_LIST} from '../../../public/game/platform/elements53.mjs';
 import {useEffect,useState} from 'react';
-import {countUnopenedAlphaBoosters,type PlayerState} from '@/lib/duelverse/account';
+import {countUnopenedBoosters,type PlayerState} from '@/lib/duelverse/account';
 import usePlayerCollection from './usePlayerCollection';
 import {PlayerAreaGate} from './PlayerArea';
 import GameCardFace from './GameCardFace';
@@ -22,7 +22,7 @@ function Dashboard(){
  useEffect(()=>{
   let live=true;
   setUnopened(null);setBoosterError(false);
-  countUnopenedAlphaBoosters().then(count=>{if(live)setUnopened(count);}).catch(()=>{if(live)setBoosterError(true);});
+  countUnopenedBoosters().then(count=>{if(live)setUnopened(count);}).catch(()=>{if(live)setBoosterError(true);});
   return()=>{live=false;};
  },[userId,reload]);
  const summary=collectionSummary(p.inventory),active=p.decks.find(d=>d.active)??p.decks[0],valid=active&&validateDeck(active.cards,p.inventory).valid,deckSummary=active?summarizeDeck(active.cards):null;
@@ -36,7 +36,7 @@ function Dashboard(){
    <section className="player-panel active-deck-panel" aria-labelledby="active-deck-title"><header><span className="player-caption">ACTIVE DECK</span><a href="/decks">Manage decks</a></header><div className="active-deck-body"><div><h2 id="active-deck-title">{active?.name??'Build your first deck'}</h2>{active?<><p>{active.cards.length} cards · {deckSummary?.uniqueMotifs} memes</p><div className="player-elements">{ELEMENT_LIST.map(({id:e,name})=><span key={e} data-element={e}>{name} <b>{deckSummary?.elements[e]}</b></span>)}</div></>:<p>Choose 15 cards from your collection.</p>}</div><div className="player-deck-art" aria-hidden="true">{art.map(v=>{const card=DEFINITIONS.find(c=>c.id===v!.definitionId)!,rarity=RARITIES.find(r=>r.id===v!.rarity)!;return <div key={v!.id}><GameCardFace card={card} variant={v!} color={rarity.color} compact/></div>;})}</div></div><div className="actions"><a className="button gold" href={active?'/play?deck='+encodeURIComponent(active.id):'/play'}>Play online</a><button className="button glass" disabled={!valid||launching} onClick={play}>{launching?'Starting…':'AI duel'}</button><a className="button glass" href={active?'/decks?deck='+encodeURIComponent(active.id):'/decks'}>{active?'Edit this deck':'Build a deck'}</a></div>{active&&!valid&&<p className="error">Check this deck’s 15 cards and owned copies before playing.</p>}{launchError&&<p className="error" role="alert">{launchError}</p>}<small className="player-muted">Random &amp; AI duels · +5 Pixels per win, +2 per loss or draw.</small></section>
    <section className="player-panel" aria-labelledby="player-boosters-title">
     <header><h2 id="player-boosters-title">Your boosters</h2><a href="/account/private/boosters">View history</a></header>
-    {boosterError?<div><p className="error" role="alert">Your boosters could not be loaded.</p><button className="player-quiet-link" onClick={()=>setReload(n=>n+1)}>Try again</button></div>:unopened===null?<p role="status">Loading boosters…</p>:<BoosterStack count={unopened}/>}
+    {boosterError?<div><p className="error" role="alert">Your boosters could not be loaded.</p><button className="player-quiet-link" onClick={()=>setReload(n=>n+1)}>Try again</button></div>:unopened===null?<p role="status">Loading boosters…</p>:<BoosterStack count={unopened} product="all"/>}
    </section>
   </div>
   <div className="player-shortcuts"><a href="/account/private/quests"><strong>Quests & rewards</strong><span>Track milestones, earn boosters and invite new rivals.</span></a><a href="/collection"><strong>Your collection</strong><span>Explore, craft and recycle spare cards.</span></a><a href="/decks"><strong>Your decks</strong><span>Build, name and save your next strategy.</span></a></div>

@@ -74,7 +74,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
   const category=definition?.prime?'Prime':definition?.iconic?'Iconic':'';
   const classMark=cardClassMarkMarkup(category.toLowerCase());
   const abilityIcon=cardAbilityIconMarkup(card.ability);
-  const printedCard={...card,edgeCopy:undefined,edgeSwap:undefined};
+  const printedCard={...card,edgeCopy:undefined,edgeSwap:undefined,betaEdges:undefined};
   face.innerHTML=`<svg viewBox="-1.048 -1.048 2.096 2.096" role="img" aria-label="${escape(rules.name)}">
    <defs><clipPath id="board-preview-art"><polygon points="${hex}"/></clipPath></defs>
    <image href="${escape(variant.image)}" x="${-.96-(crop?.x??0)*width}" y="${-.96-(crop?.y??0)*height+(variant.artOffsetY??0)}" width="${width}" height="${height}" preserveAspectRatio="${crop?'none':'xMidYMid slice'}" clip-path="url(#board-preview-art)"/>
@@ -85,7 +85,7 @@ export function bindBoardCardPreview146(stage,svg,{getGame,canInspect,onPinChang
     return `<text x="${x}" y="${-y+.0093}"${changed?' fill="#401859"':''}>${label}</text>`;
    }).join('')}</g>
    <text x="0" y="${-FRAME_LAYOUT.titleY+.004}" fill="#17150d" font-size=".105"${label.length>10?' textLength=".66" lengthAdjust="spacingAndGlyphs"':''}>${escape(label)}</text>
-   ${variant.edition==='alpha'||variant.edition==='recruiter'?alphaNameplateMarkup(FRAME_LAYOUT.titleY):''}
+   ${variant.edition==='alpha'||variant.edition==='recruiter'||variant.edition==='beta'?alphaNameplateMarkup(FRAME_LAYOUT.titleY,variant.edition):''}
    ${element}
    ${classMark}
   </svg>`;

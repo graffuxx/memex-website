@@ -4,3 +4,10 @@
 .dv-portal .alpha-pack-art__name{position:absolute;bottom:15.4%;left:25%;right:25%;text-align:center;font:500 18px/1.2 Georgia,serif;letter-spacing:.13em;color:#f6dcaa;text-shadow:0 2px 5px #000}
 .dv-portal .alpha-pack-art--compact{width:140px;margin:10px auto}
 .dv-portal .alpha-pack-art--compact .alpha-pack-art__name{font-size:9px}
+
+/* Beta foil retains the silhouette and logo while changing the edition palette. */
+.alpha-pack-art--beta .alpha-pack-art__wrapper{filter:hue-rotate(90deg)}
+.alpha-pack-art--beta .alpha-pack-art__name{color:#afffec}
+
+.dv-portal .beta-pack-emblem{display:grid;place-items:center;position:absolute;top:40%;left:34.5%;width:31%;aspect-ratio:1;clip-path:polygon(50% 0,94% 25%,94% 75%,50% 100%,6% 75%,6% 25%);background:radial-gradient(#0d3048,#070e27);color:#9dfae9;font:bold clamp(24px,5vw,56px)/1 Georgia,serif;text-shadow:0 0 15px #4bd1b1}
+.dv-portal .alpha-pack-art--compact .beta-pack-emblem{font-size:26px}

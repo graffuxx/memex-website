@@ -19,7 +19,7 @@ const deck=(iconic='rage-guy',prime='evil-ernie')=>[
 const thirdIconic=cards=>['double-rainbow:epic',...cards.slice(0,14)];
 const open=(cards,seed=1)=>{let s=createPvp90(cards.map(cards=>({cards})),seed,0);for(const [side,move]of [[0,{kind:'gesture',value:'rock'}],[1,{kind:'gesture',value:'scissors'}],[0,{kind:'starter',side:0}]])s=advancePvp90(s,side,move,0);return s;};
 test('Alpha completes 120 stable motifs with 20 approved tradeoff profiles and 100 distinct usable Iconic artworks',async()=>{
- assert.equal(DEFINITIONS.length,120);assert.equal(ICONIC_CARDS136.length,20);const hashes=new Set();
+ assert.equal(DEFINITIONS.filter(c=>c.edition==='alpha').length,120);assert.equal(ICONIC_CARDS136.length,20);const hashes=new Set();
  for(const [i,c]of ICONIC_CARDS136.entries()){
   assert.equal(ALPHA_SLOTS131[100+i].id,c.id);assert.equal(c.values.reduce((s,n)=>s+n),28);assert.ok(c.values.every(n=>n>=2&&n<=8));assert.ok(c.values.some(n=>n<=3));assert.equal(c.prime,false);assert.equal(c.ability,null);
   const def=DEFINITIONS.find(d=>d.id===c.id);assert.equal(def.category,'iconic');assert.equal(def.iconic,true);assert.equal(def.edition,'alpha');assert.equal(getVariant(c.id+':common').element,c.element);assert.equal(VARIANTS.filter(v=>v.definitionId===c.id).length,5);

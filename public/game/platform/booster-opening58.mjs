@@ -1,4 +1,4 @@
-import {revealedSlots,validAlphaPack} from './alpha-booster36.mjs';
+import {revealedSlots,validAlphaPack,validBetaPack} from './alpha-booster36.mjs';
 export const ALL_PACK_SLOTS=Object.freeze([0,1,2,3,4]);
 /** @param {Array<{id:string,revealed_slots:number[],created_at:string}>} packs @param {string|null} except */
 export function unopenedPacks(packs,except=null){
@@ -8,10 +8,10 @@ export function unopenedPacks(packs,except=null){
  });
 }
 /** Save all contents before enabling manual flips, so leaving cannot strand a half-open pack.
- * @param {{cards:string[],shown?:number[],save:()=>Promise<void>,active:()=>boolean}} opts
+ * @param {{cards:string[],shown?:number[],product?:string,save:()=>Promise<void>,active:()=>boolean}} opts
  */
-export async function prepareManualOpening({cards,shown=[],save,active}){
- if(!validAlphaPack(cards))throw Error('Invalid Alpha Booster.');
+export async function prepareManualOpening({cards,shown=[],product='alpha',save,active}){
+ if(!(product==='beta'?validBetaPack(cards):validAlphaPack(cards)))throw Error('Invalid booster.');
  await save();if(!active())return null;
  return {savedSlots:[...ALL_PACK_SLOTS],visibleSlots:revealedSlots(shown)};
 }

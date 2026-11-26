@@ -1,15 +1,15 @@
 import AlphaBoosterPack from './AlphaBoosterPack';
 import './booster-stack.css';
 
-export default function BoosterStack({count,onOpen,disabled=false}:{count:number;onOpen?:()=>void;disabled?:boolean}){
- const label=`${count.toLocaleString()} unopened Alpha ${count===1?'booster':'boosters'}`;
+export default function BoosterStack({count,onOpen,disabled=false,product='alpha'}:{count:number;onOpen?:()=>void;disabled?:boolean;product?:'alpha'|'beta'|'all'}){
+ const label=`${count.toLocaleString()} unopened ${product==='alpha'?'Alpha ':product==='beta'?'Beta ':''}${count===1?'booster':'boosters'}`;
  const content=<>
   <span className="booster-stack__art" aria-hidden="true">
-   <AlphaBoosterPack compact/>
+   <AlphaBoosterPack compact beta={product==='beta'}/>
    <span className="booster-stack__count">×{count.toLocaleString()}</span>
   </span>
   <span className="booster-stack__copy">
-   <strong>Alpha Booster</strong>
+   <strong>{product==='beta'?'Beta Preview Booster':product==='all'?'Your boosters':'Alpha Booster'}</strong>
    <span>{count>0?'Open a booster':'Get boosters'} <span aria-hidden="true">→</span></span>
   </span>
  </>;

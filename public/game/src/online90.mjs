@@ -181,7 +181,7 @@ function release(e,cancelled=false){
  view.release(d.uid);target=canStage(cell)?cell:null;twistCell=null;blockadeCell=null;signatureControls.clear();
  const placement=locked()?null:plan();
  if(!placement){clear();render();return;}
- const optional=placement.plotTargets?.length||placement.overloadTargets?.length||placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps?.length||placement.bidTargets?.length
+ const optional=placement.card.beta||placement.plotTargets?.length||placement.overloadTargets?.length||placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps?.length||placement.bidTargets?.length
   ||placement.swaps.length||placement.valueSwaps?.length||placement.ability==='wander'&&placement.turnChoices?.length
   ||placement.ability==='rage'&&rageTargets(game,target).length
   ||placement.turnChoices?.length||placement.dash||['water','air'].includes(placement.ability);

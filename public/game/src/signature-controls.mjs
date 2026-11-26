@@ -1,5 +1,5 @@
-import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets} from './table-demo-rules.mjs?v=tactical-rework';
-import {cardOf,ELEMENTS} from './rules.mjs?v=tactical-rework';
+import {canTurnSelf,TWO_BUTTONS_BONUS,valueSwapTargets,actionOptions} from './table-demo-rules.mjs?v=tactical-rework';
+import {cardOf,ELEMENTS,neighbors,sideValue} from './rules.mjs?v=tactical-rework';
 import {createTurnButtons,edgeLabels} from './direction-controls.mjs';
 
 export function bindSignatureControls(abilities,{english=false,onChange,onDraw}){
@@ -27,10 +27,29 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
  drawPanel.hidden=exchangeLabel.hidden=pivot.group.hidden=valueLabel.hidden=facing.group.hidden=stepLabel.hidden=bidLabel.hidden=twoButtons.hidden=true;
  drawPanel.className='signature-draw';drawChoices.className='signature-draw__choices';
  drawPanel.append(drawTitle,drawChoices);
+ const betaLabel=document.createElement('label'),betaSelect=document.createElement('select');
+ betaLabel.hidden=true;betaLabel.append(english?'Card ability':'Kartenfähigkeit',betaSelect);
+ abilities.append(betaLabel);
  abilities.append(exchangeLabel,pivot.group,valueLabel,facing.group,stepLabel,bidLabel,twoButtons);
  abilities.after(drawPanel);
  let swapCells=null,pivotDirection=0,valueSwap=null,selfTurn=0,stepCells=null,bidDirection=null,buttonChoice=null;
- let plotTarget=null,overloadTarget=null;
+ let plotTarget=null,overloadTarget=null,betaChoice=null;
+ betaSelect.onchange=()=>{betaChoice=betaSelect.value?JSON.parse(betaSelect.value):null;onChange();};
+ function betaOption(game,card,target,choice){
+  const arrow=dir=>['→','↘','↙','←','↖','↗'][dir];
+  if(choice.discard){
+   const discarded=game.players[game.turn].hand.find(c=>c.uid===choice.discard);
+   return (english?'Cycle ':'Unters Deck: ')+cardOf(discarded).name+' · '+choice.directions.map(arrow).join(' ')+' +2';
+  }
+  if(choice.landing){
+   const direction=neighbors(target).find(n=>n.id===choice.landing)?.dir;
+   return arrow(direction)+' · '+cardOf(game.board[choice.target]).name;
+  }
+  if(choice.target)return cardOf(game.board[choice.target]).name+' '+arrow(choice.direction)+' → 4';
+  if(card.beta==='over9000')return arrow(choice.direction)+' · '+(english?'Charge to ':'Aufladen auf ')+Math.min(8,sideValue(card,choice.direction)+2);
+  return arrow(choice.direction)+' · '+(english?'Jump':'Weitsprung');
+ }
+
  for(const [key,button] of [['attack',attackButton],['defense',defenseButton]]){
   button.onclick=()=>{buttonChoice=buttonChoice===key?null:key;onChange();};
  }
@@ -41,6 +60,14 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
  const directions=edgeLabels(english);
 
  function update({game,card,target,plan,busy,options,waiting=false}){
+  const betaChoices=game.betaTrial&&card?.beta&&target&&plan?actionOptions(game,card,target,0).filter(action=>action.betaChoice):[];
+  betaLabel.hidden=!betaChoices.length;
+  if(betaChoices.length){
+   betaSelect.replaceChildren(new Option(english?'Play as is':'Normal ausspielen',''),...betaChoices.map(({betaChoice})=>new Option(betaOption(game,card,target,betaChoice),JSON.stringify(betaChoice))));
+   betaSelect.value=betaChoice?JSON.stringify(betaChoice):'';
+   betaSelect.disabled=busy;
+  }
+
   twoButtons.hidden=!game.abilityRework||card?.ability!=='buttons';
   attackButton.disabled=busy||!plan?.buttonAttack;
   defenseButton.disabled=busy||plan?.buttonDefense==null;
@@ -126,7 +153,7 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
   stepCells=action.stepCells??null;
   bidDirection=action.bidDirection??null;
   buttonChoice=action.buttonChoice??null;
-  plotTarget=action.plotTarget??null;overloadTarget=action.overloadTarget??null;
+  plotTarget=action.plotTarget??null;overloadTarget=action.overloadTarget??null;betaChoice=action.betaChoice??null;
  }
  return {update,setAction,clear:setAction,swapWith(pair){swapCells=swapCells?.includes(pair[1])?null:pair;},
   targetExtraFlip(plan,cell){
@@ -134,5 +161,5 @@ export function bindSignatureControls(abilities,{english=false,onChange,onDraw})
    if(plan?.overloadTargets?.includes(cell)){overloadTarget=overloadTarget===cell?null:cell;return true;}
    return false;
   },
-  action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice,plotTarget,overloadTarget};}};
+  action(){return {swapCells,pivotDirection,valueSwap,selfTurn,stepCells,bidDirection,buttonChoice,plotTarget,overloadTarget,...(betaChoice?{betaChoice}:{})};}};
 }

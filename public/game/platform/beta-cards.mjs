@@ -1,0 +1,36 @@
+// Values are printed clockwise from the right, in the game's existing edge order.
+const prime = true;
+export const BETA_CARDS = Object.freeze([
+  {key:'cinema',name:'Absolute Cinema',element:'fire',prime,values:[7,4,3,10,2,4],
+    artwork:'Waschbär-Regisseur mit ausgestreckten Armen vor einem brennenden Filmset',
+    effect:'Final Cut',description:'Lege eine andere Handkarte unters Deck. Bis zu zwei Seiten erhalten für diesen Angriff +2.'},
+  {key:'hamster',name:'Sad Hamster',element:'water',prime,values:[4,10,4,5,6,2],
+    artwork:'Winziger Hamster mit großen, glänzenden Tränen und einer Spielzeuggeige',
+    effect:'Rückholaktion',description:'Angriffe auf Karten, die der Gegner im letzten Zug übernommen hat, erhalten +3.'},
+  {key:'tpose',name:'T-Pose',element:'earth',prime,values:[5,3,10,3,6,3],
+    artwork:'Stein-Türsteher mit ausgebreiteten Armen und unbewegter Miene',
+    effect:'Körperblock',description:'Wird eine gegnerische Karte direkt daneben gelegt, bekommt sie für diesen Zug −2 auf alle Zahlenangriffe.'},
+  {key:'continued',name:'To Be Continued',element:'air',prime,values:[5,3,6,2,10,3],
+    artwork:'Skateboarder schwebt kurz vor dem Sturz in der Luft. Ein eigener Comic-Pfeil lenkt den Blick zur Lücke',
+    effect:'Cliffhanger',description:'Nach einem Flip darf sie auf ein freies Nachbarfeld springen, wenn sie von dort noch eine weitere Karte mit einer Zahlenseite flippt.'},
+  {key:'hackerman',name:'Hackerman',element:'storm',prime,values:[3,6,4,5,4,10],
+    artwork:'Hoodie-Hacker mit viel zu vielen Röhrenmonitoren und einer lächerlich großen Eingabetaste',
+    effect:'Override',description:'Beim Legen darfst du eine Zahlenseite einer Nachbarkarte bis zum Rundenende auf 4 setzen.'},
+  {key:'spicy',name:'Why Is It Spicy?',element:'fire',values:[3,6,4,3,6,5],
+    artwork:'Roter Babydrache probiert Chilisoße und prustet zwei kleine Feuerwolken aus',
+    effect:'Nachschärfen',description:'Neben genau zwei Gegnerkarten erhält sie +1 Angriff gegen beide.'},
+  {key:'headout',name:'Imma Head Out',element:'water',values:[7,3,5,3,5,4],
+    artwork:'Seeschnecke klappt ihren Liegestuhl zusammen und will einfach nur nach Hause',
+    effect:'Abgang',description:'Beim ersten gegnerischen Flip sinkt ihre höchste Zahl auf einer freien Seite um 2.'},
+  {key:'highground',name:'High Ground',element:'earth',values:[4,6,4,5,3,5],
+    artwork:'Hamster mit Siegerpose auf einem hohen Stapel Snackboxen',
+    effect:'Höhenvorteil',description:'Am Brettrand verteidigt sie auf allen Zahlenseiten mit +2.'},
+  {key:'parkour',name:'Parkour!',element:'air',values:[6,3,6,3,6,4],
+    artwork:'Taube nimmt maximalen Anlauf für einen Sprung über einen winzigen Hocker',
+    effect:'Weitsprung',description:'Ein Angriff darf über ein leeres Feld oder eine eigene Karte springen. Dieser Angriff erhält −1.'},
+  {key:'over9000',name:'Over 9000',element:'storm',values:[6,3,4,5,3,5],
+    artwork:'Ein absurdes Arcade-Messgerät mit einem Zeiger jenseits der Skala',
+    effect:'Aufladen',description:'Legst du sie neben eine eigene Karte, darfst du eine ihrer Zahlenseiten um 2 erhöhen. Der Wert bleibt bis zum Rundenende und liegt höchstens bei 8.'},
+].map(card=>Object.freeze({...card,short:card.name,quote:'',id:'beta-'+card.key,ruleId:'beta-'+card.key,ability:'beta-'+card.key,beta:card.key,image:'/game/assets/cards/beta-v1/'+card.key+'.webp',prime:Boolean(card.prime),iconic:!card.prime,values:Object.freeze(card.values)})));
+
+export const BETA_BY_ID = Object.freeze(Object.fromEntries(BETA_CARDS.map(card=>[card.id,card])));

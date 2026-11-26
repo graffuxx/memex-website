@@ -268,7 +268,7 @@ function stopDrag(e,cancelled=false){
  target=canStage(cell)?cell:null;twistCell=null;blockadeCell=null;signatureControls.clear();
  const placement=target&&plan();
  if(placement){
-  if(placement.plotTargets?.length||placement.overloadTargets?.length||placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps.length||placement.bidTargets.length||placement.swaps.length||placement.valueSwaps?.length||placement.turnChoices.length||placement.dash||placement.ability==='rage'&&rageTargets(game,target).length||['water','air'].includes(placement.ability)){
+  if(placement.card.beta||placement.plotTargets?.length||placement.overloadTargets?.length||placement.buttonAttack||placement.buttonDefense!=null||placement.pivotTarget||placement.steps.length||placement.bidTargets.length||placement.swaps.length||placement.valueSwaps?.length||placement.turnChoices.length||placement.dash||placement.ability==='rage'&&rageTargets(game,target).length||['water','air'].includes(placement.ability)){
    view.release(d.uid);render();
   }else cycle(action());
   return;

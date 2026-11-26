@@ -44,7 +44,7 @@ export function sideValue(card,dir,rotation=card.rotation??0){
  const original=((dir-rotation)%6+6)%6;
  const [first,second]=card.edgeSwap??[];
  const index=original===first?second:original===second?first:original;
- const value=card.edgeCopy?.dir===index?card.edgeCopy.value:cardOf(card).values[index];
+ const value=card.betaEdges?.[index]??(card.edgeCopy?.dir===index?card.edgeCopy.value:cardOf(card).values[index]);
  return card.edgeWear&&!isSRank126(value)?Math.max(1,value-card.edgeWear):value;
 }
 export function strength(g,card,cell,dir,opponent){const base=sideValue(card,dir),field=fieldAt(g,cell),fieldBonus=field?.element===cardOf(card).element?field.bonus:0,advantage=elementAdvantage(cardOf(card).element,cardOf(opponent).element,g.elementRules??3)?1:0;return {base,field:fieldBonus,element:advantage,...rankedStrength126(base,fieldBonus+((g.elementRules??3)===3?advantage:0))};}
