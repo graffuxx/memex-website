@@ -19,7 +19,7 @@ export default function BoosterTear({autoStart,beta=false,onOpened,onOpen,onSkip
   <div className="alpha-tear-wake" aria-hidden="true"><i/><i/><i/></div>
   <div className="alpha-rip-flare" aria-hidden="true"/>
   <div className="alpha-tear-fan" aria-hidden="true">{Array.from({length:5},(_,i)=><img key={i} src={UNIVERSAL_CARD_BACK} alt="" style={{'--fan':i-2} as CSSProperties}/>)}</div>
-  <button className="alpha-tear-pack" onClick={open} disabled={tearing} aria-label="Tear open Alpha Booster">
+  <button className="alpha-tear-pack" onClick={open} disabled={tearing} aria-label={beta?'Tear open Beta Preview Booster':'Tear open Alpha Booster'}>
    <span className="alpha-wrapper-body" aria-hidden="true"><AlphaBoosterPack beta={beta}/></span>
    <span className="alpha-wrapper-top" aria-hidden="true"><AlphaBoosterPack beta={beta}/></span>
    <span className="alpha-tear-seam" aria-hidden="true"/>
