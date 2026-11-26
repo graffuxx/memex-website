@@ -31,8 +31,9 @@
 
 .hero {
   position: absolute;
-  left: calc(var(--home-edge) + clamp(10px, 3vw, 50px));
-  top: clamp(120px, 24svh, 245px);
+  left: calc(var(--home-edge) + clamp(10px, 3vw, 50px) + clamp(122.5px, 15.5vw, 233px));
+  top: clamp(106px, 20svh, 220px);
+  transform: translateX(-50%);
   display: grid;
   justify-items: center;
   gap: 9px;
@@ -40,9 +41,10 @@
 .hero h1 { margin: 0; }
 .hero h1 img {
   display: block;
-  width: clamp(245px, 31vw, 466px);
-  max-height: 38svh;
+  width: clamp(300px, 37vw, 600px);
+  max-height: 45svh;
   object-fit: contain;
+  translate: -5% 0;
   filter: drop-shadow(0 12px 30px #070317df) drop-shadow(0 0 25px #37157b50);
 }
 .heroActions {
@@ -152,8 +154,8 @@
 :global(body):has(:global(.social111-launcher)) .legal { left: var(--home-edge); right: auto; }
 
 @media (max-width: 790px), (orientation: portrait) and (max-width: 1024px) {
-  .hero { top: clamp(86px, 17svh, 180px); left: 50%; transform: translateX(-50%); gap: 10px; }
-  .hero h1 img { width: clamp(218px, 53vw, 350px); max-height: 30svh; }
+  .hero { top: clamp(86px, 17svh, 180px); left: 50%; gap: 10px; }
+  .hero h1 img { width: clamp(230px, 56vw, 390px); max-height: 33svh; }
   .headline { right: var(--home-edge); width: min(350px, calc(100% - 2 * var(--home-edge))); bottom: max(47px, 8svh); }
   .sceneLighting { background: linear-gradient(0deg, #0a0618f5, #0a061830 37%, transparent 66%, #0a06186e); }
 }
