@@ -26,7 +26,7 @@ assertSetCatalog131(DEFINITIONS);
 export const STARTER_IDS=Object.freeze(['pepe','doge','roll-safe','harold','disaster-girl','confused','side-eye','success-kid','grumpy-cat','aliens-guy','smudge','bad-luck-brian','gigachad','stonks','trollface']);
 const UNSORTED_VARIANTS = DEFINITIONS.flatMap(card=>ELEMENT_IDS.flatMap(element=>RARITIES.map(rarity=>Object.freeze({
  id:`${card.id}:${rarity.id}${element===card.element?'':':'+element}`,definitionId:card.id,element,rarity:rarity.id,edition:card.edition,
- image:card.edition==='beta'?card.image:(card.prime||card.iconic)?`/game/assets/cards/${card.artDirectory??'primes-v126'}/${card.id}-${rarity.id}.webp`:card.artAtlas?card.image+'?finish='+rarity.id:rarity.id==='common'?card.image:EXPANSION_CARDS.some(c=>c.id===card.id)?`/game/assets/cards/${card.artDirectory??'memes-v27'}/${card.id}-${rarity.id}.webp`:`/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
+ image:card.beta?card.image:(card.prime||card.iconic)?`/game/assets/cards/${card.artDirectory??'primes-v126'}/${card.id}-${rarity.id}.webp`:card.artAtlas?card.image+'?finish='+rarity.id:rarity.id==='common'?card.image:EXPANSION_CARDS.some(c=>c.id===card.id)?`/game/assets/cards/${card.artDirectory??'memes-v27'}/${card.id}-${rarity.id}.webp`:`/game/assets/cards/rarity-v16/${card.id}-${rarity.id}.webp`,
  artOffsetY:card.artOffsetY??0,artRegion:card.artRegion??(card.artAtlas?Object.freeze({x:RARITIES.findIndex(r=>r.id===rarity.id)/5,...ATLAS_REGIONS[card.id]}):null)
 }))));
 const definitionOrder=new Map(DEFINITIONS.map((c,i)=>[c.id,i]));

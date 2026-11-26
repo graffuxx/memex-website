@@ -28,7 +28,7 @@ test('S is immune to all numeric bonuses; only a stronger-element S captures an 
  game.players[0].hand[0]=nuck;game.board={'0,1':{...ernie,rotation:4,controller:1}};const strong=previewEffect(game,{uid:nuck.uid,cell:'0,0',rotation:0});assert.equal(strong.comparisons[0].flip,true);
 });
 test('booster history protects one per finish; bots use legal singleton decks and at most one Prime',()=>{
- const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,1]));acquired['evil-ernie:mythic']=0;assert.deepEqual(protectedCandidates('mythic',acquired).map(v=>v.id),['evil-ernie:mythic']);acquired['evil-ernie:mythic']=1;assert.equal(protectedCandidates('mythic',acquired).length,120);
+ const acquired=Object.fromEntries(VARIANTS.map(v=>[v.id,1]));acquired['evil-ernie:mythic']=0;assert.deepEqual(protectedCandidates('mythic',acquired).map(v=>v.id),['evil-ernie:mythic']);acquired['evil-ernie:mythic']=1;assert.equal(protectedCandidates('mythic',acquired).length,130);
  for(let seed=0;seed<100;seed++){const b=createBot96(seed),inventory=Object.fromEntries(b.deck.cards.map(id=>[id,1]));assert.ok(validateDeck(b.deck.cards,inventory).valid,`seed ${seed}`);assert.ok(countPrimes(b.deck.cards)<=1);}
 });
 test('live-schema migration preserves ownership and decks, enforces server limits, grants legal starters and changes duplicate protection atomically',async()=>{

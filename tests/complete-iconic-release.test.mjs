@@ -106,7 +106,7 @@ for(const turn of [0,1]){
 test('the eight remaining Iconic abilities use the new private snapshot',()=>{
  const abilities={'rage-guy':'rage','two-buttons':'buttons','change-my-mind':'exchange','first-world-problems':'luxury',
   'confused-travolta':'wander','awkward-penguin':'awkward','always-has-been':'ambush','yo-dawg':'nested'};
- const catalog=DEFINITIONS.filter(c=>c.edition==='alpha'&&c.iconic);
+ const catalog=DEFINITIONS.filter(c=>c.edition==='alpha'&&c.iconic&&!c.beta);
  assert.equal(catalog.length,20);
  assert.equal(new Set(catalog.map(c=>releasedIconicAbility({id:c.ruleId},7))).size,20);
  for(const definition of catalog){

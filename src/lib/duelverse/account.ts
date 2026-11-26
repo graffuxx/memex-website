@@ -97,7 +97,7 @@ export async function findBoosterRequest(requestId:string):Promise<BoosterPurcha
 export class BoosterPurchaseError extends Error{constructor(message:string,public definitive=false){super(message);}}
 export async function buyAlphaBooster(requestId:string,currency:BoosterCurrency,product:BoosterProduct='alpha'):Promise<string>{
  const {data,error}=await (product==='beta'?supabase.rpc('dv_buy_beta_booster',{p_request:requestId}):supabase.rpc('dv_buy_alpha_booster',{p_request:requestId,p_currency:currency}));
- if(error){const known=['Not enough Pixels','Not enough Shards','Collection limit reached','Invalid booster purchase','Booster catalog unavailable'];throw new BoosterPurchaseError(known.includes(error.message)?error.message:'The purchase could not be confirmed. Retry this same request to restore it safely.',known.includes(error.message));}
+ if(error){const known=['Not enough Pixels','Not enough Shards','Collection limit reached','Invalid booster purchase','Booster catalog unavailable','Beta preview sales are closed'];throw new BoosterPurchaseError(known.includes(error.message)?error.message:'The purchase could not be confirmed. Retry this same request to restore it safely.',known.includes(error.message));}
  if(typeof data!=='string')throw new BoosterPurchaseError('The purchase response could not be read. Retry this same request.');return data;
 }
 export async function revealBoosterCard(boosterId:string,slot:number):Promise<void>{

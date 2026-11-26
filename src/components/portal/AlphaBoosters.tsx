@@ -11,7 +11,7 @@ import BoosterRevealCard from './BoosterRevealCard';
 import CardDetailsDialog from './CardDetailsDialog';
 import usePlayerCollection from './usePlayerCollection';
 import {BoosterPurchaseError,buyAlphaBooster,loadBooster,loadUnopenedBoosters,findBoosterRequest,openAlphaBooster,type BoosterCurrency,type BoosterProduct,type BoosterPurchase} from '@/lib/duelverse/account';
-import {ALPHA_BOOSTER,BETA_BOOSTER,previewAlphaPack,revealedSlots,validAlphaPack,validBetaPack} from '../../../public/game/platform/alpha-booster36.mjs';
+import {ALPHA_BOOSTER,previewAlphaPack,revealedSlots,validAlphaPack,validBetaPack} from '../../../public/game/platform/alpha-booster36.mjs';
 import {ALL_PACK_SLOTS,unopenedPacks,prepareManualOpening,flipPackSlot} from '../../../public/game/platform/booster-opening58.mjs';
 import {getVariant} from '../../../public/game/platform/catalog.mjs';
 import {requestedBooster} from '../../../public/game/platform/player-area49.mjs';
@@ -21,14 +21,13 @@ type Pending={id:string;currency:BoosterCurrency;product?:BoosterProduct};
 type Phase='idle'|'saving'|'manual'|'done'|'error';
 const editions=['alpha','beta'] as const;
 const editionName={alpha:'Alpha Booster',beta:'Beta Preview Booster'};
-const betaSet=editionProgress131('beta');
+const alphaSet=editionProgress131('alpha');
 const pendingKey=(user:string)=>'duelverse.booster-pending.v36:'+user;
 function readPending(user:string):Pending|null{const key=pendingKey(user);try{const raw=localStorage.getItem(key);if(!raw)return null;const p=JSON.parse(raw);if(typeof p?.id==='string'&&/^[0-9a-f-]{36}$/i.test(p.id)&&['pixels','shards'].includes(p.currency))return p;}catch{}localStorage.removeItem(key);return null;}
 
 export default function AlphaBoosters({shop=false}:{shop?:boolean}){
  const {ready,userId,player,error:accountError,refresh}=usePlayerCollection(),sound=useBoosterAudio();
  const [pack,setPack]=useState<BoosterPurchase|null>(null),[history,setHistory]=useState<BoosterPurchase[]>([]),[stage,setStage]=useState<'sealed'|'opening'>('sealed'),[packOpened,setPackOpened]=useState(false),[preview,setPreview]=useState(false),[shown,setShown]=useState<number[]>([]),[phase,setPhase]=useState<Phase>('idle');
- const [confirmProduct,setConfirmProduct]=useState<BoosterProduct>('alpha');
  const [inspectedCard,setInspectedCard]=useState<string|null>(null);
  const [autoTear,setAutoTear]=useState(false),[revealEffectSlot,setRevealEffectSlot]=useState<number|null>(null);
  const [confirmation,setConfirmation]=useState<BoosterCurrency|null>(null),[pending,setPending]=useState<Pending|null>(null),[busy,setBusy]=useState(false),[loadingHistory,setLoadingHistory]=useState(false),[error,setError]=useState(''),[reload,setReload]=useState(0),[previewRun,setPreviewRun]=useState(0);
@@ -125,9 +124,8 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
  const [category,setCategory]=useState<ShopCategory81>('boosters');
  useEffect(()=>{const c=new URLSearchParams(window.location.search).get('category');if(c==='shards'||c==='arenas'||c==='frames'||c==='portraits')setCategory(c);},[]);
  function changeCategory(c:ShopCategory81){setCategory(c);const url=new URL(window.location.href);url.searchParams.set('category',c);window.history.replaceState(null,'',url.pathname+url.search);}
- const selectedPrice=confirmProduct==='beta'?BETA_BOOSTER.price:confirmation?ALPHA_BOOSTER.prices[confirmation]:0;
+ const selectedPrice=confirmation?ALPHA_BOOSTER.prices[confirmation]:0;
  const betaOpening=pack?.product_id==='beta';
- function ask(currency:BoosterCurrency,product:BoosterProduct='alpha'){setConfirmProduct(product);setConfirmation(currency);}
  const inventory=!shop&&Boolean(userId);
  return <section className="portal-section top-space alpha-booster-page">
  <div className="alpha-shop-heading"><div><h1>{shop?'Shop':'Boosters'}</h1><div className="alpha-shop-links">{!shop&&<a className="alpha-back-link" href="/shop">Back to shop</a>}{userId&&<a className="alpha-history-link" href="/account/private/boosters">Your boosters</a>}</div></div><div className="alpha-shop-controls">{shop&&!opening&&category!=='shards'&&<a className="button gold alpha-buy-shards82" href="/shop?category=shards" onClick={e=>{e.preventDefault();changeCategory('shards');}}>Buy Shards</a>}<PlayerBalances ready={ready} userId={userId} player={player}/></div></div>
@@ -177,15 +175,15 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
       aria-label={`Open ${editionName[edition]} · ${owned.length} unopened`} onClick={()=>openQueued(owned[0])}>{art}</button>:<div className="booster-edition-art">{art}</div>}
      <div className="booster-edition-info">
       <h2 id={edition+'-booster-title'}>{editionName[edition]}</h2>
-      {beta?<><p>1 Beta card + 4 Alpha Regulars</p><small>{betaSet.released} Beta cards in the preview · Beta slot: {BETA_BOOSTER.primeChance}% Prime, {100-BETA_BOOSTER.primeChance}% Iconic</small></>
-       :<><p>5 Alpha cards · At least 1 Silver or higher</p><small>Duplicate protection</small></>}
-      {inventory?(!loadingHistory&&!error&&<div className="booster-edition-actions">
-       {owned.length>0?<span className="booster-edition-open-label">Click the pack to open</span>:<a className="button glass" href="/shop">Get boosters</a>}
+      {beta?<p className="booster-edition-open-label">Booster preview · Coming soon</p>
+       :<><p>5 Alpha cards · At least 1 Silver or higher</p><small>{alphaSet.released} motifs · Duplicate protection</small></>}
+      {inventory||beta?(!loadingHistory&&!error&&<div className="booster-edition-actions">
+       {owned.length>0?<span className="booster-edition-open-label">{beta?'Open a saved pack':'Click the pack to open'}</span>:!beta&&<a className="button glass" href="/shop">Get boosters</a>}
       </div>):<div className="booster-edition-actions">
-       <button className={beta?'button glass':'button gold'} type="button" disabled={locked||!player||player.pixels<(beta?BETA_BOOSTER.price:ALPHA_BOOSTER.prices.pixels)}
-        aria-label={`Buy ${editionName[edition]} with Pixels`} onClick={()=>ask('pixels',edition)}>{beta?BETA_BOOSTER.price:ALPHA_BOOSTER.prices.pixels} Pixels</button>
-       {!beta&&<button className="button glass" type="button" disabled={locked||!player||player.shards<ALPHA_BOOSTER.prices.shards}
-        aria-label="Buy Alpha Booster with Shards" onClick={()=>ask('shards')}>{ALPHA_BOOSTER.prices.shards} Shards</button>}
+       <button className="button gold" type="button" disabled={locked||!player||player.pixels<ALPHA_BOOSTER.prices.pixels}
+        aria-label="Buy Alpha Booster with Pixels" onClick={()=>setConfirmation('pixels')}>{ALPHA_BOOSTER.prices.pixels} Pixels</button>
+       <button className="button glass" type="button" disabled={locked||!player||player.shards<ALPHA_BOOSTER.prices.shards}
+        aria-label="Buy Alpha Booster with Shards" onClick={()=>setConfirmation('shards')}>{ALPHA_BOOSTER.prices.shards} Shards</button>
       </div>}
      </div>
     </article>;
@@ -198,7 +196,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
   <a className="alpha-crafting-link" href="/collection"><span><strong>Craft cards</strong><small>Regular · Normal, Silver, Gold</small></span><span>Use Echoes</span></a>
  </>}
  {!opening&&(!shop||category==='boosters')&&<AlphaBoosterOdds/>}
- <dialog ref={dialog} className="card-trade-dialog alpha-purchase-dialog" aria-labelledby="alphaPurchaseTitle" onCancel={e=>{e.preventDefault();if(!busy)setConfirmation(null);}}><h2 id="alphaPurchaseTitle">Buy one {confirmProduct==='beta'?'Beta Preview Booster':'Alpha Booster'}?</h2><AlphaBoosterPack compact beta={confirmProduct==='beta'}/><p>{confirmProduct==='beta'?'One Beta Prime or Iconic and four Alpha Regular cards.':'Five cards. At least one Silver or higher. Duplicate protection included.'}</p><p><strong>{selectedPrice} {confirmation==='pixels'?'Pixels':'Shards'}</strong> will be deducted from your account balance.</p><div className="actions"><button className="button glass" disabled={busy} onClick={()=>setConfirmation(null)}>Cancel</button><button className="button gold" disabled={busy||!confirmation} onClick={()=>confirmation&&purchase(confirmation,confirmProduct)}>{busy?'Saving your booster…':`Buy for ${selectedPrice} ${confirmation==='pixels'?'Pixels':'Shards'}`}</button></div></dialog>
+ <dialog ref={dialog} className="card-trade-dialog alpha-purchase-dialog" aria-labelledby="alphaPurchaseTitle" onCancel={e=>{e.preventDefault();if(!busy)setConfirmation(null);}}><h2 id="alphaPurchaseTitle">Buy one Alpha Booster?</h2><AlphaBoosterPack compact/><p>Five cards. At least one Silver or higher. Duplicate protection included.</p><p><strong>{selectedPrice} {confirmation==='pixels'?'Pixels':'Shards'}</strong> will be deducted from your account balance.</p><div className="actions"><button className="button glass" disabled={busy} onClick={()=>setConfirmation(null)}>Cancel</button><button className="button gold" disabled={busy||!confirmation} onClick={()=>confirmation&&purchase(confirmation)}>{busy?'Saving your booster…':`Buy for ${selectedPrice} ${confirmation==='pixels'?'Pixels':'Shards'}`}</button></div></dialog>
  <CardDetailsDialog variantId={opening&&packOpened?inspectedCard:null} onClose={()=>setInspectedCard(null)}/>
  </section>;
 }

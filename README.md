@@ -152,12 +152,13 @@ claimed again. The isolated guide capture fixture lives under `tests/fixtures/`.
 
 ## Fixed Alpha edition and private loan decks (131)
 
-Alpha is permanently capped at 120 distinct motifs: 85 regular, 15 Prime and 20
-Iconic slots. The explicit manifest currently releases 85 regular and 10 Prime;
-five Prime and twenty Iconic slots remain reserved, never drawable placeholders.
-Rarity finishes and recruiter artwork do not increase the motif count. Collection,
-deck builder, guide and booster details share this definition and display progress.
-The final collection quest is 120; stable reward IDs preserve prior claims.
+Alpha contains 130 distinct motifs: 85 Regular, 20 Prime and 25 Iconic. The
+original 120 slots retain their numbering and the ten promoted preview motifs
+occupy slots 121–130. Rarity finishes do not increase the motif count. The final
+collection quest remains at 120 motifs. Apply
+`202611260002_promote_preview_cards_to_alpha.sql` to bring these cards into the
+Alpha booster pool and close new Beta preview sales. Saved packs retain their
+original contents and can still be opened.
 
 Apply `202611230005_editions_private131.sql` before deploying the frontend. It adds
 server-enforced edition slots and separate private loan decks. Existing owned decks
@@ -167,7 +168,7 @@ They grant no inventory, wallet, XP or quest progress, do not protect cards agai
 dismantling, and cannot enter Random or rewarded AI. Both purposes share ten saved
 decks, exact 15-motif singleton rules and at most one Prime. All private rows remain
 owner-only. Ranked remains one disabled Coming soon entry; future current-edition
-and open formats are configuration only. No new Iconic rules or cards are released.
+and open formats are configuration only.
 
 
 ## Alpha Prime completion (132)

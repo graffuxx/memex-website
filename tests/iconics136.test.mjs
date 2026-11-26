@@ -18,8 +18,8 @@ const deck=(iconic='rage-guy',prime='evil-ernie')=>[
 ];
 const thirdIconic=cards=>['double-rainbow:epic',...cards.slice(0,14)];
 const open=(cards,seed=1)=>{let s=createPvp90(cards.map(cards=>({cards})),seed,0);for(const [side,move]of [[0,{kind:'gesture',value:'rock'}],[1,{kind:'gesture',value:'scissors'}],[0,{kind:'starter',side:0}]])s=advancePvp90(s,side,move,0);return s;};
-test('Alpha completes 120 stable motifs with 20 approved tradeoff profiles and 100 distinct usable Iconic artworks',async()=>{
- assert.equal(DEFINITIONS.filter(c=>c.edition==='alpha').length,120);assert.equal(ICONIC_CARDS136.length,20);const hashes=new Set();
+test('The original 20 Alpha Iconics keep their approved tradeoff profiles and 100 distinct usable Iconic artworks',async()=>{
+ assert.equal(DEFINITIONS.filter(c=>c.edition==='alpha').length,130);assert.equal(ICONIC_CARDS136.length,20);const hashes=new Set();
  for(const [i,c]of ICONIC_CARDS136.entries()){
   assert.equal(ALPHA_SLOTS131[100+i].id,c.id);assert.equal(c.values.reduce((s,n)=>s+n),28);assert.ok(c.values.every(n=>n>=2&&n<=8));assert.ok(c.values.some(n=>n<=3));assert.equal(c.prime,false);assert.equal(c.ability,null);
   const def=DEFINITIONS.find(d=>d.id===c.id);assert.equal(def.category,'iconic');assert.equal(def.iconic,true);assert.equal(def.edition,'alpha');assert.equal(getVariant(c.id+':common').element,c.element);assert.equal(VARIANTS.filter(v=>v.definitionId===c.id).length,5);
@@ -41,7 +41,7 @@ test('two Iconics and one Prime are independent optional slots, across all finis
 test('random and training opponents use every Iconic through legal separate class slots; hidden worlds honor already revealed Iconics',()=>{
  const seen=new Set();let pairedIconics=0;for(let seed=0;seed<500;seed++)for(const cards of [createBot96(seed).deck.cards,soloOpponent84('pressure',regular,seed),soloOpponent84('balanced',regular,seed)]){
   assert(validateDeck(cards,all).valid,`seed ${seed}`);assert(countIconics(cards)<=2);if(countIconics(cards)===2)pairedIconics++;assert(countPrimes(cards)<=1);for(const id of cards)if(DEFINITIONS.find(c=>c.id===getVariant(id).definitionId).iconic)seen.add(getVariant(id).definitionId);
- }assert.equal(seen.size,20);assert.ok(pairedIconics>0);
+ }assert.deepEqual([...seen].sort(),DEFINITIONS.filter(c=>c.iconic).map(c=>c.id).sort());assert.ok(pairedIconics>0);
  let s=open([deck(),deck('kekw','sanic')],16);while(!s.game.finished&&!Object.values(s.game.board).some(c=>getVariant(c.variantId).definitionId==='rage-guy'))s=advancePvp90(s,s.game.turn,{kind:'place',action:chooseTactic(s.game,{policy:'position'}).chosen.action},1);
  for(let seed=1;seed<=40;seed++){const g=determinize135(s.game,{observer:1,ownDeck:s.decks[1].cards,random:random96(seed)});for(const side of [0,1]){const ids=[...g.players[side].hand,...g.players[side].deck,...Object.values(g.board).filter(c=>c.origin===side)].map(c=>c.variantId);assert.equal(ids.length,15);assert.equal(new Set(ids.map(id=>getVariant(id).definitionId)).size,15);assert(countIconics(ids)<=2);assert(countPrimes(ids)<=1);}}
 });

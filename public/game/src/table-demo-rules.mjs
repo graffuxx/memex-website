@@ -37,7 +37,7 @@ export const OVERLOAD_COST=2;
 export const JORDAN_MAX_MARGIN=1;
 export const guardBonus=game=>game.abilityTrial?1:GUARD_BONUS;
 export const ABILITIES={
- ...Object.fromEntries(BETA_CARDS.map(c=>[c.ability,{name:c.effect,short:c.prime?'β':'✦',description:c.description}])),
+ ...Object.fromEntries(BETA_CARDS.map(c=>[c.ability,{name:c.effect,short:'✦',description:c.description}])),
  hype:{name:'Much Hype',short:'H',description:'Beim Ausspielen +1 auf eine gewählte Angriffsseite.'},
  guard:{name:'Feels Bad',short:'S',description:'Eine Seite erhält +2 Verteidigung bis zum nächsten eigenen Karten-Zug.'},
  twist:{name:'Think Again',short:'↻',description:'Du kannst eine benachbarte Gegnerkarte einen Schritt nach rechts drehen. Sie bleibt in diesem Zug beim Gegner.'},

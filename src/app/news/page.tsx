@@ -56,11 +56,11 @@ export default function NewsPage() {
             <img src="/game/assets/cards/beta-v1/hackerman.webp" alt="Hackerman surrounded by violet CRT screens" />
           </div>
           <div>
-            <div className={styles.badge}>BETA PREVIEW · <time dateTime="2026-11-26">26 NOV 2026</time></div>
+            <div className={styles.badge}>ALPHA UPDATE · <time dateTime="2026-11-26">26 NOV 2026</time></div>
             <h2>10 new cards are live. Meet Hackerman.</h2>
-            <p>Five Primes and five Iconics join the Beta preview, one of each in Fire, Water, Earth, Air and Storm.</p>
+            <p>Five Primes and five Iconics join Alpha, one of each in Fire, Water, Earth, Air and Storm.</p>
             <p><strong>Hackerman · Storm Prime · Override.</strong> When you play Hackerman, choose a numbered edge on a neighboring card and set it to 4 for the rest of the round. Turn a defender’s 8 into a 4 and your 6 can flip it on the same move. S edges keep their rank.</p>
-            <p>The Beta Preview Booster costs 100 Pixels and contains one Beta card and four Alpha Regulars.</p>
+            <p>Alpha Boosters now draw from 130 different motifs. Beta is available as a pack preview.</p>
             <p><a href="/decks?test=1">Try Hackerman in Deck Test</a> · <a href="/shop">Open the booster shop</a></p>
           </div>
         </article>

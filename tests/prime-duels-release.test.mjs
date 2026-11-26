@@ -25,8 +25,8 @@ const exclusive=['ernie','roundhouse','phalanx','pincer','relay','retry','gate',
 const eventKey={ernie:'ward',roundhouse:'transforms',phalanx:'rally',pincer:'pincer',relay:'relay',retry:'selfTurn',
  gate:'blockadeLock',dash:'dash',chorus:'transforms',jam:'jam',sandwich:'sandwich',bailout:'bailout',fan:'reserve',blink:'blink',cling:'attachment'};
 
-test('all 15 Prime badges and rules are assigned only in the new private snapshot',()=>{
- const primes=DEFINITIONS.filter(c=>c.edition==='alpha'&&c.prime);
+test('the original 15 Prime badges and rules are assigned only in the new private snapshot',()=>{
+ const primes=DEFINITIONS.filter(c=>c.edition==='alpha'&&c.prime&&!c.beta);
  assert.equal(primes.length,15);
  assert.equal(fixtures.length,30);
  assert.equal(new Set(primes.map(p=>releasedPrimeAbility({id:p.ruleId},true,true))).size,15);
