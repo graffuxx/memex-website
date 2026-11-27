@@ -27,3 +27,39 @@ test('only accepted, unblocked friends see live presence; background, expiry, mu
 test('presence writes bind to the caller, use server time and cap active clients',async()=>{const db=await setup();try{await user(db,a);const tab=uuid(200);await rpc(db,'dv_presence_ping114',{p_client:tab,p_visible:true});await db.exec('reset role');const first=(await db.query('select seen_at from public.dv_presence114 where user_id=$1',[a])).rows[0].seen_at;await user(db,a);await rpc(db,'dv_presence_ping114',{p_client:tab,p_visible:true});await db.exec('reset role');assert.deepEqual((await db.query('select seen_at from public.dv_presence114 where user_id=$1',[a])).rows[0].seen_at,first);await user(db,a);for(let n=201;n<224;n++)assert.equal(await rpc(db,'dv_presence_ping114',{p_client:uuid(n),p_visible:true}),true);assert.equal(await rpc(db,'dv_presence_ping114',{p_client:uuid(224),p_visible:true}),false);await db.exec('reset role');assert.equal(Number((await db.query('select count(*) n from public.dv_presence114 where user_id=$1',[a])).rows[0].n),24);await db.query("update public.dv_presence114 set seen_at=now()-interval '3 minutes' where user_id=$1",[a]);await user(db,a);assert.equal(await rpc(db,'dv_presence_ping114',{p_client:uuid(224),p_visible:true}),true);}finally{await db.close();}});
 test('client presence rotates account leases and preserves a visibility change during an in-flight heartbeat',async()=>{let n=0;const calls=[],pending=[],left=[];const p=createPresence114({makeId:()=>String(++n),send:(id,visible)=>{calls.push([id,visible]);return new Promise(resolve=>pending.push(resolve));},leave:async id=>left.push(id)});p.setUser('a');const first=p.ping(true);await p.ping(false);pending.shift()();await first;assert.deepEqual(calls,[['1',true],['1',false]]);p.setUser('b');pending.shift()();const second=p.ping(true);await p.close();pending.shift()();await second;assert.deepEqual(left,['2']);assert.equal(p.current.owner,null);assert.equal(p.current.client,null);});
 test('friend list sorting, network failures and builder suppression preserve privacy and request badges',async()=>{const identity=name=>({displayName:name});let fail=false;const data={people:[{id:'b',identity:identity('Beta'),relationship:'friend',presence:'offline'},{id:'a',identity:identity('Alpha'),relationship:'friend',presence:'online'},{id:'c',identity:identity('Gamma'),relationship:'incoming',presence:'online'}],invites:[]};const inbox=createInbox111({load:async()=>{if(fail)throw Error('offline');return data;}});inbox.setUser('owner');await inbox.refresh();assert.deepEqual(inbox.getSnapshot().friends.map(f=>f.id),['a','b']);assert.equal(inbox.getSnapshot().items.length,1);fail=true;await inbox.refresh();assert.ok(inbox.getSnapshot().friends.every(f=>f.presence==='unknown'));inbox.setUser(null);assert.deepEqual(inbox.getSnapshot().friends,[]);for(const path of['/decks','/decks?test=1','/decks/saved'])assert.equal(hideSocial114(path),true);for(const path of['/','/play','/account/private','/shop'])assert.equal(hideSocial114(path),false);assert.equal(sortFriends114(data.people).length,2);});
+
+test('preset signals stay between accepted friends, rate limits block repeats and old or blocked signals stay hidden',async()=>{
+ const db=await setup();
+ try{
+  const send=(friend,signal)=>rpc(db,'dv_send_friend_signal',{p_friend:friend,p_signal:signal});
+  await user(db,a);
+  await assert.rejects(send(b,'wave'),/between friends/);
+  await friendPair(db);
+  await user(db,a);
+  await assert.rejects(send(b,'custom message'),/valid friend signal/);
+  await send(b,'wave');
+  await assert.rejects(send(b,'play'),/Wait before/);
+  assert.deepEqual((await rpc(db,'dv_social_list114')).signals,[]);
+  await assert.rejects(db.query('select * from public.dv_friend_signals'),/permission denied/);
+  await user(db,c);
+  assert.deepEqual((await rpc(db,'dv_social_list114')).signals,[]);
+  await user(db,b);
+  const first=(await rpc(db,'dv_social_list114')).signals[0];
+  assert.equal(first.signal,'wave');
+  assert.equal(first.identity.displayName,'Alpha92');
+  await db.exec("reset role;update public.dv_friend_signals set sent_at=now()-interval '31 seconds'");
+  await user(db,a);await send(b,'play');
+  await user(db,b);
+  const updated=(await rpc(db,'dv_social_list114')).signals;
+  assert.equal(updated.length,1);
+  assert.notEqual(updated[0].id,first.id);
+  assert.equal(updated[0].signal,'play');
+  await db.exec("reset role;update public.dv_friend_signals set sent_at=now()-interval '25 hours'");
+  await user(db,b);assert.deepEqual((await rpc(db,'dv_social_list114')).signals,[]);
+  await user(db,a);await send(b,'gg');
+  await user(db,b);await act(db,a,'block');
+  assert.deepEqual((await rpc(db,'dv_social_list114')).signals,[]);
+  await user(db,a);await assert.rejects(send(b,'wave'),/between friends/);
+  await user(db,null,'anon');await assert.rejects(send(b,'wave'),/permission denied/);
+ }finally{await db.close();}
+});

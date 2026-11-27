@@ -2,11 +2,12 @@
 
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {supabase} from '@/lib/supabaseClient';
-import {socialAction92,socialSearch92,friendReply92,friendInvite92,type Friend92} from '@/lib/duelverse/friends92';
+import {socialAction92,socialSearch92,friendReply92,friendInvite92,sendFriendSignal,type Friend92,type SignalKind} from '@/lib/duelverse/friends92';
 import {socialInbox111,useSocialInbox111,type InboxItem111,type InboxState111} from '@/lib/duelverse/socialInbox111';
 import {matchRequest90} from '@/lib/duelverse/matchmaking90';
 import {loadIdentity85,type PlayerIdentity85,type SavedDeck} from '@/lib/duelverse/account';
 import {portrait85} from '../../../public/game/platform/identity85.mjs';
+import {FRIEND_SIGNALS} from '../../../public/game/platform/friend-signals.mjs';
 import CurrentDuel112 from './CurrentDuel112';
 import './social-bubble111.css';
 
@@ -19,6 +20,7 @@ const sentMessages:Record<FriendAction,string>={
  request:'Friend request sent.',accept:'Friend added.',decline:'Request declined.',cancel:'Request cancelled.',
  remove:'Friend removed.',block:'Player blocked.',unblock:'Player unblocked.'
 };
+const signalChoices=Object.keys(FRIEND_SIGNALS) as SignalKind[];
 const presenceLabels={online:'Online',away:'Away',offline:'Offline',unknown:'Status unavailable'};
 const ChatIcon=()=> <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.4c0 4.1-3.6 7.4-8 7.4a9.3 9.3 0 0 1-3.2-.6L4 20l1.3-4.5A6.8 6.8 0 0 1 4 11.4C4 7.3 7.6 4 12 4s8 3.3 8 7.4Z" stroke="currentColor" strokeWidth="1.7"/><circle cx="8" cy="11" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="16" cy="11" r="1" fill="currentColor"/></svg>;
 
@@ -39,6 +41,7 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
  const [tab,setTab]=useState<Tab>('friends');
  const [open,setOpen]=useState(false);
  const [selected,setSelected]=useState<string|null>(null);
+ const [signalFor,setSignalFor]=useState<string|null>(null);
  const [decks,setDecks]=useState<SavedDeck[]|null>(null);
  const [deck,setDeck]=useState('');
  const [busy,setBusy]=useState(false);
@@ -74,10 +77,11 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
  },[open,tab,owner,identity]);
 
  useEffect(()=>{
-  if(!inbox.toast)return;
-  const timer=setTimeout(()=>socialInbox111.dismiss(),9000);
+  if(hidden||!inbox.toast||inbox.toast.kind==='duel')return;
+  const key=inbox.toast.key;
+  const timer=setTimeout(()=>socialInbox111.dismiss(key),9000);
   return()=>clearTimeout(timer);
- },[inbox.toast]);
+ },[hidden,inbox.toast]);
 
  useEffect(()=>{
   if(!open)return;
@@ -95,7 +99,6 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
    if(event.data?.type==='duelverse-social111-close')setOpen(false);
    if(event.data?.type==='duelverse-social111-open'&&owner){
     setTab('friends');
-    socialInbox111.dismiss();
     setOpen(true);
     void socialInbox111.refresh();
    }
@@ -116,15 +119,16 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
  useEffect(()=>{if(hidden)setOpen(false);},[hidden]);
  useEffect(()=>{if(confirmation)confirmationPanel.current?.focus();},[confirmation]);
 
- function show(section:Tab='friends'){
+ function show(section:Tab='friends',notificationKey?:string){
   setTab(section);
   setSelected(null);
+  setSignalFor(null);
   setDecks(null);
   setDeck('');
   setConfirmation(null);
   setError('');
   setNotice('');
-  socialInbox111.dismiss();
+  if(notificationKey)socialInbox111.dismiss(notificationKey);
   setOpen(true);
   void socialInbox111.refresh();
  }
@@ -195,6 +199,15 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
   try{localStorage.setItem('duelverse.match90.'+account,id);}catch{}
   if(embedded)window.parent.postMessage({type:'duelverse-social111-join',id},location.origin);
   else location.assign('/game/online.html?match='+encodeURIComponent(id));
+ }
+
+ function sendSignal(friend:Friend92,kind:SignalKind){
+  void run(async account=>{
+   await sendFriendSignal(friend.id,kind);
+   if(scope.current!==account)return;
+   setSignalFor(null);
+   setNotice(FRIEND_SIGNALS[kind].emoji+' Sent to '+friend.identity.displayName+'.');
+  });
  }
 
  function invite(friend:Friend92){
@@ -285,22 +298,29 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
  const incomingDuels=inbox.items.filter(item=>item.kind==='duel');
  const counts={friends:inbox.friends.length,requests:incoming.length,duels:incomingDuels.length};
  const target=embedded?'_top':undefined;
+ const toast=inbox.toast;
+ const reaction=toast?.kind==='signal'?FRIEND_SIGNALS[toast.signal]:null;
+ const notification=toast&&<aside className="social111-toast" data-kind={toast.kind} aria-label={toast.kind==='duel'?'New duel invitation':toast.kind==='signal'?'New friend signal':'New friend request'}>
+  <button type="button" className="social111-toast-body" onClick={()=>show(toast.kind==='duel'?'duels':toast.kind==='signal'?'friends':'requests',toast.key)}>
+   <img src={portrait85(toast.identity.avatarId).image} alt=""/>
+   <span><small>{toast.kind==='duel'?'DUEL INVITATION':toast.kind==='friend'?'FRIEND REQUEST':'FRIEND SIGNAL'}</small>
+    <strong>{toast.identity.displayName}</strong>
+    <span>{reaction?reaction.emoji+' '+reaction.label:toast.kind==='friend'?'Wants to add you.':'View invite →'}</span>
+   </span>
+  </button>
+  <button type="button" className="social111-dismiss" aria-label="Dismiss notification" onClick={()=>socialInbox111.dismiss(toast.key)}>×</button>
+ </aside>;
  return <div ref={root} className={'social111'+(embedded?' social111-embedded':'')} onKeyDown={event=>{
   if(event.key==='Escape'&&open){event.preventDefault();event.stopPropagation();close();}
  }}>
-  {!open&&inbox.toast&&<aside className="social111-toast" aria-label="New request">
-   <button className="social111-toast-body" onClick={()=>show(inbox.toast?.kind==='duel'?'duels':'requests')}>
-    <img src={portrait85(inbox.toast.identity.avatarId).image} alt=""/>
-    <span><small>{inbox.toast.kind==='duel'?'DUEL INVITATION':'FRIEND REQUEST'}</small><strong>{inbox.toast.identity.displayName}</strong><span>{inbox.toast.kind==='duel'?'Ready for a duel?':'Wants to add you.'}</span></span>
-   </button>
-   <button className="social111-dismiss" aria-label="Dismiss notification" onClick={()=>socialInbox111.dismiss()}>×</button>
-  </aside>}
+  {!open&&notification}
   {open&&<section id="social111-inbox" className="social111-panel" role="region" aria-label="Friends and invitations">
    <header><h2>Friends & duels</h2><div className="social145-header-actions"><button className="social111-close" disabled={busy} onClick={()=>void socialInbox111.refresh()} aria-label="Refresh friends and invitations">↻</button><button className="social111-close" onClick={close} aria-label="Close friends inbox">×</button></div></header>
    <nav className="social114-tabs" aria-label="Friends inbox sections">
-    {tabs.map(([id,label])=><button key={id} type="button" aria-pressed={tab===id} onClick={()=>{setTab(id);setConfirmation(null);}}>{label}{counts[id]>0&&<> <b>{counts[id]}</b></>}</button>)}
+    {tabs.map(([id,label])=><button key={id} type="button" aria-pressed={tab===id} onClick={()=>{setTab(id);setConfirmation(null);setSignalFor(null);if(id==='duels'&&toast?.kind==='duel')socialInbox111.dismiss(toast.key);}}>{label}{counts[id]>0&&<> <b>{counts[id]}</b></>}</button>)}
    </nav>
    <div className="social111-scroll">
+    {notification}
     {(error||inbox.error)&&<p className="social111-error" role="alert">{error||inbox.error}</p>}
     {notice&&<p className="social111-notice" role="status">{notice}</p>}
     {confirmation&&<div ref={confirmationPanel} tabIndex={-1} className="social145-confirm" role="group" aria-label="Confirm friend action">
@@ -311,6 +331,13 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
     {!inbox.ready&&!inbox.error&&<p className="social111-empty" role="status">Loading friends and invitations…</p>}
 
     {tab==='friends'&&<>
+     {inbox.signals.length>0&&<section className="social-signals-recent" aria-label="Recent friend signals">
+      {inbox.signals.slice(0,4).map(signal=><div key={signal.id}>
+       <span aria-hidden="true">{FRIEND_SIGNALS[signal.signal].emoji}</span>
+       <strong>{signal.identity.displayName}</strong>
+       <span>{FRIEND_SIGNALS[signal.signal].label}</span>
+      </div>)}
+     </section>}
      <div className="social145-tools">
       {identity?.nameClaimed?<div className="social145-own">
        <span>You · <strong>{identity.displayName}</strong></span>
@@ -339,8 +366,15 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
          <span className="social114-avatar"><img src={portrait85(friend.identity.avatarId).image} alt=""/><i data-presence={presence} aria-hidden="true"/></span>
          <div className="social115-identity"><strong>{friend.identity.displayName}</strong><span data-presence={presence}>{presenceLabels[presence]}</span></div>
          <button type="button" className="social115-invite" disabled={busy} aria-label={'Invite '+friend.identity.displayName+' to duel'} aria-expanded={choosing} onClick={()=>choosing?setSelected(null):invite(friend)}>Invite</button>
+         <button type="button" className="social-signal-trigger" disabled={busy} aria-label={'Send a signal to '+friend.identity.displayName}
+          aria-expanded={signalFor===friend.id} onClick={()=>setSignalFor(signalFor===friend.id?null:friend.id)}>👋</button>
          {friendOptions(friend)}
         </div>
+        {signalFor===friend.id&&<div className="social-signal-picker" role="group" aria-label={'Signals for '+friend.identity.displayName}>
+         {signalChoices.map(kind=><button key={kind} type="button" disabled={busy} onClick={()=>sendSignal(friend,kind)}>
+          <span aria-hidden="true">{FRIEND_SIGNALS[kind].emoji}</span>{FRIEND_SIGNALS[kind].label}
+         </button>)}
+        </div>}
         {choosing&&<div className="social115-invite-setup">{deckPicker(key)}<div className="social111-actions"><button className="social111-primary" disabled={busy||!deck} onClick={()=>invite(friend)}>Send invite</button><button disabled={busy} onClick={()=>setSelected(null)}>Cancel</button></div></div>}
        </article>;
       }):<p className="social111-empty">Find a player by name to add your first friend.</p>}
@@ -383,7 +417,7 @@ function FriendsPanel({inbox,embedded,hidden}:{inbox:InboxState111;embedded:bool
    </div>
   </section>}
   <div className="social111-launcher-row">
-   <span className="social111-live" role="status" aria-live="polite">{inbox.toast?`${inbox.toast.kind==='duel'?'Duel invitation':'Friend request'} from ${inbox.toast.identity.displayName}`:''}</span>
+   <span className="social111-live" role="status" aria-live="polite">{toast?`${toast.kind==='duel'?'Duel invitation':toast.kind==='friend'?'Friend request':reaction?.label} from ${toast.identity.displayName}`:''}</span>
    <button ref={launcher} className="social111-launcher" aria-label={`Friends and duels${inbox.items.length?`, ${inbox.items.length} pending`:''}`} aria-expanded={open} aria-controls="social111-inbox" onClick={()=>open?close():show()}>
     <ChatIcon/><span>Friends</span>{inbox.items.length>0&&<b>{inbox.items.length>99?'99+':inbox.items.length}</b>}
    </button>

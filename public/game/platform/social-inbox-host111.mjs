@@ -1,7 +1,7 @@
 // A separate browsing context shares the account session without adding another
 // authentication client or input handlers to the game's rendering loop.
 if(window.top===window.self){
- const frame=document.createElement('iframe');frame.src='/game/social-inbox111.html?v=friends-bubble-145';frame.title='Friends and duel invitations';frame.setAttribute('aria-label',frame.title);
+ const frame=document.createElement('iframe');frame.src='/game/social-inbox111.html?v=friend-signals';frame.title='Friends and duel invitations';frame.setAttribute('aria-label',frame.title);
  Object.assign(frame.style,{position:'fixed',right:'0',bottom:'0',width:'0',height:'0',maxWidth:'100vw',maxHeight:'100dvh',border:'0',zIndex:'1500',background:'transparent'});
  document.body.append(frame);
  for(const opener of document.querySelectorAll('[data-friends-inbox]')){

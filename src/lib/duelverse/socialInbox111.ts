@@ -1,11 +1,12 @@
 'use client';
 import {useSyncExternalStore} from 'react';
 import {supabase} from '@/lib/supabaseClient';
-import {socialList114,type Friend92,type DuelInvite92} from './friends92';
+import {socialList114,type Friend92,type DuelInvite92,type FriendSignal} from './friends92';
 import type {PlayerIdentity85} from './account';
 import {createInbox111,EMPTY_INBOX111} from '../../../public/game/platform/social-inbox111.mjs';
 export type InboxItem111={id:string;key:string;kind:'friend'|'duel';identity:PlayerIdentity85};
-export type InboxState111={userId:string|null;ready:boolean;friends:Friend92[];outgoing:Friend92[];blocked:Friend92[];invites:DuelInvite92[];items:InboxItem111[];toast:InboxItem111|null;error:string};
+export type InboxToast=InboxItem111|(FriendSignal&{key:string;kind:'signal'});
+export type InboxState111={userId:string|null;ready:boolean;friends:Friend92[];outgoing:Friend92[];blocked:Friend92[];invites:DuelInvite92[];items:InboxItem111[];signals:FriendSignal[];toast:InboxToast|null;error:string};
 export const socialInbox111=createInbox111({load:socialList114,readSeen:(id:string|null)=>{try{return id?JSON.parse(sessionStorage.getItem('duelverse.inbox111.'+id)??'[]'):[];}catch{return[];}},writeSeen:(id:string|null,keys:string[])=>{if(id)sessionStorage.setItem('duelverse.inbox111.'+id,JSON.stringify(keys));}});
 import {createPresence114} from '../../../public/game/platform/presence114.mjs';
 const presence114=createPresence114({send:async(id:string,visible:boolean)=>{const {error}=await supabase.rpc('dv_presence_ping114',{p_client:id,p_visible:visible});if(error)throw error;},leave:async(id:string)=>{await supabase.rpc('dv_presence_leave114',{p_client:id});}});
