@@ -1,3 +1,4 @@
+import {bindHandPointerEnd,captureHandPointer,releaseHandPointer} from './hand-pointer.mjs';
 import {bindSignatureControls} from './signature-controls.mjs?v=hand-effects-46';
 import {edgeLabels,updateTwistControl} from './direction-controls.mjs';
 import {animateResolvedFlips,bindFlipCombo} from './flip-combo.mjs?v=two-buttons';
@@ -142,7 +143,14 @@ function askDraw(){
  });
 }
 function clear(){signatureControls.clear();boardPreview.clear();selected=null;target=null;rotation=0;abilityDirection=0;twistCell=null;blockadeCell=null;hover=null;mode='card';}
-function choose(uid){if(expireTurn()||busy||game.finished)return;if(selected!==uid){const wasHovered=hover===uid;clear();selected=uid;hover=wasHovered?uid:null;view.setRotation(uid,0);audio.play('select');}render();}
+function choose(uid,{toggle=false}={}){
+ if(expireTurn()||busy||game.finished||!game.players[0].hand.some(c=>c.uid===uid))return;
+ const same=selected===uid,wasHovered=hover===uid;
+ if(same&&!toggle)return;
+ if(same)view.release(uid);
+ clear();selected=same?null:uid;hover=wasHovered?uid:null;
+ view.setRotation(uid,0);audio.play(same?'cancel':'select');render();
+}
 function canStage(cell){return Boolean(cell&&cell!==reservedCell(game)&&!game.board[cell]&&(game.block!==cell||dashTargets(game,selectedCard(),cell).length));}
 function chooseField(cell){
  if(busy)return;
@@ -169,7 +177,13 @@ function showPracticeHint84(){
  cancelSelection();selected=suggestion.uid;target=suggestion.cell;rotation=0;abilityDirection=suggestion.abilityDirection??0;twistCell=suggestion.twistCell??null;blockadeCell=suggestion.blockadeCell??null;signatureControls.setAction(suggestion);view.setRotation(selected,0);render();announce('Zughinweis · Vorschlag prüfen, ändern oder ausspielen');
 }
 $('practiceHint84').onclick=showPracticeHint84;
-function cancelSelection(){if(busy)return;if(drag){const d=drag;drag=null;d.node.classList.remove('dragging');try{d.node.releasePointerCapture(d.id);}catch{}view.release(d.uid);}if(selected||mode==='shift')audio.play('cancel');if(selected){view.release(selected);view.setRotation(selected,0);}clear();render();}
+function cancelHandDrag(){
+ if(!drag)return;
+ const d=drag;drag=null;
+ releaseHandPointer(svg,d);
+ if(d.moved)view.release(d.uid);
+}
+function cancelSelection(){if(busy)return;cancelHandDrag();if(selected||mode==='shift')audio.play('cancel');if(selected){view.release(selected);view.setRotation(selected,0);}clear();render();}
 async function playAction(a,token,serverNext=null){
  const side=game.turn,before=game,resolution=previewEffect(game,a),next=serverNext??placeEffect(game,a,{chooseDraw:game.iconicAbilityWave>=7}),played=before.players[side].hand.find(c=>c.uid===a.uid);
  const recall=next.last.recalledCell;
@@ -230,7 +244,7 @@ async function confirm(){if(expireTurn()||busy)return;if(mode!=='shift'){if(plan
  const token=epoch;let next;if(accountGame){busy=true;phase='connection';render();try{const data=await accountGame.move({kind:'shift',cell:target});acceptAccount(data);next=data.state.game;}catch(error){accountProblem(error);return;}}else next=shiftBlock(game,target);busy=true;notice='Blockade wird verschoben.';audio.play('shift');render();const ok=await view.shift(target);if(ok&&token===epoch){game=next;busy=false;notice='';clear();render();}}
 async function reset({preserveSeries=false}={}){
  if(!view||accountFailed)return;const token=++epoch;finishDraw?.(0);startDialog.cancel();ceremony.cancel();
- if(drag){drag.node.classList.remove('dragging');try{drag.node.releasePointerCapture(drag.id);}catch{}drag=null;}
+ cancelHandDrag();
  view.cancel();flipCombo.clear();audio.cancel();clearTimeout(messageTimer);$('arenaMessage').classList.remove('active');
  if(!preserveSeries){afkStreak129=0;round=1;roundResults=[];matchSeed=freshMatchSeed(matchSeed);firstStarter=null;}
  busy=true;clear();phase=isMatch()&&!preserveSeries?'opening':'dealing';notice=phase==='opening'?'Spielt das Startrecht aus.':'Neue Karten werden ausgeteilt.';
@@ -266,15 +280,15 @@ async function reset({preserveSeries=false}={}){
 function pointerCell(e){return document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-cell]')?.getAttribute('data-cell')??null;}
 svg.addEventListener('focusin',e=>{const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(!busy&&uid!==hover){hover=uid;render();}});
 svg.addEventListener('focusout',e=>{if(!drag&&hover&&e.target.closest('[data-hand]')){hover=null;render();}});
-svg.addEventListener('pointerdown',e=>{const node=e.target.closest('[data-hand]');if(!node||busy||game.finished||e.button!==0)return;drag={uid:node.dataset.hand,node,id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};node.setPointerCapture(e.pointerId);});
-svg.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){choose(drag.uid);if(!drag||busy)return;drag.moved=true;drag.node.classList.add('dragging');}
+svg.addEventListener('pointerdown',e=>{const node=e.target.closest('[data-hand]');if(drag||!node||busy||game.finished||e.button!==0)return;e.preventDefault();drag=captureHandPointer(svg,node,e);});
+window.addEventListener('pointermove',e=>{if(!drag&&!svg.contains(e.target))return;if(drag){if(e.pointerId!==drag.id)return;if(e.pointerType==='mouse'&&!(e.buttons&1)){stopDrag(e,true);return;}if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){choose(drag.uid);if(!drag||busy)return;drag.moved=true;drag.node.classList.add('dragging');}
  if(drag.moved){const r=stage.getBoundingClientRect();view.drag(drag.uid,e.clientX-r.left,e.clientY-r.top);const c=pointerCell(e);target=canStage(c)?c:null;twistCell=null;blockadeCell=null;signatureControls.clear();render();}return;}
  if(busy)return;const uid=e.target.closest('[data-hand]')?.dataset.hand??null;if(uid!==hover){hover=uid;render();}});
 function stopDrag(e,cancelled=false){
  if(!drag||e.pointerId!==drag.id)return;
  const d=drag,cell=cancelled?null:pointerCell(e);drag=null;
- d.node.classList.remove('dragging');try{d.node.releasePointerCapture(e.pointerId);}catch{}
- if(!d.moved&&!cancelled){choose(d.uid);return;}
+ releaseHandPointer(svg,d);
+ if(!d.moved&&!cancelled){choose(d.uid,{toggle:true});return;}
  if(cancelled){view.release(d.uid);cancelSelection();return;}
  target=canStage(cell)?cell:null;twistCell=null;blockadeCell=null;signatureControls.clear();
  const placement=target&&plan();
@@ -287,9 +301,11 @@ function stopDrag(e,cancelled=false){
  // Invalid drops never reserve a tile, consume a card or start an opponent turn.
  view.release(d.uid);cancelSelection();
 }
-svg.addEventListener('pointerup',e=>stopDrag(e));svg.addEventListener('pointercancel',e=>stopDrag(e,true));svg.addEventListener('pointerleave',()=>{if(!drag&&!busy&&hover){hover=null;render();}});
+bindHandPointerEnd(svg,stopDrag);
+window.addEventListener('blur',()=>{if(drag)stopDrag({pointerId:drag.id},true);});
+svg.addEventListener('pointerleave',()=>{if(!drag&&!busy&&hover){hover=null;render();}});
 svg.addEventListener('click',e=>{const c=e.target.closest('[data-cell]');if(c)chooseField(c.dataset.cell);});
-svg.addEventListener('keydown',e=>{if(e.code!=='Enter'&&e.code!=='Space')return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();e.stopPropagation();h?choose(h.dataset.hand):chooseField(c.dataset.cell);}});
+svg.addEventListener('keydown',e=>{if(e.repeat||e.code!=='Enter'&&e.code!=='Space')return;const h=e.target.closest('[data-hand]'),c=e.target.closest('[data-cell]');if(h||c){e.preventDefault();e.stopPropagation();h?choose(h.dataset.hand,{toggle:true}):chooseField(c.dataset.cell);}});
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;if(e.code==='Escape'){e.preventDefault();if(!boardPreview.close()&&!ceremony.dismiss())cancelSelection();return;}if(['SELECT','INPUT'].includes(e.target.tagName))return;if(e.code==='Enter'&&e.target.tagName!=='BUTTON'&&(plan()||mode==='shift')&&!busy){e.preventDefault();confirm();}});
 $('showRules').onclick=()=>{const panel=$('rulesPanel');panel.open=!panel.open;if(panel.open)panel.scrollIntoView({block:'nearest',behavior:'smooth'});};
 $('confirm').onclick=confirm;$('cancel').onclick=cancelSelection;$('autoDemo').onclick=()=>cycle(demoAction(game),true);$('resetDemo').onclick=reset;
