@@ -49,7 +49,9 @@ export default function HeroSection() {
             Join Discord <span aria-hidden="true">↗</span>
           </a>
         </div>
-        <p className={styles.freeToPlay}>Free to play. Always.</p>
+        <div className={styles.freeToPlay}>
+          <p className={styles.freeToPlayTitle}>Free to play. <strong>Always.</strong></p>
+        </div>
       </div>
 
       <a className={styles.headline} href="/news#shop-cosmetics" aria-labelledby="home-news-title">

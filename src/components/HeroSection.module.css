@@ -40,13 +40,23 @@
 }
 .hero h1 { margin: 0; }
 .freeToPlay {
-  margin: 2px 0 0;
-  color: #f6dfb3;
-  font: 700 12px/1.3 Arial, sans-serif;
-  letter-spacing: .055em;
-  text-shadow: 0 2px 8px #0c041f, 0 0 16px #080311;
-  white-space: nowrap;
+  display:grid;
+  justify-items:center;
+  text-align:center;
 }
+.freeToPlayTitle {
+  margin:0;
+  padding:7px 17px 8px;
+  border:1px solid #c2a0ed70;
+  border-radius:999px;
+  background:linear-gradient(110deg,#181227ee,#291b44ee);
+  box-shadow:0 5px 18px #09041690,inset 0 1px #faf1ff17;
+  color:#fff7fb;
+  font:800 clamp(16px,1.75vw,22px)/1.15 Arial,sans-serif;
+  letter-spacing:.005em;
+  white-space:nowrap;
+}
+.freeToPlayTitle strong { color:var(--home-gold); font-weight:inherit; }
 .hero h1 img {
   display: block;
   width: clamp(300px, 37vw, 600px);
@@ -186,8 +196,9 @@
   .legal { bottom: 2px; }
 }
 @media (max-height: 565px) and (max-width: 490px) {
-  .hero { top: 82px; gap: 8px; }
-  .hero h1 img { max-height: 19svh; }
+  .hero { top: 82px; gap: 6px; }
+  .hero h1 img { max-height: 17svh; }
+  .freeToPlayTitle { padding-block:5px; }
   .headline { bottom: 33px; }
   .spotlightCard { width: 95px; }
   .legal { bottom: 5px; }
