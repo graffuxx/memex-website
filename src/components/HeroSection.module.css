@@ -164,13 +164,12 @@
 .legal { position:absolute; right:var(--home-edge); bottom:15px; }
 .legal a {
   display:inline-block;
-  padding:6px 9px;
-  border-radius:5px;
-  background:#c8b7d9;
+  padding:7px 0;
   color:#000;
-  font:600 11px/1 Arial,sans-serif;
+  font:700 11px/1 Arial,sans-serif;
+  text-shadow:0 0 1px #e0caec,0 0 4px #b49acb;
 }
-.legal a:hover { background:#e2d2ec; text-decoration:underline; }
+.legal a:hover { text-decoration:underline; text-underline-offset:3px; }
 :global(body):has(:global(.social111-launcher)) .headline { bottom: max(81px, 8svh); }
 :global(body):has(:global(.social111-launcher)) .legal { left: var(--home-edge); right: auto; }
 
