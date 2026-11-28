@@ -167,9 +167,7 @@
   padding:7px 0;
   color:#000;
   font:700 11px/1 Arial,sans-serif;
-  text-shadow:0 0 1px #e0caec,0 0 4px #b49acb;
 }
-.legal a:hover { text-decoration:underline; text-underline-offset:3px; }
 :global(body):has(:global(.social111-launcher)) .headline { bottom: max(81px, 8svh); }
 :global(body):has(:global(.social111-launcher)) .legal { left: var(--home-edge); right: auto; }
 
