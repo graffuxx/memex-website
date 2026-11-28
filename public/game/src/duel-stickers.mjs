@@ -1,4 +1,4 @@
-import {DUEL_STICKERS,stickerSceneLayers,validStickerSlots} from '../platform/duel-stickers.mjs?v=premium-pair';
+import {DUEL_STICKERS,stickerSceneLayers,validStickerSlots} from '../platform/duel-stickers.mjs?v=make-it-rain';
 import {cosmeticTierLabel} from '../platform/cosmetic-shop.mjs';
 
 export function bindDuelStickers(root,{send}) {

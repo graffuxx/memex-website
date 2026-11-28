@@ -3,8 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import {bindPasswordRecovery106} from '../../public/game/platform/auth-recovery106.mjs';
 import {withAuthDeadline} from '../../public/game/platform/auth-fetch.mjs';
 
-const supabaseUrl = 'https://vnwvwwukqlbwzqroaqeu.supabase.co';
-const supabaseKey = 'sb_publishable_Nz664DzwUuBcOpLzCXgB_Q_4SzenMlV';
+const liveSupabaseUrl = 'https://vnwvwwukqlbwzqroaqeu.supabase.co';
+const liveSupabaseKey = 'sb_publishable_Nz664DzwUuBcOpLzCXgB_Q_4SzenMlV';
+
+const sandboxUrl=process.env.NEXT_PUBLIC_SUPPORTER_SANDBOX_DB_URL;
+const sandboxKey=process.env.NEXT_PUBLIC_SUPPORTER_SANDBOX_PUBLISHABLE_KEY;
+const useSandbox=Boolean(sandboxUrl&&sandboxKey&&sandboxUrl!==liveSupabaseUrl);
+const supabaseUrl=useSandbox?sandboxUrl!:liveSupabaseUrl;
+const supabaseKey=useSandbox?sandboxKey!:liveSupabaseKey;
 
 export const supabase = createClient(supabaseUrl, supabaseKey,{
  global:{fetch:withAuthDeadline((input:RequestInfo|URL,init?:RequestInit)=>fetch(input,init),supabaseUrl)}

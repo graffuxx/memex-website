@@ -9,7 +9,7 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs?v=private-rematch';
 import {PLAYABLE_ARENA112} from '../platform/arena-availability112.mjs';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
-import {mountPlayerPresence85} from './player-presence85.mjs?v=shop-portraits';
+import {mountPlayerPresence85} from './player-presence85.mjs?v=cash-cow-supporter';
 import {SOLO_LEVELS84,soloOpponent84,localSolo84} from '../platform/solo84.mjs?v=booster-classes-140';
 import {soloAction84} from './solo-ai84.mjs?v=hand-effects-46';
 import {attackWins} from '../platform/elements53.mjs?v=tie-break-63';

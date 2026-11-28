@@ -250,6 +250,15 @@ test('private duel stickers relay to both seats without changing the turn, and s
   await assert.rejects(db.query("select public.dv_save_sticker_loadout(array['boom','kekw','rage-guy','crying-cat'])"),/locked or unknown/);
   assert.deepEqual((await db.query('select public.dv_save_sticker_loadout($1::text[]) data',[reordered])).rows[0].data,reordered);
   await assert.rejects(rpc(db,'dv_duel_stickers',{p_user:a,p_match:uid(777),p_slot:1}),/permission denied/);
+  const cashSlots=['sticker-make-it-rain',...reordered.slice(1)];
+  await assert.rejects(db.query('select public.dv_save_sticker_loadout($1::text[]) data',[cashSlots]),/locked or unknown/);
+  await db.exec('reset role;set role service_role');
+  const order=await rpc(db,'dv_prepare_supporter_order',{p_user:a,p_request:uid(761),p_product:'supporter-100',p_environment:'sandbox'});
+  await rpc(db,'dv_attach_supporter_order',{p_user:a,p_id:order.id,p_paypal:'CASHORDERMATCH001'});
+  await rpc(db,'dv_complete_supporter_order',{p_user:a,p_id:order.id,p_paypal:'CASHORDERMATCH001',
+   p_capture:'CASHCAPTUREMATCH01',p_cents:10000,p_currency:'EUR',p_environment:'sandbox'});
+  await asUser(a);
+  assert.deepEqual((await db.query('select public.dv_save_sticker_loadout($1::text[]) data',[cashSlots])).rows[0].data,cashSlots);
   await asUser(b);
   assert.deepEqual(await rpc(db,'dv_sticker_loadout',{}),stickerIds);
 
@@ -281,16 +290,16 @@ test('private duel stickers relay to both seats without changing the turn, and s
   const [beforeA,beforeB]=[(await call('a',{op:'poll',id,stickers:true})).data,(await call('b',{op:'poll',id,stickers:true})).data];
   assert.equal(beforeA.phase,'play');
   assert.equal(beforeB.game.turn,1);
-  assert.deepEqual(beforeA.stickers.slots,reordered);
+  assert.deepEqual(beforeA.stickers.slots,cashSlots);
   assert.deepEqual(beforeB.stickers.slots,stickerIds);
   assert.equal((await call('c',{op:'sticker',id,slot:1})).status,400);
   assert.equal((await call('a',{op:'sticker',id,slot:5})).status,400);
   const first=(await call('a',{op:'sticker',id,slot:1})).data.stickers.events[0];
-  assert.equal(first.sticker,'crying-cat');
+  assert.equal(first.sticker,'sticker-make-it-rain');
   assert.equal(first.own,true);
   assert.equal((await call('a',{op:'sticker',id,slot:2})).status,429);
   const fromGuest=(await call('b',{op:'sticker',id,slot:2})).data.stickers.events;
-  assert.equal(fromGuest.find(e=>e.id===first.id).own,false);
+  assert.deepEqual(fromGuest.find(e=>e.id===first.id),{...first,own:false});
   assert.equal(fromGuest.find(e=>e.own).sticker,'rage-guy');
 
   const update=(await call('a',{op:'poll',id,version:beforeA.version,stickers:true})).data;

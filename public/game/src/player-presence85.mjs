@@ -1,4 +1,4 @@
-import {DEFAULT_IDENTITY85,frame85,frameSvg85,portrait85,portraitMotion,progression85,title85} from '../platform/identity85.mjs?v=shop-portraits';
+import {DEFAULT_IDENTITY85,frame85,frameSvg85,portrait85,portraitMotion,progression85,title85} from '../platform/identity85.mjs?v=cash-cow-supporter';
 import {readPlayerIdentity85} from '../platform/account-client50.mjs?v=identity-85';
 function drawPortrait(node,identity){
  const frame=frame85(identity),portrait=portrait85(identity.avatarId),progress=progression85(identity.xp),wrap=document.createElement('span'),image=document.createElement('img'),ring=document.createElement('span');

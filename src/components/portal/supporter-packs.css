@@ -1,0 +1,44 @@
+.dv-portal .supporter-packs { width:min(1180px,100%); margin:0 auto; padding-top:146px; }
+.supporter-heading { text-align:center; margin-bottom:32px; }
+.supporter-heading h1 { margin-bottom:8px; }
+.supporter-heading p { color:#d9c8e9; margin:0 0 12px; }
+.supporter-test { color:#f1cf9d; font-size:13px; }
+.supporter-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
+.supporter-grid article {
+  display:flex; align-items:center; flex-direction:column;
+  padding:22px 16px; text-align:center; border:1px solid #c4a2ee47; border-radius:20px;
+  background:radial-gradient(ellipse at 50% 15%,#51316d49,transparent 58%),#130d21f3;
+}
+.supporter-grid article[data-rarity=Gold] { border-color:#dcaf655c; }
+.supporter-grid article[data-rarity=Void] { border-color:#bc84f396; }
+.supporter-grid article[data-sticker=exclusive] {
+  border-color:#c6ab66a8;
+  background:radial-gradient(ellipse at 48% 11%,#34785f45,transparent 55%),linear-gradient(160deg,#242136,#130d21);
+}
+.dv-portal .supporter-grid h2 { font:700 clamp(22px,3vw,30px)/1.1 Arial,sans-serif; margin:12px 0 7px; }
+.supporter-price { color:#ffdda0; font-size:20px; }
+.supporter-grid ul { list-style:none; padding:0; margin:15px 0 18px; line-height:1.7; color:#e1cde9; }
+.dv-portal .supporter-sticker-preview {
+  display:inline-flex; align-items:center; gap:7px; margin-top:9px; padding:3px 8px 3px 4px;
+  color:#f7e6bf; border:1px solid #e1c27c56; border-radius:8px;
+  background:#473a2552; text-align:left; font-size:13px; line-height:1.22;
+}
+.supporter-sticker-preview:hover { border-color:#e1c27ca0; }
+.supporter-sticker-art { display:block; width:45px; height:45px; flex:none; }
+.supporter-sticker-preview small { display:block; margin-top:3px; color:#d7bf92; font-size:11px; }
+.supporter-grid .button { margin-top:auto; }
+.supporter-receipt {
+  display:flex; flex-wrap:wrap; gap:10px 18px; padding:16px; margin-bottom:18px;
+  border:1px solid #8dcfb358; border-radius:14px; background:#132b26;
+}
+.supporter-receipt a { color:#cf9aff; text-decoration:underline; }
+.dv-portal .supporter-dialog { width:min(440px,calc(100% - 32px)); }
+@media (max-width:1080px) {
+  .supporter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:620px) {
+  .supporter-grid { grid-template-columns:1fr; }
+}
+@media (max-width:768px) {
+  .dv-portal .supporter-packs { padding-top:116px; }
+}

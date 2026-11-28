@@ -27,6 +27,11 @@ export const DUEL_STICKERS = Object.freeze({
     image:'/game/assets/stickers/panic-button-octopus.png',
     prop:'/game/assets/stickers/panic-button-console.png',
     parts:Object.freeze([{part:'light'},{part:'mark'}])
+  }),
+  'sticker-make-it-rain': Object.freeze({
+    name:'Make It Rain', emotion:'Triumph', rarity:'Void', motion:'make-it-rain',
+    image:'/game/assets/stickers/make-it-rain.webp',
+    parts:Object.freeze(Array.from({length:6},(_,index)=>Object.freeze({part:'bill-'+(index+1)})))
   })
 });
 export const STARTER_STICKER_SLOTS = Object.freeze(['kekw','rage-guy','dramatic-chipmunk','crying-cat']);

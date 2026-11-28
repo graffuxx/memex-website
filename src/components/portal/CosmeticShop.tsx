@@ -3,15 +3,15 @@
 import {useEffect,useRef,useState} from 'react';
 import {supabase} from '@/lib/supabaseClient';
 import {SHOP_PORTRAITS,cosmeticTierLabel} from '../../../public/game/platform/cosmetic-shop.mjs';
-import {DUEL_STICKERS,STARTER_STICKER_SLOTS,stickerSceneLayers} from '../../../public/game/platform/duel-stickers.mjs';
+import {DUEL_STICKERS,STARTER_STICKER_SLOTS} from '../../../public/game/platform/duel-stickers.mjs';
 import PlayerPortrait85 from './PlayerPortrait85';
 import {DEFAULT_IDENTITY85} from '../../../public/game/platform/identity85.mjs';
 import usePlayerCollection from './usePlayerCollection';
-import '../../../public/game/sticker-scenes.css';
+import StickerArt,{type StickerArtData} from './StickerArt';
 
 type Kind = 'sticker'|'portrait';
 type Listing = {id:string;kind:Kind;price:number};
-type Art = {name:string;image:string;rarity?:string;motion?:string|null;prop?:string;parts?:ReadonlyArray<{part:string;image?:string}>};
+type Art = StickerArtData & {name:string;rarity?:string};
 type Product = Listing & Art;
 
 const portraits = new Map<string,Art>(SHOP_PORTRAITS.map(item=>[item.id,item]));
@@ -97,15 +97,7 @@ function CosmeticCatalog({kind,ready,userId,player,refresh}:{kind:Kind}&Pick<Ret
    {items?.map(item=><article key={item.id} data-rarity={item.rarity}>
     <div className="cosmetic-shop-art">
      {kind==='portrait'?<PlayerPortrait85 identity={{...DEFAULT_IDENTITY85,avatarId:item.id}} size={144}/>
-      :item.motion?<span className="sticker-scene" key={preview.id===item.id?preview.sequence:0} data-motion={item.motion} data-play={preview.id===item.id?'':undefined}>
-       {stickerSceneLayers(item).map(({part,image})=>{
-        if(!image)return <span key={part} className={'sticker-'+part} aria-hidden="true"/>;
-        if(part==='character'&&item.motion==='loot-goblin')return <span key={part} className="sticker-pocket">
-         <img className="sticker-character" src={image} alt="" loading="lazy"/>
-        </span>;
-        return <img key={part} className={'sticker-'+part} src={image} alt="" loading="lazy"/>;
-       })}
-      </span>:<img src={item.image} alt="" loading="lazy"/>}
+      :<StickerArt key={preview.id===item.id?preview.sequence:0} art={item} animate={preview.id===item.id}/>}
     </div>
     <h3>{item.name}</h3>
     <small>{cosmeticTierLabel(item.rarity)}</small>

@@ -3,10 +3,13 @@ import {FLIP_QUESTS} from './quests95.mjs';
 import {ACHIEVEMENT_TITLES88,earnedTitle88} from './achievements88.mjs';
 import {DEFINITIONS} from './catalog.mjs';
 import {SHOP_PORTRAITS} from './cosmetic-shop.mjs';
+import {SUPPORTER_PACKS} from './supporter-packs.mjs';
 export const WIN_XP85=100;
 const ids=['pepe','doge','roll-safe','harold','disaster-girl','grumpy-cat','smudge','confused','gigachad','this-is-fine','trollface','stonks','crying-cat','keyboard-cat','galaxy-brain','npc','copium','diamond-hands','hodl','rage-quit'];
 const questCosmetics=[...COLLECTION_QUESTS129,...FLIP_QUESTS];
-export const PORTRAITS85=Object.freeze([...ids.map(id=>{const c=DEFINITIONS.find(c=>c.id===id);return Object.freeze({id,kind:'portrait',name:c.name,image:c.image,minLevel:1,minWins:0,quest:null});}),...questCosmetics.flatMap(q=>q.portrait?[Object.freeze({id:q.portrait,kind:'portrait',name:q.portraitName,image:q.image,minLevel:1,minWins:0,quest:q.id})]:[]),...SHOP_PORTRAITS.map(p=>Object.freeze({...p,minLevel:1,minWins:0,quest:null,shop:true}))]);
+export const PORTRAITS85=Object.freeze([...ids.map(id=>{const c=DEFINITIONS.find(c=>c.id===id);return Object.freeze({id,kind:'portrait',name:c.name,image:c.image,minLevel:1,minWins:0,quest:null});}),...questCosmetics.flatMap(q=>q.portrait?[Object.freeze({id:q.portrait,kind:'portrait',name:q.portraitName,image:q.image,minLevel:1,minWins:0,quest:q.id})]:[]),...SHOP_PORTRAITS.map(p=>Object.freeze({...p,minLevel:1,minWins:0,quest:null,shop:true})),
+ ...SUPPORTER_PACKS.map(p=>Object.freeze({id:p.portraitId,name:p.portraitName,kind:'portrait',image:p.image,rarity:p.rarity,motion:p.motion,minLevel:1,minWins:0,quest:null,shop:true}))
+]);
 export const FRAMES85=Object.freeze([
  {id:'starter',name:'Fresh Spawn',level:1,color:'#b9c7dc',accent:'#637da2',tier:0},
  {id:'pixel-50',name:'Pixel Grinder',level:50,color:'#78e9b4',accent:'#248b94',tier:1},
@@ -16,13 +19,15 @@ export const FRAMES85=Object.freeze([
  {id:'cosmic-250',name:'Galaxy Brain',level:250,color:'#f4b1ef',accent:'#bd43bc',tier:5},
  {id:'legend-300',name:'Final Boss',level:300,color:'#ffe6ad',accent:'#ee765d',tier:6}
 ].map(f=>Object.freeze({...f,kind:'frame',minLevel:f.level,minWins:0})));
-export const TITLES85=Object.freeze([{id:'rookie',name:'Fresh Spawn',kind:'title',minWins:0,minLevel:1,requirements:Object.freeze({}),quest:null},...ACHIEVEMENT_TITLES88.map(t=>({...t,quest:null})),...questCosmetics.flatMap(q=>q.title?[{id:q.title,name:q.titleName,kind:'title',minWins:0,minLevel:1,requirements:Object.freeze({}),quest:q.id}]:[])]);
+export const TITLES85=Object.freeze([{id:'rookie',name:'Fresh Spawn',kind:'title',minWins:0,minLevel:1,requirements:Object.freeze({}),quest:null},...ACHIEVEMENT_TITLES88.map(t=>({...t,quest:null})),...questCosmetics.flatMap(q=>q.title?[{id:q.title,name:q.titleName,kind:'title',minWins:0,minLevel:1,requirements:Object.freeze({}),quest:q.id}]:[]),
+ ...SUPPORTER_PACKS.flatMap(p=>p.titleId?[{id:p.titleId,name:p.titleName,kind:'title',minWins:0,minLevel:1,requirements:Object.freeze({}),quest:null,shop:true}]:[])
+]);
 export function xpAtLevel85(level){const n=Math.max(0,Math.floor(Number(level)||1)-1);return 250*n+5*n*(n-1);}
 export function progression85(value){const xp=Math.min(Number.MAX_SAFE_INTEGER,Math.max(0,Math.floor(Number(value)||0)));let n=Math.max(0,Math.floor((-245+Math.sqrt(60025+20*xp))/10));while(xpAtLevel85(n+2)<=xp)n++;while(xpAtLevel85(n+1)>xp)n--;const level=n+1,start=xpAtLevel85(level),next=xpAtLevel85(level+1);return {xp,level,current:xp-start,required:next-start,next,percent:(xp-start)/(next-start)*100};}
 export function unlocked85(item,identity){if(!item)return false;if(item.quest||item.shop)return (identity?.owned??[]).includes(item.kind+':'+item.id);if(item.kind==='title'&&Object.keys(item.requirements??{}).length)return earnedTitle88(item,identity);return (identity?.owned??[]).includes(item.kind+':'+item.id)||item.minLevel<=progression85(identity?.xp).level&&item.minWins<=(identity?.wins??0);}
 export function frame85(identity){const eligible=FRAMES85.filter(f=>unlocked85(f,identity));return eligible.find(f=>f.id===identity?.frameId)??eligible.at(-1)??FRAMES85[0];}
 export function portrait85(id){return PORTRAITS85.find(p=>p.id===id)??PORTRAITS85[0];}
-export function portraitMotion(id){return SHOP_PORTRAITS.find(p=>p.id===id)?.motion??undefined;}
+export function portraitMotion(id){return PORTRAITS85.find(p=>p.id===id)?.motion??undefined;}
 export function title85(identity){return TITLES85.find(t=>t.id===identity?.titleId&&unlocked85(t,identity))?.name??'';}
 export const DEFAULT_IDENTITY85=Object.freeze({displayName:'Player',nameClaimed:false,avatarId:'pepe',frameId:'auto',titleId:'rookie',xp:0,wins:0,skills:Object.freeze({}),owned:[]});
 export function frameSvg85(frame,level){const f=frame??FRAMES85[0],tier=f.tier,c=f.color,a=f.accent;

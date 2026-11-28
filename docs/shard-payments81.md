@@ -59,3 +59,29 @@ Real wallet Shards and paid-credit ledger entries remained zero. The price/recip
 checks ran against actual provider receipts, not just the mocked test fixtures.
 Public/live purchases remain disabled; only the designated account sees sandbox
 checkout. Merchant disclosures and live webhook configuration are still pending.
+
+## Supporter checkout test
+
+Support the Duelverse lives at `/support`. It uses the same PayPal order and
+receipt verification as Shards with separate supporter orders. The Supporter
+handler is sandbox-only, even when the Shard handler is configured for live.
+
+For an isolated preview, apply `202611280006_supporter_sandbox.sql` and
+`202611280007_supporter_cash_cow.sql` with the base migrations to the test database. Set `DV_SUPPORTER_SANDBOX_ENABLED=true`,
+`DV_SUPPORTER_SANDBOX_DB_URL`, `DV_SUPPORTER_SANDBOX_DB_KEY` (server role),
+and `DV_SUPPORTER_SANDBOX_USER_ID` to the confirmed test account in that project.
+Build the preview with the matching
+`NEXT_PUBLIC_SUPPORTER_SANDBOX_DB_URL` and
+`NEXT_PUBLIC_SUPPORTER_SANDBOX_PUBLISHABLE_KEY` for test login and inventory.
+Reuse the existing `PAYPAL_SANDBOX_*` app settings. The checkout refuses the
+production game database. Keep the preview settings separate from production.
+
+Once a sandbox receipt is verified, the database appends the approved Alpha
+boosters and unlocks the pack's portrait, title and any exclusive sticker in one transaction. A repeat
+capture check returns the same rewards. The optional `/api/support/checkout/webhook`
+accepts verified sandbox completion events. Production payment and refund support
+are outside this sandbox implementation.
+
+`tests/supporter-payments.test.mjs` exercises all four packages with simulated
+provider responses and the actual database migrations. It does not make an
+external PayPal test transaction.

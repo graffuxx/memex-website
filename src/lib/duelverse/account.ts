@@ -65,7 +65,7 @@ export async function tradeCard(requestId:string,kind:'craft'|'dismantle',varian
 
 export type BoosterCurrency='pixels'|'shards';
 export type BoosterProduct='alpha'|'beta';
-export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency|'starter'|'quest';cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
+export type BoosterPurchase={id:string;request_id:string;product_id:string;currency:BoosterCurrency|'starter'|'quest'|'supporter';cost:number;cards:string[];new_variants:string[];revealed_slots:number[];created_at:string};
 const boosterFields='id,request_id,product_id,currency,cost,cards,new_variants,revealed_slots,created_at';
 export async function loadBoosterHistory({limit=20,before=null,openedOnly=false}:{limit?:number;before?:{id:string;created_at:string}|null;openedOnly?:boolean}={}):Promise<BoosterPurchase[]>{
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('Invalid history page size.');
