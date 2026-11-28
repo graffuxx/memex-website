@@ -13,8 +13,21 @@ type Config={enabled:boolean;environment:'sandbox'|'live';clientId:string|null};
 type Purchase={requestId:string;productId:string;id?:string;orderId?:string};
 type Order={id:string;request_id:string;product_id:string;shards:number;cents:number;status:string;paypal_order_id:string|null;created_at:string};
 const key=(user:string,mode:string)=>`duelverse.shard-purchase81:${mode}:${user}`;
+const SHOP_TABS = [
+ ['boosters','Boosters'],
+ ['stickers','Stickers'],
+ ['portraits','Portraits'],
+ ['arenas','Arena skins'],
+ ['frames','Frames'],
+ ['shards','Buy Shards']
+] as const;
 export function ShopTabs81({category,onChange}:{category:ShopCategory81;onChange:(c:ShopCategory81)=>void}){
- return <nav className="shop-tabs81" aria-label="Shop categories">{([['boosters','Boosters'],['stickers','Stickers'],['portraits','Portraits'],['shards','Buy Shards'],['arenas','Arena skins'],['frames','Frames']] as const).map(([id,label])=><button type="button" key={id} aria-current={category===id?'page':undefined} onClick={()=>onChange(id)}>{label}</button>)}</nav>;
+ return <nav className="shop-tabs81" aria-label="Shop categories">
+  {SHOP_TABS.map(([id,label])=><button type="button" key={id}
+   className={id==='shards'?'shop-tab-shards81':undefined}
+   aria-current={category===id?'page':undefined}
+   onClick={()=>onChange(id)}>{label}</button>)}
+ </nav>;
 }
 export function FramePreview85(){return <section className="identity-shop85"><div className="shop-intro81"><h2>Player frames</h2><p>Level-reward frames are earned by playing.</p></div><div className="identity-shop-preview85">{['pepe','doge','gigachad'].map((id,i)=>{const f=FRAMES85[[0,3,4][i]];return <div key={id}><PlayerPortrait85 identity={{...DEFAULT_IDENTITY85,avatarId:id,frameId:f.id,xp:xpAtLevel85(f.level)}} size={170}/><span>{f.name}</span><small>Level {f.level}</small></div>;})}</div><a className="button glass" href="/account/private/profile?tab=frames">Open profile customization</a></section>;}
 export function ArenaSkins81(){return <div className="arena-catalog81"><div className="shop-intro81"><span className="alpha-eyebrow">Make it your battleground</span><h2>Arena skins</h2><p>Concept previews · Not yet available for purchase.</p></div><div className="arena-grid81">{[['cosmos','Astral Ruins'],['lava','Emberfall'],['city','Midnight Citadel']].map(([image,title])=><article className="arena-concept81" key={image}><img src={`/game/assets/arenas/illustrated-v67/${image}.webp`} alt={`${title} arena concept`} loading="lazy"/><div><span>Coming soon · Concept</span><h3>{title}</h3></div></article>)}</div></div>;}
