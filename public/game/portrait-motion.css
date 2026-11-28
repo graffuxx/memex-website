@@ -1,18 +1,52 @@
-.identity-portrait85[data-portrait-motion]::before{
-  content:"";position:absolute;z-index:1;pointer-events:none;left:12%;top:11.65%;
-  width:76%;height:73.8%;border-radius:50%;
+.identity-portrait85[data-portrait-motion]::before {
+  content:"";
+  position:absolute;
+  inset:11.65% 12% auto;
+  height:73.8%;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:-1;
 }
-.identity-portrait85[data-portrait-motion=gold]::before{
-  background:linear-gradient(115deg,transparent 30%,#fff1b77d 48%,transparent 62%) 100% 0 / 310% 100%;
-  animation:portrait-gold-sweep 4.6s ease-in-out infinite;
+:is(.dv-portal,.game-table) .identity-portrait85[data-portrait-motion] > img {
+  background:transparent;
+  object-fit:contain;
 }
-.identity-portrait85[data-portrait-motion=void]::before{
-  box-shadow:inset 0 0 15px 3px #8f56eebc,0 0 9px #b46cff7a;
-  background:radial-gradient(circle at 19% 30%,#f0cdff 0 1px,transparent 3px),radial-gradient(circle at 79% 67%,#d69dff 0 1px,transparent 3px),radial-gradient(circle at 64% 21%,#f0cdff 0 1px,transparent 3px);
-  animation:portrait-void-pulse 2.7s ease-in-out infinite alternate;
+.identity-portrait85[data-portrait-motion=warp]::before {
+  background:
+    radial-gradient(ellipse at 63% 52%,#ffc76e30,transparent 50%),
+    radial-gradient(ellipse at 40% 48%,#09363c 27%,transparent 57%),
+    conic-gradient(from 35deg,#05203e,#28b9ca,#143049,#684d9f,#05203e);
+  animation:portrait-orbit 11s linear infinite;
 }
-@keyframes portrait-gold-sweep{0%,50%{opacity:0;background-position:100% 0}60%{opacity:1}82%,100%{opacity:0;background-position:0 0}}
-@keyframes portrait-void-pulse{from{opacity:.2}to{opacity:.82}}
-@media(prefers-reduced-motion:reduce){
-  .identity-portrait85[data-portrait-motion]::before{animation:none;opacity:.5}
+.identity-portrait85[data-portrait-motion=rift]::before {
+  background:
+    radial-gradient(circle at 19% 29%,#f3c4ff 0 1.1%,#b965ff70 2%,transparent 5%),
+    radial-gradient(circle at 79% 24%,#e6b5ff 0 .8%,#ad63f968 1.8%,transparent 4.5%),
+    radial-gradient(circle at 77% 79%,#ffe6ff 0 1%,#af63ff85 2.1%,transparent 5%),
+    radial-gradient(ellipse at 50% 50%,#090514 28%,#34215a 52%,#8653c56a 61%,transparent 68%),
+    conic-gradient(from 0deg,#140824,#a367ee,#1a102f,#290956,#bc71ef,#140824);
+  animation:portrait-orbit 8s linear infinite reverse;
+}
+.identity-portrait85[data-portrait-motion=warp] > img {
+  transform-origin:50% 75%;
+  animation:portrait-warp-drift 5.6s ease-in-out infinite;
+}
+.identity-portrait85[data-portrait-motion=rift] > img {
+  animation:portrait-rift-float 4.8s ease-in-out infinite;
+}
+@keyframes portrait-orbit {
+  to { transform:rotate(1turn) }
+}
+@keyframes portrait-warp-drift {
+  0%,100% { transform:translateY(1%) rotate(-3deg) }
+  44% { transform:translateY(-3%) rotate(3deg); filter:drop-shadow(0 1px 4px #72fff880) }
+  64% { transform:translateY(-1%) rotate(1deg) }
+}
+@keyframes portrait-rift-float {
+  0%,100% { transform:translateY(1%) }
+  50% { transform:translateY(-4%) scale(1.035); filter:drop-shadow(0 3px 5px #e18dff85) }
+}
+@media (prefers-reduced-motion:reduce) {
+  .identity-portrait85[data-portrait-motion]::before,
+  .identity-portrait85[data-portrait-motion] > img { animation:none }
 }

@@ -109,7 +109,7 @@ function CosmeticCatalog({kind,ready,userId,player,refresh}:{kind:Kind}&Pick<Ret
     </div>
     <h3>{item.name}</h3>
     <small>{cosmeticTierLabel(item.rarity)}</small>
-    {item.motion&&<button type="button" className="cosmetic-motion-preview" aria-label={`Preview ${item.name} animation`}
+    {kind==='sticker'&&item.motion&&<button type="button" className="cosmetic-motion-preview" aria-label={`Preview ${item.name} animation`}
       onClick={()=>setPreview(previous=>({id:item.id,sequence:previous.sequence+1}))}>Preview animation</button>}
     {owns(item)?<a href={profileHref} className="button glass">Owned · Equip</a>
      :ready&&!userId?<a href="/account" className="button glass">Sign in to buy</a>

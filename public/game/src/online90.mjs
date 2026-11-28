@@ -22,7 +22,7 @@ import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=private-result-48';
 import {bindStartDuelPresentation} from './start-duel-presentation.mjs?v=arena-start-duel';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
-import {frame85,frameSvg85,portrait85,portraitMotion,progression85,title85} from '../platform/identity85.mjs';
+import {frame85,frameSvg85,portrait85,portraitMotion,progression85,title85} from '../platform/identity85.mjs?v=shop-portraits';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),id=params.get('match'),muted=params.get('mute')==='1',stage=$('stage'),svg=$('interaction');
 let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,blockadeCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=!muted,identityKey='',polling=false,moveEpoch=0;
 let leaving112=false,booting139=false,rematchError='';
