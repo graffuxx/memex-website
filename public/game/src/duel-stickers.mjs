@@ -1,4 +1,4 @@
-import {DUEL_STICKERS,validStickerSlots} from '../platform/duel-stickers.mjs?v=unique-shop';
+import {DUEL_STICKERS,stickerSceneLayers,validStickerSlots} from '../platform/duel-stickers.mjs?v=premium-pair';
 import {cosmeticTierLabel} from '../platform/cosmetic-shop.mjs';
 
 export function bindDuelStickers(root,{send}) {
@@ -46,26 +46,31 @@ export function bindDuelStickers(root,{send}) {
   }
 
   function stickerArt(sticker) {
-    const character=new Image();
-    character.src=sticker.image;
-    character.alt=sticker.name;
-    if(!('motion' in sticker))return character;
+    if(!('motion' in sticker)){
+      const icon=new Image();
+      icon.src=sticker.image;
+      icon.alt=sticker.name;
+      return icon;
+    }
     const scene=document.createElement('span');
     scene.className='sticker-scene';
     scene.dataset.motion=sticker.motion;
     scene.setAttribute('data-play','');
-    character.className='sticker-character';
-    scene.append(character);
-    if('prop' in sticker){
-      const prop=new Image();
-      prop.src=sticker.prop;
-      prop.alt='';
-      prop.className='sticker-prop';
-      scene.append(prop);
-    }else{
-      const effect=document.createElement('span');
-      effect.className='sticker-effect';
-      scene.append(effect);
+    for(const {part,image} of stickerSceneLayers(sticker)){
+      const layer=image?new Image():document.createElement('span');
+      layer.className='sticker-'+part;
+      if(image){
+        layer.src=image;
+        layer.alt=part==='character'?sticker.name:'';
+      }
+      if(part==='character'&&sticker.motion==='loot-goblin'){
+        const pocket=document.createElement('span');
+        pocket.className='sticker-pocket';
+        pocket.append(layer);
+        scene.append(pocket);
+      }else{
+        scene.append(layer);
+      }
     }
     return scene;
   }
@@ -81,12 +86,24 @@ export function bindDuelStickers(root,{send}) {
       const target=reactions[side];
       clearTimeout(previous?.timeout);
       const sticker=DUEL_STICKERS[event.sticker];
-      target.dataset.rarity=sticker.rarity??'Standard';
+      const presentation={id:event.id,at:event.at,timeout:undefined};
+      last[side]=presentation;
       target.hidden=true;
-      target.replaceChildren(stickerArt(sticker));
-      void target.offsetWidth;
-      target.hidden=false;
-      last[side]={id:event.id,at:event.at,timeout:setTimeout(()=>{target.hidden=true;},2100)};
+      const art=stickerArt(sticker);
+      const show=()=>{
+        if(last[side]!==presentation)return;
+        target.dataset.rarity=sticker.rarity??'Standard';
+        target.replaceChildren(art);
+        void target.offsetWidth;
+        target.hidden=false;
+        presentation.timeout=setTimeout(()=>{target.hidden=true;},'parts' in sticker?2300:2100);
+      };
+      if('parts' in sticker){
+        // Start the animation only once each sprite is ready, including for the receiving player on a cold cache.
+        void Promise.allSettled(Array.from(art.querySelectorAll('img'),image=>image.decode())).then(show);
+      }else{
+        show();
+      }
     }
   }
 

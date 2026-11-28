@@ -314,12 +314,12 @@ test('cosmetic purchases debit Shards once, and only owners can equip the items'
   const buy=(id,price)=>rpc(db,'dv_buy_cosmetic',{p_id:id,p_price:price});
   const outfit=avatar=>rpc(db,'dv_save_cosmetics87',{p_avatar:avatar,p_frame:'auto',p_title:'rookie'});
   const equip=slots=>db.query('select public.dv_save_sticker_loadout($1::text[]) data',[slots]);
-  const paidSticker='sticker-alt-f4-cat',portrait='portrait-void-pepe';
+  const paidSticker='sticker-loot-goblin',portrait='portrait-void-pepe';
   const animatedPortrait='portrait-void-pepe-animated';
   const slots=[paidSticker,...STARTER_STICKER_SLOTS.slice(1)];
   await db.exec('reset role;set role anon');
   const catalog=await rpc(db,'dv_cosmetic_shop_items',{});
-  assert.equal(catalog.length,10);
+  assert.equal(catalog.length,12);
   for(const item of catalog){
    const art=item.kind==='portrait'?SHOP_PORTRAITS.find(p=>p.id===item.id):DUEL_STICKERS[item.id];
    assert.ok(art,item.id);
@@ -327,9 +327,15 @@ test('cosmetic purchases debit Shards once, and only owners can equip the items'
   }
   assert.deepEqual(catalog.filter(item=>item.kind==='portrait').map(item=>item.id).sort(),SHOP_PORTRAITS.map(item=>item.id).sort());
   const stickerOffers=catalog.filter(item=>item.kind==='sticker');
-  assert.equal(new Set(stickerOffers.map(item=>DUEL_STICKERS[item.id].name)).size,5);
-  assert.equal(new Set(stickerOffers.map(item=>DUEL_STICKERS[item.id].image)).size,5);
-  assert.equal(stickerOffers.filter(item=>Boolean(DUEL_STICKERS[item.id].motion)).length,3);
+  assert.equal(new Set(stickerOffers.map(item=>DUEL_STICKERS[item.id].name)).size,7);
+  assert.equal(new Set(stickerOffers.map(item=>DUEL_STICKERS[item.id].image)).size,7);
+  assert.equal(stickerOffers.filter(item=>Boolean(DUEL_STICKERS[item.id].motion)).length,5);
+  for(const id of [paidSticker,'sticker-panic-button']){
+   const sticker=DUEL_STICKERS[id];
+   assert.equal(stickerOffers.find(item=>item.id===id)?.price,250);
+   assert.equal(sticker.rarity,'Void');
+   assert.ok(sticker.motion && sticker.prop && sticker.parts.length);
+  }
   assert.ok(!stickerOffers.some(item=>item.id==='sticker-boom'));
   assert.equal(DUEL_STICKERS['sticker-boom'].name,'Boom');
   await assert.rejects(buy(paidSticker,250),/permission denied/);
@@ -360,7 +366,7 @@ test('cosmetic purchases debit Shards once, and only owners can equip the items'
   await asUser(b);
   await assert.rejects(equip(slots),/locked or unknown/);
   await assert.rejects(outfit(portrait),/locked or unknown/);
-  await db.exec("reset role;update public.dv_cosmetic_shop set listed=false where id='sticker-alt-f4-cat'");
+  await db.exec("reset role;update public.dv_cosmetic_shop set listed=false where id='sticker-loot-goblin'");
   await asUser(b);
   assert.ok(!(await rpc(db,'dv_cosmetic_shop_items',{})).some(item=>item.id===paidSticker));
   await assert.rejects(buy(paidSticker,250),/unavailable/);

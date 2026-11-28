@@ -12,7 +12,22 @@ export const DUEL_STICKERS = Object.freeze({
   'sticker-404-brain': Object.freeze({name:'404 Brain', emotion:'Confused', rarity:'Standard', image:'/game/assets/stickers/brain.png'}),
   'sticker-desk-flip': Object.freeze({name:'Desk Flip', emotion:'Angry', rarity:'Gold', image:'/game/assets/stickers/desk-flip.png', motion:'desk-flip', prop:'/game/assets/stickers/desk-prop.png'}),
   'sticker-bonk-goose': Object.freeze({name:'Bonk Goose', emotion:'Teasing', rarity:'Gold', image:'/game/assets/stickers/goose.png', motion:'bonk', prop:'/game/assets/stickers/bonk-prop.png'}),
-  'sticker-alt-f4-cat': Object.freeze({name:'Alt+F4 Cat', emotion:'Playful', rarity:'Void', image:'/game/assets/stickers/cat.png', motion:'portal-cat'})
+  'sticker-alt-f4-cat': Object.freeze({name:'Alt+F4 Cat', emotion:'Playful', rarity:'Void', image:'/game/assets/stickers/cat.png', motion:'portal-cat'}),
+  'sticker-loot-goblin': Object.freeze({
+    name:'Loot Goblin', emotion:'Excited', rarity:'Void', motion:'loot-goblin',
+    image:'/game/assets/stickers/loot-goblin-raccoon.png',
+    prop:'/game/assets/stickers/loot-goblin-chest.png',
+    parts:Object.freeze([
+      {part:'lid',image:'/game/assets/stickers/loot-goblin-lid.png'},
+      {part:'coin-one'}, {part:'coin-two'}, {part:'coin-three'}
+    ])
+  }),
+  'sticker-panic-button': Object.freeze({
+    name:'Panic Button', emotion:'Panic', rarity:'Void', motion:'panic-button',
+    image:'/game/assets/stickers/panic-button-octopus.png',
+    prop:'/game/assets/stickers/panic-button-console.png',
+    parts:Object.freeze([{part:'light'},{part:'mark'}])
+  })
 });
 export const STARTER_STICKER_SLOTS = Object.freeze(['kekw','rage-guy','dramatic-chipmunk','crying-cat']);
 
@@ -21,4 +36,16 @@ export function validStickerSlots(slots) {
     && slots.length === STARTER_STICKER_SLOTS.length
     && new Set(slots).size === slots.length
     && slots.every(id => typeof id === 'string' && Object.hasOwn(DUEL_STICKERS,id));
+}
+
+/**
+ * @param {{image:string, prop?:string, parts?:ReadonlyArray<{part:string,image?:string}>}} sticker
+ * @returns {{part:string,image?:string}[]}
+ */
+export function stickerSceneLayers(sticker) {
+  return [
+    {part:'character',image:sticker.image},
+    sticker.prop ? {part:'prop',image:sticker.prop} : {part:'effect'},
+    ...(sticker.parts ?? [])
+  ];
 }
