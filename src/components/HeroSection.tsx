@@ -51,16 +51,17 @@ export default function HeroSection() {
         </div>
         <div className={styles.freeToPlay}>
           <p className={styles.freeToPlayTitle}>Free to play. <strong>Always.</strong></p>
-          <a className={styles.supportInfo} href="/support">
-            <img src="/game/assets/portraits/supporters/cash-cow.webp" alt="" width={46} height={46} />
-            <span>
-              <strong>Support the Duelverse</strong>
-              <small>Four one-time packs · €5–€100</small>
-            </span>
-            <b aria-hidden="true">→</b>
-          </a>
         </div>
       </div>
+
+      <a className={styles.supportInfo} href="/support">
+        <img src="/game/assets/portraits/supporters/cash-cow.webp" alt="" width={64} height={64} />
+        <span>
+          <strong>Support the Duelverse</strong>
+          <small>Four one-time packs · €5–€100</small>
+        </span>
+        <b aria-hidden="true">→</b>
+      </a>
 
       <a className={styles.headline} href="/news#shop-cosmetics" aria-labelledby="home-news-title">
         <img className={styles.spotlightCard} src="/game/assets/portraits/shop-v1/void-pepe-animated.webp" alt="" width={220} height={220} />
