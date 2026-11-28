@@ -11,7 +11,8 @@ import {series113} from '../platform/series113.mjs';
 import {bindDuelExit112} from './duel-exit112.mjs?v=private-rematch';
 import {duelResultUrl,isDuelId,rematchDeckUrl} from '../platform/duel-rematch.mjs';
 import {PLAYABLE_ARENA112} from '../platform/arena-availability112.mjs';
-import {connectOnline90} from '../platform/account-client50.mjs?v=start-recovery-139';
+import {connectOnline90} from '../platform/account-client50.mjs?v=duel-stickers';
+import {bindDuelStickers} from './duel-stickers.mjs?v=tiers';
 import {createTableView} from './table-demo-view-hand17.mjs?v=hand-effects-46';
 import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=hand-effects-46';
 import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs?v=hand-effects-46';
@@ -21,10 +22,11 @@ import {bindTableMusic107} from './table-music107.mjs?v=venom-live';
 import {bindRoundCeremony} from './round-ceremony42.mjs?v=private-result-48';
 import {bindStartDuelPresentation} from './start-duel-presentation.mjs?v=arena-start-duel';
 import {bindPortraitIntro86} from './portrait-intro86.mjs?v=start-recovery-139';
-import {frame85,frameSvg85,portrait85,progression85,title85} from '../platform/identity85.mjs';
+import {frame85,frameSvg85,portrait85,portraitMotion,progression85,title85} from '../platform/identity85.mjs';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),id=params.get('match'),muted=params.get('mute')==='1',stage=$('stage'),svg=$('interaction');
 let client,view,data=null,game=null,selected=null,target=null,hover=null,mode='card',abilityDirection=0,twistCell=null,blockadeCell=null,working=false,animating=false,drag=null,stopped=false,remaining=null,receivedAt=Date.now(),lastRound=0,lastEnd='',notice='Connecting to your saved duel…',sound=!muted,identityKey='',polling=false,moveEpoch=0;
 let leaving112=false,booting139=false,rematchError='';
+const duelStickers=bindDuelStickers($('duelStickers'),{send:slot=>client.sticker(slot)});
 const selectedRematchDeck=isDuelId(params.get('deck'))?params.get('deck'):null;
 const pollRecovery139=createPollRecovery139();
 const renderSeries129=bindSeriesHud129();
@@ -41,7 +43,7 @@ const signatureControls=bindSignatureControls($('abilityOptions'),{english:true,
 function clear(){signatureControls.clear();boardPreview.clear();if(selected)view?.release(selected);selected=target=hover=twistCell=null;blockadeCell=null;mode='card';abilityDirection=0;}
 function action(){return {uid:selected,cell:target,rotation:0,abilityDirection,twistCell,blockadeCell,...signatureControls.action()};}
 function plan(){if(!selected||!target||!game||game.pendingDraw||game.turn!==0)return null;try{return previewEffect(game,action());}catch{return null;}}
-function portrait(node,identity){if(!identity)return;const f=frame85(identity),p=portrait85(identity.avatarId),wrap=document.createElement('span'),img=document.createElement('img'),ring=document.createElement('span');wrap.className='identity-portrait85';wrap.dataset.tier=f.tier;wrap.style.setProperty('--portrait-size','62px');wrap.style.setProperty('--frame-color',f.color);img.src=p.image;img.alt='';ring.className='identity-ring85';ring.innerHTML=frameSvg85(f,progression85(identity.xp).level);wrap.append(img,ring);node.replaceChildren(wrap);}
+function portrait(node,identity){if(!identity)return;const f=frame85(identity),p=portrait85(identity.avatarId),wrap=document.createElement('span'),img=document.createElement('img'),ring=document.createElement('span');wrap.className='identity-portrait85';wrap.dataset.tier=f.tier;const motion=portraitMotion(identity.avatarId);if(motion)wrap.dataset.portraitMotion=motion;wrap.style.setProperty('--portrait-size','62px');wrap.style.setProperty('--frame-color',f.color);img.src=p.image;img.alt='';ring.className='identity-ring85';ring.innerHTML=frameSvg85(f,progression85(identity.xp).level);wrap.append(img,ring);node.replaceChildren(wrap);}
 function profiles(){const k=JSON.stringify([data?.players,data?.opponentStyle,data?.opponentEngine]);if(k===identityKey||!data?.players)return;identityKey=k;const [own,enemy]=data.players;const enemyTitle=data.opponentType==='ai'?'AI · '+(data.opponentStyle?.label??'Standard'):title85(enemy);$('gameSessionNote84').textContent=data.opponentType==='ai'?'Random · IS-MCTS · adapting from '+(data.opponentEngine?.observedMoves??0)+' visible moves':'Online alpha · human opponent · server-verified moves';$('gameAccountInfo').querySelector('small').textContent=data.opponentType==='ai'?'Win +5 Pixels +100 XP · loss / draw +2 Pixels · play & win quests':data.kind==='random'?'Human Random duel · Pixels, XP, quests & titles':'Private duel · friendly play';portrait($('ownPortrait85'),own);portrait($('enemyPortrait85'),enemy);$('playerName85').textContent=own.displayName;$('playerTitle85').textContent=title85(own);$('playerTitle85').hidden=!title85(own);$('enemyName90').textContent=enemy.displayName;$('enemyTitle90').textContent=enemyTitle;$('startEnemyName90').textContent=enemy.displayName;}
 function clock(){const sec=remaining===null?0:Math.max(0,Math.ceil((remaining-(Date.now()-receivedAt))/1000));
  const timer=$('startClock');
@@ -130,6 +132,8 @@ async function accept(next){
  }
 
  if(!next.unchanged&&data&&next.version<data.version)return;
+ const stickerState=next.unchanged?data:next;
+ duelStickers.sync(stickerState?.phase==='play'?stickerState.round:null,next.stickers);
  if(next.unchanged){remaining=next.remainingMs;receivedAt=Date.now();if(data)data.wallet=next.wallet;clock();return;}
  const recovering=presentation.needsSnapshot,previous=data,changed=recovering||!previous||next.version!==previous.version;data=next;remaining=next.remainingMs;receivedAt=Date.now();profiles();
  if(changed)cancelHandDrag();

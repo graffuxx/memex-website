@@ -3,3 +3,24 @@
 .dv-portal .alpha-buy-shards82{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:11px 18px}.dv-portal .alpha-shop-controls{flex-wrap:wrap}
 
 .dv-portal .identity-shop85{text-align:center;padding:15px 0 35px}.dv-portal .identity-shop85 .shop-intro81{max-width:750px;margin:auto}.dv-portal .identity-shop-preview85{display:flex;align-items:stretch;justify-content:center;gap:24px;flex-wrap:wrap;margin:30px 0}.dv-portal .identity-shop-preview85>div{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 30px;border:1px solid #b394d448;border-radius:18px;background:radial-gradient(ellipse at center,#59317b35,transparent 75%),#0d091ad9;min-width:230px}.dv-portal .identity-shop-preview85>div>span{font-size:20px;color:#e9d3fb}.dv-portal .identity-shop-preview85 small{font:13px Arial,sans-serif;color:#ae96c2}.dv-portal .identity-shop-notice85{font:14px Arial,sans-serif;color:#bda6ce;margin-bottom:25px}.dv-portal .shop-tabs81{flex-wrap:wrap}
+
+.dv-portal .cosmetic-shop{padding:22px 0 12px}
+.dv-portal .cosmetic-shop-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.dv-portal .cosmetic-shop-header h2{margin:0}
+.dv-portal .cosmetic-shop-header a{white-space:nowrap}
+.dv-portal .cosmetic-shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:14px}
+.dv-portal .cosmetic-shop-grid article{display:flex;flex-direction:column;align-items:center;padding:14px;min-width:0;text-align:center;border:1px solid #bb91ea60;border-radius:16px;background:linear-gradient(160deg,#251633,#100c20)}
+.dv-portal .cosmetic-shop-grid article[data-rarity=Gold]{border-color:#d4ab6380}
+.dv-portal .cosmetic-shop-grid article[data-rarity=Diamond]{border-color:#78caff80}
+.dv-portal .cosmetic-shop-grid article[data-rarity=Void]{border-color:#c46bff99}
+.dv-portal .cosmetic-shop-art{display:grid;place-items:center;width:100%;min-height:162px}
+.dv-portal .cosmetic-shop-art>img{display:block;width:min(100%,150px);height:150px;object-fit:contain}
+.dv-portal .cosmetic-shop-grid h3{margin:6px 0 3px}
+.dv-portal .cosmetic-shop-grid small{margin-bottom:14px;color:#d8c0ed}
+.dv-portal .cosmetic-shop-grid .button{margin-top:auto}
+.dv-portal .cosmetic-shop-dialog .actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.dv-portal .cosmetic-shop-grid [data-rarity=Gold] .cosmetic-shop-art>img{animation:cosmetic-shop-gold 3.8s ease-in-out infinite}
+.dv-portal .cosmetic-shop-grid [data-rarity=Void] .cosmetic-shop-art>img{animation:cosmetic-shop-void 2s ease-in-out infinite alternate}
+@keyframes cosmetic-shop-gold{0%,70%,100%{filter:none}84%{filter:drop-shadow(0 0 8px #ffc867) brightness(1.16)}}
+@keyframes cosmetic-shop-void{from{filter:drop-shadow(0 0 4px #7945ba)}to{filter:drop-shadow(0 0 14px #a257fd) brightness(1.12)}}
+@media(prefers-reduced-motion:reduce){.dv-portal .cosmetic-shop-grid [data-rarity] .cosmetic-shop-art>img{animation:none}}

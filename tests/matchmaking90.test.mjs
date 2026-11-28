@@ -236,3 +236,132 @@ test('Private rematch keeps both players, uses the edited deck, and never opens 
   assert.equal(conceded.rematch,undefined);
  }finally{await db.close();}
 });
+
+test('private duel stickers relay to both seats without changing the turn, and saved slots are per account',async()=>{
+ const db=await db90();
+ try{
+  const stickerIds=['kekw','rage-guy','dramatic-chipmunk','crying-cat'];
+  const reordered=['crying-cat','rage-guy','dramatic-chipmunk','kekw'];
+  const decks=Object.fromEntries((await db.query('select user_id,id from public.dv_decks')).rows.map(r=>[r.user_id,r.id]));
+  const asUser=async user=>db.exec(`reset role;set request.jwt.claim.sub='${user}';set role authenticated`);
+  await asUser(a);
+  assert.deepEqual(await rpc(db,'dv_sticker_loadout',{}),stickerIds);
+  await assert.rejects(db.query("select public.dv_save_sticker_loadout(array['kekw','kekw','rage-guy','crying-cat'])"),/four different/);
+  await assert.rejects(db.query("select public.dv_save_sticker_loadout(array['boom','kekw','rage-guy','crying-cat'])"),/locked or unknown/);
+  assert.deepEqual((await db.query('select public.dv_save_sticker_loadout($1::text[]) data',[reordered])).rows[0].data,reordered);
+  await assert.rejects(rpc(db,'dv_duel_stickers',{p_user:a,p_match:uid(777),p_slot:1}),/permission denied/);
+  await asUser(b);
+  assert.deepEqual(await rpc(db,'dv_sticker_loadout',{}),stickerIds);
+
+  const handler=createMatchHandler90({env:k=>({SUPABASE_URL:'https://db90.test',SUPABASE_SERVICE_ROLE_KEY:'test-only'})[k],seed:()=>31,now:()=>10,fetcher:async(url,opt)=>{
+   if(url.endsWith('/auth/v1/user')){
+    const id=({a,b,c})[opt.headers.Authorization.replace('Bearer ','')];
+    return id?Response.json({id,email_confirmed_at:'2026-11-28'}):Response.json({}, {status:401});
+   }
+   await db.exec('reset role;set role service_role');
+   try{return Response.json(await rpc(db,url.split('/').at(-1),JSON.parse(opt.body)));}
+   catch(e){return Response.json({message:e.message,code:e.code},{status:400});}
+  }});
+  async function call(user,body){
+   const response=await handler(new Request('https://memex.test/api/duel',{method:'POST',headers:{Authorization:'Bearer '+user},body:JSON.stringify(body)}));
+   return {status:response.status,data:await response.json()};
+  }
+
+  const host=(await call('a',{op:'join',kind:'private',deckId:decks[a]})).data;
+  const id=host.id;
+  await call('b',{op:'join',kind:'private',deckId:decks[b],code:host.code});
+  assert.equal((await call('a',{op:'sticker',id,slot:1})).status,400);
+  let duel=(await call('a',{op:'poll',id})).data;
+  let sequence=800;
+  for(const [who,move] of [['a',{kind:'gesture',value:'rock'}],['b',{kind:'gesture',value:'scissors'}],['a',{kind:'starter',side:0}]]){
+   const result=await call(who,{op:'move',id,version:duel.version,requestId:uid(sequence++),move});
+   assert.equal(result.status,200);
+   duel=result.data;
+  }
+  const [beforeA,beforeB]=[(await call('a',{op:'poll',id,stickers:true})).data,(await call('b',{op:'poll',id,stickers:true})).data];
+  assert.equal(beforeA.phase,'play');
+  assert.equal(beforeB.game.turn,1);
+  assert.deepEqual(beforeA.stickers.slots,reordered);
+  assert.deepEqual(beforeB.stickers.slots,stickerIds);
+  assert.equal((await call('c',{op:'sticker',id,slot:1})).status,400);
+  assert.equal((await call('a',{op:'sticker',id,slot:5})).status,400);
+  const first=(await call('a',{op:'sticker',id,slot:1})).data.stickers.events[0];
+  assert.equal(first.sticker,'crying-cat');
+  assert.equal(first.own,true);
+  assert.equal((await call('a',{op:'sticker',id,slot:2})).status,429);
+  const fromGuest=(await call('b',{op:'sticker',id,slot:2})).data.stickers.events;
+  assert.equal(fromGuest.find(e=>e.id===first.id).own,false);
+  assert.equal(fromGuest.find(e=>e.own).sticker,'rage-guy');
+
+  const update=(await call('a',{op:'poll',id,version:beforeA.version,stickers:true})).data;
+  assert.equal(update.unchanged,true);
+  assert.equal(update.remainingMs,beforeA.remainingMs);
+  assert.equal(update.stickers.events.find(e=>!e.own).sticker,'rage-guy');
+  assert.equal((await call('a',{op:'poll',id,version:beforeA.version})).data.stickers,undefined);
+  await db.exec("reset role;update public.dv_duel_sticker_events set sent_at=now()-interval '5 seconds'");
+  assert.deepEqual((await call('b',{op:'poll',id,version:beforeB.version,stickers:true})).data.stickers.events,[]);
+  await call('a',{op:'leave',id});
+  assert.equal((await call('b',{op:'sticker',id,slot:1})).status,400);
+ }finally{await db.close();}
+});
+
+test('cosmetic purchases debit Shards once, and only owners can equip the items',async()=>{
+ const db=await db90();
+ try{
+  const {SHOP_PORTRAITS}=await import('../public/game/platform/cosmetic-shop.mjs');
+  const {DUEL_STICKERS,STARTER_STICKER_SLOTS}=await import('../public/game/platform/duel-stickers.mjs');
+  const asUser=async user=>db.exec(`reset role;set request.jwt.claim.sub='${user}';set role authenticated`);
+  const buy=(id,price)=>rpc(db,'dv_buy_cosmetic',{p_id:id,p_price:price});
+  const outfit=avatar=>rpc(db,'dv_save_cosmetics87',{p_avatar:avatar,p_frame:'auto',p_title:'rookie'});
+  const equip=slots=>db.query('select public.dv_save_sticker_loadout($1::text[]) data',[slots]);
+  const paidSticker='sticker-boom',portrait='portrait-void-pepe';
+  const animatedPortrait='portrait-void-pepe-animated';
+  const slots=[paidSticker,...STARTER_STICKER_SLOTS.slice(1)];
+  await db.exec('reset role;set role anon');
+  const catalog=await rpc(db,'dv_cosmetic_shop_items',{});
+  assert.equal(catalog.length,10);
+  for(const item of catalog){
+   const art=item.kind==='portrait'?SHOP_PORTRAITS.find(p=>p.id===item.id):DUEL_STICKERS[item.id];
+   assert.ok(art,item.id);
+   assert.equal(item.price,{Standard:100,Gold:150,Void:250}[art.rarity],item.id);
+  }
+  assert.deepEqual(catalog.filter(item=>item.kind==='portrait').map(item=>item.id).sort(),SHOP_PORTRAITS.map(item=>item.id).sort());
+  assert.deepEqual(catalog.filter(item=>item.kind==='sticker').map(item=>item.id).sort(),Object.keys(DUEL_STICKERS).filter(id=>id.startsWith('sticker-')).sort());
+  await assert.rejects(buy(paidSticker,250),/permission denied/);
+  await asUser(a);
+  await assert.rejects(equip(slots),/locked or unknown/);
+  await assert.rejects(outfit(portrait),/locked or unknown/);
+  await assert.rejects(buy(paidSticker,250),/Not enough Shards/);
+  await db.exec('reset role');
+  await db.query('update public.dv_wallets set premium=700,earned=25,echoes=7 where user_id=$1',[a]);
+  await asUser(a);
+  await assert.rejects(buy('kekw',100),/unavailable/);
+  await assert.rejects(buy(paidSticker,200),/price changed/);
+  assert.deepEqual(await buy(paidSticker,250),{id:paidSticker,kind:'sticker',shards:450,alreadyOwned:false});
+  assert.equal((await buy(paidSticker,250)).alreadyOwned,true);
+  assert.deepEqual((await equip(slots)).rows[0].data,slots);
+  assert.deepEqual(await rpc(db,'dv_sticker_loadout',{}),slots);
+  assert.deepEqual(await buy('sticker-wow-static',100),{id:'sticker-wow-static',kind:'sticker',shards:350,alreadyOwned:false});
+  assert.deepEqual(await buy(portrait,100),{id:portrait,kind:'portrait',shards:250,alreadyOwned:false});
+  assert.equal((await outfit(portrait)).avatarId,portrait);
+  await assert.rejects(outfit(animatedPortrait),/locked or unknown/);
+  assert.equal((await buy(animatedPortrait,250)).shards,0);
+  assert.equal((await outfit(animatedPortrait)).avatarId,animatedPortrait);
+  const identity=await rpc(db,'dv_identity85',{});
+  assert.ok(identity.owned.includes('portrait:'+portrait));
+  assert.ok(identity.owned.includes('sticker:'+paidSticker));
+  const [wallet]=(await db.query('select earned,premium,echoes from public.dv_wallets where user_id=$1',[a])).rows;
+  assert.deepEqual([wallet.earned,wallet.premium,wallet.echoes].map(Number),[25,0,7]);
+  await asUser(b);
+  await assert.rejects(equip(slots),/locked or unknown/);
+  await assert.rejects(outfit(portrait),/locked or unknown/);
+  await db.exec("reset role;update public.dv_cosmetic_shop set listed=false where id='sticker-boom'");
+  await asUser(b);
+  assert.ok(!(await rpc(db,'dv_cosmetic_shop_items',{})).some(item=>item.id===paidSticker));
+  await assert.rejects(buy(paidSticker,250),/unavailable/);
+  await asUser(a);
+  assert.deepEqual((await equip(slots)).rows[0].data,slots);
+  const charged=(await db.query("select amount from public.dv_reward_ledger where event_key like 'cosmetic-shop:%' order by amount")).rows;
+  assert.deepEqual(charged.map(row=>Number(row.amount)),[-250,-250,-100,-100]);
+ }finally{await db.close();}
+});

@@ -4,7 +4,8 @@ import {useEffect,useRef,useState} from 'react';
 import AlphaBoosterPack from './AlphaBoosterPack';
 import AlphaBoosterOdds from './AlphaBoosterOdds';
 import PlayerBalances from './PlayerBalances';
-import {ShopTabs81,ShardShop81,ArenaSkins81,IdentityCosmetics85,type ShopCategory81} from './ShopCatalog81';
+import CosmeticShop from './CosmeticShop';
+import {ShopTabs81,ShardShop81,ArenaSkins81,FramePreview85,type ShopCategory81} from './ShopCatalog81';
 import useBoosterAudio from './useBoosterAudio';
 import BoosterTear from './BoosterTear';
 import BoosterRevealCard from './BoosterRevealCard';
@@ -122,7 +123,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
   finally{if(live(ticket)){setBusy(false);purchaseLock.current=false;}}
  }
  const [category,setCategory]=useState<ShopCategory81>('boosters');
- useEffect(()=>{const c=new URLSearchParams(window.location.search).get('category');if(c==='shards'||c==='arenas'||c==='frames'||c==='portraits')setCategory(c);},[]);
+ useEffect(()=>{const c=new URLSearchParams(window.location.search).get('category');if(c==='shards'||c==='arenas'||c==='frames'||c==='portraits'||c==='stickers')setCategory(c);},[]);
  function changeCategory(c:ShopCategory81){setCategory(c);const url=new URL(window.location.href);url.searchParams.set('category',c);window.history.replaceState(null,'',url.pathname+url.search);}
  const selectedPrice=confirmation?ALPHA_BOOSTER.prices[confirmation]:0;
  const betaOpening=pack?.product_id==='beta';
@@ -162,7 +163,7 @@ export default function AlphaBoosters({shop=false}:{shop?:boolean}){
     {phase==='done'&&!preview&&queued.length===0&&<a className="button gold" href="/decks" onClick={back}>Build a deck</a>}
    </div>
   </div>
- </dialog>:shop&&category==='shards'?<ShardShop81/>:shop&&category==='arenas'?<ArenaSkins81/>:shop&&(category==='frames'||category==='portraits')?<IdentityCosmetics85 kind={category}/>:<>
+ </dialog>:shop&&category==='shards'?<ShardShop81/>:shop&&category==='arenas'?<ArenaSkins81/>:shop&&category==='frames'?<FramePreview85/>:shop&&(category==='portraits'||category==='stickers')?<CosmeticShop kind={category==='portraits'?'portrait':'sticker'}/>:<>
   {loadingHistory&&<p className="booster-shelf-status" role="status">Loading your boosters…</p>}
   <div className="booster-editions" aria-label={inventory?'Your unopened boosters':'Booster editions'}>
    {editions.map(edition=>{
