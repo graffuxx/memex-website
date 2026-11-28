@@ -46,6 +46,7 @@
     0 0 26px rgba(160, 110, 255, 0.20);
 
   color: #ffffff;
+  text-decoration: none;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -57,9 +58,6 @@
   animation: tickerGlow 7.5s linear infinite;
 }
 
-/* long soft fades left/right (no hard rounded ends) */
-
-/* soft gaussian-like text fade (no dark edges) */
 .tickerInner {
   -webkit-mask-image: linear-gradient(
     90deg,
@@ -99,24 +97,16 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.10);
 }
 
-/* Fade-Animation beim Wechsel */
-.fade {
-  animation: tickerFade 0.35s ease-in-out;
+.tickerInner:hover .text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-@keyframes tickerFade {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.1;
-  }
-  100% {
-    opacity: 1;
-  }
+.tickerInner:focus-visible {
+  outline: 2px solid #ffe3fa;
+  outline-offset: -3px;
 }
 
-/* Mobile: kompakter */
 @media (max-width: 768px) {
   .tickerInner {
     height: 32px;

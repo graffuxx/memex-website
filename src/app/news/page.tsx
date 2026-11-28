@@ -51,6 +51,19 @@ export default function NewsPage() {
           </p>
         </header>
 
+        <article id="shop-cosmetics" className={styles.questNews} style={{scrollMarginTop: 120}}>
+          <div className={styles.questNewsArt}>
+            <img src="/game/assets/portraits/shop-v1/void-pepe-animated.webp" alt="Void Pepe's new shop portrait" />
+          </div>
+          <div>
+            <div className={styles.badge}>SHOP DROP · <time dateTime="2026-11-28">28 NOV 2026</time></div>
+            <h2>New stickers. New faces.</h2>
+            <p><strong>Loot Goblin and Panic Button</strong> are in the sticker shop for 250 Shards each. Equip them to send their animations to your opponent during a duel.</p>
+            <p><strong>Five refreshed portraits</strong> are live, including a drifting astronaut Doge and a floating Void Pepe. Your equipped portrait also appears in duels.</p>
+            <p><a href="/shop?category=stickers">Browse stickers</a> · <a href="/shop?category=portraits">See the portraits</a></p>
+          </div>
+        </article>
+
         <article id="hackerman" className={styles.questNews} style={{scrollMarginTop: 120}}>
           <div className={styles.questNewsArt}>
             <img src="/game/assets/cards/beta-v1/hackerman.webp" alt="Hackerman surrounded by violet CRT screens" />

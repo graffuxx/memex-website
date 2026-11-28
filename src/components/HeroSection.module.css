@@ -39,6 +39,14 @@
   gap: 9px;
 }
 .hero h1 { margin: 0; }
+.freeToPlay {
+  margin: 2px 0 0;
+  color: #f6dfb3;
+  font: 700 12px/1.3 Arial, sans-serif;
+  letter-spacing: .055em;
+  text-shadow: 0 2px 8px #0c041f, 0 0 16px #080311;
+  white-space: nowrap;
+}
 .hero h1 img {
   display: block;
   width: clamp(300px, 37vw, 600px);

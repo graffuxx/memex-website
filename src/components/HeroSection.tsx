@@ -49,14 +49,15 @@ export default function HeroSection() {
             Join Discord <span aria-hidden="true">↗</span>
           </a>
         </div>
+        <p className={styles.freeToPlay}>Free to play. Always.</p>
       </div>
 
-      <a className={styles.headline} href="/news#hackerman" aria-labelledby="home-news-title">
-        <img className={styles.spotlightCard} src="/home/hackerman.webp" alt="Hackerman, Storm Prime" width={220} height={220} />
-        <span className={styles.newsTag}><i aria-hidden="true" />Latest update</span>
-        <h2 id="home-news-title">10 new cards<br /> are live</h2>
-        <p>Meet Hackerman and his Override ability.</p>
-        <span className={styles.newsLink}>Read the update <span aria-hidden="true">→</span></span>
+      <a className={styles.headline} href="/news#shop-cosmetics" aria-labelledby="home-news-title">
+        <img className={styles.spotlightCard} src="/game/assets/portraits/shop-v1/void-pepe-animated.webp" alt="" width={220} height={220} />
+        <span className={styles.newsTag}><i aria-hidden="true" />Shop drop</span>
+        <h2 id="home-news-title">New stickers.<br /> New faces.</h2>
+        <p>Meet Loot Goblin, Panic Button and the animated portraits.</p>
+        <span className={styles.newsLink}>See what's new <span aria-hidden="true">→</span></span>
       </a>
 
       <footer className={styles.legal}><a href="/impressum">Impressum</a></footer>
