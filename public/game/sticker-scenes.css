@@ -1,0 +1,53 @@
+.sticker-scene{
+  display:block;position:relative;isolation:isolate;aspect-ratio:1;width:100%;height:100%;pointer-events:none
+}
+.sticker-scene > .sticker-character,.sticker-scene > .sticker-prop{
+  position:absolute;display:block;object-fit:contain;pointer-events:none;filter:drop-shadow(0 3px 4px #090612b3)
+}
+.sticker-scene[data-motion=desk-flip] > .sticker-character{inset:0 7% auto;width:86%;height:86%;transform-origin:55% 83%}
+.sticker-scene[data-motion=desk-flip] > .sticker-prop{left:22%;top:50%;width:62%;height:55%;transform-origin:50% 78%}
+.sticker-scene[data-motion=bonk] > .sticker-character{left:1%;top:13%;width:79%;height:81%;transform-origin:52% 80%}
+.sticker-scene[data-motion=bonk] > .sticker-prop{top:0;left:45%;width:52%;height:63%;transform-origin:20% 91%}
+.sticker-scene[data-motion=portal-cat] > .sticker-character{top:14%;left:2%;width:79%;height:79%;transform-origin:54% 78%}
+.sticker-scene[data-motion=portal-cat] > .sticker-effect{
+  position:absolute;left:72%;top:20%;width:24%;height:68%;z-index:-1;border-radius:50%;
+  background:radial-gradient(ellipse,#0e0818 38%,#38136a 58%,#e8adff 66%,#9748ec 73%,transparent 76%);
+  box-shadow:0 0 10px #8b47e870;transform:rotate(16deg);opacity:.8;
+}
+.sticker-scene[data-play][data-motion=desk-flip] > .sticker-character{animation:sticker-desk-body 1.7s both}
+.sticker-scene[data-play][data-motion=desk-flip] > .sticker-prop{animation:sticker-desk 1.7s both}
+.sticker-scene[data-play][data-motion=bonk] > .sticker-character{animation:sticker-goose-body 1.6s both}
+.sticker-scene[data-play][data-motion=bonk] > .sticker-prop{animation:sticker-bonk 1.6s both}
+.sticker-scene[data-play][data-motion=portal-cat] > .sticker-character{animation:sticker-cat 1.95s both}
+.sticker-scene[data-play][data-motion=portal-cat] > .sticker-effect{animation:sticker-portal 1.95s both}
+@keyframes sticker-desk-body{
+  0%,100%{transform:none} 17%{transform:translateY(9%) rotate(-8deg) scale(1.07,.89)}
+  36%{transform:translateY(-13%) rotate(9deg) scale(.96,1.1)} 58%{transform:rotate(-4deg)} 80%{transform:none}
+}
+@keyframes sticker-desk{
+  0%,16%{transform:none;opacity:1} 36%{transform:translate(35%,-95%) rotate(-44deg);opacity:1}
+  58%{transform:translate(82%,-110%) rotate(-135deg);opacity:1} 77%,100%{transform:translate(112%,-5%) rotate(-210deg);opacity:0}
+}
+@keyframes sticker-goose-body{
+  0%,100%{transform:none} 20%{transform:rotate(-15deg) translateX(-7%)} 38%{transform:rotate(16deg) translate(8%,3%)}
+  45%{transform:rotate(8deg) scale(1.13,.87)} 63%{transform:rotate(-5deg)} 80%{transform:none}
+}
+@keyframes sticker-bonk{
+  0%,100%{transform:none} 20%{transform:rotate(-28deg)} 39%{transform:rotate(77deg) scale(1.12,.94)}
+  47%{transform:rotate(61deg)} 67%{transform:rotate(-16deg)} 82%{transform:none}
+}
+@keyframes sticker-cat{
+  0%{transform:none;opacity:1} 16%{transform:translate(-7%,7%) rotate(-14deg) scale(1.1,.83);opacity:1}
+  41%{transform:translate(38%,-16%) rotate(25deg) scale(.8);opacity:1}
+  58%,67%{transform:translate(64%,0) rotate(55deg) scale(.14);opacity:0}
+  75%{transform:translate(55%,0) rotate(-8deg) scale(.42);opacity:1}
+  90%,100%{transform:translate(42%,0) rotate(-13deg) scale(.66);opacity:1}
+}
+@keyframes sticker-portal{
+  0%{transform:rotate(16deg) scale(.58);opacity:.32}
+  36%,69%{transform:rotate(16deg) scale(1.15);opacity:1}
+  100%{transform:rotate(16deg);opacity:.8}
+}
+@media(prefers-reduced-motion:reduce){
+  .sticker-scene[data-play] > :is(.sticker-character,.sticker-prop,.sticker-effect){animation:none!important}
+}

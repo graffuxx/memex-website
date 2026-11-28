@@ -7,13 +7,14 @@ import {DUEL_STICKERS,STARTER_STICKER_SLOTS} from '../../../public/game/platform
 import PlayerPortrait85 from './PlayerPortrait85';
 import {DEFAULT_IDENTITY85} from '../../../public/game/platform/identity85.mjs';
 import usePlayerCollection from './usePlayerCollection';
+import '../../../public/game/sticker-scenes.css';
 
 type Kind = 'sticker'|'portrait';
 type Listing = {id:string;kind:Kind;price:number};
-type Art = {name:string;image:string;rarity?:string};
+type Art = {name:string;image:string;rarity?:string;motion?:string|null;prop?:string};
 type Product = Listing & Art;
 
-const portraits = new Map(SHOP_PORTRAITS.map(item=>[item.id,item]));
+const portraits = new Map<string,Art>(SHOP_PORTRAITS.map(item=>[item.id,item]));
 const stickers = new Map<string,Art>(Object.entries(DUEL_STICKERS).filter(([id])=>!STARTER_STICKER_SLOTS.includes(id)));
 
 export default function CosmeticShop({kind}:{kind:Kind}){
@@ -26,6 +27,7 @@ function CosmeticCatalog({kind,ready,userId,player,refresh}:{kind:Kind}&Pick<Ret
  const [selected,setSelected]=useState<Product|null>(null),[busy,setBusy]=useState(false);
  const [purchase,setPurchase]=useState<{owned:string[];balance:number}|null>(null);
  const [message,setMessage]=useState(''),[error,setError]=useState('');
+ const [preview,setPreview]=useState({id:'',sequence:0});
  const modal=useRef<HTMLDialogElement>(null),lock=useRef(false);
  const profileHref=kind==='sticker'?'/account/private/profile?tab=stickers':'/account/private/profile?tab=portraits';
  const balance=purchase?.balance??player?.shards;
@@ -41,7 +43,7 @@ function CosmeticCatalog({kind,ready,userId,player,refresh}:{kind:Kind}&Pick<Ret
    setItems((data as Listing[]).flatMap(item=>{
     if(item.kind!==kind)return [];
     const art=(kind==='portrait'?portraits:stickers).get(item.id);
-    return art?[{...item,...art}]:[];
+    return art?[{...art,...item}]:[];
    }));
   }
   void fetchItems().catch(()=>{if(!controller.signal.aborted)setError('The cosmetic shop could not load.');});
@@ -94,10 +96,16 @@ function CosmeticCatalog({kind,ready,userId,player,refresh}:{kind:Kind}&Pick<Ret
   <div className="cosmetic-shop-grid">
    {items?.map(item=><article key={item.id} data-rarity={item.rarity}>
     <div className="cosmetic-shop-art">
-     {kind==='portrait'?<PlayerPortrait85 identity={{...DEFAULT_IDENTITY85,avatarId:item.id}} size={144}/>:<img src={item.image} alt="" loading="lazy"/>}
+     {kind==='portrait'?<PlayerPortrait85 identity={{...DEFAULT_IDENTITY85,avatarId:item.id}} size={144}/>
+      :item.motion?<span className="sticker-scene" key={preview.id===item.id?preview.sequence:0} data-motion={item.motion} data-play={preview.id===item.id?'':undefined}>
+       <img className="sticker-character" src={item.image} alt="" loading="lazy"/>
+       {item.prop?<img className="sticker-prop" src={item.prop} alt="" loading="lazy"/>:<span className="sticker-effect" aria-hidden="true"/>}
+      </span>:<img src={item.image} alt="" loading="lazy"/>}
     </div>
     <h3>{item.name}</h3>
     <small>{cosmeticTierLabel(item.rarity)}</small>
+    {item.motion&&<button type="button" className="cosmetic-motion-preview" aria-label={`Preview ${item.name} animation`}
+      onClick={()=>setPreview(previous=>({id:item.id,sequence:previous.sequence+1}))}>Preview animation</button>}
     {owns(item)?<a href={profileHref} className="button glass">Owned · Equip</a>
      :ready&&!userId?<a href="/account" className="button glass">Sign in to buy</a>
      :<button className="button gold" type="button" disabled={!player||busy}

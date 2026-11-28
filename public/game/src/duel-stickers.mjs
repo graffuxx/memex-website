@@ -1,4 +1,4 @@
-import {DUEL_STICKERS,validStickerSlots} from '../platform/duel-stickers.mjs?v=tiers';
+import {DUEL_STICKERS,validStickerSlots} from '../platform/duel-stickers.mjs?v=unique-shop';
 import {cosmeticTierLabel} from '../platform/cosmetic-shop.mjs';
 
 export function bindDuelStickers(root,{send}) {
@@ -45,6 +45,31 @@ export function bindDuelStickers(root,{send}) {
     }));
   }
 
+  function stickerArt(sticker) {
+    const character=new Image();
+    character.src=sticker.image;
+    character.alt=sticker.name;
+    if(!('motion' in sticker))return character;
+    const scene=document.createElement('span');
+    scene.className='sticker-scene';
+    scene.dataset.motion=sticker.motion;
+    scene.setAttribute('data-play','');
+    character.className='sticker-character';
+    scene.append(character);
+    if('prop' in sticker){
+      const prop=new Image();
+      prop.src=sticker.prop;
+      prop.alt='';
+      prop.className='sticker-prop';
+      scene.append(prop);
+    }else{
+      const effect=document.createElement('span');
+      effect.className='sticker-effect';
+      scene.append(effect);
+    }
+    return scene;
+  }
+
   function receive(snapshot) {
     if(!snapshot || activeRound===null)return;
     paintSlots(snapshot.slots);
@@ -56,12 +81,9 @@ export function bindDuelStickers(root,{send}) {
       const target=reactions[side];
       clearTimeout(previous?.timeout);
       const sticker=DUEL_STICKERS[event.sticker];
-      const icon=new Image();
-      icon.src=sticker.image;
-      icon.alt=sticker.name;
       target.dataset.rarity=sticker.rarity??'Standard';
       target.hidden=true;
-      target.replaceChildren(icon);
+      target.replaceChildren(stickerArt(sticker));
       void target.offsetWidth;
       target.hidden=false;
       last[side]={id:event.id,at:event.at,timeout:setTimeout(()=>{target.hidden=true;},2100)};

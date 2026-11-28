@@ -15,14 +15,14 @@
 .duel-sticker-float{position:absolute;width:clamp(70px,10.2%,136px);aspect-ratio:1;animation:duel-sticker-pop .23s cubic-bezier(.16,.82,.3,1.26) both}
 .duel-sticker-own{left:5%;top:8.5%;transform-origin:18% 0}
 .duel-sticker-enemy{right:1%;top:2%;transform-origin:82% 0}
-.duel-sticker-float img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 5px #07040e)}
+.duel-sticker-float>img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 5px #07040e)}
 .duel-sticker-status{position:absolute;top:0;left:0;margin:0}
 .duel-sticker-status.duel-sticker-error{top:63px;left:8px;max-width:38%;padding:5px 7px;background:#130d23ed;border-radius:7px;color:#f4d2f4;font:12px/1.3 system-ui,sans-serif}
 @keyframes duel-sticker-pop{from{opacity:0;transform:translateY(-7px) scale(.64)}to{opacity:1;transform:none}}
 @media(max-width:780px){.duel-sticker-menu{width:46%}.duel-sticker-own{top:13%}}
 @media(prefers-reduced-motion:reduce){.duel-sticker-float{animation:none}}
-.duel-sticker-float[data-rarity=Gold] img{animation:duel-sticker-gold 1.4s ease-out both}
-.duel-sticker-float[data-rarity=Void] img{animation:duel-sticker-void .9s ease-in-out infinite alternate}
+.duel-sticker-float[data-rarity=Gold]>img{animation:duel-sticker-gold 1.4s ease-out both}
+.duel-sticker-float[data-rarity=Void]>img{animation:duel-sticker-void .9s ease-in-out infinite alternate}
 @keyframes duel-sticker-gold{0%,100%{filter:drop-shadow(0 4px 5px #07040e)}38%{filter:drop-shadow(0 0 10px #ffc867) brightness(1.16)}}
 @keyframes duel-sticker-void{from{filter:drop-shadow(0 0 5px #733cb2)}to{filter:drop-shadow(0 0 15px #a257fd) brightness(1.12)}}
-@media(prefers-reduced-motion:reduce){.duel-sticker-float[data-rarity] img{animation:none}}
+@media(prefers-reduced-motion:reduce){.duel-sticker-float[data-rarity]>img{animation:none}}

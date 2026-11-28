@@ -24,3 +24,7 @@
 @keyframes cosmetic-shop-gold{0%,70%,100%{filter:none}84%{filter:drop-shadow(0 0 8px #ffc867) brightness(1.16)}}
 @keyframes cosmetic-shop-void{from{filter:drop-shadow(0 0 4px #7945ba)}to{filter:drop-shadow(0 0 14px #a257fd) brightness(1.12)}}
 @media(prefers-reduced-motion:reduce){.dv-portal .cosmetic-shop-grid [data-rarity] .cosmetic-shop-art>img{animation:none}}
+.dv-portal .cosmetic-shop-art>.sticker-scene{width:min(100%,150px);height:auto;overflow:visible}
+.dv-portal .cosmetic-motion-preview{padding:4px 6px;margin:-7px 0 11px;border:0;background:none;color:#dfc7fb;font:600 12px/1.4 system-ui,sans-serif;cursor:pointer}
+.dv-portal .cosmetic-motion-preview:is(:hover,:focus-visible){text-decoration:underline;color:#fff4ff}
+.dv-portal .cosmetic-shop-grid article:has(.sticker-scene){overflow:hidden}

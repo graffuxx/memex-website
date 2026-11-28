@@ -12,7 +12,7 @@ import {bindDuelExit112} from './duel-exit112.mjs?v=private-rematch';
 import {duelResultUrl,isDuelId,rematchDeckUrl} from '../platform/duel-rematch.mjs';
 import {PLAYABLE_ARENA112} from '../platform/arena-availability112.mjs';
 import {connectOnline90} from '../platform/account-client50.mjs?v=duel-stickers';
-import {bindDuelStickers} from './duel-stickers.mjs?v=tiers';
+import {bindDuelStickers} from './duel-stickers.mjs?v=unique-shop';
 import {createTableView} from './table-demo-view-hand17.mjs?v=hand-effects-46';
 import {previewEffect,abilityDescription,aimsAbility,turnsCards,ABILITIES,twistTargets,rageTargets,dashTargets,eventFields,fieldText,nextEvent} from './table-demo-rules.mjs?v=hand-effects-46';
 import {scores,moveTargets,cardOf,blockadeLocked,reservedCell} from './rules.mjs?v=hand-effects-46';
